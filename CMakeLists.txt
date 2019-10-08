@@ -8,7 +8,8 @@ cmake_minimum_required(VERSION 3.14.0) # not really needed
 ### General project settings
 ###
 project(pitts LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD_REQUIRED 2a)
+set(CMAKE_CXX_STANDARD_REQUIRED On)
+set(CMAKE_CXX_STANDARD 20)
 
 
 ###
