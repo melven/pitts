@@ -25,7 +25,7 @@ namespace PITTS
   //! @tparam T   underlying data type (double, complex, ...)
   //!
   template<typename T>
-  class alignas(ALIGNMENT) Chunk final : std::array<T,ALIGNMENT/sizeof(T)>
+  class alignas(ALIGNMENT) Chunk final : public std::array<T,ALIGNMENT/sizeof(T)>
   {
   private:
     //! helper type for the parent class

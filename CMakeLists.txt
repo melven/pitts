@@ -54,3 +54,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_NO_AUTOMATIC_RESIZING -DEIGEN_DO
 ### Define source files and executables
 ###
 add_subdirectory(src)
+
+
+###
+### Define test files
+###
+add_subdirectory(test)
