@@ -21,9 +21,9 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 ### Compiler recognition and flags
 ###
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  add_definitions(-DGNU)
+  add_definitions(-DGNU -march=native)
 elseif( CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  add_definitions(-DINTEL)
+  add_definitions(-DINTEL -xHOST)
 else()
   message(WARNING "Unknown CXX compiler ID '${CMAKE_CXX_COMPILER_ID}', cannot determine correct flags!")
 endif()

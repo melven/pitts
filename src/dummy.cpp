@@ -1,6 +1,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include <iostream>
+#include "pitts_tensortrain.hpp"
 
 int main(int argc, char* argv[])
 {
