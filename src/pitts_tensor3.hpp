@@ -25,7 +25,7 @@ namespace PITTS
   class Tensor3
   {
   public:
-    //! construct a new tensor with the given dimensions
+    //! create a tensor with the given dimensions
     //!
     //! As a tensor network, this is:
     //!
@@ -43,10 +43,16 @@ namespace PITTS
       resize(r1,n,r2);
     }
 
+    //! create a tensor with dimensions (0,0,0)
+    //!
+    //! Call resize, to do something useful with it...
+    //!
+    Tensor3() = default;
+
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int n, int r2)
     {
-      data.resize(r1 * r2 * std::max(1, n/chunkSize));
+      data_.resize(r1 * r2 * std::max(1, n/chunkSize));
       r1_ = r1;
       r2_ = r2;
       n_ = n;
@@ -56,14 +62,14 @@ namespace PITTS
     inline T operator()(int i1, int j, int i2) const
     {
       int k = i1 + i2*r1_ + (j/chunkSize)*r1_*r2_;
-      return data[k][j%chunkSize];
+      return data_[k][j%chunkSize];
     }
 
     //! access matrix entries (some block ordering, write access through reference)
     inline T& operator()(int i1, int j, int i2)
     {
       int k = i1 + i2*r1_ + (j/chunkSize)*r1_*r2_;
-      return data[k][j%chunkSize];
+      return data_[k][j%chunkSize];
     }
 
     //! first dimension
@@ -74,6 +80,24 @@ namespace PITTS
 
     //! third dimension
     inline auto r2() const {return r2_;}
+
+    //! set all entries to the same value
+    void setConstant(T v)
+    {
+      for(int i = 0; i < r1_; i++)
+        for(int j = 0; j < n_; j++)
+          for(int k = 0; k < r2_; k++)
+            (*this)(i,j,k) = v;
+    }
+
+    //! set to canonical unit tensor e_(i,j,k)
+    void setUnit(int ii, int jj, int kk)
+    {
+      for(int i = 0; i < r1_; i++)
+        for(int j = 0; j < n_; j++)
+          for(int k = 0; k < r2_; k++)
+            (*this)(i,j,k) = (i==ii && j==jj && k==kk) ? T(1) : T(0);
+    }
 
   protected:
     //! the array dimension of chunks
@@ -93,7 +117,7 @@ namespace PITTS
     int r2_ = 0;
 
     //! the actual data...
-    std::vector<Chunk<T>> data;
+    std::vector<Chunk<T>> data_;
   };
 }
 

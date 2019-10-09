@@ -21,6 +21,16 @@ TEST(PITTS_Tensor3, create_small)
   ASSERT_EQ(7, M.r2());
 }
 
+TEST(PITTS_Tensor3, create_empty)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  Tensor3_double M;
+
+  ASSERT_EQ(0, M.r1());
+  ASSERT_EQ(0, M.n());
+  ASSERT_EQ(0, M.r2());
+}
+
 
 // anonymous namespace
 namespace

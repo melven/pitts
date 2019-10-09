@@ -43,7 +43,7 @@ namespace PITTS
     void resize(int r1, int r2)
     {
       const auto n = r1*r2;
-      data.resize(std::max(1, n/chunkSize));
+      data_.resize(std::max(1, n/chunkSize));
       r1_ = r1;
       r2_ = r2;
     }
@@ -52,14 +52,14 @@ namespace PITTS
     inline T operator()(int i, int j) const
     {
         int k = i + j*r1_;
-        return data[k/chunkSize][k%chunkSize];
+        return data_[k/chunkSize][k%chunkSize];
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
     inline T& operator()(int i, int j)
     {
         int k = i + j*r1_;
-        return data[k/chunkSize][k%chunkSize];
+        return data_[k/chunkSize][k%chunkSize];
     }
 
     //! first dimension 
@@ -83,7 +83,7 @@ namespace PITTS
     int r2_ = 0;
 
     //! the actual data...
-    std::vector<Chunk<T>> data;
+    std::vector<Chunk<T>> data_;
   };
 }
 
