@@ -22,7 +22,7 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  class Tensor3 final
+  class Tensor3
   {
   public:
     //! construct a new tensor with the given dimensions
@@ -66,10 +66,23 @@ namespace PITTS
       return data[k][j%chunkSize];
     }
 
-  private:
-    //! the array dimension of chunks
-    static constexpr auto chunkSize = Chunk<T>::size();
+    //! first dimension
+    inline auto r1() const {return r1_;}
 
+    //! second dimension
+    inline auto n() const {return n_;}
+
+    //! third dimension
+    inline auto r2() const {return r2_;}
+
+  protected:
+    //! the array dimension of chunks
+    //!
+    //! (workaround for missing static function size() of std::array!)
+    //!
+    static constexpr int chunkSize = sizeof(Chunk<T>) / sizeof(T);
+
+  private:
     //! first dimension
     int r1_ = 0;
 
