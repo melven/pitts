@@ -39,6 +39,12 @@ namespace PITTS
       resize(r1,r2);
     }
 
+    //! create a tensor with dimensions (0,0)
+    //!
+    //! Call resize, to do something useful with it...
+    //!
+    Tensor2() = default;
+
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int r2)
     {

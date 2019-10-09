@@ -1,5 +1,5 @@
 /*! @file pitts_tensortrain.hpp
-* @brief Distributed tensor train format
+* @brief simple tensor train format
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2019-10-08
 * @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
