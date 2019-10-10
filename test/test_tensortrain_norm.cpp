@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_random.hpp"
 
 TEST(PITTS_TensorTrain_norm, rank_1_vector)
 {
@@ -16,6 +18,9 @@ TEST(PITTS_TensorTrain_norm, rank_1_vector)
 
   TT.setUnit({2});
   EXPECT_NEAR(1, norm2(TT), eps);
+
+  randomize(TT);
+  EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
 }
 
 TEST(PITTS_TensorTrain_norm, rank_2_matrix)
@@ -33,6 +38,15 @@ TEST(PITTS_TensorTrain_norm, rank_2_matrix)
 
   TT.setUnit({2,1});
   EXPECT_NEAR(1, norm2(TT), eps);
+
+  // TT-ranks==1
+  randomize(TT);
+  EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
+
+  // higher rank
+  TT.setTTranks({3});
+  randomize(TT);
+  EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
 }
 
 TEST(PITTS_TensorTrain_norm, rank_4_tensor)
@@ -50,4 +64,13 @@ TEST(PITTS_TensorTrain_norm, rank_4_tensor)
 
   TT.setUnit({0,1,1,0});
   EXPECT_NEAR(1, norm2(TT), eps);
+
+  // TT-ranks==1
+  randomize(TT);
+  EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
+
+  // higher TT-ranks
+  TT.setTTranks({3,1,2});
+  randomize(TT);
+  EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
 }

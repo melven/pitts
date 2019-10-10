@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_random.hpp"
 
 TEST(PITTS_TensorTrain_dot, rank_1_vector_self)
 {
@@ -18,6 +19,23 @@ TEST(PITTS_TensorTrain_dot, rank_1_vector_self)
   EXPECT_NEAR(1, dot(TT,TT), eps);
 }
 
+TEST(PITTS_TensorTrain_dot, rank_1_vector_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT(1,5), unitTT(1,5);
+
+  randomize(TT);
+  double tmp = 0;
+  for(int i = 0; i < 5; i++)
+  {
+    unitTT.setUnit({i});
+    tmp += std::pow(dot(TT,unitTT),2);
+  }
+  ASSERT_NEAR(tmp, dot(TT,TT), eps);
+}
+
 TEST(PITTS_TensorTrain_dot, rank_2_matrix_self)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
@@ -33,6 +51,41 @@ TEST(PITTS_TensorTrain_dot, rank_2_matrix_self)
 
   TT.setUnit({2,1});
   EXPECT_NEAR(1, dot(TT,TT), eps);
+}
+
+TEST(PITTS_TensorTrain_dot, rank_2_matrix_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT(2,5), unitTT(2,5);
+
+  // TT-rank==1
+  randomize(TT);
+  double tmp = 0;
+  for(int i = 0; i < 5; i++)
+  {
+    for(int j = 0; j < 5; j++)
+    {
+      unitTT.setUnit({i,j});
+      tmp += std::pow(dot(TT,unitTT),2);
+    }
+  }
+  ASSERT_NEAR(tmp, dot(TT,TT), eps);
+
+  // TT-rank==3
+  TT.setTTranks({3});
+  randomize(TT);
+  tmp = 0;
+  for(int i = 0; i < 5; i++)
+  {
+    for(int j = 0; j < 5; j++)
+    {
+      unitTT.setUnit({i,j});
+      tmp += std::pow(dot(TT,unitTT),2);
+    }
+  }
+  ASSERT_NEAR(tmp, dot(TT,TT), eps);
 }
 
 TEST(PITTS_TensorTrain_dot, rank_1_vector_unit)
@@ -129,3 +182,39 @@ TEST(PITTS_TensorTrain_dot, rank_4_tensor_unit)
   EXPECT_EQ(0, dot(TT1,TT2));
   EXPECT_EQ(0, dot(TT2,TT1));
 }
+
+TEST(PITTS_TensorTrain_dot, rank_4_tensor_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT(4,3), unitTT(4,3);
+
+  // TT-rank==1
+  randomize(TT);
+  double tmp = 0;
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 3; k++)
+        for(int l = 0; l < 3; l++)
+        {
+          unitTT.setUnit({i,j,k,l});
+          tmp += std::pow(dot(TT,unitTT),2);
+        }
+  EXPECT_NEAR(tmp, dot(TT,TT), eps);
+
+  // TT-rank>1
+  TT.setTTranks({2,3,2});
+  randomize(TT);
+  tmp = 0;
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 3; k++)
+        for(int l = 0; l < 3; l++)
+        {
+          unitTT.setUnit({i,j,k,l});
+          tmp += std::pow(dot(TT,unitTT),2);
+        }
+  EXPECT_NEAR(tmp, dot(TT,TT), eps);
+}
+
