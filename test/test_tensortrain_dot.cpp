@@ -33,7 +33,25 @@ TEST(PITTS_TensorTrain_dot, rank_1_vector_random)
     unitTT.setUnit({i});
     tmp += std::pow(dot(TT,unitTT),2);
   }
-  ASSERT_NEAR(tmp, dot(TT,TT), eps);
+  EXPECT_NEAR(tmp, dot(TT,TT), eps);
+}
+
+TEST(PITTS_TensorTrain_dot, rank_1_vector_random_other)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT1(1,5), TT2(1,5), unitTT(1,5);
+
+  randomize(TT1);
+  randomize(TT2);
+  double tmp = 0;
+  for(int i = 0; i < 5; i++)
+  {
+    unitTT.setUnit({i});
+    tmp += dot(TT1,unitTT) * dot(TT2,unitTT);
+  }
+  EXPECT_NEAR(tmp, dot(TT1,TT2), eps);
 }
 
 TEST(PITTS_TensorTrain_dot, rank_2_matrix_self)
@@ -53,7 +71,7 @@ TEST(PITTS_TensorTrain_dot, rank_2_matrix_self)
   EXPECT_NEAR(1, dot(TT,TT), eps);
 }
 
-TEST(PITTS_TensorTrain_dot, rank_2_matrix_random)
+TEST(PITTS_TensorTrain_dot, rank_2_matrix_random_self)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -71,7 +89,7 @@ TEST(PITTS_TensorTrain_dot, rank_2_matrix_random)
       tmp += std::pow(dot(TT,unitTT),2);
     }
   }
-  ASSERT_NEAR(tmp, dot(TT,TT), eps);
+  EXPECT_NEAR(tmp, dot(TT,TT), eps);
 
   // TT-rank==3
   TT.setTTranks({3});
@@ -85,8 +103,47 @@ TEST(PITTS_TensorTrain_dot, rank_2_matrix_random)
       tmp += std::pow(dot(TT,unitTT),2);
     }
   }
-  ASSERT_NEAR(tmp, dot(TT,TT), eps);
+  EXPECT_NEAR(tmp, dot(TT,TT), eps);
 }
+
+TEST(PITTS_TensorTrain_dot, rank_2_matrix_random_other)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT1(2,5), TT2(2,5), unitTT(2,5);
+
+  // TT-rank==1
+  randomize(TT1);
+  randomize(TT2);
+  double tmp = 0;
+  for(int i = 0; i < 5; i++)
+  {
+    for(int j = 0; j < 5; j++)
+    {
+      unitTT.setUnit({i,j});
+      tmp += dot(TT1,unitTT) * dot(TT2,unitTT);
+    }
+  }
+  EXPECT_NEAR(tmp, dot(TT1,TT2), eps);
+
+  // TT-rank>1
+  TT1.setTTranks({3});
+  randomize(TT1);
+  TT2.setTTranks({2});
+  randomize(TT2);
+  tmp = 0;
+  for(int i = 0; i < 5; i++)
+  {
+    for(int j = 0; j < 5; j++)
+    {
+      unitTT.setUnit({i,j});
+      tmp += dot(TT1,unitTT) * dot(TT2,unitTT);
+    }
+  }
+  EXPECT_NEAR(tmp, dot(TT1,TT2), eps);
+}
+
 
 TEST(PITTS_TensorTrain_dot, rank_1_vector_unit)
 {
@@ -183,7 +240,7 @@ TEST(PITTS_TensorTrain_dot, rank_4_tensor_unit)
   EXPECT_EQ(0, dot(TT2,TT1));
 }
 
-TEST(PITTS_TensorTrain_dot, rank_4_tensor_random)
+TEST(PITTS_TensorTrain_dot, rank_4_tensor_random_self)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -218,3 +275,26 @@ TEST(PITTS_TensorTrain_dot, rank_4_tensor_random)
   EXPECT_NEAR(tmp, dot(TT,TT), eps);
 }
 
+TEST(PITTS_TensorTrain_dot, large_rank_4_tensor_random_other)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT1(4,8), TT2(4,8), unitTT(4,8);
+
+  // set larger TT-ranks
+  TT1.setTTranks({2,5,3});
+  randomize(TT1);
+  TT2.setTTranks({3,2,2});
+  randomize(TT2);
+  double tmp = 0;
+  for(int i = 0; i < 8; i++)
+    for(int j = 0; j < 8; j++)
+      for(int k = 0; k < 8; k++)
+        for(int l = 0; l < 8; l++)
+        {
+          unitTT.setUnit({i,j,k,l});
+          tmp += dot(TT1,unitTT) * dot(TT2,unitTT);
+        }
+  EXPECT_NEAR(tmp, dot(TT1,TT2), eps);
+}
