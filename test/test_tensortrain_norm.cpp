@@ -34,3 +34,20 @@ TEST(PITTS_TensorTrain_norm, rank_2_matrix)
   TT.setUnit({2,1});
   EXPECT_NEAR(1, norm2(TT), eps);
 }
+
+TEST(PITTS_TensorTrain_norm, rank_4_tensor)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrain_double TT(4,2);
+
+  TT.setZero();
+  EXPECT_EQ(0, norm2(TT));
+
+  TT.setOnes();
+  EXPECT_NEAR(std::sqrt(2*2*2*2), norm2(TT), eps);
+
+  TT.setUnit({0,1,1,0});
+  EXPECT_NEAR(1, norm2(TT), eps);
+}
