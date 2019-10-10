@@ -35,6 +35,11 @@ namespace PITTS
       //! allow const access to all sub-tensors
       const auto& subTensors() const {return subTensors_;}
 
+      //! allow non-const access to all sub-tensors
+      //!
+      //! \warning Do not modify sub-tensor dimensions here, only their values!
+      //!
+      auto& editableSubTensors() {return subTensors_;}
 
       //! create a new tensor train that represents a n^d tensor
       TensorTrain(int d, int n, int initial_TTrank = 1) : TensorTrain(std::vector<int>(d,n), initial_TTrank) {}
@@ -80,6 +85,9 @@ namespace PITTS
       }
 
       //! make this a tensor of zeros
+      //!
+      //! \warning intended for testing purposes
+      //!
       void setZero()
       {
         // we use a rank of one...
@@ -89,6 +97,9 @@ namespace PITTS
       }
 
       //! make this a tensor of ones
+      //!
+      //! \warning intended for testing purposes
+      //!
       void setOnes()
       {
         // we use a rank of one...
@@ -98,6 +109,9 @@ namespace PITTS
       }
 
       //! make this a canonical unit tensor in the given direction
+      //!
+      //! \warning intended for testing purposes
+      //!
       void setUnit(const std::vector<int>& index)
       {
         if( index.size() != dimensions.size() )
