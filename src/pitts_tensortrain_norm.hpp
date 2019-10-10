@@ -50,6 +50,7 @@ namespace PITTS
       {
         for(int j = 0; j < r2; j++)
         {
+          t2(i,j) = T(0);
           for(int i_ = 0; i_ < r1; i_++)
           {
             for(int j_ = 0; j_ < r1; j_++)
