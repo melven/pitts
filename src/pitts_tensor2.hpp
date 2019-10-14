@@ -49,7 +49,7 @@ namespace PITTS
     void resize(int r1, int r2)
     {
       const auto n = r1*r2;
-      data_.resize(std::max(1, n/chunkSize));
+      data_.resize(std::max(1, (n-1)/chunkSize+1));
       r1_ = r1;
       r2_ = r2;
     }

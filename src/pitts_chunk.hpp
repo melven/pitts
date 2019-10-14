@@ -17,7 +17,7 @@
 namespace PITTS
 {
   //! global alignment (in bytes) to allow SIMD / improve memory accesses
-  constexpr auto ALIGNMENT = 512;
+  constexpr auto ALIGNMENT = 64;
 
 
   //! helper type for SIMD: a small aligned array of data
@@ -36,6 +36,16 @@ namespace PITTS
   {
     for(int i = 0; i < Chunk<T>::size; i++)
       c[i] += a[i]*b[i];
+  }
+
+  //! small helper function to sum up all elements of a chunk
+  template<typename T>
+  constexpr T sum(const Chunk<T>& a)
+  {
+    T tmp = T(0);
+    for(int i = 0; i < Chunk<T>::size; i++)
+      tmp += a[i];
+    return tmp;
   }
 }
 

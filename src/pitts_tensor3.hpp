@@ -12,6 +12,7 @@
 
 // includes
 #include <vector>
+#include <memory>
 #include "pitts_chunk.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -52,7 +53,7 @@ namespace PITTS
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int n, int r2)
     {
-      data_.resize(r1 * r2 * std::max(1, n/chunkSize));
+      data_.resize(r1 * r2 * std::max(1, (n-1)/chunkSize+1));
       r1_ = r1;
       r2_ = r2;
       n_ = n;
@@ -72,11 +73,30 @@ namespace PITTS
       return data_[k][j%chunkSize];
     }
 
+    //! chunk-wise access
+    const Chunk<T>& chunk(int i1, int j, int i2) const
+    {
+      const int k = i1 + i2*r1_ + j*r1_*r2_;
+      const auto pdata = std::assume_aligned<ALIGNMENT>(data_.data());
+      return pdata[k];
+    }
+
+    //! chunk-wise access
+    Chunk<T>& chunk(int i1, int j, int i2)
+    {
+      const int k = i1 + i2*r1_ + j*r1_*r2_;
+      auto pdata = std::assume_aligned<ALIGNMENT>(data_.data());
+      return pdata[k];
+    }
+
     //! first dimension
     inline auto r1() const {return r1_;}
 
     //! second dimension
     inline auto n() const {return n_;}
+
+    //! number  of chunks in the second dimension
+    inline auto nChunks() const {return (n_-1)/chunkSize+1;}
 
     //! third dimension
     inline auto r2() const {return r2_;}

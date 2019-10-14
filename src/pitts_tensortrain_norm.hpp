@@ -44,7 +44,7 @@ namespace PITTS
     {
       const auto r1 = subT.r1();
       const auto r2 = subT.r2();
-      const auto n = subT.n();
+      const auto nChunks = subT.nChunks();
       t2.resize(r2,r2);
       for(int i = 0; i < r2; i++)
       {
@@ -55,10 +55,10 @@ namespace PITTS
           {
             for(int j_ = 0; j_ < r1; j_++)
             {
-              T tmp = T(0);
-              for(int k = 0; k < n; k++)
-                tmp += subT(i_,k,i)*subT(j_,k,j);
-              t2(i,j) += last_t2(i_,j_)*tmp;
+              Chunk<T> tmp{};
+              for(int k = 0; k < nChunks; k++)
+                fmadd(subT.chunk(i_,k,i), subT.chunk(j_,k,j), tmp);
+              t2(i,j) += last_t2(i_,j_)*sum(tmp);
             }
           }
         }

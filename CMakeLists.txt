@@ -22,7 +22,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 ### Compiler recognition and flags
 ###
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  add_definitions(-DGNU -march=native)
+  add_definitions(-DGNU -march=native -ffast-math -fopt-info-missed)
 elseif( CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   add_definitions(-DINTEL -xHOST)
 else()
