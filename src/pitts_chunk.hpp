@@ -25,16 +25,18 @@ namespace PITTS
   //! @tparam T   underlying data type (double, complex, ...)
   //!
   template<typename T>
-  class alignas(ALIGNMENT) Chunk final : public std::array<T,ALIGNMENT/sizeof(T)>
+  struct alignas(ALIGNMENT) Chunk final : public std::array<T,ALIGNMENT/sizeof(T)>
   {
-  private:
-    //! helper type for the parent class
-    using BaseClass = std::array<T,ALIGNMENT/sizeof(T)>;
-
-  public:
-    //! use base class constructors
-    using BaseClass::BaseClass;
+    static constexpr auto size = ALIGNMENT/sizeof(T);
   };
+
+  //! small helper function to add up the element-wise product of two chunks
+  template<typename T>
+  constexpr void fmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c)
+  {
+    for(int i = 0; i < Chunk<T>::size; i++)
+      c[i] += a[i]*b[i];
+  }
 }
 
 

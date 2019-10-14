@@ -79,7 +79,7 @@ namespace PITTS
     //!
     //! (workaround for missing static function size() of std::array!)
     //!
-    static constexpr int chunkSize = sizeof(Chunk<T>) / sizeof(T);
+    static constexpr int chunkSize = Chunk<T>::size;
 
   private:
     //! first dimension

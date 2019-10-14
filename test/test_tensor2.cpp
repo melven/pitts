@@ -27,7 +27,7 @@ TEST(PITTS_Tensor2, chunkSize)
   using Tensor2_double = PITTS::Tensor2<double>;
   Chunk_double chunk;
 
-  EXPECT_EQ(chunk.size(), ChunkSize<Tensor2_double>::value);
+  EXPECT_EQ(chunk.size, ChunkSize<Tensor2_double>::value);
 }
 
 TEST(PITTS_Tensor2, resize)

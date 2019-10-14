@@ -49,7 +49,7 @@ TEST(PITTS_Tensor3, chunkSize)
   using Tensor3_double = PITTS::Tensor3<double>;
   Chunk_double chunk;
 
-  EXPECT_EQ(chunk.size(), ChunkSize<Tensor3_double>::value);
+  EXPECT_EQ(chunk.size, ChunkSize<Tensor3_double>::value);
 }
 
 TEST(PITTS_Tensor3, resize)
