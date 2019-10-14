@@ -12,6 +12,7 @@
 
 // includes
 #include <array>
+#include <immintrin.h>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -36,6 +37,20 @@ namespace PITTS
   {
     for(int i = 0; i < Chunk<T>::size; i++)
       c[i] += a[i]*b[i];
+  }
+
+  // specialization for double for dumb compilers
+  template<>
+  constexpr void fmadd<double>(const Chunk<double>& a, const Chunk<double>& b, Chunk<double>& c)
+  {
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256d ai = _mm256_load_pd(&a[4*i]);
+      __m256d bi = _mm256_load_pd(&b[4*i]);
+      __m256d ci = _mm256_load_pd(&c[4*i]);
+      ci = _mm256_fmadd_pd(ai,bi,ci);
+      _mm256_store_pd(&c[4*i],ci);
+    }
   }
 
   //! small helper function to sum up all elements of a chunk

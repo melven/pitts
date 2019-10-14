@@ -3,14 +3,10 @@
 #include <iostream>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_random.hpp"
 
-double TT_norm(const PITTS::TensorTrain<double>& TT)
-{
-  return norm2(TT);
-}
 
-  /*
 int main(int argc, char* argv[])
 {
   if( MPI_Init(&argc, &argv) != 0 )
@@ -29,15 +25,19 @@ int main(int argc, char* argv[])
       std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
   }
 
-  PITTS::TensorTrain<double> TT(10,100);
-  TT.setTTranks({1,2,3,4,5,6,7,8,9});
-  randomize(TT);
-  double nrm = norm2(TT);
-  return int(nrm);
-  std::cout << "Random norm: " << nrm << std::endl;
+  PITTS::TensorTrain<double> TT1(10,1000), TT2(10,1000);
+  TT1.setTTranks({1,2,3,4,20,6,7,8,9});
+  randomize(TT1);
+  TT2.setTTranks({3,2,1,5,15,5,2,1,5});
+  randomize(TT2);
+  double tmp = 0;
+  for(int iter = 0; iter < 1000; iter++)
+  {
+    tmp += norm2(TT1)+norm2(TT2);
+  }
+  std::cout << "random: " << tmp << std::endl;
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");
   return 0;
 }
-    */
