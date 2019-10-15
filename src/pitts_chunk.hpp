@@ -33,7 +33,7 @@ namespace PITTS
 
   //! small helper function to add up the element-wise product of two chunks
   template<typename T>
-  constexpr void fmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c)
+  inline void fmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c)
   {
     for(int i = 0; i < Chunk<T>::size; i++)
       c[i] += a[i]*b[i];
@@ -41,8 +41,18 @@ namespace PITTS
 
   // specialization for double for dumb compilers
   template<>
-  constexpr void fmadd<double>(const Chunk<double>& a, const Chunk<double>& b, Chunk<double>& c)
+  inline void fmadd<double>(const Chunk<double>& a, const Chunk<double>& b, Chunk<double>& c)
   {
+#if defined(__AVX512F__)
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512d ai = _mm512_load_pd(&a[8*i]);
+      __m512d bi = _mm512_load_pd(&b[8*i]);
+      __m512d ci = _mm512_load_pd(&c[8*i]);
+      ci = _mm512_fmadd_pd(ai,bi,ci);
+      _mm512_store_pd(&c[8*i],ci);
+    }
+#elif defined(__AVX2__)
     for(int i = 0; i < ALIGNMENT/32; i++)
     {
       __m256d ai = _mm256_load_pd(&a[4*i]);
@@ -51,11 +61,14 @@ namespace PITTS
       ci = _mm256_fmadd_pd(ai,bi,ci);
       _mm256_store_pd(&c[4*i],ci);
     }
+#else
+#error "PITTS requires at least AVX2 support!"
+#endif
   }
 
   //! small helper function to sum up all elements of a chunk
   template<typename T>
-  constexpr T sum(const Chunk<T>& a)
+  inline T sum(const Chunk<T>& a)
   {
     T tmp = T(0);
     for(int i = 0; i < Chunk<T>::size; i++)
