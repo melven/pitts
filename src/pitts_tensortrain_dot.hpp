@@ -53,7 +53,7 @@ namespace PITTS
       {
         for(int j = 0; j < r22; j++)
         {
-          t2(i,j) = T(0);
+          T t2ij = T(0);
           for(int i_ = 0; i_ < r11; i_++)
           {
             for(int j_ = 0; j_ < r21; j_++)
@@ -61,9 +61,10 @@ namespace PITTS
               Chunk<T> tmp{};
               for(int k = 0; k < nChunks; k++)
                 fmadd(subT1.chunk(i_,k,i), subT2.chunk(j_,k,j), tmp);
-              t2(i,j) += last_t2(i_,j_)*sum(tmp);
+              t2ij += last_t2(i_,j_)*sum(tmp);
             }
           }
+          t2(i,j) = t2ij;
         }
       }
       last_t2 = t2;

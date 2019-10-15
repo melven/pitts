@@ -25,15 +25,15 @@ int main(int argc, char* argv[])
       std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
   }
 
-  PITTS::TensorTrain<double> TT1(10,1000), TT2(10,1000);
-  TT1.setTTranks({1,2,3,4,20,6,7,8,9});
+  using Type = double;
+  PITTS::TensorTrain<Type> TT1(10,100);
+  const int r = 20;
+  TT1.setTTranks({r,r,r,r,r,r,r,r,r});
   randomize(TT1);
-  TT2.setTTranks({3,2,1,5,15,5,2,1,5});
-  randomize(TT2);
-  double tmp = 0;
+  Type tmp = 0;
   for(int iter = 0; iter < 1000; iter++)
   {
-    tmp += norm2(TT1)+norm2(TT2);
+    tmp += norm2(TT1);
   }
   std::cout << "random: " << tmp << std::endl;
 
