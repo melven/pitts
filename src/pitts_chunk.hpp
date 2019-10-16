@@ -18,7 +18,7 @@
 namespace PITTS
 {
   //! global alignment (in bytes) to allow SIMD / improve memory accesses
-  constexpr auto ALIGNMENT = 64;
+  constexpr auto ALIGNMENT = 128;
 
 
   //! helper type for SIMD: a small aligned array of data
@@ -93,6 +93,41 @@ namespace PITTS
 #endif
   }
 
+  //! small helper function to add up the element-wise product of two chunks
+  template<typename T>
+  inline void fmadd(T a, const Chunk<T>& b, Chunk<T>& c)
+  {
+    for(int i = 0; i < Chunk<T>::size; i++)
+      c[i] += a*b[i];
+  }
+
+  // specialization for double for dumb compilers
+  template<>
+  inline void fmadd<double>(double a, const Chunk<double>& b, Chunk<double>& c)
+  {
+#if defined(__AVX512F__)
+    __m512d ai = _mm512_set1_pd(a);
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512d bi = _mm512_load_pd(&b[8*i]);
+      __m512d ci = _mm512_load_pd(&c[8*i]);
+      ci = _mm512_fmadd_pd(ai,bi,ci);
+      _mm512_store_pd(&c[8*i],ci);
+    }
+#elif defined(__AVX2__)
+    __m256d ai = _mm256_set1_pd(a);
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256d bi = _mm256_load_pd(&b[4*i]);
+      __m256d ci = _mm256_load_pd(&c[4*i]);
+      ci = _mm256_fmadd_pd(ai,bi,ci);
+      _mm256_store_pd(&c[4*i],ci);
+    }
+#else
+#error "PITTS requires at least AVX2 support!"
+#endif
+  }
+
   //! small helper function to sum up all elements of a chunk
   template<typename T>
   inline T sum(const Chunk<T>& a)
@@ -100,6 +135,16 @@ namespace PITTS
     T tmp = T(0);
     for(int i = 0; i < Chunk<T>::size; i++)
       tmp += a[i];
+    return tmp;
+  }
+
+  //! small helper function to scale and sum up all elements of a chunk
+  template<typename T>
+  inline T scaled_sum(T scale, const Chunk<T>& a)
+  {
+    T tmp = T(0);
+    for(int i = 0; i < Chunk<T>::size; i++)
+      tmp += scale * a[i];
     return tmp;
   }
 }

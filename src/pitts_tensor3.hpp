@@ -60,23 +60,23 @@ namespace PITTS
     }
 
     //! access matrix entries (some block ordering, const variant)
-    inline T operator()(int i1, int j, int i2) const
+    inline const T& operator()(int i1, int j, int i2) const
     {
-      int k = i1 + i2*r1_ + (j/chunkSize)*r1_*r2_;
+      const int k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
       return data_[k][j%chunkSize];
     }
 
     //! access matrix entries (some block ordering, write access through reference)
     inline T& operator()(int i1, int j, int i2)
     {
-      int k = i1 + i2*r1_ + (j/chunkSize)*r1_*r2_;
+      const int k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
       return data_[k][j%chunkSize];
     }
 
     //! chunk-wise access
     const Chunk<T>& chunk(int i1, int j, int i2) const
     {
-      const int k = i1 + i2*r1_ + j*r1_*r2_;
+      const int k = i1 + j*r1_ + i2*r1_*nChunks();
       const auto pdata = std::assume_aligned<ALIGNMENT>(data_.data());
       return pdata[k];
     }
@@ -84,7 +84,7 @@ namespace PITTS
     //! chunk-wise access
     Chunk<T>& chunk(int i1, int j, int i2)
     {
-      const int k = i1 + i2*r1_ + j*r1_*r2_;
+      const int k = i1 + j*r1_ + i2*r1_*nChunks();
       auto pdata = std::assume_aligned<ALIGNMENT>(data_.data());
       return pdata[k];
     }

@@ -12,6 +12,7 @@
 
 // includes
 #include <vector>
+#include <memory>
 #include "pitts_chunk.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -55,17 +56,21 @@ namespace PITTS
     }
 
     //! access matrix entries (column-wise ordering, const variant)
-    inline T operator()(int i, int j) const
+    inline const T& operator()(int i, int j) const
     {
         int k = i + j*r1_;
-        return data_[k/chunkSize][k%chunkSize];
+        //return data_[k/chunkSize][k%chunkSize];
+        const auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
+        return pdata[k];
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
     inline T& operator()(int i, int j)
     {
         int k = i + j*r1_;
-        return data_[k/chunkSize][k%chunkSize];
+        //return data_[k/chunkSize][k%chunkSize];
+        auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
+        return pdata[k];
     }
 
     //! first dimension 
