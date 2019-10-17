@@ -8,7 +8,7 @@
 
 // include guard
 #ifndef PITTS_TENSORTRAIN_RANDOM_HPP
-#define PITTS_TENSORTRAIN_NORM_HPP
+#define PITTS_TENSORTRAIN_RANDOM_HPP
 
 // includes
 #include <random>
