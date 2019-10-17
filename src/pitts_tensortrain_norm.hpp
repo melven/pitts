@@ -54,8 +54,10 @@ namespace PITTS
       const auto nChunks = subT.nChunks();
       flops += 2*r1*r1*r2*r2*(n+1);
 
+      // loop unrolling parameter (but unrolling is done by hand below!)
+      constexpr auto unrollSize = 2;
+
       // copy last result
-constexpr auto unrollSize = 2;
       const int r1_padded = unrollSize * (1 + (r1-1)/unrollSize);
       last_t2.resize(r1_padded,r1_padded);
       for(int j_ = 0; j_ < r1_padded; j_++)
@@ -67,7 +69,10 @@ constexpr auto unrollSize = 2;
       for(int j = 0; j < r2; j++)
         for(int i = 0; i < r2; i++)
           t2(i,j) = T(0);
+      T* t2data = &t2(0,0);
+      const auto t2size = r2*r2;
 
+#pragma omp parallel for schedule(static) reduction(+:t2data[:t2size])
       for(int k = 0; k < nChunks; k++)
       {
         for(int j = 0; j < r2; j++)
@@ -88,7 +93,8 @@ constexpr auto unrollSize = 2;
               if( jb_+1 < r1 )
                 fmadd(subT.chunk(jb_+1,k,j),tmp21,tmp1);
             }
-            t2(i,j) += sum(tmp1);
+            // this directly works on a pointer for the data of t2 to allow an OpenMP array reduction
+            t2data[i+j*r2] += sum(tmp1);
           }
       }
     }
