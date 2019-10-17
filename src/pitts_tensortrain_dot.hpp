@@ -56,7 +56,7 @@ namespace PITTS
       const auto n = subT1.n();
       const auto nChunks = subT1.nChunks();
 
-      //flops += 2*r11*r12*r21*r22*(n+1);
+      flops += 2.*r11*r12*r21*r22*(n+1.);
 
       // loop unrolling parameter (but unrolling is done by hand below!)
       constexpr auto unrollSize = 2;
