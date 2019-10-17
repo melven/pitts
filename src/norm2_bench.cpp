@@ -3,7 +3,6 @@
 #include <iostream>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
-#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_random.hpp"
 
 
