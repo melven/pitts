@@ -13,6 +13,7 @@
 // includes
 #include <random>
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensor3_random.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -24,19 +25,8 @@ namespace PITTS
   template<typename T>
   void randomize(TensorTrain<T>& TT)
   {
-    std::random_device randomSeed;
-    std::mt19937 randomGenerator(randomSeed());
-    std::uniform_real_distribution<T> distribution(T(-1), T(1));
     for(auto& subT: TT.editableSubTensors())
-    {
-      const auto r1 = subT.r1();
-      const auto r2 = subT.r2();
-      const auto n = subT.n();
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            subT(i,j,k) = distribution(randomGenerator);
-    }
+      randomize(subT);
   }
 
 }
