@@ -4,6 +4,7 @@ target_sources(pitts INTERFACE
   pitts_tensor2.hpp
   pitts_tensor2_random.hpp
   pitts_tensor2_eigen_adaptor.hpp
+  pitts_tensor2_qb_decomposition.hpp
   pitts_tensor3.hpp
   pitts_tensor3_random.hpp
   pitts_tensortrain.hpp
