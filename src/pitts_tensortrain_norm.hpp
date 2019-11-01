@@ -53,7 +53,7 @@ namespace PITTS
       const auto n = subT.n();
       const auto nChunks = subT.nChunks();
 
-      flops += 2.*r1*r1*r2*r2*(n+1.);
+      flops += 2.*r1*r1*(r2*(r2+1))/2.*(n+1.);
 
       // loop unrolling parameter (but unrolling is done by hand below!)
       constexpr auto unrollSize = 2;
@@ -76,8 +76,9 @@ namespace PITTS
 #pragma omp parallel for schedule(static) reduction(+:t2data[:t2size])
       for(int k = 0; k < nChunks; k++)
       {
+        // only calculate upper triangular part
         for(int j = 0; j < r2; j++)
-          for(int i = 0; i < r2; i++)
+          for(int i = 0; i <= j; i++)
           {
             Chunk<T> tmp1{};
             for(int jb_ = 0; jb_ < r1; jb_+=2)
@@ -98,6 +99,10 @@ namespace PITTS
             t2data[i+j*r2] += sum(tmp1);
           }
       }
+      // copy upper triangular part to lower triangular part (symmetric!)
+      for(int j = 0; j < r2; j++)
+        for(int i = j+1; i < r2; i++)
+          t2(i,j) = t2(j,i);
     }
     //wtime = omp_get_wtime()-wtime;
     //std::cout << "GFlop/s: " << flops/wtime*1.e-9 << std::endl;
