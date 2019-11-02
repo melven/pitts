@@ -11,6 +11,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_norm.hpp
   pitts_tensortrain_dot.hpp
   pitts_tensortrain_random.hpp
+  pitts_tensortrain_normalize.hpp
   )
 
 # test executables
