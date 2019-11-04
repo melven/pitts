@@ -35,19 +35,19 @@ namespace
   }
 
   // helper function to call normalize on a tensor train and do common checks
-  void check_normalize(const TensorTrain_double& refTT)
+  void check_normalize(TensorTrain_double& TT)
   {
-    TensorTrain_double TT = refTT;
+    const TensorTrain_double refTT = TT;
     const double TTnorm = normalize(TT);
 
-    ASSERT_NEAR(norm2(refTT), TTnorm, eps);
-    ASSERT_NEAR(1., norm2(TT), eps);
+    EXPECT_NEAR(norm2(refTT), TTnorm, eps);
+    EXPECT_NEAR(1., norm2(TT), eps);
 
     // check orthogonality of subtensors
     for(const auto& subT: TT.subTensors())
     {
       const mat orthogErr = ConstEigenMap(leftContract(subT)) - mat::Identity(subT.r2(),subT.r2());
-      ASSERT_NEAR(0., orthogErr.norm(), eps);
+      EXPECT_NEAR(0., orthogErr.norm(), eps);
     }
 
     // check tensor is the same, except for scaling...
@@ -57,7 +57,7 @@ namespace
       for(int i = 0; i < TT.dimensions[0]; i++)
       {
         testTT.setUnit({i});
-        ASSERT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps);
+        EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps);
       }
     }
     else if( TT.dimensions.size() == 2 )
@@ -66,7 +66,7 @@ namespace
         for(int j = 0; j < TT.dimensions[1]; j++)
         {
           testTT.setUnit({i,j});
-          ASSERT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps);
+          EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps);
         }
     }
     else
@@ -74,7 +74,7 @@ namespace
       for(int i = 0; i < 10; i++)
       {
         randomize(testTT);
-        ASSERT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps*norm2(testTT));
+        EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps*norm2(testTT));
       }
     }
   }
@@ -125,8 +125,10 @@ TEST(PITTS_TensorTrain_normalize, rank_1_random_matrix)
 TEST(PITTS_TensorTrain_normalize, rank_3_ones_matrix)
 {
   TensorTrain_double TT(2,5,3);
-  TT.setOnes();
+  for(auto& subT: TT.editableSubTensors())
+    subT.setConstant(1.);
   check_normalize(TT);
+  EXPECT_EQ(std::vector<int>({1}), TT.getTTranks());
 }
 
 TEST(PITTS_TensorTrain_normalize, rank_3_random_matrix)
@@ -154,8 +156,10 @@ TEST(PITTS_TensorTrain_normalize, larger_ones_tensor)
 {
   TensorTrain_double TT({4,3,2,5});
   TT.setTTranks({2,3,4});
-  TT.setOnes();
+  for(auto& subT: TT.editableSubTensors())
+    subT.setConstant(1.);
   check_normalize(TT);
+  EXPECT_EQ(std::vector<int>({1,1,1}), TT.getTTranks());
 }
 
 TEST(PITTS_TensorTrain_normalize, larger_random_tensor)
@@ -170,8 +174,10 @@ TEST(PITTS_TensorTrain_normalize, even_larger_ones_tensor)
 {
   TensorTrain_double TT({50,30,10}, 1);
   TT.setTTranks({5,10});
-  TT.setOnes();
+  for(auto& subT: TT.editableSubTensors())
+    subT.setConstant(1.);
   check_normalize(TT);
+  EXPECT_EQ(std::vector<int>({1,1}), TT.getTTranks());
 }
 
 TEST(PITTS_TensorTrain_normalize, even_larger_random_tensor)

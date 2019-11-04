@@ -50,11 +50,15 @@ namespace PITTS
     //double wtime = omp_get_wtime();
     double flops = 0;
 
+    // Auxiliary tensor of rank-3, for adjusting the size of the subtensors!
+    Tensor3<T> t3_tmp;
+
     // Auxiliary tensor of rank-2, currently contracted
     Tensor2<T> t2_M(1,1);
     t2_M(0,0) = T(1);
     Tensor2<T> t2_B(1,1);
     t2_B(0,0) = T(1);
+    int new_r1 = 1;
 
     Tensor2<T> last_t2_M;
     Tensor2<T> last_t2_B, t2_Binv;
@@ -85,6 +89,9 @@ namespace PITTS
       T* t2data = &t2_M(0,0);
       const auto t2size = r2*r2;
 
+      // prepare sub-tensor for replacing with possibly smaller version
+      std::swap(subT,t3_tmp);
+      subT.resize(new_r1,n,r2);
       // calculate
       // subT = t2_B * subT
       // t2_M = subT^T subT
@@ -95,20 +102,19 @@ namespace PITTS
         {
           Chunk<T> row[r1];
           for(int i = 0; i < r1; i++)
-          {
-            row[i] = subT.chunk(i,k,j);
+            row[i] = t3_tmp.chunk(i,k,j);
+          for(int i = 0; i < new_r1; i++)
             subT.chunk(i,k,j) = Chunk<T>{};
-          }
           for(int i_ = 0; i_ < r1; i_++)
           {
-            for(int i = 0; i < r1; i++)
+            for(int i = 0; i < new_r1; i++)
               fmadd(t2_B(i,i_),row[i_],subT.chunk(i,k,j));
           }
           // unly consider upper triangular part (exploit symmetry)
           for(int i = 0; i <= j; i++)
           {
             Chunk<T> tmp{};
-            for(int i_ = 0; i_ < r1; i_++)
+            for(int i_ = 0; i_ < new_r1; i_++)
               fmadd(subT.chunk(i_,k,i), subT.chunk(i_,k,j), tmp);
             // this directly works on a pointer for the data of t2_M to allow an OpenMP array reduction
             t2data[i+j*r2] += sum(tmp);
@@ -123,28 +129,31 @@ namespace PITTS
 
       // calculate t2_B with t2_B^T t2_B = t2_M
       std::swap(last_t2_B, t2_B);
-      const auto new_r2 = qb_decomposition(t2_M, t2_B, t2_Binv, rankTolerance);
+      auto new_r2 = qb_decomposition(t2_M, t2_B, t2_Binv, rankTolerance);
 
+      // prepare sub-tensor for replacing with possibly smaller version
+      std::swap(subT,t3_tmp);
+      subT.resize(new_r1,n,new_r2);
       // calculate subT = subT * t2_Binv
 #pragma omp parallel for schedule(static)
       for(int k = 0; k < nChunks; k++)
       {
-        for(int i = 0; i < r1; i++)
+        for(int i = 0; i < new_r1; i++)
         {
           Chunk<T> col[r2];
           for(int j = 0; j < r2; j++)
-          {
-            col[j] = subT.chunk(i,k,j);
+            col[j] = t3_tmp.chunk(i,k,j);
+          for(int j = 0; j < new_r2; j++)
             subT.chunk(i,k,j) = Chunk<T>{};
-          }
           for(int j_ = 0; j_ < r2; j_++)
           {
-            for(int j = 0; j < r2; j++)
+            for(int j = 0; j < new_r2; j++)
               fmadd(t2_Binv(j_,j), col[j_], subT.chunk(i,k,j));
           }
         }
       }
 
+      new_r1 = new_r2;
     }
     //wtime = omp_get_wtime()-wtime;
     //std::cout << "GFlop/s: " << flops/wtime*1.e-9 << std::endl;
