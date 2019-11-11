@@ -18,3 +18,4 @@ target_sources(pitts INTERFACE
 # test executables
 add_executable(norm2_bench norm2_bench.cpp)
 add_executable(dot_bench dot_bench.cpp)
+add_executable(normalize_bench normalize_bench.cpp)
