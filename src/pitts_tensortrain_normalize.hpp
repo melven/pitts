@@ -130,6 +130,12 @@ namespace PITTS
       // calculate t2_B with t2_B^T t2_B = t2_M
       std::swap(last_t2_B, t2_B);
       auto new_r2 = qb_decomposition(t2_M, t2_B, t2_Binv, rankTolerance);
+      // handle zero case
+      if( new_r2 == 0 )
+      {
+        TT.setZero();
+        return T(0);
+      }
 
       // prepare sub-tensor for replacing with possibly smaller version
       std::swap(subT,t3_tmp);

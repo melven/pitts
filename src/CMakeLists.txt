@@ -13,6 +13,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_random.hpp
   pitts_tensortrain_normalize.hpp
   pitts_tensortrain_axpby.hpp
+  pitts_tensortrain_laplace_operator.hpp
   )
 
 # test executables
