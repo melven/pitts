@@ -41,6 +41,38 @@ TEST(PITTS_TensorTrain_laplace_operator, rank_1_vector)
   }
 }
 
+TEST(PITTS_TensorTrain_laplace_operator, large_rank_1_vector)
+{
+  const auto n = 50;
+  TensorTrain_double TT(1,n);
+
+  TT.setZero();
+  double norm = laplaceOperator(TT);
+  EXPECT_EQ(0, norm2(TT));
+
+  TT.setOnes();
+  norm = laplaceOperator(TT);
+  EXPECT_NEAR(-1./(n+1), norm*TT.subTensors()[0](0,0,0), eps);
+  for(int i = 1; i < n-1; i++)
+  {
+    EXPECT_NEAR(0., norm * TT.subTensors()[0](0, i, 0), eps);
+  }
+  EXPECT_NEAR(-1./(n+1), norm*TT.subTensors()[0](0,n-1,0), eps);
+
+  randomize(TT);
+  std::array<double, n+2> oldVec;
+  oldVec[0] = 0.;
+  for(int i = 0; i < n; i++)
+    oldVec[i+1] = TT.subTensors()[0](0,i,0);
+  oldVec[n+1] = 0.;
+  norm = laplaceOperator(TT);
+  for(int i = 0; i < n; i++)
+  {
+    EXPECT_NEAR(1./(n+1)*oldVec[i]-2./(n+1)*oldVec[i+1]+1./(n+1)*oldVec[i+2], norm*TT.subTensors()[0](0,i,0), eps);
+  }
+}
+
+
 TEST(PITTS_TensorTrain_laplace_operator, rank_2_matrix)
 {
   TensorTrain_double TT({3,5},1);
@@ -94,6 +126,62 @@ TEST(PITTS_TensorTrain_laplace_operator, rank_2_matrix)
     }
   }
 }
+
+TEST(PITTS_TensorTrain_laplace_operator, large_rank_2_matrix)
+{
+  const auto n = 17;
+  TensorTrain_double TT({n,n},1);
+
+  TT.setZero();
+  double norm = laplaceOperator(TT);
+  EXPECT_EQ(0, norm2(TT));
+
+  TT.setOnes();
+  norm = laplaceOperator(TT);
+  TensorTrain_double testTT({n,n},1);
+  for(int i = 0; i < n; i++)
+  {
+    for(int j = 0; j < n; j++)
+    {
+      double refResult = 0;
+      if( i == 0 || i+1 == n )
+        refResult += -1./(n+1);
+      if( j == 0 || j+1 == n )
+        refResult += -1./(n+1);
+      testTT.setUnit({i,j});
+      EXPECT_NEAR(refResult, norm*dot(TT,testTT), eps);
+    }
+  }
+
+  TT.setTTranks({2});
+  randomize(TT);
+  std::array<std::array<double, n+2>,n+2> oldMat;
+  for(int i = 0; i < n+2; i++)
+  {
+    for(int j = 0; j < n+2; j++)
+    {
+      if( i > 0 && i+1 < n+2 && j > 0 && j+1 < n+2 )
+      {
+        testTT.setUnit({i-1,j-1});
+        oldMat[i][j] = dot(TT,testTT);
+      }
+      else
+        oldMat[i][j] = 0.;
+    }
+  }
+  norm = laplaceOperator(TT);
+  for(int i = 0; i < n; i++)
+  {
+    for(int j = 0; j < n; j++)
+    {
+      double refResult = 1./(n+1)*oldMat[i][j+1] - 2./(n+1)*oldMat[i+1][j+1] + 1./(n+1)*oldMat[i+2][j+1]
+                       + 1./(n+1)*oldMat[i+1][j] - 2./(n+1)*oldMat[i+1][j+1] + 1./(n+1)*oldMat[i+1][j+2];
+      testTT.setUnit({i,j});
+      EXPECT_NEAR(refResult, norm*dot(TT,testTT), eps);
+    }
+  }
+}
+
 
 TEST(PITTS_TensorTrain_laplace_operator, rank_3_cube)
 {
