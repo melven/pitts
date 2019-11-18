@@ -51,7 +51,7 @@ namespace PITTS
     vec d(n), dinv(n);
     for(int i = 0; i < n; i++)
     {
-      if( std::abs(M(i,i)) < rankTolerance )
+      if( std::abs(M(i,i)) <= rankTolerance )
       {
         d(i) = T(0);
         dinv(i) = T(0);
@@ -74,7 +74,7 @@ namespace PITTS
     int rank = n;
     const auto evMax = std::abs(eigSolv.eigenvalues()(n-1));
     vec w(n), winv(n);
-    if( evMax < rankTolerance )
+    if( evMax <= rankTolerance )
     {
       w = vec::Zero(n);
       winv = vec::Zero(n);
@@ -84,7 +84,7 @@ namespace PITTS
     {
       for(int i = 0; i < n; i++)
       {
-        if( eigSolv.eigenvalues()(i) < rankTolerance*evMax )
+        if( eigSolv.eigenvalues()(i) <= rankTolerance*evMax )
         {
           rank--;
           w(i) = T(0);

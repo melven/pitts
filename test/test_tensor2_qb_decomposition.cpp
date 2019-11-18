@@ -69,11 +69,11 @@ TEST(PITTS_Tensor2_qb_decomposition, random_full_rank)
   using Tensor2_double = PITTS::Tensor2<double>;
   using mat = Eigen::MatrixXd;
 
-  Tensor2_double t2(5,5);
+  Tensor2_double t2(20,20);
 
   // make random non-singular spd matrix
   {
-    mat tmp = mat::Random(5,5);
+    mat tmp = mat::Random(20,20);
     EigenMap(t2) = tmp.transpose() * tmp;
     for(int i = 0; i < t2.r1(); i++)
       for(int j = 0; j < t2.r2(); j++)
@@ -84,13 +84,13 @@ TEST(PITTS_Tensor2_qb_decomposition, random_full_rank)
   Tensor2_double Binv;
   constexpr double eps = 1.e-10;
   int rank = qb_decomposition(t2, B, Binv, eps);
-  ASSERT_EQ(5, rank);
+  ASSERT_EQ(20, rank);
 
   const auto mapT2 = ConstEigenMap(t2);
   const auto mapB = ConstEigenMap(B);
   const auto mapBinv = ConstEigenMap(Binv);
 
-  const mat invErr = mapB*mapBinv - mat::Identity(5,5);
+  const mat invErr = mapB*mapBinv - mat::Identity(20,20);
   ASSERT_NEAR(0, invErr.norm(), eps);
 
   const mat qbErr = mapBinv.transpose() * mapT2 - mapB;
