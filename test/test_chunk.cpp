@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_chunk.hpp"
+#include <vector>
 
 TEST(PITTS_Chunk, check_alignment)
 {
@@ -16,4 +17,11 @@ TEST(PITTS_Chunk, check_alignment)
   // check that there is no overhead
   EXPECT_EQ(PITTS::ALIGNMENT, sizeof(Chunk_double));
   EXPECT_EQ(Chunk_double::size*sizeof(double), sizeof(Chunk_double));
+}
+
+TEST(PITTS_Chunk, check_std_vector_addressing)
+{
+  using Chunk_double = PITTS::Chunk<double>;
+  std::vector<Chunk_double> v(3);
+  EXPECT_EQ(&v[1][0], &v[0][0] + Chunk_double::size);
 }

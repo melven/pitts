@@ -57,6 +57,10 @@ namespace PITTS
       r1_ = r1;
       r2_ = r2;
       n_ = n;
+      // ensure padding is zero
+      for(int j = 0; j < r2_; j++)
+        for (int i = 0; i < r1_; i++)
+          chunk(i,nChunks()-1,j) = Chunk<T>{};
     }
 
     //! access matrix entries (some block ordering, const variant)

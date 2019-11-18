@@ -41,6 +41,36 @@ TEST(PITTS_Tensor2, resize)
   ASSERT_EQ(3, M.r2());
 }
 
+TEST(PITTS_Tensor2, memory_layout_and_zero_padding)
+{
+  using Tensor2_double = PITTS::Tensor2<double>;
+  Tensor2_double M(5,7);
+  for(int j = 0; j < 7; j++)
+    for(int i = 0; i < 5; i++)
+      M(i,j) = 7.;
+  
+  const auto* Mdata = &M(0,0);
+  for(int j = 0; j < 7; j++)
+    for(int i = 0; i < 5; i++)
+    {
+      EXPECT_EQ(7., Mdata[i+j*3]);
+    }
+  
+  for(int k = 7*5; k % PITTS::Chunk<double>::size != 0; k++)
+  {
+    EXPECT_EQ(0., Mdata[k]);
+  }
+
+  M.resize(1,1);
+  M(0,0) = 5.;
+  ASSERT_EQ(Mdata, &M(0,0));
+  EXPECT_EQ(5., Mdata[0]);
+  for(int k = 1; k % PITTS::Chunk<double>::size != 0; k++)
+  {
+    EXPECT_EQ(0., Mdata[k]);
+  }
+}
+
 TEST(PITTS_Tensor2, operator_indexing)
 {
   using Tensor2_double = PITTS::Tensor2<double>;

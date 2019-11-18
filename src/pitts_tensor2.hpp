@@ -53,6 +53,8 @@ namespace PITTS
       data_.resize(std::max(1, (n-1)/chunkSize+1));
       r1_ = r1;
       r2_ = r2;
+      // ensure padding is zero
+      data_.back() = Chunk<T>{};
     }
 
     //! access matrix entries (column-wise ordering, const variant)
