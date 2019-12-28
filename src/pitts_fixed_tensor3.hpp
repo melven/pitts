@@ -120,7 +120,7 @@ namespace PITTS
     int r1_ = 0;
 
     //! second dimension
-    static constexpr int n_ = N;
+    static constexpr auto n_ = N;
 
     //! third dimension
     int r2_ = 0;
