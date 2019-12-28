@@ -7,6 +7,16 @@
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_laplace_operator.hpp"
 
+namespace
+{
+  auto& operator<<(auto &stream, const std::vector<int>& vec)
+  {
+    for(auto v: vec)
+      stream << v << " ";
+    return stream;
+  }
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -27,8 +37,7 @@ int main(int argc, char* argv[])
   }
 
   using Type = double;
-  // there is an error for n > 16 somehow...
-  PITTS::TensorTrain<Type> rhs(3,16);
+  PITTS::TensorTrain<Type> rhs(5,17);
   rhs.setOnes();
 
   // simple CG algorithm
@@ -40,12 +49,13 @@ int main(int argc, char* argv[])
   PITTS::TensorTrain<Type> p = r;
   auto pnorm = rnorm;
   PITTS::TensorTrain<Type> q(p.dimensions);
-  const auto maxIter = 100;
-  const auto resTol = 1.e-8;
+  const auto maxIter = 50;
+  const auto resTol = 1.e-3*rnorm;
+  const auto rankTol = 1.e-15;
   for(int iter = 0; iter < maxIter; iter++)
   {
     // q = Ap
-    q.editableSubTensors() = p.subTensors(); const auto qnorm = -pnorm * laplaceOperator(q);
+    q.editableSubTensors() = p.subTensors(); const auto qnorm = -pnorm * laplaceOperator(q, rankTol);
 
     // p^TAp = q^Tp
     const auto qTp = qnorm * pnorm * dot(q,p);
@@ -54,11 +64,11 @@ int main(int argc, char* argv[])
     const auto alpha = rnorm*rnorm / qTp;
 
     // x = x + alpha*p
-    xnorm = axpby(alpha*pnorm, p, xnorm, x);
+    xnorm = axpby(alpha*pnorm, p, xnorm, x, rankTol);
 
     // r = r - alpha*q
     const auto old_rnorm = rnorm;
-    rnorm = axpby(-alpha*qnorm, q, rnorm, r);
+    rnorm = axpby(-alpha * qnorm, q, rnorm, r, rankTol);
     std::cout << "Residual norm: " << rnorm << std::endl;
     if( rnorm < resTol )
       break;
@@ -66,8 +76,37 @@ int main(int argc, char* argv[])
     // beta = rTr / old_rTr
     const auto beta = rnorm*rnorm / (old_rnorm*old_rnorm);
 
-    pnorm = axpby(rnorm, r, beta*pnorm, p);
+    // p = p + beta*r
+    pnorm = axpby(rnorm, r, beta*pnorm, p, rankTol);
   }
+  // calculate real residual
+  PITTS::TensorTrain<Type> y = x;
+  const auto ynorm = -xnorm*laplaceOperator(y);
+  PITTS::TensorTrain<Type> r_ref = y;
+  const auto rnorm_ref = axpby(1., rhs, -ynorm, r_ref);
+  std::cout << "Real residual norm: " << rnorm_ref << std::endl;
+  std::cout << "x TTranks: " << x.getTTranks() << std::endl;
+  std::cout << "r TTranks: " << r.getTTranks() << std::endl;
+  
+  // try "transpose" + normalize
+  PITTS::TensorTrain<Type> xT(x.dimensions);
+  const auto nDim = x.dimensions.size();
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    auto& subT = xT.editableSubTensors()[nDim-1-iDim];
+    const auto oldSubT = x.subTensors()[iDim];
+    const auto r1 = oldSubT.r2();
+    const auto n = oldSubT.n();
+    const auto r2 = oldSubT.r1();
+    subT.resize(r1,n,r2);
+    for(int j = 0; j < r2; j++)
+      for(int k = 0; k < n; k++)
+        for(int i = 0; i < r1; i++)
+          subT(i,k,j) = oldSubT(j,k,i);
+  }
+  const auto xTnorm = normalize(xT);
+  std::cout << "xTnorm: " << xTnorm << std::endl;
+  std::cout << "xT TTranks: " << xT.getTTranks() << std::endl;
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

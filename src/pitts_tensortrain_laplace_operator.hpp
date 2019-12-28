@@ -32,7 +32,7 @@ namespace PITTS
   //! @return          norm of the resulting tensor
   //!
   template<typename T>
-  T laplaceOperator(TensorTrain<T>& TT)
+  T laplaceOperator(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
     // laplace Operator has the form
     //
@@ -61,21 +61,21 @@ namespace PITTS
         for(int j = 0; j < r2; j++)
           for(int i = 0; i < r1; i++)
             subT(i,k,j) = -2 * oldSubT(i,k,j) / (n+1);
-      norm = axpby(T(1), tmpTT, norm, TT);
+      norm = axpby(T(1), tmpTT, norm, TT, rankTolerance);
       
       // left part
       for(int k = n-1; k >= 0; k--)
         for(int j = 0; j < r2; j++)
           for(int i = 0; i < r1; i++)
             subT(i,k,j) = (k-1) >= 0 ? oldSubT(i,k-1,j) / (n+1) : T(0);
-      norm = axpby(T(1), tmpTT, norm, TT);
+      norm = axpby(T(1), tmpTT, norm, TT, rankTolerance);
 
       // right part
       for(int k = 0; k < n; k++)
         for(int j = 0; j < r2; j++)
           for(int i = 0; i < r1; i++)
             subT(i,k,j) = (k+1) < subT.n() ? oldSubT(i,k+1,j) / (n+1) : T(0);
-      norm = axpby(T(1), tmpTT, norm, TT);
+      norm = axpby(T(1), tmpTT, norm, TT, rankTolerance);
       
       // revert
       std::swap(subT, oldSubT);

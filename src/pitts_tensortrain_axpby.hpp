@@ -18,6 +18,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_qb_decomposition.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -209,7 +210,7 @@ namespace PITTS
     }
     //wtime = omp_get_wtime()-wtime;
     //std::cout << "GFlop/s: " << flops/wtime*1.e-9 << std::endl;
-    return t2_B(0,0);
+    return t2_B(0,0) * normalize(TTy, rankTolerance);
   }
 
 }

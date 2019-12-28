@@ -15,6 +15,7 @@
 //#include <iostream>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_qb_decomposition.hpp"
 #include "pitts_tensortrain.hpp"
@@ -22,6 +23,13 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  template<typename T>
+  T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  {
+    const auto norm = rightNormalize(TT, T(0));
+    return norm * leftNormalize(TT, rankTolerance);
+  }
+
   //! Make all sub-tensors orthogonal sweeping left to right
   //!
   //! @tparam T  underlying data type (double, complex, ...)
@@ -30,7 +38,7 @@ namespace PITTS
   //! @return     norm of the tensor
   //!
   template<typename T>
-  T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  T leftNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
     // Transforms the tensor train in the following invariant way
     //
@@ -165,6 +173,46 @@ namespace PITTS
     //std::cout << "GFlop/s: " << flops/wtime*1.e-9 << std::endl;
     return t2_B(0,0);
   }
+
+
+  template<typename T>
+  T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  {
+    // transpose and leftNormalize for stupidity for now
+    auto reverseDims = TT.dimensions;
+    std::reverse(reverseDims.begin(), reverseDims.end());
+    TensorTrain<T> tmpTT(reverseDims);
+    const auto nDim = TT.dimensions.size();
+    for(int iDim = 0; iDim < nDim; iDim++)
+    {
+      auto& subT = tmpTT.editableSubTensors()[nDim-1-iDim];
+      const auto oldSubT = TT.subTensors()[iDim];
+      const auto r1 = oldSubT.r2();
+      const auto n = oldSubT.n();
+      const auto r2 = oldSubT.r1();
+      subT.resize(r1,n,r2);
+      for(int j = 0; j < r2; j++)
+        for(int k = 0; k < n; k++)
+          for(int i = 0; i < r1; i++)
+            subT(i,k,j) = oldSubT(j,k,i);
+    }
+    const auto norm = leftNormalize(tmpTT, rankTolerance);
+    for(int iDim = 0; iDim < nDim; iDim++)
+    {
+      auto& subT = TT.editableSubTensors()[nDim-1-iDim];
+      const auto oldSubT = tmpTT.subTensors()[iDim];
+      const auto r1 = oldSubT.r2();
+      const auto n = oldSubT.n();
+      const auto r2 = oldSubT.r1();
+      subT.resize(r1,n,r2);
+      for(int j = 0; j < r2; j++)
+        for(int k = 0; k < n; k++)
+          for(int i = 0; i < r1; i++)
+            subT(i,k,j) = oldSubT(j,k,i);
+    }
+    return norm;
+  }
+
 
 }
 
