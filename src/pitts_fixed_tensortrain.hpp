@@ -44,6 +44,12 @@ namespace PITTS
         setTTranks(initial_TTrank);
       }
 
+      //! number of dimensions
+      inline auto nDims() const {return subTensors_.size();}
+
+      //! size in each dimension
+      static constexpr auto n() {return N;}
+
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
       void setTTranks(const std::vector<int>& tt_ranks)
       {

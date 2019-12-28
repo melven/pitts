@@ -85,7 +85,7 @@ namespace PITTS
     inline auto r1() const {return r1_;}
 
     //! second dimension
-    inline auto n() const {return n_;}
+    static constexpr auto n() {return n_;}
 
     //! third dimension
     inline auto r2() const {return r2_;}
