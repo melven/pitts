@@ -1,7 +1,7 @@
 /*! @file pitts_fixed_tensortrain.hpp
 * @brief simple tensor train format with compile-time dimension
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
-* @date 2019-12-08
+* @date 2019-12-28
 * @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/

@@ -15,7 +15,8 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_axpby.hpp
   pitts_tensortrain_laplace_operator.hpp
   pitts_fixed_tensor3.hpp
-  pitts_fixed_tensortrain.hpp
+  pitts_fixed_tensor3_random.hpp
+  pitts_fixed_tensortrain_random.hpp
   )
 
 # test executables
