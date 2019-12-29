@@ -19,11 +19,22 @@ namespace PITTS
 {
   //! calculate the result of multiplying two fixed-size rank-3 tensors (contraction of third and first dimension)
   //!
+  //! The resulting tensor is t3c with
+  //!   t3c_(i,k,j) = sum_l t3a_(i,k1,l) * t3b_(l,k2,j)
+  //! with a tensor product of the second dimensions:
+  //! * for swap=false, we use k=k2*N+k1
+  //! * for swap=true,  we use k=k2+N*k1
+  //!
   //! @tparam T  underlying data type (double, complex, ...)
   //! @tparam N  dimension
   //!
+  //! @param t3a    first rank-3 tensor
+  //! @param t3b    second rank-3 tensor
+  //! @param swap   store second dimension in "transposed" order
+  //! @return       resulting t3c (see formula above)
+  //!
   template<typename T, int N>
-  auto combine(FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b)
+  auto combine(FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool swap = false)
   {
     if( t3a.r2() != t3b.r1() )
       throw std::invalid_argument("Dimension mismatch!");
@@ -40,7 +51,10 @@ namespace PITTS
             T tmp{};
             for(int l = 0; l < r; l++)
               tmp += t3a(i,k1,l)*t3b(l,k2,j);
-            t3c(i,k2*N+k1,j) = tmp;
+            if( swap )
+              t3c(i,k1*N+k2,j) = tmp;
+            else
+              t3c(i,k2*N+k1,j) = tmp;
           }
       }
     return t3c;
