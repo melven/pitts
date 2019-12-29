@@ -18,6 +18,7 @@ target_sources(pitts INTERFACE
   pitts_fixed_tensor3_random.hpp
   pitts_fixed_tensor3_apply.hpp
   pitts_fixed_tensor3_combine.hpp
+  pitts_fixed_tensor3_split.hpp
   pitts_fixed_tensortrain_random.hpp
   pitts_fixed_tensortrain_dot.hpp
   )

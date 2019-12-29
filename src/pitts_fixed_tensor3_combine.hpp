@@ -34,7 +34,7 @@ namespace PITTS
   //! @return       resulting t3c (see formula above)
   //!
   template<typename T, int N>
-  auto combine(FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool swap = false)
+  auto combine(const FixedTensor3<T,N>& t3a, const FixedTensor3<T,N>& t3b, bool swap = false)
   {
     if( t3a.r2() != t3b.r1() )
       throw std::invalid_argument("Dimension mismatch!");
