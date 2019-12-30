@@ -38,6 +38,38 @@ namespace PITTS
           t3(i,j,k) = distribution(randomGenerator);
   }
 
+  //! fill a rank-3 tensor with random values (specialization for complex numbers)
+  //!
+  //! @tparam T  underlying data type (double, complex, ...)
+  //! @tparam N  dimension
+  //!
+  template<typename T, int N>
+  void randomize(FixedTensor3<std::complex<T>,N>& t3)
+  {
+    std::random_device randomSeed;
+    std::mt19937 randomGenerator(randomSeed());
+    std::uniform_real_distribution<T> distribution(T(-1), T(1));
+
+    const auto r1 = t3.r1();
+    const auto r2 = t3.r2();
+    const auto n = t3.n();
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+        {
+          // generate uniformly distributed numbers inside the unit circle in the complex plane
+          T tmp_r, tmp_i;
+          do
+          {
+            tmp_r = distribution(randomGenerator);
+            tmp_i = distribution(randomGenerator);
+          }while( tmp_r*tmp_r + tmp_i*tmp_i > 1 );
+
+          t3(i,j,k).real(tmp_r);
+          t3(i,j,k).imag(tmp_i);
+        }
+  }
+
 }
 
 

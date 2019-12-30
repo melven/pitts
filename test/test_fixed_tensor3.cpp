@@ -1,30 +1,50 @@
 #include <gtest/gtest.h>
+#include "test_complex_helper.hpp"
 #include "pitts_fixed_tensor3.hpp"
+#include <complex>
 
-TEST(PITTS_FixedTensor3, create_large)
+template<typename T>
+class PITTS_FixedTensor3: public ::testing::Test
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double,200>;
-  FixedTensor3_double M(3,7);
+  public:
+    using Type = T;
+};
+
+using TestTypes = ::testing::Types<double, std::complex<double>>;
+TYPED_TEST_CASE(PITTS_FixedTensor3, TestTypes);
+
+namespace
+{
+  constexpr auto eps = 1.e-10;
+}
+
+TYPED_TEST(PITTS_FixedTensor3, create_large)
+{
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,200>;
+  FixedTensor3 M(3,7);
 
   ASSERT_EQ(3, M.r1());
   ASSERT_EQ(200, M.n());
   ASSERT_EQ(7, M.r2());
 }
 
-TEST(PITTS_FixedTensor3, create_small)
+TYPED_TEST(PITTS_FixedTensor3, create_small)
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double,2>;
-  FixedTensor3_double M(3,7);
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,2>;
+  FixedTensor3 M(3,7);
 
   ASSERT_EQ(3, M.r1());
   ASSERT_EQ(2, M.n());
   ASSERT_EQ(7, M.r2());
 }
 
-TEST(PITTS_FixedTensor3, create_empty)
+TYPED_TEST(PITTS_FixedTensor3, create_empty)
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double,5>;
-  FixedTensor3_double M;
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,5>;
+  FixedTensor3 M;
 
   ASSERT_EQ(0, M.r1());
   ASSERT_EQ(5, M.n());
@@ -43,19 +63,21 @@ struct ChunkSize : private T3
 };
 }
 
-TEST(PITTS_FixedTensor3, chunkSize)
+TYPED_TEST(PITTS_FixedTensor3, chunkSize)
 {
-  using Chunk_double = PITTS::Chunk<double>;
-  using FixedTensor3_double = PITTS::FixedTensor3<double,2>;
-  Chunk_double chunk;
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,2>;
+  Chunk chunk;
 
-  EXPECT_EQ(chunk.size, ChunkSize<FixedTensor3_double>::value);
+  EXPECT_EQ(chunk.size, ChunkSize<FixedTensor3>::value);
 }
 
-TEST(PITTS_FixedTensor3, resize)
+TYPED_TEST(PITTS_FixedTensor3, resize)
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double,23>;
-  FixedTensor3_double M(3,7);
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,23>;
+  FixedTensor3 M(3,7);
 
   M.resize(2,3);
 
@@ -64,31 +86,32 @@ TEST(PITTS_FixedTensor3, resize)
   ASSERT_EQ(3, M.r2());
 }
 
-TEST(PITTS_FixedTensor3, memory_layout_and_zero_padding)
+TYPED_TEST(PITTS_FixedTensor3, memory_layout_and_zero_padding)
 {
-  constexpr auto chunkSize_double = PITTS::Chunk<double>::size;
-  using FixedTensor3_double = PITTS::FixedTensor3<double,31>;
-  FixedTensor3_double M(2,3);
+  using Type = TestFixture::Type;
+  constexpr auto chunkSize = PITTS::Chunk<Type>::size;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,31>;
+  FixedTensor3 M(2,3);
 
   for(int j = 0; j < 3; j++)
     for(int k = 0; k < 31; k++)
       for(int i = 0; i < 2; i++)
         M(i,k,j) = 3.;
   
-  const auto nChunks = (2*3*31-1) / chunkSize_double + 1;
+  const auto nChunks = (2*3*31-1) / chunkSize + 1;
   for(int kk = 0; kk < nChunks; kk++)
   {
-    for(int k = 0; k < chunkSize_double; k++)
+    for(int k = 0; k < chunkSize; k++)
     {
-      const auto off = kk*chunkSize_double + k;
+      const auto off = kk*chunkSize + k;
       if( off < 2*3*31 )
       {
-        EXPECT_EQ(3., (&M(0,0,0))[chunkSize_double*kk+k]);
+        EXPECT_NEAR(3., (&M(0,0,0))[chunkSize*kk+k], eps);
       }
       else
       {
         // padding
-        EXPECT_EQ(0., (&M(0,0,0))[chunkSize_double*kk+k]);
+        EXPECT_NEAR(0., (&M(0,0,0))[chunkSize*kk+k], eps);
       }
     }
   }
@@ -96,10 +119,11 @@ TEST(PITTS_FixedTensor3, memory_layout_and_zero_padding)
 
 /*
  * from PITTS::Tensor3
-TEST(PITTS_FixedTensor3, chunkSize_small)
+TYPED_TEST(PITTS_FixedTensor3, chunkSize_small)
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double>;
-  FixedTensor3_double M(3,2,7);
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type>;
+  FixedTensor3 M(3,2,7);
 
   // we expect gaps in memory that we don't use as the dimension 2 is too small to use the chunk size
   const auto arraySize = 3*2*7;
@@ -108,10 +132,11 @@ TEST(PITTS_FixedTensor3, chunkSize_small)
 }
 */
 
-TEST(PITTS_FixedTensor3, operator_indexing_small)
+TYPED_TEST(PITTS_FixedTensor3, operator_indexing_small)
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double,2>;
-  FixedTensor3_double M(3,7);
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,2>;
+  FixedTensor3 M(3,7);
 
   // Set to zero
   for(int i = 0; i < 3; i++)
@@ -124,7 +149,7 @@ TEST(PITTS_FixedTensor3, operator_indexing_small)
     for(int j = 0; j < 2; j++)
       for(int k = 0; k < 7; k++)
       {
-        EXPECT_EQ(0, M(i,j,k));
+        EXPECT_NEAR(0, M(i,j,k), eps);
       }
 
   // Set to constant
@@ -138,7 +163,7 @@ TEST(PITTS_FixedTensor3, operator_indexing_small)
     for(int j = 0; j < 2; j++)
       for(int k = 0; k < 7; k++)
       {
-        EXPECT_EQ(77, M(i,j,k));
+        EXPECT_NEAR(77, M(i,j,k), eps);
       }
 
   // set to different values
@@ -152,14 +177,15 @@ TEST(PITTS_FixedTensor3, operator_indexing_small)
     for(int j = 0; j < 2; j++)
       for(int k = 0; k < 7; k++)
       {
-        EXPECT_EQ(i*7*2+j*7+k, M(i,j,k));
+        EXPECT_NEAR(i*7*2+j*7+k, M(i,j,k), eps);
       }
 }
 
-TEST(PITTS_FixedTensor3, operator_indexing_large)
+TYPED_TEST(PITTS_FixedTensor3, operator_indexing_large)
 {
-  using FixedTensor3_double = PITTS::FixedTensor3<double,50>;
-  FixedTensor3_double M(3,7);
+  using Type = TestFixture::Type;
+  using FixedTensor3 = PITTS::FixedTensor3<Type,50>;
+  FixedTensor3 M(3,7);
 
   // Set to zero
   for(int i = 0; i < 3; i++)
@@ -172,7 +198,7 @@ TEST(PITTS_FixedTensor3, operator_indexing_large)
     for(int j = 0; j < 50; j++)
       for(int k = 0; k < 7; k++)
       {
-        EXPECT_EQ(0, M(i,j,k));
+        EXPECT_NEAR(0, M(i,j,k), eps);
       }
 
   // Set to constant
@@ -186,7 +212,7 @@ TEST(PITTS_FixedTensor3, operator_indexing_large)
     for(int j = 0; j < 50; j++)
       for(int k = 0; k < 7; k++)
       {
-        EXPECT_EQ(77, M(i,j,k));
+        EXPECT_NEAR(77, M(i,j,k), eps);
       }
 
   // set to different values
@@ -200,6 +226,6 @@ TEST(PITTS_FixedTensor3, operator_indexing_large)
     for(int j = 0; j < 50; j++)
       for(int k = 0; k < 7; k++)
       {
-        EXPECT_EQ(i*7*50+j*7+k, M(i,j,k));
+        EXPECT_NEAR(i*7*50+j*7+k, M(i,j,k), eps);
       }
 }
