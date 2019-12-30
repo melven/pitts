@@ -60,3 +60,28 @@ TYPED_TEST(PITTS_FixedTensor3_split, N_equals_four)
         EXPECT_NEAR(t3c(i,k,j), t3c_(i,k,j), eps);
       }
 }
+
+TYPED_TEST(PITTS_FixedTensor3_split, N_equals_four_rightOrthog)
+{
+  using Type = TestFixture::Type;
+  using FixedTensor3_4 = PITTS::FixedTensor3<Type,4>;
+  using FixedTensor3_2 = PITTS::FixedTensor3<Type,2>;
+  constexpr auto eps = 1.e-10;
+
+  FixedTensor3_4 t3c(5,3);
+  for(int i = 0; i < 5; i++)
+    for(int k = 0; k < 4; k++)
+      for(int j = 0; j < 3; j++)
+        t3c(i,k,j) = 100 + i*10 + j + k * 0.9777;
+
+  FixedTensor3_2 t3a, t3b;
+  split(t3c, t3a, t3b, false);
+  const auto t3c_ = combine(t3a, t3b);
+
+  for(int i = 0; i < 5; i++)
+    for(int k = 0; k < 4; k++)
+      for(int j = 0; j < 3; j++)
+      {
+        EXPECT_NEAR(t3c(i,k,j), t3c_(i,k,j), eps);
+      }
+}

@@ -26,12 +26,13 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //! @tparam N  dimension
   //!
-  //! @param[in]  t3c    rank-3 tensor
-  //! @param[out] t3a    first part of splitted rank-3 tensor
-  //! @param[out] t3b    second part of splitted rank-3 tensor
+  //! @param[in]  t3c       rank-3 tensor
+  //! @param[out] t3a       first part of splitted rank-3 tensor
+  //! @param[out] t3b       second part of splitted rank-3 tensor
+  //! @param[in]  leftOrtog make left part (t3a) orthogonal if true, otherwise t3b is made orthogonal
   //!
   template<typename T, int N>
-  auto split(const FixedTensor3<T,N*N>& t3c, FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b)
+  auto split(const FixedTensor3<T,N*N>& t3c, FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool leftOrthog = true)
   {
     using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
     using Map = Eigen::Map<Matrix>;
@@ -46,9 +47,17 @@ namespace PITTS
     const auto r = svd.rank();
 
     t3a.resize(r1,r);
-    Map(&t3a(0,0,0), r1*N,r) = svd.matrixU().leftCols(r);
     t3b.resize(r,r2);
-    Map(&t3b(0,0,0), r,r2*N) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+    if( leftOrthog )
+    {
+      Map(&t3a(0,0,0), r1*N,r) = svd.matrixU().leftCols(r);
+      Map(&t3b(0,0,0), r,r2*N) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+    }
+    else
+    {
+      Map(&t3a(0,0,0), r1*N,r) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+      Map(&t3b(0,0,0), r,r2*N) = svd.matrixV().leftCols(r).adjoint();
+    }
   }
 
 }
