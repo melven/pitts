@@ -15,10 +15,12 @@
 #include <complex>
 #include <random>
 #include <exception>
+#include <array>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensortrain_dot.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"
+#include "pitts_fixed_tensor3_apply.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -42,6 +44,15 @@ namespace PITTS
       //! Unique number for identifying a Qubit
       using QubitId = unsigned int;
 
+      //! Data type for single Qubit gates (2x2 matrix)
+      using Matrix2 = std::array<std::array<std::complex<double>,2>,2>;
+
+      //! Data type for two-Qubit gates (4x4 matrix)
+      using Matrix4 = std::array<std::array<std::complex<double>,4>,4>;
+
+      //! Data type for storing the state of the qubits
+      using StateVector = FixedTensorTrain<std::complex<double>,2>;
+
       //! Setup a new simulator with zero qubits
       //!
       //! @param randomSeed random number generator seed to allow reproducible results
@@ -50,7 +61,7 @@ namespace PITTS
 
       //! add a new qubit
       //!
-      //! @param id   unique qubit id
+      //! @param id   unique identifier for the qubit
       //!
       void allocateQubit(QubitId id)
       {
@@ -72,7 +83,7 @@ namespace PITTS
       //!
       //! @warning the qubit must be in a "classical" state, e.g. after a measurement.
       //!
-      //! @param id   unique qubit id
+      //! @param id   specifies the desired qubit by its id
       //!
       void deallocateQubit(QubitId id)
       {
@@ -97,7 +108,7 @@ namespace PITTS
 
       //! check if a qubit is in classical (not a superposition) state
       //!
-      //! @param id   unique qubit id
+      //! @param id   specifies the desired qubit by its id
       //! @param tol  floating point tolerance for detecting a non-zero probability
       //!
       bool isClassical(QubitId id, double tol = 1.e-10)
@@ -122,7 +133,7 @@ namespace PITTS
       //!
       //! @warning the qubit must be in a "classical" state, e.g. after a measurement.
       //!
-      //! @param id   unique qubit id
+      //! @param id   specifies the desired qubit by its id
       //! @param tol  floating point tolerance for detecting a non-zero probability
       //! @return     value of the qubit: "up" is interpreted as false and "down" as true.
       //!
@@ -153,43 +164,43 @@ namespace PITTS
       //! @param values measured values of the qubits ("down" is interpreted as true)
       //! @param tol    numerical tolerance for rejecting an impossible outcome (throws an error)
       //!
-      void collapseWavefunction(const std::vector<unsigned int>& ids, const std::vector<bool>& values, double tol = 1.e-12)
+      void collapseWavefunction(const std::vector<QubitId>& ids, const std::vector<bool>& values, double tol = 1.e-12)
       {
         if( ids.size() != values.size() )
           throw std::invalid_argument("QubitSimulator::collapseWavefunction: arguments must have the same size!");
 
-        for(int iQ = 0; iQ < ids.size(); iQ++)
+        // nothing happens for empty input
+        if( ids.empty() )
+          return;
+
+        auto newState = projectStateVec(ids, values);
+
+        // check if result is possible (todo: add missing norm function)
+        const double nrm = std::sqrt(std::real(dot(newState, newState)));
+        if( nrm < tol )
+          throw std::invalid_argument("QubitSimulator::collapseWavefunction: cannot calculate classical result for given output with zero probability!");
+
+        // renormalize
+        for(Index iDim = 0; iDim+1 < newState.nDims(); iDim++)
         {
-          const auto iDim = qubitMap_.at(ids[iQ]);
-          auto& subT = stateVec_.editableSubTensors()[iDim];
-          const bool up = !values[iQ];
-          // set other bit to false and renormalize
-          double nrm = 0;
-          for(Index j = 0; j < subT.r2(); j++)
-            for(Index i = 0; i < subT.r1(); i++)
+          auto& subT1 = newState.editableSubTensors()[iDim];
+          auto& subT2 = newState.editableSubTensors()[iDim+1];
+          const auto subT12 = combine(subT1, subT2);
+          split(subT12, subT1, subT2);
+        }
+        // we must scale the last subtensor now
+        const auto invNrm = 1./nrm;
+        {
+          auto& lastSubT = newState.editableSubTensors().back();
+          for(int j = 0; j < lastSubT.r2(); j++)
+            for(int i = 0; i < lastSubT.r1(); i++)
             {
-              if( up )
-              {
-                nrm += abs2(subT(i,0,j));
-                subT(i,1,j) = 0.;
-              }
-              else // down
-              {
-                subT(i,0,j) = 0.;
-                nrm += abs2(subT(i,1,j));
-              }
-            }
-          nrm = std::sqrt(nrm);
-          if( nrm < tol )
-            throw std::invalid_argument("QubitSimulator::collapseWavefunction: cannot calculate classical result for given output with zero probability!");
-          const double scale = 1./nrm;
-          for(Index j = 0; j < subT.r2(); j++)
-            for(Index i = 0; i < subT.r1(); i++)
-            {
-              subT(i,0,j) *= scale;
-              subT(i,1,j) *= scale;
+              lastSubT(i,0,j) *= invNrm;
+              lastSubT(i,1,j) *= invNrm;
             }
         }
+
+        std::swap(newState, stateVec_);
       }
 
       //! Measure a set of Qubits and returns their value
@@ -199,20 +210,20 @@ namespace PITTS
       //! @param ids    qubit ids to measure
       //! @return       vector with resulting values ("down" is interpreted as true)
       //!
-      std::vector<bool> measureQubits(const std::vector<unsigned int> ids)
+      std::vector<bool> measureQubits(const std::vector<QubitId>& ids)
       {
         // sub-optimal variant with 2^N runtime
         const auto nQ = stateVec_.nDims();
         const auto rnd = uniformDistribution_(randomGenerator_);
 
-        FixedTensorTrain<std::complex<double>,2> unitVec(nQ);
+        StateVector unitVec(nQ);
         std::vector<int> unitVecIdx(nQ);
         std::complex<double> p = 0;
         std::size_t pick;
         for(pick = 0; pick+1 < (1UL << nQ); pick++)
         {
           for(int i = 0; i < nQ; i++)
-            unitVecIdx[i] = pick & (1UL << i);
+            unitVecIdx[i] = (pick & (1UL << i)) ? 1 : 0;
           unitVec.setUnit(unitVecIdx);
           p += dot(stateVec_, unitVec);
           if( abs2(p) > rnd*rnd )
@@ -231,6 +242,54 @@ namespace PITTS
         return result;
       }
 
+      //! Calculate the probability of a given outcome when measuring the specified qubits
+      //!
+      //! @param ids    qubit ids to analyze
+      //! @param values desired values of the qubits ("down" is interpreted as true)
+      //!
+      double getProbability(const std::vector<QubitId>& ids, const std::vector<bool>& values)
+      {
+        const auto dummyState = projectStateVec(ids, values);
+
+        // todo: add missing norm function
+        return std::real(dot(dummyState, dummyState));
+      }
+
+      //! Apply a quantum gate to a single qubit (without control qubits)
+      //!
+      //! @param id   desired qubit id
+      //! @param M    2x2 matrix that represents the desired gate, must be orthogonal
+      //!
+      void applySingleQubitGate(QubitId id, const Matrix2& M)
+      {
+        const Index iDim = qubitMap_.at(id);
+        auto& subT = stateVec_.editableSubTensors()[iDim];
+        apply(subT, M);
+      }
+
+      //! Apply a quantum gate to a pair of qubits
+      //!
+      //! @param id1  specifies the first qubit in the gate
+      //! @param id2  specifies the second qubit in the gate
+      //! @param M    4x4 matrix that represents the desired gate, must be orthogonal
+      //!
+      void applyTwoQubitGate(QubitId id1, QubitId id2, const Matrix4& M)
+      {
+        auto iDim1 = qubitMap_.at(id1);
+        auto iDim2 = qubitMap_.at(id2);
+
+        // move dimensions by swapping until iDim2 = iDim1+1
+        makeNeighborDims(iDim1, iDim2);
+
+        // apply gate to combined tensor...
+        auto& subT1 = stateVec_.editableSubTensors()[iDim1];
+        auto& subT2 = stateVec_.editableSubTensors()[iDim2];
+        auto subT12 = combine(subT1, subT2);
+        apply(subT12, M);
+        split(subT12, subT1, subT2);
+      }
+
+
     private:
       //! helper type for indexing qubits in the state vector
       using Index = int;
@@ -239,7 +298,7 @@ namespace PITTS
       //!
       //! Represents the 2^N dimensional wave-function in a tensor train format where each sub-tensor represents one qubit.
       //!
-      FixedTensorTrain<std::complex<double>,2> stateVec_{0};
+      StateVector stateVec_{0};
 
       //! mapping of qubits ids to their sub-tensor position in the stateVec_
       //!
@@ -274,6 +333,67 @@ namespace PITTS
         const QubitId jQ = qubitIds_.at(j);
         std::swap(qubitMap_.at(iQ), qubitMap_.at(jQ));
         std::swap(qubitIds_.at(i), qubitIds_.at(j));
+      }
+
+      //! helper function to move two dimensions next to each other (using swapDims)
+      //!
+      //! @param[inout] i   first qubit index, new index of the same qubit (same id) on output
+      //! @param[inout] n   second qubit index, new index of the same qubit (same id) on output
+      //!
+      void makeNeighborDims(Index& i, Index& j)
+      {
+        if( i == j || i < 0 || j < 0 || i >= stateVec_.nDims() || j >= stateVec_.nDims() )
+          throw std::runtime_error("QubitSimulator: invalid indices!");
+
+        while( j != i+1 )
+        {
+          if( i < j )
+          {
+            swapDims(i, i+1);
+            i++;
+            continue;
+          }
+          if( i == j+1 )
+          {
+            swapDims(j, i);
+            std::swap(j, i);
+            continue;
+          }
+          // i > j+1
+          swapDims(j, j+1);
+          j++;
+        }
+      }
+
+      //! helper function to project the stateVec_ onto a given result (un-normalized collapse)
+      //!
+      //! @param ids    qubits to consider
+      //! @param values desired values of the qubits ("down" is interpreted as true)
+      //!
+      StateVector projectStateVec(const std::vector<QubitId>& ids, const std::vector<bool>& values) const
+      {
+        if( ids.size() != values.size() )
+          throw std::invalid_argument("QubitSimulator::collapseWavefunction: arguments must have the same size!");
+
+        auto projectedState = stateVec_;
+
+        for(int iQ = 0; iQ < ids.size(); iQ++)
+        {
+          const Index iDim = qubitMap_.at(ids[iQ]);
+          auto& subT = projectedState.editableSubTensors()[iDim];
+          const bool up = !values[iQ];
+          // set other bit to false
+          for(Index j = 0; j < subT.r2(); j++)
+            for(Index i = 0; i < subT.r1(); i++)
+            {
+              if( up )
+                subT(i,1,j) = 0.;
+              else // down
+                subT(i,0,j) = 0.;
+            }
+        }
+
+        return projectedState;
       }
   };
 }
