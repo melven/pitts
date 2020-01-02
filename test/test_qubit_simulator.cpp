@@ -4,6 +4,11 @@
 
 using namespace PITTS;
 
+namespace
+{
+  constexpr auto eps = 1.e-10;
+}
+
 TEST(PITTS_QubitSimulator, qubitIds_singleQubit)
 {
   QubitSimulator qsim;
@@ -104,7 +109,37 @@ TEST(PITTS_QubitSimulator, collapse_alreadyClassicalZero)
   ASSERT_THROW(qsim.collapseWavefunction({32,5}, result3), std::invalid_argument);
 }
 
-TEST(PITTS_QubitSimulator, measure_alreadyClassicalZero)
+TEST(PITTS_QubitSimulator, getProbability_alreadyClassicalZero)
+{
+  QubitSimulator qsim;
+
+  qsim.allocateQubit(57);
+  qsim.allocateQubit(17);
+  qsim.allocateQubit(32);
+  qsim.allocateQubit(5);
+
+  // full probability
+  const std::vector<bool> result_ref = {false,false,false,false};
+  EXPECT_NEAR(1., qsim.getProbability({5,32,17,57}, result_ref), eps);
+
+  const std::vector<bool> other_result = {true,false,true,false};
+  EXPECT_NEAR(0., qsim.getProbability({5,32,17,57}, other_result), eps);
+
+  // partial probability
+  const std::vector<bool> result2_ref = {false,false};
+  EXPECT_NEAR(1., qsim.getProbability({32,17}, result2_ref), eps);
+
+  const std::vector<bool> other_result2 = {true,false};
+  EXPECT_NEAR(0., qsim.getProbability({32,17}, other_result2), eps);
+
+  // non-existing ids
+  ASSERT_THROW(qsim.getProbability({32,2}, {true,false}), std::out_of_range);
+
+  // inconsistent input dimensions
+  ASSERT_THROW(qsim.getProbability({32,2}, {true,false,true}), std::invalid_argument);
+}
+
+TEST(PITTS_QubitSimulator, measureQubits_alreadyClassicalZero)
 {
   QubitSimulator qsim;
 
@@ -236,8 +271,6 @@ TEST(PITTS_QubitSimulator, applyTwoQubitGate_classicalBitFlip)
 
 TEST(PITTS_QubitSimulator, applySingleAndTwoQubitGates_simpleBellState)
 {
-  constexpr auto eps = 1.e-10;
-
   QubitSimulator::Matrix2 hadamardGate;
   hadamardGate[0][0] = 1./std::sqrt(2.);
   hadamardGate[0][1] = 1./std::sqrt(2.);

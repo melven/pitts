@@ -373,7 +373,7 @@ namespace PITTS
       StateVector projectStateVec(const std::vector<QubitId>& ids, const std::vector<bool>& values) const
       {
         if( ids.size() != values.size() )
-          throw std::invalid_argument("QubitSimulator::collapseWavefunction: arguments must have the same size!");
+          throw std::invalid_argument("QubitSimulator::projectStateVec: arguments must have the same size!");
 
         auto projectedState = stateVec_;
 
