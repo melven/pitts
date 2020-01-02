@@ -65,10 +65,12 @@ namespace PITTS
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
       void setTTranks(int tt_rank)
       {
-        subTensors_.front().resize(1, tt_rank);
-        for(int i = 1; i < subTensors_.size()-1; i++)
-          subTensors_[i].resize(tt_rank, tt_rank);
-        subTensors_.back().resize(tt_rank, 1);
+        for(int i = 0; i < nDims(); i++)
+        {
+          const auto r1 = i > 0 ? tt_rank : 1;
+          const auto r2 = i+1 < nDims() ? tt_rank : 1;
+          subTensors_[i].resize(r1, r2);
+        }
       }
 
       //! get current sub-tensor dimensions (TT-ranks)
