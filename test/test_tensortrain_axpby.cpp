@@ -3,14 +3,14 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_tensortrain_axpby.hpp"
-#include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_random.hpp"
 
 namespace
 {
-  auto pow2(auto x)
+  template<typename T>
+  auto pow2(T x)
   {
     return x*x;
   }
