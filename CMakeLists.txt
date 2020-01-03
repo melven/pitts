@@ -23,7 +23,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 ###
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   add_definitions(-DGNU)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -march=native")# -fverbose-asm")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")# -fverbose-asm")
 elseif( CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   add_definitions(-DINTEL)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHOST")
