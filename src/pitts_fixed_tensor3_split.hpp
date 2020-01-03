@@ -43,7 +43,8 @@ namespace PITTS
 
     const auto t3cMap = ConstMap(&t3c(0,0,0), N*r1, N*r2);
 
-    const auto svd = Eigen::JacobiSVD<Matrix>(t3cMap, Eigen::ComputeThinV | Eigen::ComputeThinU);
+    auto svd = Eigen::JacobiSVD<Matrix, Eigen::HouseholderQRPreconditioner>(t3cMap, Eigen::ComputeThinV | Eigen::ComputeThinU);
+    svd.setThreshold(1.e-10);
     const auto r = svd.rank();
 
     t3a.resize(r1,r);
@@ -58,6 +59,7 @@ namespace PITTS
       Map(&t3a(0,0,0), r1*N,r) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
       Map(&t3b(0,0,0), r,r2*N) = svd.matrixV().leftCols(r).adjoint();
     }
+    //std::cout << "Singular value |.|: " << svd.singularValues().head(r).transpose().array().abs() << "\n";
   }
 
 }
