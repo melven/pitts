@@ -21,6 +21,7 @@ target_sources(pitts INTERFACE
   pitts_fixed_tensor3_split.hpp
   pitts_fixed_tensortrain_random.hpp
   pitts_fixed_tensortrain_dot.hpp
+  pitts_fixed_tensortrain_axpby.hpp
   )
 
 # test executables
