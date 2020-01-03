@@ -1,12 +1,36 @@
 #include <gtest/gtest.h>
 #include "test_complex_helper.hpp"
 #include "pitts_qubit_simulator.hpp"
+#include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 
 using namespace PITTS;
 
 namespace
 {
   constexpr auto eps = 1.e-10;
+
+  using StateVec = FixedTensorTrain<std::complex<double>,2>;
+
+  // helper function to convert a tensor train state vector to a plain dense vector
+  Eigen::VectorXcd toDenseVector(const StateVec& TTv)
+  {
+    const auto nDims = TTv.nDims();
+    const auto n = 1UL << nDims;
+    Eigen::VectorXcd v(n);
+
+    std::vector<int> idx_i(nDims);
+    StateVec e_i(nDims);
+    for(std::size_t i = 0; i < n; i++)
+    {
+      for(int j = 0; j < nDims; j++)
+        idx_i[j] = (i & (1UL << j)) ? 1 : 0;
+      e_i.setUnit(idx_i);
+
+      v(i) = dot(e_i,TTv);
+    }
+    return v;
+  }
 }
 
 TEST(PITTS_QubitSimulator, qubitIds_singleQubit)
@@ -348,4 +372,137 @@ TEST(PITTS_QubitSimulator, applySingleAndTwoQubitGates_simpleBellState)
   EXPECT_EQ(false, qsim.getClassicalValue(9));
 
   ASSERT_NEAR(1., qsim.getProbability({1,3,5,7,9}, {false,true,true,false,false}), eps);
+}
+
+TEST(PITTS_QubitSimulator, emulateTimeEvolution)
+{
+  QubitSimulator qsim;
+
+  // allocate some qubits
+  qsim.allocateQubit(1);
+  qsim.allocateQubit(3);
+  qsim.allocateQubit(5);
+  qsim.allocateQubit(7);
+  qsim.allocateQubit(9);
+
+  // construct some arbitrary Hamiltonian
+  const std::vector<QubitSimulator::QubitId> ids = {3,5,7};
+  QubitSimulator::Matrix2 h3;
+  h3[0][0] = 0.;
+  h3[0][1] = 0.77;
+  h3[1][0] = 0.77;
+  h3[1][1] = 0.;
+
+  QubitSimulator::Matrix2 h5;
+  h5[0][0] = 1.55;
+  h5[0][1] = 0.;
+  h5[1][0] = 0.;
+  h5[1][1] = -1.55;
+
+  QubitSimulator::Matrix2 h7;
+  h7[0][0] = 0.;
+  h7[0][1] = std::complex<double>(0., -1.33);
+  h7[1][0] = std::complex<double>(0., 1.33);
+  h7[1][1] = 0.;
+  const std::vector<QubitSimulator::Matrix2> terms = {h3,h5,h7};
+
+  // compose complete Hamiltonian matrix
+  using Matrix32 = Eigen::Matrix<std::complex<double>, 32, 32>;
+  Matrix32 H;
+  {
+    StateVec col_i(5);
+    std::vector<int> idx_i(5);
+    for(std::size_t i = 0; i < 32; i++)
+    {
+      for(int j = 0; j < 5; j++)
+        idx_i[j] = (i & (1UL << j)) ? 1 : 0;
+
+      col_i.setUnit(idx_i);
+
+      PITTS::apply(col_i.editableSubTensors()[1], h3);
+      PITTS::apply(col_i.editableSubTensors()[2], h5);
+      PITTS::apply(col_i.editableSubTensors()[3], h7);
+      H.col(i) = toDenseVector(col_i);
+    }
+  }
+
+  // H should be self-adjoint
+  ASSERT_NEAR(0., (H-H.adjoint()).norm(), eps);
+
+  // helper variable for complex number i
+  static constexpr auto i = std::complex<double>(0, 1);
+
+  // get the initial state
+  auto x0 = toDenseVector(qsim.getWaveFunction());
+
+  // no change
+  qsim.emulateTimeEvolution(0., ids, terms);
+  auto x = toDenseVector(qsim.getWaveFunction());
+  auto x_ref = x0;
+  EXPECT_NEAR(0., (x-x_ref).norm(), eps);
+
+  // forward
+  qsim.emulateTimeEvolution(0.3, ids, terms);
+  x = toDenseVector(qsim.getWaveFunction());
+  x_ref = (i*0.3*H).exp() * x0;
+  EXPECT_NEAR(0., (x-x_ref).norm(), eps);
+
+  // backward
+  qsim.emulateTimeEvolution(-0.17, ids, terms);
+  x = toDenseVector(qsim.getWaveFunction());
+  x_ref = (i*0.13*H).exp() * x0;
+  EXPECT_NEAR(0., (x-x_ref).norm(), eps);
+
+
+  // use a non-classical state to make this more interesting!
+  {
+    QubitSimulator::Matrix2 phaseGate;
+    phaseGate[0][0] = 1.;
+    phaseGate[0][1] = 0.;
+    phaseGate[1][0] = 0.;
+    phaseGate[1][1] = i;
+
+    QubitSimulator::Matrix2 hadamardGate;
+    hadamardGate[0][0] = 1./std::sqrt(2.);
+    hadamardGate[0][1] = 1./std::sqrt(2.);
+    hadamardGate[1][0] = 1./std::sqrt(2.);
+    hadamardGate[1][1] = -1./std::sqrt(2.);
+
+    QubitSimulator::Matrix4 cnotGate = {};
+    cnotGate[0][0] = 1;
+    cnotGate[1][1] = 1;
+    cnotGate[2][3] = 1;
+    cnotGate[3][2] = 1;
+
+    qsim.applySingleQubitGate(1, phaseGate);
+    qsim.applySingleQubitGate(5, hadamardGate);
+    qsim.applySingleQubitGate(9, hadamardGate);
+    qsim.applySingleQubitGate(9, phaseGate);
+    qsim.applyTwoQubitGate(7, 9, cnotGate);
+    qsim.applyTwoQubitGate(3, 5, cnotGate);
+    qsim.applyTwoQubitGate(1, 3, cnotGate);
+    qsim.applySingleQubitGate(5, phaseGate);
+    qsim.applyTwoQubitGate(5, 7, cnotGate);
+  }
+
+  // get the initial state
+  x0 = toDenseVector(qsim.getWaveFunction());
+
+  // no change
+  qsim.emulateTimeEvolution(0., ids, terms);
+  x = toDenseVector(qsim.getWaveFunction());
+  x_ref = x0;
+  EXPECT_NEAR(0., (x-x_ref).norm(), eps);
+
+  // forward
+  qsim.emulateTimeEvolution(0.3, ids, terms);
+  x = toDenseVector(qsim.getWaveFunction());
+  x_ref = (i*0.3*H).exp() * x0;
+  EXPECT_NEAR(0., (x-x_ref).norm(), eps);
+
+  // backward
+  qsim.emulateTimeEvolution(-0.17, ids, terms);
+  x = toDenseVector(qsim.getWaveFunction());
+  x_ref = (i*0.13*H).exp() * x0;
+  EXPECT_NEAR(0., (x-x_ref).norm(), eps);
 }

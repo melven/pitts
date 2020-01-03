@@ -18,6 +18,7 @@
 #include <array>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensortrain_dot.hpp"
+#include "pitts_fixed_tensortrain_axpby.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"
 #include "pitts_fixed_tensor3_apply.hpp"
@@ -95,7 +96,7 @@ namespace PITTS
         // move dimension to the end of the state vector
         while( iDim != stateVec_.nDims()-1 )
         {
-          swapDims(iDim, iDim+1);
+          swapDims_(iDim, iDim+1);
           iDim++;
         }
         // we need to remove the last sub-tensor now... last TT-rank should be one!
@@ -173,7 +174,7 @@ namespace PITTS
         if( ids.empty() )
           return;
 
-        auto newState = projectStateVec(ids, values);
+        auto newState = projectStateVec_(ids, values);
 
         // check if result is possible (todo: add missing norm function)
         const double nrm = std::sqrt(std::real(dot(newState, newState)));
@@ -249,7 +250,7 @@ namespace PITTS
       //!
       double getProbability(const std::vector<QubitId>& ids, const std::vector<bool>& values)
       {
-        const auto dummyState = projectStateVec(ids, values);
+        const auto dummyState = projectStateVec_(ids, values);
 
         // todo: add missing norm function
         return std::real(dot(dummyState, dummyState));
@@ -279,7 +280,7 @@ namespace PITTS
         auto iDim2 = qubitMap_.at(id2);
 
         // move dimensions by swapping until iDim2 = iDim1+1
-        makeNeighborDims(iDim1, iDim2);
+        makeNeighborDims_(iDim1, iDim2);
 
         // apply gate to combined tensor...
         auto& subT1 = stateVec_.editableSubTensors()[iDim1];
@@ -289,6 +290,64 @@ namespace PITTS
         split(subT12, subT1, subT2);
       }
 
+      //! Apply exp(i*time*H) to the state (wave function), i. e. evolve under the Hamiltonian H for a given time
+      //!
+      //! The Hamiltonian H consists of 2x2 matrices for different qubits: All 2x2 matrices must hermitian (self-adjoint)
+      //! so expm(i*time*H) is an orthogonal operator.
+      //!
+      //! @warning This currently assumes that the operator has approximately norm 1...
+      //!
+      //! @param time     desired simulated time, can be negative (operations are reversible, so we can both go forward and backward
+      //! @param ids      specifies the qubit for each term
+      //! @param terms    composition of the Hamiltonian of the complete system into real, symmetric 2x2 matrices for individual qubits
+      //! @param accuracy desired numerical tolerance for the computation
+      //!
+      void emulateTimeEvolution(double time, const std::vector<QubitId>& ids, const std::vector<Matrix2>& terms, double accuracy = 1.e-12)
+      {
+        // simplistic explicit RK4 approach
+
+        // first calculate a suitable timestep size
+        const int nSteps = int( std::abs(time) / std::pow(accuracy, 0.25) + 1 );
+        const double dt = time / nSteps;
+
+        // helper variables
+        StateVector dx1(stateVec_.nDims());
+        StateVector dx2(stateVec_.nDims());
+        StateVector dx3(stateVec_.nDims());
+        StateVector dx4(stateVec_.nDims());
+
+        static constexpr auto i = std::complex<double>(0, 1);
+        static constexpr auto one = std::complex<double>(1, 0);
+
+        for(int iStep = 0; iStep < nSteps; iStep++)
+        {
+          dx1 = stateVec_;
+          applyTerms_(dx1, ids, terms);
+
+          dx2 = stateVec_;
+          axpby(i*dt/2., dx1, one, dx2);
+          applyTerms_(dx2, ids, terms);
+
+          dx3 = stateVec_;
+          axpby(i*dt/2., dx2, one, dx3);
+          applyTerms_(dx3, ids, terms);
+
+          dx4 = stateVec_;
+          axpby(i*dt, dx3, one, dx4);
+          applyTerms_(dx4, ids, terms);
+
+          axpby(i*dt/6., dx1, one, stateVec_);
+          axpby(i*dt/3., dx2, one, stateVec_);
+          axpby(i*dt/3., dx3, one, stateVec_);
+          axpby(i*dt/6., dx4, one, stateVec_);
+        }
+      }
+
+      //! current state (for testing / debugging purposes)
+      const auto& getWaveFunction() const {return stateVec_;}
+
+      //! current map of qubit ids to the dimension index in the state (for testing / debugging purposes)
+      const auto& getQubitMap() const {return qubitMap_;}
 
     private:
       //! helper type for indexing qubits in the state vector
@@ -316,7 +375,7 @@ namespace PITTS
       std::uniform_real_distribution<double> uniformDistribution_{0., 1.};
 
       //! helper function to modify the ordering of dimensions in the stateVec_
-      void swapDims(Index i, Index j)
+      void swapDims_(Index i, Index j)
       {
         if( i+1 != j )
           throw std::invalid_argument("QubitSimulator: can only swap neighboring dimensions!");
@@ -340,7 +399,7 @@ namespace PITTS
       //! @param[inout] i   first qubit index, new index of the same qubit (same id) on output
       //! @param[inout] n   second qubit index, new index of the same qubit (same id) on output
       //!
-      void makeNeighborDims(Index& i, Index& j)
+      void makeNeighborDims_(Index& i, Index& j)
       {
         if( i == j || i < 0 || j < 0 || i >= stateVec_.nDims() || j >= stateVec_.nDims() )
           throw std::runtime_error("QubitSimulator: invalid indices!");
@@ -349,18 +408,18 @@ namespace PITTS
         {
           if( i < j )
           {
-            swapDims(i, i+1);
+            swapDims_(i, i+1);
             i++;
             continue;
           }
           if( i == j+1 )
           {
-            swapDims(j, i);
+            swapDims_(j, i);
             std::swap(j, i);
             continue;
           }
           // i > j+1
-          swapDims(j, j+1);
+          swapDims_(j, j+1);
           j++;
         }
       }
@@ -370,7 +429,7 @@ namespace PITTS
       //! @param ids    qubits to consider
       //! @param values desired values of the qubits ("down" is interpreted as true)
       //!
-      StateVector projectStateVec(const std::vector<QubitId>& ids, const std::vector<bool>& values) const
+      StateVector projectStateVec_(const std::vector<QubitId>& ids, const std::vector<bool>& values) const
       {
         if( ids.size() != values.size() )
           throw std::invalid_argument("QubitSimulator::projectStateVec: arguments must have the same size!");
@@ -394,6 +453,20 @@ namespace PITTS
         }
 
         return projectedState;
+      }
+
+      //! helper function to apply a bunch of single qubit transformations at once
+      void applyTerms_(StateVector& state, const std::vector<QubitId>& ids, const std::vector<Matrix2>& terms) const
+      {
+        if( ids.size() != terms.size() )
+          throw std::invalid_argument("QubitSimulator::applyTerms: number of ids and terms mismatch!");
+
+        for(int iQ = 0; iQ < ids.size(); iQ++)
+        {
+          const Index iDim = qubitMap_.at(ids[iQ]);
+          auto& subT = state.editableSubTensors()[iDim];
+          apply(subT, terms[iQ]);
+        }
       }
   };
 }
