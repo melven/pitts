@@ -506,3 +506,81 @@ TEST(PITTS_QubitSimulator, emulateTimeEvolution)
   x_ref = (i*0.13*H).exp() * x0;
   EXPECT_NEAR(0., (x-x_ref).norm(), eps);
 }
+
+TEST(PITTS_QubitSimulator, getExpectationValue)
+{
+  QubitSimulator qsim;
+
+  // allocate some qubits
+  qsim.allocateQubit(1);
+  qsim.allocateQubit(3);
+  qsim.allocateQubit(5);
+  qsim.allocateQubit(7);
+  qsim.allocateQubit(9);
+
+  // construct some arbitrary Hamiltonian
+  QubitSimulator::Matrix2 up = {};
+  up[0][0] = 1.;
+
+  QubitSimulator::Matrix2 down = {};
+  down[1][1] = 1.;
+
+  QubitSimulator::Matrix2 upDoubled = {};
+  upDoubled[0][0] = 2.;
+
+  // initially everything points up
+  EXPECT_NEAR(1., qsim.getExpectationValue({1}, {up}), eps);
+  EXPECT_NEAR(1., qsim.getExpectationValue({3}, {up}), eps);
+  EXPECT_NEAR(1., qsim.getExpectationValue({5}, {up}), eps);
+  EXPECT_NEAR(1., qsim.getExpectationValue({1,9}, {up,down}), eps);
+  EXPECT_NEAR(3., qsim.getExpectationValue({3,5,7}, {up,up,up}), eps);
+
+
+  // use a non-classical state to make this more interesting!
+  {
+    // helper variable for complex number i
+    static constexpr auto i = std::complex<double>(0, 1);
+
+    QubitSimulator::Matrix2 phaseGate;
+    phaseGate[0][0] = 1.;
+    phaseGate[0][1] = 0.;
+    phaseGate[1][0] = 0.;
+    phaseGate[1][1] = i;
+
+    QubitSimulator::Matrix2 hadamardGate;
+    hadamardGate[0][0] = 1./std::sqrt(2.);
+    hadamardGate[0][1] = 1./std::sqrt(2.);
+    hadamardGate[1][0] = 1./std::sqrt(2.);
+    hadamardGate[1][1] = -1./std::sqrt(2.);
+
+    QubitSimulator::Matrix4 cnotGate = {};
+    cnotGate[0][0] = 1;
+    cnotGate[1][1] = 1;
+    cnotGate[2][3] = 1;
+    cnotGate[3][2] = 1;
+
+    qsim.applySingleQubitGate(1, phaseGate);
+    qsim.applySingleQubitGate(5, hadamardGate);
+    qsim.applySingleQubitGate(9, hadamardGate);
+    qsim.applySingleQubitGate(9, phaseGate);
+    qsim.applyTwoQubitGate(7, 9, cnotGate);
+    qsim.applyTwoQubitGate(3, 5, cnotGate);
+    qsim.applyTwoQubitGate(1, 3, cnotGate);
+    qsim.applySingleQubitGate(5, phaseGate);
+    qsim.applyTwoQubitGate(5, 7, cnotGate);
+  }
+
+  EXPECT_NEAR(qsim.getProbability({1}, {false}), qsim.getExpectationValue({1}, {up}), eps);
+  EXPECT_NEAR(qsim.getProbability({3}, {false}), qsim.getExpectationValue({3}, {up}), eps);
+  EXPECT_NEAR(qsim.getProbability({5}, {false}), qsim.getExpectationValue({5}, {up}), eps);
+  EXPECT_NEAR(qsim.getProbability({7}, {false}), qsim.getExpectationValue({7}, {up}), eps);
+  EXPECT_NEAR(qsim.getProbability({9}, {false}), qsim.getExpectationValue({9}, {up}), eps);
+
+  EXPECT_NEAR(qsim.getProbability({1}, {true}), qsim.getExpectationValue({1}, {down}), eps);
+  EXPECT_NEAR(qsim.getProbability({3}, {true}), qsim.getExpectationValue({3}, {down}), eps);
+  EXPECT_NEAR(qsim.getProbability({5}, {true}), qsim.getExpectationValue({5}, {down}), eps);
+  EXPECT_NEAR(qsim.getProbability({7}, {true}), qsim.getExpectationValue({7}, {down}), eps);
+  EXPECT_NEAR(qsim.getProbability({9}, {true}), qsim.getExpectationValue({9}, {down}), eps);
+
+  EXPECT_NEAR(2*qsim.getProbability({1}, {false}), qsim.getExpectationValue({1}, {upDoubled}), eps);
+}

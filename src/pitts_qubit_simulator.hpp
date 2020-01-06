@@ -343,6 +343,33 @@ namespace PITTS
         }
       }
 
+      //! Get the expectation value of a qubit operator w.r.t. the current wave function
+      //!
+      //! This calculates <Psi|H|Psi> where Psi is the current state (wave function) and the operator H is composed of a sum of single-qubit 2x2 matrices.
+      //!
+      //! @param ids      specifies the qubit for each term
+      //! @param terms    composes the desired operator as a sum of single-qubit operators
+      //!
+      double getExpectationValue(const std::vector<QubitId>& ids, const std::vector<Matrix2>& terms)
+      {
+        if( ids.size() != terms.size() )
+          throw std::invalid_argument("QubitSimulator::getExpectationValue: input arrays have different size!");
+
+        double result = 0;
+        auto tmpState = stateVec_;
+        for(int iTerm = 0; iTerm < terms.size(); iTerm++)
+        {
+          const Index iDim = qubitMap_.at(ids[iTerm]);
+          auto& subT = tmpState.editableSubTensors()[iDim];
+          apply(subT, terms[iTerm]);
+          result += std::real(dot(stateVec_, tmpState));
+
+          // reset temporary state so we can apply another term of the operator in the next iteration
+          subT = stateVec_.subTensors()[iDim];
+        }
+        return result;
+      }
+
       //! current state (for testing / debugging purposes)
       const auto& getWaveFunction() const {return stateVec_;}
 
