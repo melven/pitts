@@ -39,6 +39,7 @@ namespace PITTS
       c[i] += a[i]*b[i];
   }
 
+#ifdef __AVX2__
   // specialization for double for dumb compilers
   template<>
   inline void fmadd<float>(const Chunk<float>& a, const Chunk<float>& b, Chunk<float>& c)
@@ -65,7 +66,9 @@ namespace PITTS
 #error "PITTS requires at least AVX2 support!"
 #endif
   }
+#endif
 
+#ifdef __AVX2__
   // specialization for double for dumb compilers
   template<>
   inline void fmadd<double>(const Chunk<double>& a, const Chunk<double>& b, Chunk<double>& c)
@@ -92,6 +95,7 @@ namespace PITTS
 #error "PITTS requires at least AVX2 support!"
 #endif
   }
+#endif
 
   //! small helper function to add up the element-wise product of two chunks
   template<typename T>
@@ -101,6 +105,7 @@ namespace PITTS
       c[i] += a*b[i];
   }
 
+#ifdef __AVX2__
   // specialization for double for dumb compilers
   template<>
   inline void fmadd<double>(double a, const Chunk<double>& b, Chunk<double>& c)
@@ -127,6 +132,7 @@ namespace PITTS
 #error "PITTS requires at least AVX2 support!"
 #endif
   }
+#endif
 
   //! small helper function to sum up all elements of a chunk
   template<typename T>

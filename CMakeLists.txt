@@ -52,6 +52,14 @@ find_package (Eigen3 3.3.7 REQUIRED NO_MODULE)
 link_libraries(Eigen3::Eigen)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_NO_AUTOMATIC_RESIZING -DEIGEN_DONT_PARALLELIZE")
 
+# pybind11 for the (optional) python binding...
+find_package(pybind11)
+if(pybind11_FOUND)
+  message(STATUS "Found pybind11, building the python interface...")
+else()
+  message(STATUS "Did not find pybind11, not building the python interface...")
+endif()
+
 
 ###
 ### Define source files and executables

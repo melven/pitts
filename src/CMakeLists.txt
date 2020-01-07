@@ -24,6 +24,8 @@ target_sources(pitts INTERFACE
   pitts_fixed_tensortrain_axpby.hpp
   )
 
+install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
+
 # test executables
 add_executable(norm2_bench norm2_bench.cpp)
 add_executable(dot_bench dot_bench.cpp)
@@ -31,3 +33,9 @@ add_executable(normalize_bench normalize_bench.cpp)
 add_executable(axpby_bench axpby_bench.cpp)
 add_executable(cg_bench cg_bench.cpp)
 add_executable(qubit_simulator_bench qubit_simulator_bench.cpp)
+
+# Python binding
+if(pybind11_FOUND)
+  pybind11_add_module(pitts_py MODULE pitts_qubit_simulator_pybind.cpp)
+  install(TARGETS pitts_py LIBRARY DESTINATION lib)
+endif()
