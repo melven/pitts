@@ -174,7 +174,8 @@ namespace PITTS
         if( ids.empty() )
           return;
 
-        auto newState = projectStateVec_(ids, values);
+        StateVector newState(stateVec_.nDims());
+        projectStateVec_(ids, values, newState);
 
         // check if result is possible (todo: add missing norm function)
         const double nrm = std::sqrt(std::real(dot(newState, newState)));
@@ -213,32 +214,51 @@ namespace PITTS
       //!
       std::vector<bool> measureQubits(const std::vector<QubitId>& ids)
       {
-        // sub-optimal variant with 2^N runtime
-        const auto nQ = stateVec_.nDims();
-        const auto rnd = uniformDistribution_(randomGenerator_);
-
-        StateVector unitVec(nQ);
-        std::vector<int> unitVecIdx(nQ);
-        std::complex<double> p = 0;
-        std::size_t pick;
-        for(pick = 0; pick+1 < (1UL << nQ); pick++)
-        {
-          for(int i = 0; i < nQ; i++)
-            unitVecIdx[i] = (pick & (1UL << i)) ? 1 : 0;
-          unitVec.setUnit(unitVecIdx);
-          p += dot(stateVec_, unitVec);
-          if( abs2(p) > rnd*rnd )
-            break;
-        }
-
+        // evaluate one qubit at a time => avoids 2^N runtime!
         std::vector<bool> result;
-        for(const auto id: ids)
+        StateVector tmp(stateVec_.nDims());
+        for(auto id: ids)
         {
-          bool down = pick & (1UL << qubitMap_.at(id));
-          result.push_back(down);
+          // calculate the probability for this qubit pointing down
+          projectStateVec_({id}, {true}, tmp);
+          double probability = std::real(dot(tmp, tmp));
+
+          // choose randomly up/down
+          if( uniformDistribution_(randomGenerator_) < probability )
+          {
+            result.push_back(true);
+          }
+          else
+          {
+            result.push_back(false);
+            // calculate new projection
+            projectStateVec_({id}, {false}, tmp);
+            probability = 1 - probability;
+          }
+          // rescale (collapse but without re-normalization)
+          {
+            const auto invNrm = 1 / std::sqrt(probability);
+            const auto iDim = qubitMap_.at(id);
+            auto& subT = tmp.editableSubTensors()[iDim];
+            for(int j = 0; j < subT.r2(); j++)
+              for(int i = 0; i < subT.r1(); i++)
+              {
+                subT(i,0,j) *= invNrm;
+                subT(i,1,j) *= invNrm;
+              }
+          }
+
+          std::swap(stateVec_, tmp);
         }
 
-        collapseWavefunction(ids, result);
+        // renormalize
+        for(Index iDim = 0; iDim+1 < stateVec_.nDims(); iDim++)
+        {
+          auto& subT1 = stateVec_.editableSubTensors()[iDim];
+          auto& subT2 = stateVec_.editableSubTensors()[iDim+1];
+          const auto subT12 = combine(subT1, subT2);
+          split(subT12, subT1, subT2);
+        }
 
         return result;
       }
@@ -250,7 +270,8 @@ namespace PITTS
       //!
       double getProbability(const std::vector<QubitId>& ids, const std::vector<bool>& values)
       {
-        const auto dummyState = projectStateVec_(ids, values);
+        StateVector dummyState(stateVec_.nDims());
+        projectStateVec_(ids, values, dummyState);
 
         // todo: add missing norm function
         return std::real(dot(dummyState, dummyState));
@@ -453,15 +474,16 @@ namespace PITTS
 
       //! helper function to project the stateVec_ onto a given result (un-normalized collapse)
       //!
-      //! @param ids    qubits to consider
-      //! @param values desired values of the qubits ("down" is interpreted as true)
+      //! @param[in]  ids            qubits to consider
+      //! @param[in]  values         desired values of the qubits ("down" is interpreted as true)
+      //! @param[out] projectedState resulting projected state vector
       //!
-      StateVector projectStateVec_(const std::vector<QubitId>& ids, const std::vector<bool>& values) const
+      void projectStateVec_(const std::vector<QubitId>& ids, const std::vector<bool>& values, StateVector& projectedState) const
       {
         if( ids.size() != values.size() )
           throw std::invalid_argument("QubitSimulator::projectStateVec: arguments must have the same size!");
 
-        auto projectedState = stateVec_;
+        projectedState = stateVec_;
 
         for(int iQ = 0; iQ < ids.size(); iQ++)
         {
@@ -478,8 +500,6 @@ namespace PITTS
                 subT(i,0,j) = 0.;
             }
         }
-
-        return projectedState;
       }
 
       //! helper function to apply a bunch of single qubit transformations at once
