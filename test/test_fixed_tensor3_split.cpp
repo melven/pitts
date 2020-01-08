@@ -16,7 +16,7 @@ TYPED_TEST_CASE(PITTS_FixedTensor3_split, TestTypes);
 
 TYPED_TEST(PITTS_FixedTensor3_split, N_equals_one)
 {
-  using Type = TestFixture::Type;
+  using Type = typename TestFixture::Type;
   using FixedTensor3 = PITTS::FixedTensor3<Type,1>;
   constexpr auto eps = 1.e-10;
 
@@ -38,7 +38,7 @@ TYPED_TEST(PITTS_FixedTensor3_split, N_equals_one)
 
 TYPED_TEST(PITTS_FixedTensor3_split, N_equals_four)
 {
-  using Type = TestFixture::Type;
+  using Type = typename TestFixture::Type;
   using FixedTensor3_4 = PITTS::FixedTensor3<Type,4>;
   using FixedTensor3_2 = PITTS::FixedTensor3<Type,2>;
   constexpr auto eps = 1.e-10;
@@ -63,7 +63,7 @@ TYPED_TEST(PITTS_FixedTensor3_split, N_equals_four)
 
 TYPED_TEST(PITTS_FixedTensor3_split, N_equals_four_rightOrthog)
 {
-  using Type = TestFixture::Type;
+  using Type = typename TestFixture::Type;
   using FixedTensor3_4 = PITTS::FixedTensor3<Type,4>;
   using FixedTensor3_2 = PITTS::FixedTensor3<Type,2>;
   constexpr auto eps = 1.e-10;

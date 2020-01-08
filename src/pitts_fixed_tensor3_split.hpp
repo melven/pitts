@@ -32,7 +32,7 @@ namespace PITTS
   //! @param[in]  leftOrtog make left part (t3a) orthogonal if true, otherwise t3b is made orthogonal
   //!
   template<typename T, int N>
-  auto split(const FixedTensor3<T,N*N>& t3c, FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool leftOrthog = true)
+  void split(const FixedTensor3<T,N*N>& t3c, FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool leftOrthog = true)
   {
     using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
     using Map = Eigen::Map<Matrix>;
@@ -40,9 +40,48 @@ namespace PITTS
 
     const auto r1 = t3c.r1();
     const auto r2 = t3c.r2();
+    if( r1*r2 == 0 )
+      throw std::invalid_argument("Unsupported dimension of zero!");
 
     const auto t3cMap = ConstMap(&t3c(0,0,0), N*r1, N*r2);
 
+    // use a faster QR algorithm (at the risk of a badly estimated truncation error)
+    if( leftOrthog )
+    {
+      Eigen::ColPivHouseholderQR<Matrix> qr(t3cMap);
+      qr.setThreshold(1.e-10);
+      const auto r = std::max(Eigen::Index(1), qr.rank());
+
+      t3a.resize(r1,r);
+      t3b.resize(r,r2);
+
+      // A P = Q R
+      // => A = Q (R P^(-1))
+      const Matrix Q = qr.matrixQ();
+      const Matrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
+      const auto P = qr.colsPermutation();
+      Map(&t3a(0,0,0), r1*N,r) = Q.leftCols(r);
+      Map(&t3b(0,0,0), r,r2*N) = R * P.inverse();
+    }
+    else // rightOrthog
+    {
+      Eigen::ColPivHouseholderQR<Matrix> qr(t3cMap.transpose());
+      qr.setThreshold(1.e-10);
+      const auto r = std::max(Eigen::Index(1), qr.rank());
+
+      t3a.resize(r1,r);
+      t3b.resize(r,r2);
+
+      // A^T P = Q R
+      // => P^T A = R^T Q^T
+      // => A = (R P^(-1))^T Q^T
+      const Matrix Q = qr.matrixQ();
+      const Matrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
+      const auto P = qr.colsPermutation();
+      Map(&t3a(0,0,0), r1*N,r) = (R * P.inverse()).transpose();
+      Map(&t3b(0,0,0), r,r2*N) = Q.leftCols(r).transpose();
+    }
+    /*
     auto svd = Eigen::JacobiSVD<Matrix, Eigen::HouseholderQRPreconditioner>(t3cMap, Eigen::ComputeThinV | Eigen::ComputeThinU);
     svd.setThreshold(1.e-10);
     const auto r = svd.rank();
@@ -60,6 +99,7 @@ namespace PITTS
       Map(&t3b(0,0,0), r,r2*N) = svd.matrixV().leftCols(r).adjoint();
     }
     //std::cout << "Singular value |.|: " << svd.singularValues().head(r).transpose().array().abs() << "\n";
+    */
   }
 
 }

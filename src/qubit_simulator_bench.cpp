@@ -54,14 +54,14 @@ int main(int argc, char* argv[])
 
   PITTS::QubitSimulator qsim;
   using QubitId = PITTS::QubitSimulator::QubitId;
-  const QubitId nQ = 40;
+  const QubitId nQ = 100;
   for(QubitId iQ = 0; iQ < nQ; iQ++)
     qsim.allocateQubit(iQ);
 
   double wtime = omp_get_wtime();
 
   // just single qubit gates
-  const int nIter = 100;
+  const int nIter = 15;
   for(int iter = 0; iter < nIter; iter++)
   {
     if( iter % 2 == 0 )
