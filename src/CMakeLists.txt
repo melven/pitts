@@ -24,6 +24,8 @@ target_sources(pitts INTERFACE
   pitts_fixed_tensortrain_axpby.hpp
   pitts_multivector.hpp
   pitts_multivector_random.hpp
+  pitts_multivector_cdist.hpp
+  pitts_multivector_centroids.hpp
   )
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
