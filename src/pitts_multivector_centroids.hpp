@@ -31,17 +31,27 @@ namespace PITTS
   {
     const auto chunks = X.rowChunks();
     const auto n = X.cols();
+    const auto m = Y.cols();
     if( n != idx.size() || n != w.size() )
       throw std::invalid_argument("PITTS::centroids: Dimension mismatch, size of idx and w must match with the number of columns in X!");
 
-    // set Y to zero
-    for(int j = 0; j < Y.cols(); j++)
-      for(int c = 0; c < chunks; c++)
-        Y.chunk(c,j) = Chunk<T>{};
+#pragma omp parallel
+    {
+      for(int j = 0; j < m; j++)
+      {
+#pragma omp for schedule(static) nowait
+        for(int c = 0; c < chunks; c++)
+          Y.chunk(c,j) = Chunk<T>{};
+      }
 
-    for(int c = 0; c < chunks; c++)
       for(int i = 0; i < n; i++)
-        fmadd(w[i], X.chunk(c,i), Y.chunk(c,idx[i]));
+      {
+#pragma omp for schedule(static) nowait
+        for(int c = 0; c < chunks; c++)
+          fmadd(w[i], X.chunk(c,i), Y.chunk(c,idx[i]));
+      }
+    }
+
   }
 }
 
