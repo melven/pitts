@@ -23,6 +23,7 @@ target_sources(pitts INTERFACE
   pitts_fixed_tensortrain_dot.hpp
   pitts_fixed_tensortrain_axpby.hpp
   pitts_multivector.hpp
+  pitts_multivector_random.hpp
   )
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
