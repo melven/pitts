@@ -45,7 +45,7 @@ namespace PITTS
   inline void fmadd<float>(const Chunk<float>& a, const Chunk<float>& b, Chunk<float>& c)
   {
 #if defined(__AVX512F__)
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(int i = 0; i < ALIGNMENT/64; i++)
     {
       __m512 ai = _mm512_load_ps(&a[16*i]);
       __m512 bi = _mm512_load_ps(&b[16*i]);
@@ -54,7 +54,7 @@ namespace PITTS
       _mm512_store_ps(&c[16*i],ci);
     }
 #elif defined(__AVX2__)
-    for(int i = 0; i < ALIGNMENT/16; i++)
+    for(int i = 0; i < ALIGNMENT/32; i++)
     {
       __m256 ai = _mm256_load_ps(&a[8*i]);
       __m256 bi = _mm256_load_ps(&b[8*i]);
