@@ -25,7 +25,7 @@ namespace PITTS
   template<typename T>
   void randomize(MultiVector<T>& t2)
   {
-    //std::random_device randomSeed;
+    std::random_device randomSeed;
     //std::mt19937 randomGenerator(randomSeed());
     //std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
@@ -33,8 +33,13 @@ namespace PITTS
     const auto cols = t2.cols();
 #pragma omp parallel
     {
-    std::mt19937 randomGenerator(omp_get_thread_num());
-    std::uniform_real_distribution<T> distribution(T(-1), T(1));
+      std::random_device::result_type seed;
+#pragma omp critical(PITTS_MULTIVECTOR_RANDOM)
+      {
+        seed = randomSeed();
+      }
+      std::mt19937 randomGenerator(seed);
+      std::uniform_real_distribution<T> distribution(T(-1), T(1));
 #pragma omp for schedule(static) collapse(2)
       for(int j = 0; j < cols; j++)
         for(int i = 0; i < rows; i++)
