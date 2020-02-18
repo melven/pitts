@@ -12,6 +12,7 @@
 
 // includes
 #include <random>
+#include <omp.h>
 #include "pitts_multivector.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -24,15 +25,21 @@ namespace PITTS
   template<typename T>
   void randomize(MultiVector<T>& t2)
   {
-    std::random_device randomSeed;
-    std::mt19937 randomGenerator(randomSeed());
-    std::uniform_real_distribution<T> distribution(T(-1), T(1));
+    //std::random_device randomSeed;
+    //std::mt19937 randomGenerator(randomSeed());
+    //std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
     const auto rows = t2.rows();
     const auto cols = t2.cols();
-    for(int j = 0; j < cols; j++)
-      for(int i = 0; i < rows; i++)
+#pragma omp parallel
+    {
+    std::mt19937 randomGenerator(omp_get_thread_num());
+    std::uniform_real_distribution<T> distribution(T(-1), T(1));
+#pragma omp for schedule(static) collapse(2)
+      for(int j = 0; j < cols; j++)
+        for(int i = 0; i < rows; i++)
           t2(i,j) = distribution(randomGenerator);
+    }
   }
 
 }
