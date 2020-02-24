@@ -50,11 +50,13 @@ namespace PITTS
     void resize(int r1, int r2)
     {
       const auto n = r1*r2;
-      data_.resize(std::max(1, (n-1)/chunkSize+1));
+      const auto nPadded = std::max(1, (n-1)/chunkSize+1);
+      if( n > r1_*r2_ )
+        data_.reset(new Chunk<T>[nPadded]);
       r1_ = r1;
       r2_ = r2;
       // ensure padding is zero
-      data_.back() = Chunk<T>{};
+      data_[nPadded-1] = Chunk<T>{};
     }
 
     //! access matrix entries (column-wise ordering, const variant)
@@ -96,8 +98,25 @@ namespace PITTS
     int r2_ = 0;
 
     //! the actual data...
-    std::vector<Chunk<T>> data_;
+    std::unique_ptr<Chunk<T>[]> data_ = nullptr;
   };
+
+  //! explicitly copy a Tensor2 object
+  template<typename T>
+  auto copy(const Tensor2<T>& a)
+  {
+    const auto r1 = a.r1();
+    const auto r2 = a.r2();
+
+    Tensor2<T> b(r1, r2);
+
+#pragma omp parallel for collapse(2) schedule(static) if(r1*r2 > 500)
+    for(int j = 0; j < r2; j++)
+      for(int i = 0; i < r1; i++)
+        b(i,j) = a(i,j);
+
+    return b;
+  }
 }
 
 

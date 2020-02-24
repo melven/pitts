@@ -10,7 +10,7 @@ TEST(PITTS_Tensor2_EigenAdaptor, simple_const)
   Tensor2_double t2(3,10);
 
   randomize(t2);
-  const Tensor2_double t2_const = t2;
+  const Tensor2_double t2_const = copy(t2);
   const auto t2Map = ConstEigenMap(t2_const);
   ASSERT_EQ(t2.r1(), t2Map.rows());
   ASSERT_EQ(t2.r2(), t2Map.cols());
@@ -34,7 +34,7 @@ TEST(PITTS_Tensor2_EigenAdaptor, simple_modify)
   ASSERT_EQ(t2.r1(), t2Map.rows());
   ASSERT_EQ(t2.r2(), t2Map.cols());
 
-  const Tensor2_double oldT2 = t2;
+  const Tensor2_double oldT2 = copy(t2);
   t2Map = Eigen::MatrixXd::Random(3,10);
 
   for(int i = 0; i < t2.r1(); i++)
