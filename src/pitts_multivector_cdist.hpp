@@ -67,6 +67,7 @@ namespace PITTS
       }
     }
 
+#pragma omp parallel for schedule(static)
     for(int j = 0; j < m; j++)
     {
       Chunk<T> tmpY = Chunk<T>{};
