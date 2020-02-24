@@ -51,7 +51,7 @@ TEST(PITTS_MultiVector, memory_layout_and_zero_padding)
     for(int i = 0; i < 5; i++)
       M(i,j) = 7.;
   
-  const auto* Mdata = &M(0,0);
+  auto* Mdata = &M(0,0);
   for(int j = 0; j < 7; j++)
     for(int i = 0; i < 5; i++)
     {
@@ -76,6 +76,7 @@ TEST(PITTS_MultiVector, memory_layout_and_zero_padding)
   M.resize(1,2);
   M(0,0) = 1.;
   M(0,1) = 2.;
+  Mdata = &M(0,0);
   ASSERT_EQ(Mdata, &M(0,0));
   EXPECT_EQ(1., Mdata[0]);
   EXPECT_EQ(2., Mdata[0+chunkSize]);

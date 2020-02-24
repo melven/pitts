@@ -11,7 +11,7 @@
 #define PITTS_MULTIVECTOR_HPP
 
 // includes
-#include <vector>
+#include <memory>
 #include "pitts_chunk.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -48,12 +48,14 @@ namespace PITTS
     //! adjust the desired multivector dimensions (destroying all data!)
     void resize(int rows, int cols)
     {
+      const auto newRowChunks = (rows-1)/chunkSize+1;
+      if( newRowChunks*cols > rowChunks()*cols_ )
+        data_.reset(new Chunk<T>[newRowChunks*cols]);
       rows_ = rows;
       cols_ = cols;
-      data_.resize(rowChunks()*cols);
       // ensure padding is zero
       for(int j = 0; j < cols; j++)
-        chunk(rowChunks()-1, j) = Chunk<T>{};
+        chunk(newRowChunks-1, j) = Chunk<T>{};
     }
 
     //! access matrix entries (column-wise ordering, const variant)
@@ -91,6 +93,9 @@ namespace PITTS
     //! number of chunks in first dimension
     inline auto rowChunks() const {return (rows_-1)/chunkSize+1;}
 
+    //! total size of the data array including padding (e.g. for MPI communication)
+    inline auto totalPaddedSize() const {return rowChunks()*chunkSize*cols_;}
+
   protected:
     //! the array dimension of chunks
     //!
@@ -106,7 +111,7 @@ namespace PITTS
     int cols_ = 0;
 
     //! the actual data...
-    std::vector<Chunk<T>> data_;
+    std::unique_ptr<Chunk<T>[]> data_ = nullptr;
   };
 }
 
