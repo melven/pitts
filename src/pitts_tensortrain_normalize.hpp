@@ -26,7 +26,7 @@ namespace PITTS
   template<typename T>
   T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
-    const auto norm = rightNormalize(TT, T(0));
+    const auto norm = rightNormalize(TT, rankTolerance);
     return norm * leftNormalize(TT, rankTolerance);
   }
 
