@@ -20,21 +20,22 @@ namespace
 
 int main(int argc, char* argv[])
 {
+#pragma omp parallel
+  {
+    if( omp_get_thread_num() == 0 )
+      std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
+  }
+
   if( MPI_Init(&argc, &argv) != 0 )
     throw std::runtime_error("MPI error");
 
-  int nProcs, iProc;
+  int nProcs = 1, iProc = 0;
   if( MPI_Comm_size(MPI_COMM_WORLD, &nProcs) != 0 )
     throw std::runtime_error("MPI error");
   if( MPI_Comm_rank(MPI_COMM_WORLD, &iProc) != 0 )
     throw std::runtime_error("MPI error");
   if( iProc == 0 )
     std::cout << "MPI #procs: " << nProcs << std::endl;
-#pragma omp parallel
-  {
-    if( iProc == 0 && omp_get_thread_num() == 0 )
-      std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
-  }
 
   using Type = double;
   PITTS::TensorTrain<Type> rhs(5,17);
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
   PITTS::TensorTrain<Type> q(p.dimensions);
   const auto maxIter = 50;
   const auto resTol = 1.e-3*rnorm;
-  const auto rankTol = 1.e-15;
+  const auto rankTol = 1.e-12;
   for(int iter = 0; iter < maxIter; iter++)
   {
     // q = Ap
@@ -94,7 +95,7 @@ int main(int argc, char* argv[])
   for(int iDim = 0; iDim < nDim; iDim++)
   {
     auto& subT = xT.editableSubTensors()[nDim-1-iDim];
-    const auto oldSubT = x.subTensors()[iDim];
+    const auto& oldSubT = x.subTensors()[iDim];
     const auto r1 = oldSubT.r2();
     const auto n = oldSubT.n();
     const auto r2 = oldSubT.r1();
@@ -104,7 +105,7 @@ int main(int argc, char* argv[])
         for(int i = 0; i < r1; i++)
           subT(i,k,j) = oldSubT(j,k,i);
   }
-  const auto xTnorm = normalize(xT);
+  const auto xTnorm = normalize(xT, rankTol);
   std::cout << "xTnorm: " << xTnorm << std::endl;
   std::cout << "xT TTranks: " << xT.getTTranks() << std::endl;
 
