@@ -45,7 +45,7 @@ namespace PITTS
   inline void fmadd<float>(const Chunk<float>& a, const Chunk<float>& b, Chunk<float>& c)
   {
 #if defined(__AVX512F__)
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(int i = 0; i < ALIGNMENT/64; i++)
     {
       __m512 ai = _mm512_load_ps(&a[16*i]);
       __m512 bi = _mm512_load_ps(&b[16*i]);
@@ -54,7 +54,7 @@ namespace PITTS
       _mm512_store_ps(&c[16*i],ci);
     }
 #elif defined(__AVX2__)
-    for(int i = 0; i < ALIGNMENT/16; i++)
+    for(int i = 0; i < ALIGNMENT/32; i++)
     {
       __m256 ai = _mm256_load_ps(&a[8*i]);
       __m256 bi = _mm256_load_ps(&b[8*i]);
@@ -104,6 +104,35 @@ namespace PITTS
     for(int i = 0; i < Chunk<T>::size; i++)
       c[i] += a*b[i];
   }
+
+#ifdef __AVX2__
+  // specialization for float for dumb compilers
+  template<>
+  inline void fmadd<float>(float a, const Chunk<float>& b, Chunk<float>& c)
+  {
+#if defined(__AVX512F__)
+    __m512 ai = _mm512_set1_ps(a);
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512 bi = _mm512_load_ps(&b[16*i]);
+      __m512 ci = _mm512_load_ps(&c[16*i]);
+      ci = _mm512_fmadd_ps(ai,bi,ci);
+      _mm512_store_ps(&c[16*i],ci);
+    }
+#elif defined(__AVX2__)
+    __m256 ai = _mm256_set1_ps(a);
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256 bi = _mm256_load_ps(&b[8*i]);
+      __m256 ci = _mm256_load_ps(&c[8*i]);
+      ci = _mm256_fmadd_ps(ai,bi,ci);
+      _mm256_store_ps(&c[8*i],ci);
+    }
+#else
+#error "PITTS requires at least AVX2 support!"
+#endif
+  }
+#endif
 
 #ifdef __AVX2__
   // specialization for double for dumb compilers
