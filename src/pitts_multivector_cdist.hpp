@@ -38,8 +38,8 @@ namespace PITTS
 
 #pragma omp parallel
     {
-      std::vector<Chunk<T>> tmpX(blockSize);
-      std::vector<Chunk<T>> tmpXY(m*blockSize);
+      std::unique_ptr<Chunk<T>[]> tmpX(new Chunk<T>[blockSize]);
+      std::unique_ptr<Chunk<T>[]> tmpXY(new Chunk<T>[m*blockSize]);
 #pragma omp for schedule(static)
       for(int iB = 0; iB < n; iB+=blockSize)
       {
@@ -75,8 +75,9 @@ namespace PITTS
       for(int c = 0; c < chunks; c++)
         fmadd(Y.chunk(c,j), Y.chunk(c,j), tmpY);
 
+      const auto s = sum(tmpY);
       for(int i = 0; i < n; i++)
-        D(i,j) += sum(tmpY);
+        D(i,j) += s;
     }
 
   }

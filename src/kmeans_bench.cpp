@@ -68,6 +68,11 @@ int main(int argc, char* argv[])
   centroids(X, idx, w, Y);
   MPI_Allreduce(MPI_IN_PLACE, &Y(0,0), Y.totalPaddedSize(), MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
+  wtime = omp_get_wtime() - wtime;
+  if( iProc == 0 )
+    std::cout << "Initialized k-means, wtime: " << wtime << "\n";
+
+  wtime = omp_get_wtime();
 
   const auto nIter = 20;
 
