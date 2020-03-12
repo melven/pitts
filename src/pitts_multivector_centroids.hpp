@@ -52,7 +52,9 @@ namespace PITTS
       {
 #pragma omp for schedule(static) nowait
         for(int c = 0; c < chunks; c++)
+	{
           Y.chunk(c,j) = Chunk<T>{};
+	}
       }
 
       for(int i = 0; i < n; i++)
