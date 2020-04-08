@@ -42,21 +42,38 @@ namespace PITTS
     const auto r = t3a.r2();
     const auto r2 = t3b.r2();
     FixedTensor3<T,N*N> t3c(r1,r2);
-    for(int i = 0; i < r1; i++)
+    if( swap )
+    {
       for(int j = 0; j < r2; j++)
-      {
-        for(int k1 = 0; k1 < N; k1++)
-          for(int k2 = 0; k2 < N; k2++)
-          {
-            T tmp{};
-            for(int l = 0; l < r; l++)
-              tmp += t3a(i,k1,l)*t3b(l,k2,j);
-            if( swap )
-              t3c(i,k1*N+k2,j) = tmp;
-            else
-              t3c(i,k2*N+k1,j) = tmp;
-          }
-      }
+        for(int i = 0; i < r1; i++)
+        {
+          T tmp[N][N] = {};
+          for(int l = 0; l < r; l++)
+            for(int k1 = 0; k1 < N; k1++)
+              for(int k2 = 0; k2 < N; k2++)
+                tmp[k1][k2] += t3a(i,k1,l)*t3b(l,k2,j);
+
+          for(int k1 = 0; k1 < N; k1++)
+            for(int k2 = 0; k2 < N; k2++)
+              t3c(i,k1*N+k2,j) = tmp[k1][k2];
+        }
+    }
+    else // no swap
+    {
+      for(int j = 0; j < r2; j++)
+        for(int i = 0; i < r1; i++)
+        {
+          T tmp[N][N] = {};
+          for(int l = 0; l < r; l++)
+            for(int k1 = 0; k1 < N; k1++)
+              for(int k2 = 0; k2 < N; k2++)
+                tmp[k1][k2] += t3a(i,k1,l)*t3b(l,k2,j);
+
+          for(int k1 = 0; k1 < N; k1++)
+            for(int k2 = 0; k2 < N; k2++)
+                t3c(i,k2*N+k1,j) = tmp[k1][k2];
+        }
+    }
     return t3c;
   }
 
