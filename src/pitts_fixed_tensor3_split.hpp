@@ -35,15 +35,16 @@ namespace PITTS
   void split(const FixedTensor3<T,N*N>& t3c, FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool leftOrthog = true)
   {
     using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
-    using Map = Eigen::Map<Matrix>;
-    using ConstMap = Eigen::Map<const Matrix>;
+    using Stride = Eigen::OuterStride<Eigen::Dynamic>;
+    using Map = Eigen::Map<Matrix, Eigen::Aligned128, Stride>;
+    using ConstMap = Eigen::Map<const Matrix, Eigen::Aligned128, Stride>;
 
     const auto r1 = t3c.r1();
     const auto r2 = t3c.r2();
     if( r1*r2 == 0 )
       throw std::invalid_argument("Unsupported dimension of zero!");
 
-    const auto t3cMap = ConstMap(&t3c(0,0,0), N*r1, N*r2);
+    const auto t3cMap = ConstMap(&t3c(0,0,0), N*r1, N*r2, Stride(N*r1));
 
     // use a faster QR algorithm (at the risk of a badly estimated truncation error)
     if( leftOrthog )
@@ -60,8 +61,8 @@ namespace PITTS
       const Matrix Q = qr.matrixQ();
       const Matrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
       const auto P = qr.colsPermutation();
-      Map(&t3a(0,0,0), r1*N,r) = Q.leftCols(r);
-      Map(&t3b(0,0,0), r,r2*N) = R * P.inverse();
+      Map(&t3a(0,0,0), r1*N, r, Stride(r1*N)) = Q.leftCols(r);
+      Map(&t3b(0,0,0), r, r2*N, Stride(r)) = R * P.inverse();
     }
     else // rightOrthog
     {
@@ -78,8 +79,8 @@ namespace PITTS
       const Matrix Q = qr.matrixQ();
       const Matrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
       const auto P = qr.colsPermutation();
-      Map(&t3a(0,0,0), r1*N,r) = (R * P.inverse()).transpose();
-      Map(&t3b(0,0,0), r,r2*N) = Q.leftCols(r).transpose();
+      Map(&t3a(0,0,0), r1*N, r, Stride(r1*N)) = (R * P.inverse()).transpose();
+      Map(&t3b(0,0,0), r, r2*N, Stride(r)) = Q.leftCols(r).transpose();
     }
     /*
     auto svd = Eigen::JacobiSVD<Matrix, Eigen::HouseholderQRPreconditioner>(t3cMap, Eigen::ComputeThinV | Eigen::ComputeThinU);
