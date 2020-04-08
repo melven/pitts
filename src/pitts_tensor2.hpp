@@ -50,13 +50,16 @@ namespace PITTS
     void resize(int r1, int r2)
     {
       const auto n = r1*r2;
-      const auto nPadded = std::max(1, (n-1)/chunkSize+1);
-      if( n > r1_*r2_ )
-        data_.reset(new Chunk<T>[nPadded]);
+      const auto requiredChunks = std::max(1, (n-1)/chunkSize+1);
+      if( requiredChunks > reservedChunks_ )
+      {
+        data_.reset(new Chunk<T>[requiredChunks]);
+        reservedChunks_ = requiredChunks;
+      }
       r1_ = r1;
       r2_ = r2;
       // ensure padding is zero
-      data_[nPadded-1] = Chunk<T>{};
+      data_[requiredChunks-1] = Chunk<T>{};
     }
 
     //! access matrix entries (column-wise ordering, const variant)
@@ -91,6 +94,9 @@ namespace PITTS
     static constexpr int chunkSize = Chunk<T>::size;
 
   private:
+    //! size of the buffer
+    int reservedChunks_ = 0;
+
     //! first dimension
     int r1_ = 0;
 
