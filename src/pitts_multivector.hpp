@@ -49,8 +49,11 @@ namespace PITTS
     void resize(int rows, int cols)
     {
       const auto newRowChunks = (rows-1)/chunkSize+1;
-      if( newRowChunks*cols > rowChunks()*cols_ )
+      if( newRowChunks*cols > reservedChunks_ )
+      {
         data_.reset(new Chunk<T>[newRowChunks*cols]);
+        reservedChunks_ = newRowChunks*cols;
+      }
       rows_ = rows;
       cols_ = cols;
       // ensure padding is zero
@@ -104,6 +107,9 @@ namespace PITTS
     static constexpr int chunkSize = Chunk<T>::size;
 
   private:
+    //! size of the buffer
+    int reservedChunks_ = 0;
+
     //! first dimension
     int rows_ = 0;
 
