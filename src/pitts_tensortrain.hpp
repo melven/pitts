@@ -66,6 +66,12 @@ namespace PITTS
       //! no implicit copy assignment
       const TensorTrain<T>& operator=(const TensorTrain<T>&) = delete;
 
+      //! move construction is ok
+      TensorTrain(TensorTrain<T>&&) = default;
+
+      //! move assignment is ok
+      TensorTrain<T>& operator=(TensorTrain<T>&&) = default;
+
 
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
       void setTTranks(const std::vector<int>& tt_ranks)

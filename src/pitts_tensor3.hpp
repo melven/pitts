@@ -11,7 +11,6 @@
 #define PITTS_TENSOR3_HPP
 
 // includes
-#include <vector>
 #include <memory>
 #include "pitts_chunk.hpp"
 
@@ -68,14 +67,14 @@ namespace PITTS
           chunk(i,nChunks()-1,j) = Chunk<T>{};
     }
 
-    //! access matrix entries (some block ordering, const variant)
+    //! access tensor entries (some block ordering, const variant)
     inline const T& operator()(int i1, int j, int i2) const
     {
       const int k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
       return data_[k][j%chunkSize];
     }
 
-    //! access matrix entries (some block ordering, write access through reference)
+    //! access tensor entries (some block ordering, write access through reference)
     inline T& operator()(int i1, int j, int i2)
     {
       const int k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
