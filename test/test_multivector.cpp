@@ -1,5 +1,22 @@
 #include <gtest/gtest.h>
 #include "pitts_multivector.hpp"
+#include <type_traits>
+
+TEST(PITTS_MultiVector, type_traits)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+
+  // implicit copying is not desired
+  ASSERT_FALSE(std::is_copy_constructible<MultiVector_double>());
+  ASSERT_FALSE(std::is_copy_assignable<MultiVector_double>());
+
+  // move / swap is ok
+  ASSERT_TRUE(std::is_nothrow_move_constructible<MultiVector_double>());
+  ASSERT_TRUE(std::is_nothrow_move_assignable<MultiVector_double>());
+  ASSERT_TRUE(std::is_nothrow_swappable<MultiVector_double>());
+}
+
+
 
 TEST(PITTS_MultiVector, create)
 {

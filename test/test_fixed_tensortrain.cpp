@@ -2,6 +2,7 @@
 #include "test_complex_helper.hpp"
 #include "pitts_fixed_tensortrain.hpp"
 #include <complex>
+#include <type_traits>
 
 template<typename T>
 class PITTS_FixedTensorTrain : public ::testing::Test
@@ -17,6 +18,22 @@ namespace
 {
   constexpr auto eps = 1.e-10;
 }
+
+TYPED_TEST(PITTS_FixedTensorTrain, type_traits)
+{
+  using Type = TestFixture::Type;
+  using FixedTensorTrain = PITTS::FixedTensorTrain<Type,2>;
+
+  // implicit copying is not desired
+  ASSERT_TRUE(std::is_copy_constructible<FixedTensorTrain>());
+  ASSERT_FALSE(std::is_copy_assignable<FixedTensorTrain>());
+
+  // move / swap is ok
+  ASSERT_TRUE(std::is_nothrow_move_constructible<FixedTensorTrain>());
+  ASSERT_TRUE(std::is_nothrow_move_assignable<FixedTensorTrain>());
+  ASSERT_TRUE(std::is_nothrow_swappable<FixedTensorTrain>());
+}
+
 
 TYPED_TEST(PITTS_FixedTensorTrain, create_n_1)
 {

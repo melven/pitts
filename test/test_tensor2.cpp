@@ -1,5 +1,21 @@
 #include <gtest/gtest.h>
 #include "pitts_tensor2.hpp"
+#include <type_traits>
+
+TEST(PITTS_Tensor2, type_traits)
+{
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  // implicit copying is not desired
+  ASSERT_FALSE(std::is_copy_constructible<Tensor2_double>());
+  ASSERT_FALSE(std::is_copy_assignable<Tensor2_double>());
+
+  // move / swap is ok
+  ASSERT_TRUE(std::is_nothrow_move_constructible<Tensor2_double>());
+  ASSERT_TRUE(std::is_nothrow_move_assignable<Tensor2_double>());
+  ASSERT_TRUE(std::is_nothrow_swappable<Tensor2_double>());
+}
+
 
 TEST(PITTS_Tensor2, create)
 {

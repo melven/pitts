@@ -1,6 +1,15 @@
 #include <gtest/gtest.h>
 #include "pitts_chunk.hpp"
 #include <vector>
+#include <type_traits>
+
+TEST(PITTS_Chunk, type_traits)
+{
+  using Chunk_double = PITTS::Chunk<double>;
+
+  ASSERT_TRUE(std::is_trivial<Chunk_double>());
+  ASSERT_TRUE(std::is_standard_layout<Chunk_double>());
+}
 
 TEST(PITTS_Chunk, check_alignment)
 {
