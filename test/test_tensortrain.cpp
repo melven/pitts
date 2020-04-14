@@ -21,7 +21,7 @@ TEST(PITTS_TensorTrain, create_n_1)
   using TensorTrain_double = PITTS::TensorTrain<double>;
 
   TensorTrain_double TT1(1,3);
-  ASSERT_EQ(std::vector<int>({3}), TT1.dimensions);
+  ASSERT_EQ(std::vector<int>({3}), TT1.dimensions());
   ASSERT_EQ(std::vector<int>({}), TT1.getTTranks());
   ASSERT_EQ(1, TT1.subTensors().size());
   ASSERT_EQ(1, TT1.subTensors()[0].r1());
@@ -34,7 +34,7 @@ TEST(PITTS_TensorTrain, create_n_d)
   using TensorTrain_double = PITTS::TensorTrain<double>;
 
   TensorTrain_double TT1(3,7);
-  ASSERT_EQ(std::vector<int>({7,7,7}), TT1.dimensions);
+  ASSERT_EQ(std::vector<int>({7,7,7}), TT1.dimensions());
   ASSERT_EQ(std::vector<int>({1,1}), TT1.getTTranks());
   ASSERT_EQ(3, TT1.subTensors().size());
   for(const auto& subT: TT1.subTensors())
@@ -45,7 +45,7 @@ TEST(PITTS_TensorTrain, create_n_d)
   }
 
   TensorTrain_double TT2(2,3,4);
-  ASSERT_EQ(std::vector<int>({3,3}), TT2.dimensions);
+  ASSERT_EQ(std::vector<int>({3,3}), TT2.dimensions());
   ASSERT_EQ(std::vector<int>({4}), TT2.getTTranks());
   ASSERT_EQ(2, TT2.subTensors().size());
   ASSERT_EQ(1, TT2.subTensors()[0].r1());
@@ -63,7 +63,7 @@ TEST(PITTS_TensorTrain, create_generic)
   const std::vector<int> dims = {2,3,4,5,6};
 
   TensorTrain_double TT(dims, 3);
-  ASSERT_EQ(dims, TT.dimensions);
+  ASSERT_EQ(dims, TT.dimensions());
   ASSERT_EQ(std::vector<int>({3,3,3,3}), TT.getTTranks());
   ASSERT_EQ(5, TT.subTensors().size());
   ASSERT_EQ(1, TT.subTensors()[0].r1());

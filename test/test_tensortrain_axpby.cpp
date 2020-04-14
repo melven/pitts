@@ -67,19 +67,19 @@ namespace
     }
 
     // check that the result is correct
-    TensorTrain_double testTT(TTresult.dimensions);
-    if( TTresult.dimensions.size() == 1 )
+    TensorTrain_double testTT(TTresult.dimensions());
+    if( TTresult.dimensions().size() == 1 )
     {
-      for(int i = 0; i < TTresult.dimensions[0]; i++)
+      for(int i = 0; i < TTresult.dimensions()[0]; i++)
       {
         testTT.setUnit({i});
         EXPECT_NEAR(alpha*dot(TTa,testTT)+beta*dot(TTb,testTT), gamma*dot(TTresult,testTT), eps);
       }
     }
-    else if( TTresult.dimensions.size() == 2 )
+    else if( TTresult.dimensions().size() == 2 )
     {
-      for(int i = 0; i < TTresult.dimensions[0]; i++)
-        for(int j = 0; j < TTresult.dimensions[1]; j++)
+      for(int i = 0; i < TTresult.dimensions()[0]; i++)
+        for(int j = 0; j < TTresult.dimensions()[1]; j++)
         {
           testTT.setUnit({i,j});
           EXPECT_NEAR(alpha * dot(TTa, testTT) + beta * dot(TTb, testTT), gamma * dot(TTresult, testTT), eps);

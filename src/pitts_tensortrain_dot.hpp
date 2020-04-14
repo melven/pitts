@@ -45,7 +45,7 @@ namespace PITTS
     t2(0,0) = T(1);
 
     Tensor2<T> last_t2(1,1);
-    for(int iSubTensor = 0; iSubTensor < TT1.dimensions.size(); iSubTensor++)
+    for(int iSubTensor = 0; iSubTensor < TT1.dimensions().size(); iSubTensor++)
     {
       const auto& subT1 = TT1.subTensors()[iSubTensor];
       const auto& subT2 = TT2.subTensors()[iSubTensor];

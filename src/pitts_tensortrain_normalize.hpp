@@ -179,10 +179,10 @@ namespace PITTS
   T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
     // transpose and leftNormalize for stupidity for now
-    auto reverseDims = TT.dimensions;
+    auto reverseDims = TT.dimensions();
     std::reverse(reverseDims.begin(), reverseDims.end());
     TensorTrain<T> tmpTT(reverseDims);
-    const auto nDim = TT.dimensions.size();
+    const auto nDim = TT.dimensions().size();
     for(int iDim = 0; iDim < nDim; iDim++)
     {
       auto& subT = tmpTT.editableSubTensors()[nDim-1-iDim];

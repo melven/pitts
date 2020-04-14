@@ -42,14 +42,14 @@ int main(int argc, char* argv[])
   rhs.setOnes();
 
   // simple CG algorithm
-  PITTS::TensorTrain<Type> x(rhs.dimensions);
+  PITTS::TensorTrain<Type> x(rhs.dimensions());
   x.setZero();
   auto xnorm = Type(0);
   PITTS::TensorTrain<Type> r = rhs;
   auto rnorm = normalize(r);
   PITTS::TensorTrain<Type> p = r;
   auto pnorm = rnorm;
-  PITTS::TensorTrain<Type> q(p.dimensions);
+  PITTS::TensorTrain<Type> q(p.dimensions());
   const auto maxIter = 50;
   const auto resTol = 1.e-3*rnorm;
   const auto rankTol = 1.e-12;
@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
   std::cout << "r TTranks: " << r.getTTranks() << std::endl;
   
   // try "transpose" + normalize
-  PITTS::TensorTrain<Type> xT(x.dimensions);
-  const auto nDim = x.dimensions.size();
+  PITTS::TensorTrain<Type> xT(x.dimensions());
+  const auto nDim = x.dimensions().size();
   for(int iDim = 0; iDim < nDim; iDim++)
   {
     auto& subT = xT.editableSubTensors()[nDim-1-iDim];

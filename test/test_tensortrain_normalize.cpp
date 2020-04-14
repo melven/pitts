@@ -51,19 +51,19 @@ namespace
     }
 
     // check tensor is the same, except for scaling...
-    TensorTrain_double testTT(TT.dimensions);
-    if( TT.dimensions.size() == 1 )
+    TensorTrain_double testTT(TT.dimensions());
+    if( TT.dimensions().size() == 1 )
     {
-      for(int i = 0; i < TT.dimensions[0]; i++)
+      for(int i = 0; i < TT.dimensions()[0]; i++)
       {
         testTT.setUnit({i});
         EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps);
       }
     }
-    else if( TT.dimensions.size() == 2 )
+    else if( TT.dimensions().size() == 2 )
     {
-      for(int i = 0; i < TT.dimensions[0]; i++)
-        for(int j = 0; j < TT.dimensions[1]; j++)
+      for(int i = 0; i < TT.dimensions()[0]; i++)
+        for(int j = 0; j < TT.dimensions()[1]; j++)
         {
           testTT.setUnit({i,j});
           EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps);
