@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
   for(int iter = 0; iter < maxIter; iter++)
   {
     // q = Ap
-    q.editableSubTensors() = p.subTensors(); const auto qnorm = -pnorm * laplaceOperator(q, rankTol);
+    copy(p, q); const auto qnorm = -pnorm * laplaceOperator(q, rankTol);
 
     // p^TAp = q^Tp
     const auto qTp = qnorm * pnorm * dot(q,p);

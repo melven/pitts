@@ -53,7 +53,12 @@ namespace PITTS
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int n, int r2)
     {
-      data_.resize(r1 * r2 * std::max(1, (n-1)/chunkSize+1));
+      const auto requiredChunks = r1 * r2 * std::max(1, (n-1)/chunkSize+1);
+      if( requiredChunks > reservedChunks_ )
+      {
+        data_.reset(new Chunk<T>[requiredChunks]);
+        reservedChunks_ = requiredChunks;
+      }
       r1_ = r1;
       r2_ = r2;
       n_ = n;
@@ -81,7 +86,7 @@ namespace PITTS
     const Chunk<T>& chunk(int i1, int j, int i2) const
     {
       const int k = i1 + j*r1_ + i2*r1_*nChunks();
-      const auto pdata = std::assume_aligned<ALIGNMENT>(data_.data());
+      const auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
       return pdata[k];
     }
 
@@ -89,7 +94,7 @@ namespace PITTS
     Chunk<T>& chunk(int i1, int j, int i2)
     {
       const int k = i1 + j*r1_ + i2*r1_*nChunks();
-      auto pdata = std::assume_aligned<ALIGNMENT>(data_.data());
+      auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
       return pdata[k];
     }
 
@@ -131,6 +136,9 @@ namespace PITTS
     static constexpr int chunkSize = Chunk<T>::size;
 
   private:
+    //! size of the buffer
+    int reservedChunks_ = 0;
+
     //! first dimension
     int r1_ = 0;
 
@@ -141,8 +149,25 @@ namespace PITTS
     int r2_ = 0;
 
     //! the actual data...
-    std::vector<Chunk<T>> data_;
+    std::unique_ptr<Chunk<T>[]> data_ = nullptr;
   };
+
+  //! explicitly copy a Tensor3 object
+  template<typename T>
+  void copy(const Tensor3<T>& a, Tensor3<T>& b)
+  {
+    const auto r1 = a.r1();
+    const auto n = a.n();
+    const auto r2 = a.r2();
+
+    b.resize(r1, n, r2);
+
+#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+            b(i,j,k) = a(i,j,k);
+  }
 }
 
 

@@ -53,6 +53,19 @@ namespace PITTS
         setTTranks(initial_TTrank);
       }
 
+      //! explicit copy construction is ok
+      TensorTrain(const TensorTrain<T>& other)
+        : dimensions(other.dimensions)
+      {
+        // create and copy all subtensors
+        subTensors_.resize(dimensions.size());
+        for(int i = 0; i < dimensions.size(); i++)
+          copy(other.subTensors()[i], subTensors_[i]);
+      }
+
+      //! no implicit copy assignment
+      const TensorTrain<T>& operator=(const TensorTrain<T>&) = delete;
+
 
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
       void setTTranks(const std::vector<int>& tt_ranks)
@@ -134,6 +147,18 @@ namespace PITTS
       //!
       std::vector<Tensor3<T>> subTensors_;
   };
+
+  //! explicitly copy a TensorTrain object
+  template<typename T>
+  void copy(const TensorTrain<T>& a, TensorTrain<T>& b)
+  {
+    // check that dimensions match
+    if( a.dimensions != b.dimensions )
+      throw std::invalid_argument("TensorTrain copy dimension mismatch!");
+
+    for(int i = 0; i < a.dimensions.size(); i++)
+      copy(a.subTensors()[i], b.editableSubTensors()[i]);
+  }
 }
 
 

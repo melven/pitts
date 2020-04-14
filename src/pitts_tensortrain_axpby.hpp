@@ -48,7 +48,7 @@ namespace PITTS
     if( std::abs(beta) == 0 )
     {
       // TTy = TTx;
-      TTy.editableSubTensors() = TTx.subTensors();
+      copy(TTx, TTy);
       return alpha;
     }
 

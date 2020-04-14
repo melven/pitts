@@ -186,7 +186,7 @@ namespace PITTS
     for(int iDim = 0; iDim < nDim; iDim++)
     {
       auto& subT = tmpTT.editableSubTensors()[nDim-1-iDim];
-      const auto oldSubT = TT.subTensors()[iDim];
+      const auto& oldSubT = TT.subTensors()[iDim];
       const auto r1 = oldSubT.r2();
       const auto n = oldSubT.n();
       const auto r2 = oldSubT.r1();
@@ -200,7 +200,7 @@ namespace PITTS
     for(int iDim = 0; iDim < nDim; iDim++)
     {
       auto& subT = TT.editableSubTensors()[nDim-1-iDim];
-      const auto oldSubT = tmpTT.subTensors()[iDim];
+      const auto& oldSubT = tmpTT.subTensors()[iDim];
       const auto r1 = oldSubT.r2();
       const auto n = oldSubT.n();
       const auto r2 = oldSubT.r1();
