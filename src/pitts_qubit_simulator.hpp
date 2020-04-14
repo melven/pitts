@@ -342,18 +342,18 @@ namespace PITTS
 
         for(int iStep = 0; iStep < nSteps; iStep++)
         {
-          dx1 = stateVec_;
+          copy(stateVec_, dx1);
           applyTerms_(dx1, ids, terms);
 
-          dx2 = stateVec_;
+          copy(stateVec_, dx2);
           axpby(i*dt/2., dx1, one, dx2);
           applyTerms_(dx2, ids, terms);
 
-          dx3 = stateVec_;
+          copy(stateVec_, dx3);
           axpby(i*dt/2., dx2, one, dx3);
           applyTerms_(dx3, ids, terms);
 
-          dx4 = stateVec_;
+          copy(stateVec_, dx4);
           axpby(i*dt, dx3, one, dx4);
           applyTerms_(dx4, ids, terms);
 
@@ -386,7 +386,7 @@ namespace PITTS
           result += std::real(dot(stateVec_, tmpState));
 
           // reset temporary state so we can apply another term of the operator in the next iteration
-          subT = stateVec_.subTensors()[iDim];
+          copy(stateVec_.subTensors()[iDim], subT);
         }
         return result;
       }
@@ -483,7 +483,7 @@ namespace PITTS
         if( ids.size() != values.size() )
           throw std::invalid_argument("QubitSimulator::projectStateVec: arguments must have the same size!");
 
-        projectedState = stateVec_;
+        copy(stateVec_, projectedState);
 
         for(int iQ = 0; iQ < ids.size(); iQ++)
         {

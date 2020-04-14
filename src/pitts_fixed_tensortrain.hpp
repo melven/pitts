@@ -44,6 +44,24 @@ namespace PITTS
         setTTranks(initial_TTrank);
       }
 
+      //! explicit copy construction is ok
+      FixedTensorTrain(const FixedTensorTrain<T,N>& other)
+      {
+        // create and copy all subtensors
+        subTensors_.resize(other.nDims());
+        for(int i = 0; i < other.nDims(); i++)
+          copy(other.subTensors()[i], subTensors_[i]);
+      }
+
+      //! no implicit copy assignment
+      const FixedTensorTrain<T,N>& operator=(const FixedTensorTrain<T,N>&) = delete;
+
+      //! move construction is ok
+      FixedTensorTrain(FixedTensorTrain<T,N>&&) = default;
+
+      //! move assignment is ok
+      FixedTensorTrain<T,N>& operator=(FixedTensorTrain<T,N>&&) = default;
+
       //! number of dimensions
       inline auto nDims() const {return subTensors_.size();}
 
@@ -132,6 +150,18 @@ namespace PITTS
       //!
       std::vector<FixedTensor3<T,N>> subTensors_;
   };
+
+  //! explicitly copy a TensorTrain object
+  template<typename T, int N>
+  void copy(const FixedTensorTrain<T,N>& a, FixedTensorTrain<T,N>& b)
+  {
+    // check that dimensions match
+    if( a.nDims() != b.nDims() )
+      throw std::invalid_argument("FixedTensorTrain copy dimension mismatch!");
+
+    for(int i = 0; i < a.nDims(); i++)
+      copy(a.subTensors()[i], b.editableSubTensors()[i]);
+  }
 }
 
 
