@@ -12,12 +12,45 @@
 
 // includes
 #include <chrono>
+#include <limits>
 #include "pitts_scope_info.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! namespace for helper functionality
+  namespace internal
+  {
+    //! Helper type for accumulating the timings of one scope / function
+    struct TimingStatistics final
+    {
+      //! sum of all measured timings [s]
+      double totalTime = 0;
+
+      //! minimum of all measured timings [s]
+      double minTime = std::numeric_limits<double>::max();
+
+      //! maximum of all measured timings [s]
+      double maxTime = std::numeric_limits<double>::lowest();
+
+      //! number of measurements
+      std::size_t calls = 0;
+
+      //! add another timing measurement to the timing statistics
+      const TimingStatistics& operator+=(std::chrono::duration<double> measuredTime)
+      {
+        const double t = measuredTime.count();
+        totalTime += t;
+        minTime = std::min(minTime, t);
+        maxTime = std::max(maxTime, t);
+        calls++;
+        return *this;
+      }
+    };
+  }
+
+
   //! namespace for runtime measurement data and helper functions
   namespace timing
   {
