@@ -1,6 +1,7 @@
 add_library(pitts INTERFACE)
 target_sources(pitts INTERFACE
   pitts_chunk.hpp
+  pitts_scope_info.hpp
   pitts_tensor2.hpp
   pitts_tensor2_random.hpp
   pitts_tensor2_eigen_adaptor.hpp
