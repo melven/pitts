@@ -17,6 +17,13 @@ namespace
   }
 }
 
+TEST(PITTS_ScopeInfo, internal_djb_hash)
+{
+  using PITTS::internal::djb_hash;
+  EXPECT_EQ(djb_hash("hello"), djb_hash("hello"));
+  EXPECT_NE(djb_hash("hello"), djb_hash("world"));
+}
+
 TEST(PITTS_ScopeInfo, simpleFunction)
 {
   constexpr auto scope = simpleFunction(7, 8);

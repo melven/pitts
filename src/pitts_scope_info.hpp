@@ -13,6 +13,8 @@
 // includes
 #include <experimental/source_location>
 #include <array>
+#include <string_view>
+#include <cstdint>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -21,6 +23,19 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+
+    //! Simple, constexpr hash function for strings (because std::hash is not constexpr!)
+    //!
+    //! This is known as the djb hash function by Daniel J. Bernstein.
+    //!
+    constexpr std::uint32_t djb_hash(const std::string_view& str)
+    {
+      std::uint32_t hash = 5381;
+      for(std::uint8_t c: str)
+        hash = ((hash << 5) + hash) ^ c;
+      return hash;
+    }
+
 
     //! Helper type to obtain and store the name of the current function / source file
     struct ScopeInfo final : private std::experimental::source_location
