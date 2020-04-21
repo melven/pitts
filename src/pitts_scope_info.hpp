@@ -43,14 +43,14 @@ namespace PITTS
     struct ScopeInfo final : private std::experimental::source_location
     {
       //! constructor that obtains the location of the caller (when called without arguments!)
-      constexpr ScopeInfo(std::experimental::source_location here = std::experimental::source_location::current()) : 
+      explicit constexpr ScopeInfo(std::experimental::source_location here = std::experimental::source_location::current()) : 
         std::experimental::source_location(here)
       {
       }
 
       //! template constructor that also sets the template type
       template<typename T>
-      constexpr ScopeInfo(const T&, std::experimental::source_location here = std::experimental::source_location::current()) : 
+      explicit constexpr ScopeInfo(const T&, std::experimental::source_location here = std::experimental::source_location::current()) : 
         std::experimental::source_location(here),
         type_name_(std::experimental::source_location::current().function_name()+9) // 9 == length of "ScopeInfo"
       {
