@@ -70,7 +70,7 @@ namespace PITTS
         {
           const auto end_time = clock::now();
           const std::chrono::duration<double> diff = end_time - start_time;
-          std::cout << "Timing " << scope.function_name() << ": " << diff.count() << std::endl;
+          std::cout << "Timing " << scope.function_name() << " with type " << scope.type_name() << ": " << diff.count() << std::endl;
         }
 
       private:
