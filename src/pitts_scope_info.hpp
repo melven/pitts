@@ -28,9 +28,11 @@ namespace PITTS
     //!
     //! This is known as the djb hash function by Daniel J. Bernstein.
     //!
-    constexpr std::uint32_t djb_hash(const std::string_view& str)
+    //! @param str    the string to hash
+    //! @param hash   initial hash value, can be used to combine a hash for multiple strings
+    //!
+    constexpr std::uint32_t djb_hash(const std::string_view& str, std::uint32_t hash = 5381)
     {
-      std::uint32_t hash = 5381;
       for(std::uint8_t c: str)
         hash = ((hash << 5) + hash) ^ c;
       return hash;
@@ -41,7 +43,18 @@ namespace PITTS
     struct ScopeInfo final : private std::experimental::source_location
     {
       //! constructor that obtains the location of the caller (when called without arguments!)
-      constexpr ScopeInfo(std::experimental::source_location here = std::experimental::source_location::current()) : std::experimental::source_location(here) {}
+      explicit constexpr ScopeInfo(std::experimental::source_location here = std::experimental::source_location::current()) : 
+        std::experimental::source_location(here)
+      {
+      }
+
+      //! template constructor that also sets the template type
+      template<typename T>
+      explicit constexpr ScopeInfo(const T&, std::experimental::source_location here = std::experimental::source_location::current()) : 
+        std::experimental::source_location(here),
+        type_name_(std::experimental::source_location::current().function_name()+9) // 9 == length of "ScopeInfo"
+      {
+      }
 
       //! get the name of the enclosing function
       using std::experimental::source_location::function_name;
@@ -51,6 +64,19 @@ namespace PITTS
 
       //! get the line number in the source file
       using std::experimental::source_location::line;
+
+      //! get the user-defined type that was set in the constructor
+      constexpr std::string_view type_name() const noexcept {return type_name_;}
+
+      //! get a hash (constexpr, required as std::hash is not constexpr)
+      constexpr std::uint32_t hash() const noexcept {return hash_;}
+
+    private:
+      //! store type name string address
+      const char* type_name_ = "";
+
+      //! function_name hash (constexpr)
+      std::uint32_t hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
     };
 
 
@@ -84,7 +110,6 @@ namespace PITTS
         return result;
       }
     };
-
   }
 }
 
