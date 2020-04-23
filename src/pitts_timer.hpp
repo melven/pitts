@@ -13,6 +13,7 @@
 // includes
 #include <chrono>
 #include <limits>
+#include <unordered_map>
 #include "pitts_scope_info.hpp"
 
 
@@ -48,47 +49,66 @@ namespace PITTS
         return *this;
       }
     };
+
+
+    //! Helper type for measuring the runtime of some function (or scope)
+    //!
+    //! Measures the time between construction an destruction:
+    //!
+    class ScopedTimer final
+    {
+      public:
+        //! start the time measurement
+        //!
+        //! @param timings  object where the resulting measurement is record
+        //!
+        explicit ScopedTimer(TimingStatistics& timings) : 
+          timings_(timings)
+        {
+          start_time = clock::now();
+        }
+
+        //! stop the time measurement and record the result
+        ~ScopedTimer()
+        {
+          const auto end_time = clock::now();
+          timings_ += (end_time - start_time);
+        }
+
+      private:
+        //! the clock to use
+        using clock = std::chrono::steady_clock;
+
+        //! timing statistics object where the result is recorded
+        TimingStatistics& timings_;
+
+        //! point in time when the measurement started
+        clock::time_point start_time;
+    };
+
+    //! helper type for storing timings per function / scope
+    using TimingStatisticsMap = std::unordered_map<internal::ScopeInfo, internal::TimingStatistics, internal::ScopeInfo::Hash>;
   }
 
 
   //! namespace for runtime measurement data and helper functions
   namespace timing
   {
-    //! Helper type for measuring the runtime of some function (or scope)
-    //!
-    //! Measures the time between construction an destruction:
-    //! so it's usually sufficient to just instantiate this class in the beginning of a function.
-    //!
-    class ScopedTimer final
+    internal::TimingStatisticsMap globalTimingStatisticsMap;
+
+    //! Measure the runtime of the curent function or scope
+    auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::current())
     {
-      public:
-        //! constructor: start the time measurement
-        explicit ScopedTimer(internal::ScopeInfo scope_ = internal::ScopeInfo::current()) : scope(scope_), start_time(clock::now()) {}
+      return internal::ScopedTimer(globalTimingStatisticsMap[scope]);
+    }
 
-        //! constructor: start the time measurement
-        //!
-        //! @tparam T   you can provide an arbitrary type to generate a scope with type information!
-        //!
-        template<typename T>
-        explicit ScopedTimer(const T& dummy, internal::ScopeInfo scope_ = internal::ScopeInfo::current<T>()) : scope(scope_), start_time(clock::now()) {}
 
-        //! destructor: stop the time measurement
-        ~ScopedTimer()
-        {
-          const auto end_time = clock::now();
-          const std::chrono::duration<double> diff = end_time - start_time;
-          std::cout << "Timing " << scope.function_name() << " with type " << scope.type_name() << ": " << diff.count() << std::endl;
-        }
-
-      private:
-        using clock = std::chrono::steady_clock;
-
-        //! where does this measure (e.g. which function)
-        internal::ScopeInfo scope;
-
-        //! point in time when the measurement started
-        clock::time_point start_time;
-    };
+    //! Measure the runtime of the curent function or scope (variant with template type information)
+    template<typename T>
+    auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
+    {
+      return internal::ScopedTimer(globalTimingStatisticsMap[scope]);
+    }
   }
 }
 

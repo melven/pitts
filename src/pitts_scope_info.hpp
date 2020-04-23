@@ -58,7 +58,7 @@ namespace PITTS
       //! @tparam T  additional template type information for the user
       //!
       template<typename T>
-      static constexpr ScopeInfo current(const T* dummy = nullptr, std::experimental::source_location here = std::experimental::source_location::current()) noexcept
+      static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
       {
         const auto typeStr = std::experimental::source_location::current().function_name()+7;  // 7 == length of "current"
         return ScopeInfo{here, typeStr};
@@ -76,14 +76,26 @@ namespace PITTS
       //! get the user-defined type that was set in the constructor
       constexpr const char* type_name() const noexcept {return type_name_;}
 
-      //! get a hash (constexpr, required as std::hash is not constexpr)
-      constexpr std::uint32_t hash() const noexcept {return hash_;}
+      //! Callable to get hash from ScopeInfo object, can be used with std::unordered_map
+      struct Hash final
+      {
+        constexpr auto operator()(const ScopeInfo& info) const noexcept
+        {
+          return info.hash_;
+        }
+      };
+
+      //! comparison operator for std::unordered_map
+      constexpr bool operator==(const ScopeInfo& other) const noexcept
+      {
+        return function_name() == other.function_name() && file_name() == other.file_name() && type_name() == other.type_name();
+      }
 
     private:
       //! store type name string address
       const char* type_name_;
 
-      //! function_name hash (constexpr)
+      //! function_name hash (constexpr, required as std::hash is not constexpr)
       std::uint32_t hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
 
       //! internal constructor, call current instead!

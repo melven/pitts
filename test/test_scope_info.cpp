@@ -15,6 +15,8 @@ namespace
     auto scope = PITTS::internal::ScopeInfo::current();
     return scope;
   }
+
+  constexpr auto getHash = PITTS::internal::ScopeInfo::Hash();
 }
 
 TEST(PITTS_ScopeInfo, internal_djb_hash)
@@ -30,7 +32,7 @@ TEST(PITTS_ScopeInfo, simpleFunction)
   EXPECT_STREQ("simpleFunction", scope.function_name());
 
   // check that we can get the hash at compile time
-  constexpr auto hash = scope.hash();
+  constexpr auto hash = getHash(scope);
 }
 
 TEST(PITTS_ScopeInfo, templateFunction)
@@ -39,7 +41,7 @@ TEST(PITTS_ScopeInfo, templateFunction)
   EXPECT_STREQ("templateFunction<double>", scope.function_name());
 
   // check that we can get the hash at compile time
-  auto hash = scope.hash();
+  auto hash = getHash(scope);
 }
 
 TEST(PITTS_ScopeInfo, ArgumentInfo)
@@ -58,14 +60,14 @@ TEST(PITTS_ScopeInfo, type)
   EXPECT_STREQ("", scopeNone.type_name());
 
   // check that we can get the hash at compile time
-  constexpr auto hashNone = scopeNone.hash();
+  constexpr auto hashNone = getHash(scopeNone);
 
   constexpr auto scopeInt = PITTS::internal::ScopeInfo::current<int>();
   printf("type int: %s\n", scopeInt.type_name());
   EXPECT_STREQ("<int>", scopeInt.type_name());
 
   // check that we can get the hash at compile time
-  constexpr auto hashInt = scopeInt.hash();
+  constexpr auto hashInt = getHash(scopeInt);
 
-  EXPECT_NE(scopeInt.hash(), scopeNone.hash());
+  EXPECT_NE(getHash(scopeInt), getHash(scopeNone));
 }
