@@ -5,14 +5,14 @@ namespace
 {
   constexpr auto simpleFunction(int, int)
   {
-    constexpr PITTS::internal::ScopeInfo scope;
+    auto scope = PITTS::internal::ScopeInfo::current();
     return scope;
   }
 
   template<typename T>
   constexpr auto templateFunction(T x)
   {
-    constexpr PITTS::internal::ScopeInfo scope;
+    auto scope = PITTS::internal::ScopeInfo::current();
     return scope;
   }
 }
@@ -27,7 +27,7 @@ TEST(PITTS_ScopeInfo, internal_djb_hash)
 TEST(PITTS_ScopeInfo, simpleFunction)
 {
   constexpr auto scope = simpleFunction(7, 8);
-  EXPECT_EQ("simpleFunction", scope.function_name());
+  EXPECT_STREQ("simpleFunction", scope.function_name());
 
   // check that we can get the hash at compile time
   constexpr auto hash = scope.hash();
@@ -35,11 +35,11 @@ TEST(PITTS_ScopeInfo, simpleFunction)
 
 TEST(PITTS_ScopeInfo, templateFunction)
 {
-  constexpr auto scope = templateFunction(2.5);
-  EXPECT_EQ("templateFunction<double>", scope.function_name());
+  auto scope = templateFunction(2.5);
+  EXPECT_STREQ("templateFunction<double>", scope.function_name());
 
   // check that we can get the hash at compile time
-  constexpr auto hash = scope.hash();
+  auto hash = scope.hash();
 }
 
 TEST(PITTS_ScopeInfo, ArgumentInfo)
@@ -53,17 +53,16 @@ TEST(PITTS_ScopeInfo, ArgumentInfo)
 
 TEST(PITTS_ScopeInfo, type)
 {
-  constexpr PITTS::internal::ScopeInfo scopeNone;
-  printf("type none: %s\n", scopeNone.type_name().data());
-  EXPECT_EQ("", scopeNone.type_name());
+  constexpr auto scopeNone = PITTS::internal::ScopeInfo::current();
+  printf("type none: %s\n", scopeNone.type_name());
+  EXPECT_STREQ("", scopeNone.type_name());
 
   // check that we can get the hash at compile time
   constexpr auto hashNone = scopeNone.hash();
 
-  int dummy = 7;
-  constexpr PITTS::internal::ScopeInfo scopeInt(dummy);
-  printf("type int: %s\n", scopeInt.type_name().data());
-  EXPECT_EQ("<int>", scopeInt.type_name());
+  constexpr auto scopeInt = PITTS::internal::ScopeInfo::current<int>();
+  printf("type int: %s\n", scopeInt.type_name());
+  EXPECT_STREQ("<int>", scopeInt.type_name());
 
   // check that we can get the hash at compile time
   constexpr auto hashInt = scopeInt.hash();

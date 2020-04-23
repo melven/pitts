@@ -63,15 +63,14 @@ namespace PITTS
     {
       public:
         //! constructor: start the time measurement
-        explicit ScopedTimer(internal::ScopeInfo scope_ = internal::ScopeInfo()) : scope(scope_), start_time(clock::now()) {}
+        explicit ScopedTimer(internal::ScopeInfo scope_ = internal::ScopeInfo::current()) : scope(scope_), start_time(clock::now()) {}
 
         //! constructor: start the time measurement
         //!
         //! @tparam T   you can provide an arbitrary type to generate a scope with type information!
         //!
         template<typename T>
-        explicit ScopedTimer(const T& dummy, std::experimental::source_location loc = std::experimental::source_location::current()) : 
-          scope(dummy, loc), start_time(clock::now()) {}
+        explicit ScopedTimer(const T& dummy, internal::ScopeInfo scope_ = internal::ScopeInfo::current<T>()) : scope(scope_), start_time(clock::now()) {}
 
         //! destructor: stop the time measurement
         ~ScopedTimer()

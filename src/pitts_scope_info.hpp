@@ -42,18 +42,26 @@ namespace PITTS
     //! Helper type to obtain and store the name of the current function / source file
     struct ScopeInfo final : private std::experimental::source_location
     {
-      //! constructor that obtains the location of the caller (when called without arguments!)
-      explicit constexpr ScopeInfo(std::experimental::source_location here = std::experimental::source_location::current()) : 
-        std::experimental::source_location(here)
+      //! get information on the current scope
+      //!
+      //! Needs to be called without any argument, so the source_location is evaluated in the context of the caller!
+      //!
+      static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
       {
+        return ScopeInfo{here, ""};
       }
 
-      //! template constructor that also sets the template type
+      //! get information on the current scope (with additional template type argument)
+      //!
+      //! Needs to be called without any argument, so the source_location is evaluated in the context of the caller!
+      //!
+      //! @tparam T  additional template type information for the user
+      //!
       template<typename T>
-      explicit constexpr ScopeInfo(const T&, std::experimental::source_location here = std::experimental::source_location::current()) : 
-        std::experimental::source_location(here),
-        type_name_(std::experimental::source_location::current().function_name()+9) // 9 == length of "ScopeInfo"
+      static constexpr ScopeInfo current(const T* dummy = nullptr, std::experimental::source_location here = std::experimental::source_location::current()) noexcept
       {
+        const auto typeStr = std::experimental::source_location::current().function_name()+7;  // 7 == length of "current"
+        return ScopeInfo{here, typeStr};
       }
 
       //! get the name of the enclosing function
@@ -66,17 +74,20 @@ namespace PITTS
       using std::experimental::source_location::line;
 
       //! get the user-defined type that was set in the constructor
-      constexpr std::string_view type_name() const noexcept {return type_name_;}
+      constexpr const char* type_name() const noexcept {return type_name_;}
 
       //! get a hash (constexpr, required as std::hash is not constexpr)
       constexpr std::uint32_t hash() const noexcept {return hash_;}
 
     private:
       //! store type name string address
-      const char* type_name_ = "";
+      const char* type_name_;
 
       //! function_name hash (constexpr)
       std::uint32_t hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
+
+      //! internal constructor, call current instead!
+      constexpr explicit ScopeInfo(std::experimental::source_location where, const char* typeStr) : std::experimental::source_location(where), type_name_(typeStr) {}
     };
 
 
