@@ -14,6 +14,7 @@
 #include <vector>
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -28,6 +29,8 @@ namespace PITTS
   template<typename T>
   void cdist2(const MultiVector<T>& X, const MultiVector<T>& Y, Tensor2<T>& D)
   {
+    const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
     // exploit <x-y,x-y> = ||x||^2 - 2<x,y> + ||y||^2
     const auto chunks = X.rowChunks();
     const auto n = X.cols();

@@ -14,6 +14,7 @@
 #include <vector>
 #include <exception>
 #include "pitts_multivector.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -29,6 +30,8 @@ namespace PITTS
   template<typename T>
   void centroids(const MultiVector<T>& X, const std::vector<int>& idx, const std::vector<T>& w, MultiVector<T>& Y)
   {
+    const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
     const auto chunks = X.rowChunks();
     const auto n = X.cols();
     const auto m = Y.cols();

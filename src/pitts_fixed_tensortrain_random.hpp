@@ -14,6 +14,7 @@
 #include <random>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensor3_random.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -26,6 +27,8 @@ namespace PITTS
   template<typename T, int N>
   void randomize(FixedTensorTrain<T,N>& TT)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensorTrain<T,N>>();
+
     for(auto& subT: TT.editableSubTensors())
       randomize(subT);
   }

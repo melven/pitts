@@ -6,6 +6,7 @@
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_laplace_operator.hpp"
+#include "pitts_timer.hpp"
 
 namespace
 {
@@ -108,6 +109,8 @@ int main(int argc, char* argv[])
   const auto xTnorm = normalize(xT, rankTol);
   std::cout << "xTnorm: " << xTnorm << std::endl;
   std::cout << "xT TTranks: " << xT.getTTranks() << std::endl;
+
+  PITTS::timing::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

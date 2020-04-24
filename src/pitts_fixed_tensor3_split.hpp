@@ -14,6 +14,7 @@
 #include <array>
 #include <Eigen/Dense>
 #include "pitts_fixed_tensor3.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -34,6 +35,8 @@ namespace PITTS
   template<typename T, int N>
   void split(const FixedTensor3<T,N*N>& t3c, FixedTensor3<T,N>& t3a, FixedTensor3<T,N>& t3b, bool leftOrthog = true)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
     using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
     using Stride = Eigen::OuterStride<Eigen::Dynamic>;
     using Map = Eigen::Map<Matrix, Eigen::Aligned128, Stride>;

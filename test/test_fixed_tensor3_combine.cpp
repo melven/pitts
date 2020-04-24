@@ -96,7 +96,7 @@ TYPED_TEST(PITTS_FixedTensor3_combine, N_equals_2_swapped)
 {
   using Type = TestFixture::Type;
   using FixedTensor3 = PITTS::FixedTensor3<Type,2>;
-  constexpr auto eps = 1.e-9;
+  constexpr auto eps = 1.e-8;
 
   FixedTensor3 t3a(5,3);
   for(int i = 0; i < 5; i++)

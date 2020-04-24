@@ -17,6 +17,7 @@
 #include "pitts_tensor3.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -34,6 +35,8 @@ namespace PITTS
   template<typename T>
   T laplaceOperator(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
     // laplace Operator has the form
     //
     //   A x I x I x ... x I

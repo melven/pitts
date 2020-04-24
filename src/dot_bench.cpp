@@ -4,6 +4,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_timer.hpp"
 
 
 int main(int argc, char* argv[])
@@ -37,6 +38,8 @@ int main(int argc, char* argv[])
     tmp += dot(TT1,TT2);
   }
   std::cout << "random: " << tmp << std::endl;
+
+  PITTS::timing::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

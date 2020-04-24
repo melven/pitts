@@ -19,6 +19,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_qb_decomposition.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -40,6 +41,8 @@ namespace PITTS
   template<typename T>
   T leftNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
     // Transforms the tensor train in the following invariant way
     //
     // o--o--   --o--o
@@ -178,6 +181,8 @@ namespace PITTS
   template<typename T>
   T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
     // transpose and leftNormalize for stupidity for now
     auto reverseDims = TT.dimensions();
     std::reverse(reverseDims.begin(), reverseDims.end());

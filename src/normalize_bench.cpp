@@ -4,6 +4,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_timer.hpp"
 
 
 int main(int argc, char* argv[])
@@ -35,6 +36,8 @@ int main(int argc, char* argv[])
     tmp += normalize(TT1);
   }
   std::cout << "random: " << tmp << std::endl;
+
+  PITTS::timing::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

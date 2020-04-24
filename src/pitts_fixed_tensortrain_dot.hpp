@@ -16,6 +16,7 @@
 #include <cmath>
 #include "pitts_tensor2.hpp"
 #include "pitts_fixed_tensortrain.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -28,6 +29,8 @@ namespace PITTS
   template<typename T, int N>
   T dot(const FixedTensorTrain<T, N>& TT1, const FixedTensorTrain<T, N>& TT2)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensorTrain<T,N>>();
+
     // Computes the contractions
     //
     // o--o--   --o--o

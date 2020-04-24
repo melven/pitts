@@ -14,6 +14,7 @@
 #include <vector>
 #include <memory>
 #include "pitts_chunk.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -49,6 +50,8 @@ namespace PITTS
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int r2)
     {
+      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
       const auto n = r1*r2;
       const auto requiredChunks = std::max(1, (n-1)/chunkSize+1);
       if( requiredChunks > reservedChunks_ )
@@ -111,6 +114,8 @@ namespace PITTS
   template<typename T>
   auto copy(const Tensor2<T>& a)
   {
+    const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
     const auto r1 = a.r1();
     const auto r2 = a.r2();
 

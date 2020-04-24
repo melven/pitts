@@ -13,6 +13,7 @@
 // includes
 #include <memory>
 #include "pitts_chunk.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -48,6 +49,8 @@ namespace PITTS
     //! adjust the desired multivector dimensions (destroying all data!)
     void resize(int rows, int cols)
     {
+      const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
       const auto newRowChunks = (rows-1)/chunkSize+1;
       if( newRowChunks*cols > reservedChunks_ )
       {

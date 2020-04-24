@@ -13,6 +13,7 @@
 // includes
 #include <memory>
 #include "pitts_chunk.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -54,6 +55,8 @@ namespace PITTS
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int r2)
     {
+      const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
       const auto requiredChunks = std::max(1, (r1*r2*n_-1)/chunkSize+1);
       if( requiredChunks > reservedChunks_ )
       {
@@ -96,6 +99,8 @@ namespace PITTS
     //! set all entries to the same value
     void setConstant(T v)
     {
+      const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
       for(int k = 0; k < r2_; k++)
         for(int j = 0; j < n_; j++)
           for(int i = 0; i < r1_; i++)
@@ -105,6 +110,8 @@ namespace PITTS
     //! set to canonical unit tensor e_(i,j,k)
     void setUnit(int ii, int jj, int kk)
     {
+      const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
       for(int k = 0; k < r2_; k++)
         for(int j = 0; j < n_; j++)
           for(int i = 0; i < r1_; i++)
@@ -139,6 +146,8 @@ namespace PITTS
   template<typename T, int N>
   void copy(const FixedTensor3<T,N>& a, FixedTensor3<T,N>& b)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
     const auto r1 = a.r1();
     constexpr auto n = N;
     const auto r2 = a.r2();

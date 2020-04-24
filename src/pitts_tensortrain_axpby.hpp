@@ -19,6 +19,7 @@
 #include "pitts_tensor2_qb_decomposition.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_normalize.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -41,6 +42,8 @@ namespace PITTS
   template<typename T>
   T axpby(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
     // handle corner cases
     if( std::abs(alpha) == 0 )
       return beta;

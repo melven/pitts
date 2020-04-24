@@ -13,6 +13,7 @@
 // includes
 #include <random>
 #include "pitts_fixed_tensor3.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -25,6 +26,8 @@ namespace PITTS
   template<typename T, int N>
   void randomize(FixedTensor3<T,N>& t3)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
     std::random_device randomSeed;
     std::mt19937 randomGenerator(randomSeed());
     std::uniform_real_distribution<T> distribution(T(-1), T(1));
@@ -46,6 +49,8 @@ namespace PITTS
   template<typename T, int N>
   void randomize(FixedTensor3<std::complex<T>,N>& t3)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
     std::random_device randomSeed;
     std::mt19937 randomGenerator(randomSeed());
     std::uniform_real_distribution<T> distribution(T(-1), T(1));

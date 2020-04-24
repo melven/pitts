@@ -13,6 +13,7 @@
 // includes
 #include <array>
 #include "pitts_fixed_tensor3.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -36,6 +37,8 @@ namespace PITTS
   template<typename T, int N>
   auto combine(const FixedTensor3<T,N>& t3a, const FixedTensor3<T,N>& t3b, bool swap = false)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+
     if( t3a.r2() != t3b.r1() )
       throw std::invalid_argument("Dimension mismatch!");
     const auto r1 = t3a.r1();

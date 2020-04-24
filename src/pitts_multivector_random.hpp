@@ -14,6 +14,7 @@
 #include <random>
 #include <omp.h>
 #include "pitts_multivector.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -25,6 +26,8 @@ namespace PITTS
   template<typename T>
   void randomize(MultiVector<T>& t2)
   {
+    const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
     std::random_device randomSeed;
     //std::mt19937 randomGenerator(randomSeed());
     //std::uniform_real_distribution<T> distribution(T(-1), T(1));

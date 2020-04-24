@@ -11,10 +11,11 @@
 #define PITTS_TENSOR2_QB_DECOMPOSITION_HPP
 
 // includes
-#include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include <exception>
 #include <cmath>
+#include "pitts_tensor2.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_timer.hpp"
 #include <Eigen/Dense>
 
 
@@ -34,6 +35,8 @@ namespace PITTS
   template<typename T>
   auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance)
   {
+    const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
     // get dimension
     if( M.r1() != M.r2() )
       throw std::invalid_argument("qb_decomposition requires a quadratic matrix!");

@@ -17,6 +17,7 @@
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -35,6 +36,8 @@ namespace PITTS
   template<typename T, int N>
   void axpby(T alpha, const FixedTensorTrain<T, N>& TTx, T beta, FixedTensorTrain<T, N>& TTy)
   {
+    const auto timer = PITTS::timing::createScopedTimer<FixedTensorTrain<T,N>>();
+
     // To add two tensor trains, for each sub-tensor, one obtains:
     //
     // a - a - ... - a - a

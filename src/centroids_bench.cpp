@@ -4,6 +4,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_random.hpp"
+#include "pitts_timer.hpp"
 
 
 int main(int argc, char* argv[])
@@ -46,6 +47,7 @@ int main(int argc, char* argv[])
     centroids(X, idx, w, Y);
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "wtime: " << wtime << std::endl;
+  PITTS::timing::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");
