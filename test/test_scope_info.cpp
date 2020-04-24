@@ -9,14 +9,16 @@ namespace
     return scope;
   }
 
-  template<typename T>
-  constexpr auto templateFunction(T x)
+  constexpr auto templateFunction(std::vector<auto> x)
   {
     auto scope = PITTS::internal::ScopeInfo::current();
     return scope;
   }
 
   constexpr auto getHash = PITTS::internal::ScopeInfo::Hash();
+
+  template<typename>
+  struct TemplateType {};
 }
 
 TEST(PITTS_ScopeInfo, internal_djb_hash)
@@ -37,7 +39,8 @@ TEST(PITTS_ScopeInfo, simpleFunction)
 
 TEST(PITTS_ScopeInfo, templateFunction)
 {
-  auto scope = templateFunction(2.5);
+  std::vector<double> bla = {1., 2., 3.};
+  auto scope = templateFunction(bla);
   EXPECT_STREQ("templateFunction<double>", scope.function_name());
 
   // check that we can get the hash at compile time
@@ -62,6 +65,8 @@ TEST(PITTS_ScopeInfo, type)
   // check that we can get the hash at compile time
   constexpr auto hashNone = getHash(scopeNone);
 
+
+  // int
   constexpr auto scopeInt = PITTS::internal::ScopeInfo::current<int>();
   printf("type int: %s\n", scopeInt.type_name());
   EXPECT_STREQ("<int>", scopeInt.type_name());

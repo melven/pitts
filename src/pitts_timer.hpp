@@ -14,6 +14,7 @@
 #include <chrono>
 #include <limits>
 #include <unordered_map>
+#include <iostream>
 #include "pitts_scope_info.hpp"
 
 
@@ -94,10 +95,12 @@ namespace PITTS
   //! namespace for runtime measurement data and helper functions
   namespace timing
   {
-    internal::TimingStatisticsMap globalTimingStatisticsMap;
+    //! container for storing timings with createScopedTimer
+    inline internal::TimingStatisticsMap globalTimingStatisticsMap;
+
 
     //! Measure the runtime of the curent function or scope
-    auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::current())
+    inline auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::current())
     {
       return internal::ScopedTimer(globalTimingStatisticsMap[scope]);
     }
@@ -105,9 +108,23 @@ namespace PITTS
 
     //! Measure the runtime of the curent function or scope (variant with template type information)
     template<typename T>
-    auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
+    inline auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
     {
       return internal::ScopedTimer(globalTimingStatisticsMap[scope]);
+    }
+
+
+    //! print nice statistics using globalTimingStatisticsMap
+    inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
+    {
+      out << "Timing statistics:\n";
+      for(const auto& [scope, timings]: globalTimingStatisticsMap)
+      {
+        out << scope.function_name() << " [for type " << scope.type_name() << " ]: " << timings.totalTime << " (" << timings.calls << ")\n";
+      }
+
+      if( clear )
+        globalTimingStatisticsMap.clear();
     }
   }
 }
