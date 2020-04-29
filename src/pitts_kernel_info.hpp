@@ -170,6 +170,32 @@ namespace PITTS
     template<typename T> struct Load     : public BasicBytes<sizeof(T), 0, sizeof(T), 0> {};
     template<typename T> struct Store    : public BasicBytes<sizeof(T), 0, 0, sizeof(T)> {};
   }
+
+
+  //! namespace for performance kernel information like floating point operations and data transfers
+  namespace kernel_info
+  {
+
+    // for counting floating point operations
+    using internal::Add;
+    using internal::Mult;
+    using internal::FMA;
+
+    // for counting data transfers
+    using internal::Update;
+    using internal::Load;
+    using internal::Store;
+
+    //! information for performance modeling of compute kernels, e.g. by a refined Roofline model
+    struct KernelInfo final
+    {
+      //! number and type of floating point operations
+      internal::Flops flops;
+
+      //! number and kind of data transfers
+      internal::Bytes bytes;
+    };
+  }
 }
 
 

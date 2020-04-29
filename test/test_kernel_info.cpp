@@ -137,3 +137,16 @@ TEST(PITTS_KernelInfo, BasicBytes_predefs)
   check_equal(Bytes{8., 0., 0., 8.}, Store<std::complex<float>>());
   check_equal(Bytes{16., 0., 0., 16.}, Store<std::complex<double>>());
 }
+
+TEST(PITTS_KernelInfo, KernelInfo_example)
+{
+  using namespace PITTS::kernel_info;
+
+  // ddot operation with size n = 500;
+  constexpr auto n = 500;
+  using Type = double;
+  constexpr auto info = KernelInfo{n*FMA<Type>(), 2*n*Load<Type>()};
+
+  check_equal(PITTS::internal::Flops{true, 0., 500.*2}, info.flops);
+  check_equal(PITTS::internal::Bytes{500.*2*8, 0., 500.*2*8, 0.}, info.bytes);
+}
