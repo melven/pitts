@@ -118,7 +118,7 @@ namespace PITTS
       //! argument values
       std::array<int, N> values;
 
-      //! helper function to make a readable string
+      //! make a readable string
       std::string to_string() const
       {
         std::string result;
@@ -131,6 +131,14 @@ namespace PITTS
           result += std::to_string(values[i]);
         }
         return result;
+      }
+
+      //! calculate a hash of the argument values (constexpr)
+      constexpr auto hash_values() const noexcept
+      {
+        const auto size = sizeof(int) * values.size();
+        const auto raw_buff = std::string_view(reinterpret_cast<const char*>(values.data()), size);
+        return djb_hash(raw_buff);
       }
     };
   }

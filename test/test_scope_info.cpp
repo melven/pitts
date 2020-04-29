@@ -54,6 +54,8 @@ TEST(PITTS_ScopeInfo, ArgumentInfo)
 
   constexpr PITTS::internal::ArgumentInfo<2> arg2Info{{"x", "y"}, {1, 8}};
   EXPECT_EQ("x: 1, y: 8", arg2Info.to_string());
+
+  EXPECT_NE(noArgs.hash_values(), arg2Info.hash_values());
 }
 
 TEST(PITTS_ScopeInfo, type)
