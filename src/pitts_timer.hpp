@@ -40,7 +40,7 @@ namespace PITTS
       std::size_t calls = 0;
 
       //! add another timing measurement to the timing statistics
-      const TimingStatistics& operator+=(std::chrono::duration<double> measuredTime)
+      constexpr TimingStatistics& operator+=(std::chrono::duration<double> measuredTime) noexcept
       {
         const double t = measuredTime.count();
         totalTime += t;
@@ -48,6 +48,12 @@ namespace PITTS
         maxTime = std::max(maxTime, t);
         calls++;
         return *this;
+      }
+
+      //! combine two timing statistics
+      constexpr TimingStatistics operator+(const TimingStatistics& other) const noexcept
+      {
+        return {totalTime+other.totalTime, std::min(minTime,other.minTime), std::max(maxTime,other.maxTime), calls+other.calls};
       }
     };
 

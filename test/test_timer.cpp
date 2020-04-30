@@ -44,6 +44,22 @@ TEST(PITTS_Timer, internal_TimingStatistics)
   EXPECT_EQ(2, timings.calls);
   EXPECT_NEAR(22., timings.minTime, eps);
   EXPECT_NEAR(60., timings.maxTime, eps);
+
+  PITTS::internal::TimingStatistics otherTimings;
+  otherTimings += std::chrono::seconds(7);
+
+  const auto combinedTimings = timings + otherTimings;
+  EXPECT_NEAR(82+7., combinedTimings.totalTime, eps);
+  EXPECT_EQ(3, combinedTimings.calls);
+  EXPECT_NEAR(7., combinedTimings.minTime, eps);
+  EXPECT_NEAR(60., combinedTimings.maxTime, eps);
+
+  otherTimings += std::chrono::minutes(5);
+  const auto combinedTimings2 = combinedTimings + otherTimings;
+  EXPECT_NEAR(82+7+7+300., combinedTimings2.totalTime, eps);
+  EXPECT_EQ(5, combinedTimings2.calls);
+  EXPECT_NEAR(7., combinedTimings2.minTime, eps);
+  EXPECT_NEAR(300., combinedTimings2.maxTime, eps);
 }
 
 TEST(PITTS_Timer, simple_function)
