@@ -78,3 +78,21 @@ TEST(PITTS_ScopeInfo, type)
 
   EXPECT_NE(getHash(scopeInt), getHash(scopeNone));
 }
+
+TEST(PITTS_ScopeInfo, ScopeWithArgumentInfo)
+{
+  constexpr auto scope = PITTS::internal::ScopeInfo::current();
+  constexpr auto getHash = PITTS::internal::ScopeWithArgumentInfo::Hash();
+
+  const auto scopeWithNoArgs = PITTS::internal::ScopeWithArgumentInfo{scope, {}};
+  EXPECT_EQ("", scopeWithNoArgs.args.to_string());
+
+  const auto scopeWithSingleArg = PITTS::internal::ScopeWithArgumentInfo{scope, {{"N"},{7}}};
+  EXPECT_EQ("N: 7", scopeWithSingleArg.args.to_string());
+
+  const auto scopeWithFourArgs = PITTS::internal::ScopeWithArgumentInfo{scope, {{"A", "B", "C", "D"},{1, 2, 3, 4}}};
+  EXPECT_EQ("A: 1, B: 2, C: 3, D: 4", scopeWithFourArgs.args.to_string());
+
+  EXPECT_NE(getHash(scopeWithNoArgs), getHash(scopeWithSingleArg));
+  EXPECT_NE(getHash(scopeWithFourArgs), getHash(scopeWithSingleArg));
+}

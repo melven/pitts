@@ -23,6 +23,11 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+    //! resulting hash type for djb_hash
+    using djb_hash_type = std::uint32_t;
+
+    //! initialization value for djb_hash
+    constexpr djb_hash_type djb_hash_init = 5381;
 
     //! Simple, constexpr hash function for strings (because std::hash is not constexpr!)
     //!
@@ -31,7 +36,7 @@ namespace PITTS
     //! @param str    the string to hash
     //! @param hash   initial hash value, can be used to combine a hash for multiple strings
     //!
-    constexpr std::uint32_t djb_hash(const std::string_view& str, std::uint32_t hash = 5381)
+    constexpr djb_hash_type djb_hash(const std::string_view& str, djb_hash_type hash = djb_hash_init)
     {
       for(std::uint8_t c: str)
         hash = ((hash << 5) + hash) ^ c;
@@ -96,7 +101,7 @@ namespace PITTS
       const char* type_name_;
 
       //! function_name hash (constexpr, required as std::hash is not constexpr)
-      std::uint32_t hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
+      djb_hash_type hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
 
       //! internal constructor, call current instead!
       constexpr explicit ScopeInfo(std::experimental::source_location where, const char* typeStr) : std::experimental::source_location(where), type_name_(typeStr) {}
@@ -124,6 +129,8 @@ namespace PITTS
         std::string result;
         for(int i = 0; i < N; i++)
         {
+          if( !names[i] )
+            break;
           if( i > 0 )
             result += ", ";
           result += names[i];
@@ -134,11 +141,44 @@ namespace PITTS
       }
 
       //! calculate a hash of the argument values (constexpr)
-      constexpr auto hash_values() const noexcept
+      constexpr djb_hash_type hash_values(djb_hash_type hash = djb_hash_init) const noexcept
       {
         const auto size = sizeof(int) * values.size();
         const auto raw_buff = std::string_view(reinterpret_cast<const char*>(values.data()), size);
-        return djb_hash(raw_buff);
+        return djb_hash(raw_buff, hash);
+      }
+    };
+
+
+    //! helper type for combining scope and argument information
+    //!
+    //! For comparison and hashing only the actual argument values are considered!
+    //!
+    struct ScopeWithArgumentInfo final
+    {
+      //! the encompassing scope
+      ScopeInfo scope;
+
+      //! maximal number of arguments (fixed for simplicity)
+      static constexpr auto maxArgs = 4;
+
+      //! the (currently) provided argument(s)
+      ArgumentInfo<maxArgs> args;
+
+      //! Callable to combine hashes from ScopeInfo and ArgumentInfo objects, can be used with std::unordered_map
+      struct Hash final
+      {
+        constexpr auto operator()(const ScopeWithArgumentInfo& info) const noexcept
+        {
+          ScopeInfo::Hash helper;
+          return info.args.hash_values(helper(info.scope));
+        }
+      };
+
+      //! comparison operator for std::unordered_map
+      constexpr bool operator==(const ScopeWithArgumentInfo& other) const noexcept
+      {
+        return scope == other.scope && args.values == other.args.values;
       }
     };
   }
