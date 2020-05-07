@@ -36,7 +36,7 @@ namespace PITTS
     //! @param str    the string to hash
     //! @param hash   initial hash value, can be used to combine a hash for multiple strings
     //!
-    constexpr djb_hash_type djb_hash(const std::string_view& str, djb_hash_type hash = djb_hash_init)
+    constexpr djb_hash_type djb_hash(const std::string_view& str, djb_hash_type hash = djb_hash_init) noexcept
     {
       for(std::uint8_t c: str)
         hash = ((hash << 5) + hash) ^ c;
