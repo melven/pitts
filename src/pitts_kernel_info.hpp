@@ -89,18 +89,18 @@ namespace PITTS
 
 
     // template specializations for common numeric operations
-    template<> struct Add<float>                  : public BasicFlops<false, 1, 0> {};
-    template<> struct Add<double>                 : public BasicFlops<false, 0, 1> {};
-    template<> struct Add<std::complex<float>>    : public BasicFlops<false, 2, 0> {};
-    template<> struct Add<std::complex<double>>   : public BasicFlops<false, 0, 2> {};
-    template<> struct Mult<float>                 : public BasicFlops<false, 1, 0> {};
-    template<> struct Mult<double>                : public BasicFlops<false, 0, 1> {};
-    template<> struct Mult<std::complex<float>>   : public BasicFlops<false, 6, 0> {};
-    template<> struct Mult<std::complex<double>>  : public BasicFlops<false, 0, 6> {};
-    template<> struct FMA<float>                  : public BasicFlops<true, 2, 0> {};
-    template<> struct FMA<double>                 : public BasicFlops<true, 0, 2> {};
-    template<> struct FMA<std::complex<float>>    : public BasicFlops<true, 8, 0> {};
-    template<> struct FMA<std::complex<double>>   : public BasicFlops<true, 0, 8> {};
+    template<> struct Add<float>                  : public BasicFlops<true, 1, 0> {};
+    template<> struct Add<double>                 : public BasicFlops<true, 0, 1> {};
+    template<> struct Add<std::complex<float>>    : public BasicFlops<true, 2, 0> {};
+    template<> struct Add<std::complex<double>>   : public BasicFlops<true, 0, 2> {};
+    template<> struct Mult<float>                 : public BasicFlops<true, 1, 0> {};
+    template<> struct Mult<double>                : public BasicFlops<true, 0, 1> {};
+    template<> struct Mult<std::complex<float>>   : public BasicFlops<true, 6, 0> {};
+    template<> struct Mult<std::complex<double>>  : public BasicFlops<true, 0, 6> {};
+    template<> struct FMA<float>                  : public BasicFlops<false, 2, 0> {};
+    template<> struct FMA<double>                 : public BasicFlops<false, 0, 2> {};
+    template<> struct FMA<std::complex<float>>    : public BasicFlops<false, 8, 0> {};
+    template<> struct FMA<std::complex<double>>   : public BasicFlops<false, 0, 8> {};
 
 
 

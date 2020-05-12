@@ -116,7 +116,7 @@ namespace PITTS
     template<typename T>
     inline auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
     {
-      return internal::ScopedTimer(globalTimingStatisticsMap[scope]);
+      return createScopedTimer(scope);
     }
 
 

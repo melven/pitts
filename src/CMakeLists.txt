@@ -4,6 +4,7 @@ target_sources(pitts INTERFACE
   pitts_kernel_info.hpp
   pitts_scope_info.hpp
   pitts_timer.hpp
+  pitts_performance.hpp
   pitts_tensor2.hpp
   pitts_tensor2_random.hpp
   pitts_tensor2_eigen_adaptor.hpp

@@ -150,6 +150,10 @@ namespace PITTS
     };
 
 
+    //! ArgumentInfo with fixed (maximal) number of arguments to allow non-template struct
+    using FixedArgumentInfo = ArgumentInfo<4>;
+
+
     //! helper type for combining scope and argument information
     //!
     //! For comparison and hashing only the actual argument values are considered!
@@ -159,11 +163,8 @@ namespace PITTS
       //! the encompassing scope
       ScopeInfo scope;
 
-      //! maximal number of arguments (fixed for simplicity)
-      static constexpr auto maxArgs = 4;
-
       //! the (currently) provided argument(s)
-      ArgumentInfo<maxArgs> args;
+      FixedArgumentInfo args;
 
       //! Callable to combine hashes from ScopeInfo and ArgumentInfo objects, can be used with std::unordered_map
       struct Hash final

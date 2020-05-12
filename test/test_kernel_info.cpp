@@ -77,13 +77,13 @@ TEST(PITTS_KernelInfo, BasicFlops_predefs)
 {
   using namespace PITTS::internal;
 
-  check_equal(Flops{false, 1., 0.}, Add<float>());
-  check_equal(Flops{false, 1., 0.}, Mult<float>());
-  check_equal(Flops{true, 2., 0.}, FMA<float>());
+  check_equal(Flops{true, 1., 0.}, Add<float>());
+  check_equal(Flops{true, 1., 0.}, Mult<float>());
+  check_equal(Flops{false, 2., 0.}, FMA<float>());
 
-  check_equal(Flops{false, 0., 1.}, Add<double>());
-  check_equal(Flops{false, 0., 1.}, Mult<double>());
-  check_equal(Flops{true, 0, 2}, FMA<double>());
+  check_equal(Flops{true, 0., 1.}, Add<double>());
+  check_equal(Flops{true, 0., 1.}, Mult<double>());
+  check_equal(Flops{false, 0, 2}, FMA<double>());
 
   check_equal(2*Add<float>(), Add<std::complex<float>>());
   check_equal(4*Mult<float>()+2*Add<float>(), Mult<std::complex<float>>());
@@ -147,6 +147,6 @@ TEST(PITTS_KernelInfo, KernelInfo_example)
   using Type = double;
   constexpr auto info = KernelInfo{n*FMA<Type>(), 2*n*Load<Type>()};
 
-  check_equal(PITTS::internal::Flops{true, 0., 500.*2}, info.flops);
+  check_equal(PITTS::internal::Flops{false, 0., 500.*2}, info.flops);
   check_equal(PITTS::internal::Bytes{500.*2*8, 0., 500.*2*8, 0.}, info.bytes);
 }
