@@ -38,6 +38,9 @@ TEST(PITTS_Performance, simple_function)
     ASSERT_STREQ("", scopeWithArgs.scope.type_name());
     ASSERT_EQ(1, performance.timings.calls);
   }
+
+  // just to see the result
+  PITTS::performance::printStatistics();
 }
 
 TEST(PITTS_Performance, simple_template_function)
@@ -55,6 +58,9 @@ TEST(PITTS_Performance, simple_template_function)
 
   simpleTemplateFunction<double>(5, 7);
   ASSERT_EQ(2,  PITTS::performance::globalPerformanceStatisticsMap.size());
+
+  // just to see the result
+  PITTS::performance::printStatistics();
 }
 
 TEST(PITTS_Performance, simple_function_with_type)
@@ -76,4 +82,7 @@ TEST(PITTS_Performance, simple_function_with_type)
 
   simpleFunctionWithType(5, 3);
   ASSERT_EQ(2,  PITTS::performance::globalPerformanceStatisticsMap.size());
+
+  // just to see the result
+  PITTS::performance::printStatistics();
 }

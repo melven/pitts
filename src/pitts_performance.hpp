@@ -79,6 +79,48 @@ namespace PITTS
     }
 
 
+    //! print nice statistics using globalPerformanceStatisticsMap
+    inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
+    {
+      out << "Performance statistics:\n";
+
+      // header
+      out << "function:\t time [s] (#calls)\t GFlop/s DP\t GFlop/s SP\t GByte/s\n";
+      for(const auto& [scopeWithArgs, performanceData]: globalPerformanceStatisticsMap)
+      {
+        const auto& scope = scopeWithArgs.scope;
+        const auto& args = scopeWithArgs.args;
+        const auto& timings = performanceData.timings;
+        const auto& flops = performanceData.kernel.flops;
+        const auto& bytes = performanceData.kernel.bytes;
+
+        // print (optional) type
+        if( !std::string_view(scope.type_name()).empty() )
+          out << scope.type_name() << "::";
+        // print function
+        out << scope.function_name();
+
+        // print arguments
+        out << "(" << args.to_string() << ")";
+
+        // timings
+        out << " : " << timings.totalTime << " (" << timings.calls << ")";
+
+        // floating point operations (double-precision GFlop/s)
+        out << "\t " << timings.calls*flops.doublePrecision/timings.totalTime*1.e-9;
+
+        // floating point operations (single-precision GFlop/s)
+        out << "\t " << timings.calls*flops.singlePrecision/timings.totalTime*1.e-9;
+
+        // data transfers (GByte/s)
+        out << "\t " << timings.calls*(2*bytes.update+bytes.load+bytes.store)/timings.totalTime*1.e-9;
+
+        out << "\n";
+      }
+
+      if( clear )
+        globalPerformanceStatisticsMap.clear();
+    }
   }
 }
 
