@@ -2,7 +2,7 @@
 #include <iostream>
 #include <omp.h>
 #include "pitts_qubit_simulator.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
   wtime = omp_get_wtime() - wtime;
   std::cout << "Run time: " << wtime << "\n";
 
-  PITTS::timing::printStatistics();
+  PITTS::performance::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

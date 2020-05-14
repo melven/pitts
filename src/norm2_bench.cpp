@@ -4,7 +4,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_random.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 
 int main(int argc, char* argv[])
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   }
   std::cout << "random: " << tmp << std::endl;
 
-  PITTS::timing::printStatistics();
+  PITTS::performance::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");
