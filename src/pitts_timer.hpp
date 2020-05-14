@@ -127,9 +127,8 @@ namespace PITTS
       for(const auto& [scope, timings]: globalTimingStatisticsMap)
       {
         if( !std::string_view(scope.type_name()).empty() )
-          out << scope.type_name() << " :: " << scope.function_name() << " : " << timings.totalTime << " (" << timings.calls << ")\n";
-        else
-          out << scope.function_name() << " : " << timings.totalTime << " (" << timings.calls << ")\n";
+          out << scope.type_name() << "::";
+        out << scope.function_name() << " : " << timings.totalTime << " (" << timings.calls << ")\n";
       }
 
       if( clear )
