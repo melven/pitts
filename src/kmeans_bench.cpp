@@ -6,7 +6,7 @@
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_cdist.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 
 int main(int argc, char* argv[])
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   if( iProc == 0 )
     std::cout << "20 iterations k-means wtime: " << wtime << std::endl;
 
-  PITTS::timing::printStatistics();
+  PITTS::performance::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

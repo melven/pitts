@@ -5,7 +5,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_cdist.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 
 int main(int argc, char* argv[])
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     cdist2(X, Y, D);
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "wtime: " << wtime << std::endl;
-  PITTS::timing::printStatistics();
+  PITTS::performance::printStatistics();
 
   if( MPI_Finalize() != 0 )
     throw std::runtime_error("MPI error");

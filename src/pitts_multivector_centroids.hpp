@@ -14,7 +14,7 @@
 #include <vector>
 #include <exception>
 #include "pitts_multivector.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -30,13 +30,21 @@ namespace PITTS
   template<typename T>
   void centroids(const MultiVector<T>& X, const std::vector<int>& idx, const std::vector<T>& w, MultiVector<T>& Y)
   {
-    const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
-
     const auto chunks = X.rowChunks();
     const auto n = X.cols();
     const auto m = Y.cols();
     if( n != idx.size() || n != w.size() )
       throw std::invalid_argument("PITTS::centroids: Dimension mismatch, size of idx and w must match with the number of columns in X!");
+
+    // gather performance data
+    const double rowsd = X.rows();
+    const double nd = n;
+    const double md = m;
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"rows","Xcols","Ycols"},{X.rows(),n,m}}, // arguments
+        {{(rowsd*nd)*kernel_info::FMA<T>()}, // flops
+         {(nd*rowsd+nd)*kernel_info::Load<T>() + nd*kernel_info::Load<int>() + (md*rowsd)*kernel_info::Store<T>()}});
+
 
 #pragma omp parallel
     {
