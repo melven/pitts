@@ -118,6 +118,18 @@ namespace PITTS
         out << "\n";
       }
 
+
+      // also print timing statistics
+      auto timingStatisticsMap = timing::globalTimingStatisticsMap;
+
+      for(const auto& [scopeWithArgs, performanceData]: globalPerformanceStatisticsMap)
+      {
+        timing::globalTimingStatisticsMap[scopeWithArgs.scope] += performanceData.timings;
+      }
+
+      timing::printStatistics(clear, out);
+      std::swap(timingStatisticsMap, timing::globalTimingStatisticsMap);
+
       if( clear )
         globalPerformanceStatisticsMap.clear();
     }

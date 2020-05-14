@@ -55,6 +55,13 @@ namespace PITTS
       {
         return {totalTime+other.totalTime, std::min(minTime,other.minTime), std::max(maxTime,other.maxTime), calls+other.calls};
       }
+
+      //! combine two timing statistics
+      constexpr TimingStatistics& operator+=(const TimingStatistics& other) noexcept
+      {
+        *this = *this + other;
+        return *this;
+      }
     };
 
 

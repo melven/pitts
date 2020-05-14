@@ -28,6 +28,7 @@ namespace
 TEST(PITTS_Performance, simple_function)
 {
   PITTS::performance::globalPerformanceStatisticsMap.clear();
+  PITTS::timing::globalTimingStatisticsMap.clear();
 
   simpleFunction(5, 7);
 
@@ -46,6 +47,7 @@ TEST(PITTS_Performance, simple_function)
 TEST(PITTS_Performance, simple_template_function)
 {
   PITTS::performance::globalPerformanceStatisticsMap.clear();
+  PITTS::timing::globalTimingStatisticsMap.clear();
 
   simpleTemplateFunction<int>(5, 7);
 
@@ -66,6 +68,7 @@ TEST(PITTS_Performance, simple_template_function)
 TEST(PITTS_Performance, simple_function_with_type)
 {
   PITTS::performance::globalPerformanceStatisticsMap.clear();
+  PITTS::timing::globalTimingStatisticsMap.clear();
 
   simpleFunctionWithType(5, 7);
   simpleFunctionWithType(5, 7);
