@@ -18,24 +18,6 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  /*
-    //! print nice statistics using globalTimingStatisticsMap
-    inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
-    {
-      out << "Timing statistics:\n";
-      for(const auto& [scope, timings]: globalTimingStatisticsMap)
-      {
-        if( !std::string_view(scope.type_name()).empty() )
-          out << scope.type_name() << " :: " << scope.function_name() << " : " << timings.totalTime << " (" << timings.calls << ")\n";
-        else
-          out << scope.function_name() << " : " << timings.totalTime << " (" << timings.calls << ")\n";
-      }
-
-      if( clear )
-        globalTimingStatisticsMap.clear();
-    }
-  */
-
   //! namespace for helper functionality
   namespace internal
   {
