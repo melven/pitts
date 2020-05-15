@@ -166,6 +166,12 @@ namespace PITTS
       //! the (currently) provided argument(s)
       FixedArgumentInfo args;
 
+      //! number of measurements ("sub-scopes") per function,
+      //!
+      //! This is used to accumulate function-level call counts while measuring parts of a function.
+      //!
+      int callsPerFunction = 1;
+
       //! Callable to combine hashes from ScopeInfo and ArgumentInfo objects, can be used with std::unordered_map
       struct Hash final
       {

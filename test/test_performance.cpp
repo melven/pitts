@@ -22,6 +22,14 @@ namespace
     const auto timer = PITTS::performance::createScopedTimer({{"x","y"},{x,y}},{10*kernel_info::Add<float>(), 10*kernel_info::Load<float>()});
     printf("x+y: %d\n", x+y);
   }
+
+  void functionWithTimerInLoop(int n)
+  {
+    for(int i = 0; i < n; i++)
+    {
+      const auto timer = PITTS::performance::createScopedTimer({}, {}, n);
+    }
+  }
 }
 
 
@@ -74,7 +82,7 @@ TEST(PITTS_Performance, simple_function_with_type)
   simpleFunctionWithType(5, 7);
 
   ASSERT_EQ(1,  PITTS::performance::globalPerformanceStatisticsMap.size());
-  for(auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
+  for(const auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
   {
     ASSERT_STREQ("simpleFunctionWithType", scopeWithArgs.scope.function_name());
     ASSERT_STREQ("<int>", scopeWithArgs.scope.type_name());
@@ -89,3 +97,59 @@ TEST(PITTS_Performance, simple_function_with_type)
   // just to see the result
   PITTS::performance::printStatistics();
 }
+
+TEST(PITTS_Performance, combineTimingsPerFunction_simple)
+{
+  PITTS::performance::globalPerformanceStatisticsMap.clear();
+
+  simpleFunctionWithType(5, 7);
+  simpleFunctionWithType(5, 7);
+  simpleFunctionWithType(5, 7);
+
+  ASSERT_EQ(1,  PITTS::performance::globalPerformanceStatisticsMap.size());
+  const auto timingStats = PITTS::internal::combineTimingsPerFunction(PITTS::performance::globalPerformanceStatisticsMap);
+  ASSERT_EQ(1, timingStats.size());
+  for(const auto& [scope, timings]: timingStats)
+  {
+    ASSERT_EQ(3, timings.calls);
+  }
+}
+
+TEST(PITTS_Performance, combineTimingsPerFunction_differentArgs)
+{
+  PITTS::performance::globalPerformanceStatisticsMap.clear();
+
+  simpleFunctionWithType(5, 7);
+  simpleFunctionWithType(5, 4);
+  simpleFunctionWithType(2, 7);
+
+  ASSERT_EQ(3,  PITTS::performance::globalPerformanceStatisticsMap.size());
+  const auto timingStats = PITTS::internal::combineTimingsPerFunction(PITTS::performance::globalPerformanceStatisticsMap);
+  ASSERT_EQ(1, timingStats.size());
+  for(const auto& [scope, timings]: timingStats)
+  {
+    ASSERT_EQ(3, timings.calls);
+  }
+}
+
+TEST(PITTS_Performance, combineTimingsPerFunction_subScope)
+{
+  PITTS::performance::globalPerformanceStatisticsMap.clear();
+
+  functionWithTimerInLoop(5);
+  functionWithTimerInLoop(7);
+  functionWithTimerInLoop(2);
+
+  ASSERT_EQ(1,  PITTS::performance::globalPerformanceStatisticsMap.size());
+  for(const auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
+  {
+    ASSERT_EQ(14, performance.timings.calls);
+  }
+  const auto timingStats = PITTS::internal::combineTimingsPerFunction(PITTS::performance::globalPerformanceStatisticsMap);
+  ASSERT_EQ(1, timingStats.size());
+  for(const auto& [scope, timings]: timingStats)
+  {
+    ASSERT_EQ(3, timings.calls);
+  }
+}
+

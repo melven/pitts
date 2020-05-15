@@ -11,6 +11,7 @@
 #define PITTS_PERFORMANCE_HPP
 
 // includes
+#include <cmath>
 #include "pitts_kernel_info.hpp"
 #include "pitts_timer.hpp"
 
@@ -34,6 +35,34 @@ namespace PITTS
 
     //! helper type for storing timings with performance data per function / scope and per argumen
     using PerformanceStatisticsMap = std::unordered_map<internal::ScopeWithArgumentInfo, internal::PerformanceStatistics, internal::ScopeWithArgumentInfo::Hash>;
+
+    //! combine timings with different arguments for each function
+    inline TimingStatisticsMap combineTimingsPerFunction(const PerformanceStatisticsMap& performanceStats)
+    {
+      TimingStatisticsMap timingStats;
+
+      for(const auto& [scopeWithArgs, performanceData]: performanceStats)
+      {
+        timingStats[scopeWithArgs.scope] += performanceData.timings;
+      }
+
+      // call counts are more tricky as we allow multiple "sub-scopes" in a single function
+      // for a more detailed performance analysis with low overhead (during measurement)
+      // so replace call counts by corrected call counts
+      std::unordered_map<internal::ScopeInfo, double, internal::ScopeInfo::Hash> functionCallCounts;
+      // sum up "weighted" function call counts (divided by number of "sub-scopes" per function)
+      for(const auto& [scopeWithArgs, performanceData]: performanceStats)
+      {
+        functionCallCounts[scopeWithArgs.scope] += 1./scopeWithArgs.callsPerFunction * performanceData.timings.calls;
+      }
+      // replace call counts with corrected data
+      for(const auto& [scope, calls]: functionCallCounts)
+      {
+        timingStats[scope].calls = std::lround(calls);
+      }
+
+      return timingStats;
+    }
   }
 
 
@@ -45,9 +74,9 @@ namespace PITTS
 
 
     //! Measure the runtime of the curent function or scope and gather performance statistics
-    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, internal::ScopeInfo scope = internal::ScopeInfo::current())
+    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, int callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::current())
     {
-      const internal::ScopeWithArgumentInfo scopeArgs{scope, arguments};
+      const internal::ScopeWithArgumentInfo scopeArgs{scope, arguments, callsPerFunction};
       const auto [iter, didInsert] = globalPerformanceStatisticsMap.insert({scopeArgs, {internal::TimingStatistics(), kernel}});
       return internal::ScopedTimer(iter->second.timings);
     }
@@ -55,9 +84,9 @@ namespace PITTS
 
     //! Measure the runtime of the curent function or scope and gather performance statistics (variant with template type information)
     template<typename T>
-    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
+    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, int callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
     {
-      return createScopedTimer(arguments, kernel, scope);
+      return createScopedTimer(arguments, kernel, callsPerFunction, scope);
     }
 
 
@@ -104,10 +133,7 @@ namespace PITTS
       // also print timing statistics
       auto timingStatisticsMap = timing::globalTimingStatisticsMap;
 
-      for(const auto& [scopeWithArgs, performanceData]: globalPerformanceStatisticsMap)
-      {
-        timing::globalTimingStatisticsMap[scopeWithArgs.scope] += performanceData.timings;
-      }
+      timing::globalTimingStatisticsMap = timingStatisticsMap + combineTimingsPerFunction(globalPerformanceStatisticsMap);
 
       timing::printStatistics(clear, out);
       std::swap(timingStatisticsMap, timing::globalTimingStatisticsMap);

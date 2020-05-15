@@ -102,6 +102,15 @@ namespace PITTS
 
     //! helper type for storing timings per function / scope
     using TimingStatisticsMap = std::unordered_map<internal::ScopeInfo, internal::TimingStatistics, internal::ScopeInfo::Hash>;
+
+    //! allow to combine timing statistics by adding them up...
+    inline TimingStatisticsMap operator+(const TimingStatisticsMap& a, const TimingStatisticsMap& b)
+    {
+      TimingStatisticsMap ab = a;
+      for(const auto& [scope, timings]: b)
+        ab[scope] += timings;
+      return ab;
+    }
   }
 
 
