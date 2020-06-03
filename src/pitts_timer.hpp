@@ -15,6 +15,9 @@
 #include <limits>
 #include <unordered_map>
 #include <iostream>
+#include <iomanip>
+#include <numeric>
+#include <vector>
 #include "pitts_scope_info.hpp"
 
 
@@ -139,12 +142,41 @@ namespace PITTS
     //! print nice statistics using globalTimingStatisticsMap
     inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
     {
-      out << "Timing statistics:\n";
+      // For sorting and nicer formatting, first copy all stuff into an array of small helper structs
+      struct Line final
+      {
+        std::string name;
+        double totalTime;
+        std::size_t calls;
+      };
+      std::vector<Line> lines;
+      lines.reserve(globalTimingStatisticsMap.size());
+
       for(const auto& [scope, timings]: globalTimingStatisticsMap)
       {
+        std::string fullName;
         if( !std::string_view(scope.type_name()).empty() )
-          out << scope.type_name() << "::";
-        out << scope.function_name() << " : " << timings.totalTime << " (" << timings.calls << ")\n";
+          fullName = scope.type_name() + std::string("::");
+        fullName += scope.function_name();
+
+        lines.emplace_back(Line{fullName, timings.totalTime, timings.calls});
+      }
+      // sort by decreasing time
+      std::sort(lines.begin(), lines.end(), [](const Line& l1, const Line& l2){return l1.totalTime > l2.totalTime;});
+      // get maximal length of the name string
+      const auto maxNameLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const Line& l){return std::max(n, l.name.size());});
+
+      // actual output
+      out << "Timing statistics:\n";
+      out << std::left;
+      out << std::setw(maxNameLen) << "function" << "\t "
+          << std::setw(10) << "time [s]" << "\t "
+          << std::setw(10) << "#calls" << "\n";
+      for(const auto& line: lines)
+      {
+        out << std::setw(maxNameLen) << line.name << "\t "
+            << std::setw(10) << line.totalTime << "\t "
+            << std::setw(10) << line.calls << "\n";
       }
 
       if( clear )
