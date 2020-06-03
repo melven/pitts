@@ -12,6 +12,9 @@
 
 // includes
 #include <cmath>
+#include <iomanip>
+#include <vector>
+#include <numeric>
 #include "pitts_kernel_info.hpp"
 #include "pitts_timer.hpp"
 
@@ -93,10 +96,18 @@ namespace PITTS
     //! print nice statistics using globalPerformanceStatisticsMap
     inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
     {
-      out << "Performance statistics:\n";
-
-      // header
-      out << "function:\t time [s] (#calls)\t GFlop/s DP\t GFlop/s SP\t GByte/s\n";
+      // For sorting and nicer formatting, first copy all stuff into an array of small helper structs
+      struct Line final
+      {
+        std::string description;
+        double totalTime;
+        std::size_t calls;
+        double gflops_dp;
+        double gflops_sp;
+        double gbytes;
+      };
+      std::vector<Line> lines;
+      lines.reserve(globalPerformanceStatisticsMap.size());
       for(const auto& [scopeWithArgs, performanceData]: globalPerformanceStatisticsMap)
       {
         const auto& scope = scopeWithArgs.scope;
@@ -105,28 +116,44 @@ namespace PITTS
         const auto& flops = performanceData.kernel.flops;
         const auto& bytes = performanceData.kernel.bytes;
 
-        // print (optional) type
+        Line line;
         if( !std::string_view(scope.type_name()).empty() )
-          out << scope.type_name() << "::";
-        // print function
-        out << scope.function_name();
+          line.description = scope.type_name() + std::string("::");
+        line.description += scope.function_name();
+        line.description += "(" + args.to_string() + ")";
 
-        // print arguments
-        out << "(" << args.to_string() << ")";
+        line.totalTime = timings.totalTime;
+        line.calls = timings.calls;
+        line.gflops_dp = timings.calls*flops.doublePrecision/timings.totalTime*1.e-9;
+        line.gflops_sp = timings.calls*flops.singlePrecision/timings.totalTime*1.e-9;
+        line.gbytes = timings.calls*(2*bytes.update+bytes.load+bytes.store)/timings.totalTime*1.e-9;
 
-        // timings
-        out << " : " << timings.totalTime << " (" << timings.calls << ")";
+        lines.emplace_back(std::move(line));
+      }
 
-        // floating point operations (double-precision GFlop/s)
-        out << "\t " << timings.calls*flops.doublePrecision/timings.totalTime*1.e-9;
+      // sort by decreasing time
+      std::sort(lines.begin(), lines.end(), [](const Line& l1, const Line& l2){return l1.totalTime > l2.totalTime;});
+      // get maximal length of the name string
+      const auto maxDescLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const Line& l){return std::max(n, l.description.size());});
 
-        // floating point operations (single-precision GFlop/s)
-        out << "\t " << timings.calls*flops.singlePrecision/timings.totalTime*1.e-9;
 
-        // data transfers (GByte/s)
-        out << "\t " << timings.calls*(2*bytes.update+bytes.load+bytes.store)/timings.totalTime*1.e-9;
-
-        out << "\n";
+      // actual output
+      out << "Performance statistics:\n";
+      out << std::left;
+      out << std::setw(maxDescLen) << "function" << "\t "
+          << std::setw(10) << "time [s]" << "\t "
+          << std::setw(10) << "#calls" << "\t "
+          << std::setw(10) << "GFlop/s DP" << "\t "
+          << std::setw(10) << "GFlop/s SP" << "\t "
+          << std::setw(10) << "GByte/s" << "\n";
+      for(const auto& line: lines)
+      {
+        out << std::setw(maxDescLen) << line.description << "\t "
+            << std::setw(10) << line.totalTime << "\t "
+            << std::setw(10) << line.calls << "\t "
+            << std::setw(10) << line.gflops_dp << "\t "
+            << std::setw(10) << line.gflops_sp << "\t "
+            << std::setw(10) << line.gbytes << "\n";
       }
 
 
