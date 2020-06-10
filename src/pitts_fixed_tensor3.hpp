@@ -13,7 +13,7 @@
 // includes
 #include <memory>
 #include "pitts_chunk.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -99,7 +99,11 @@ namespace PITTS
     //! set all entries to the same value
     void setConstant(T v)
     {
-      const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+      const auto timer = PITTS::performance::createScopedTimer<FixedTensor3<T,N>>(
+          {{"r1", "r2"}, {r1_, r2_}},   // arguments
+          {{r1_*n_*r2_*kernel_info::NoOp<T>()},    // flops
+           {r1_*n_*r2_*kernel_info::Store<T>()}}  // data
+          );
 
       for(int k = 0; k < r2_; k++)
         for(int j = 0; j < n_; j++)
@@ -110,7 +114,11 @@ namespace PITTS
     //! set to canonical unit tensor e_(i,j,k)
     void setUnit(int ii, int jj, int kk)
     {
-      const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+      const auto timer = PITTS::performance::createScopedTimer<FixedTensor3<T,N>>(
+          {{"r1", "r2"}, {r1_, r2_}},   // arguments
+          {{r1_*n_*r2_*kernel_info::NoOp<T>()},    // flops
+           {r1_*n_*r2_*kernel_info::Store<T>()}}  // data
+          );
 
       for(int k = 0; k < r2_; k++)
         for(int j = 0; j < n_; j++)
@@ -146,11 +154,15 @@ namespace PITTS
   template<typename T, int N>
   void copy(const FixedTensor3<T,N>& a, FixedTensor3<T,N>& b)
   {
-    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
-
     const auto r1 = a.r1();
     constexpr auto n = N;
     const auto r2 = a.r2();
+
+    const auto timer = PITTS::performance::createScopedTimer<FixedTensor3<T,N>>(
+        {{"r1", "r2"}, {r1, r2}},   // arguments
+        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+         {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
+        );
 
     b.resize(r1, r2);
 
