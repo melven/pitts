@@ -85,6 +85,8 @@ TEST(PITTS_KernelInfo, BasicFlops_predefs)
   check_equal(Flops{true, 0., 1.}, Mult<double>());
   check_equal(Flops{false, 0, 2}, FMA<double>());
 
+  check_equal(Flops{false, 0, 0}, NoOp<double>());
+
   check_equal(2*Add<float>(), Add<std::complex<float>>());
   check_equal(4*Mult<float>()+2*Add<float>(), Mult<std::complex<float>>());
   check_equal(4*FMA<float>(), FMA<std::complex<float>>());

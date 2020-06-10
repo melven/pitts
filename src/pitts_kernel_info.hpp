@@ -102,6 +102,8 @@ namespace PITTS
     template<> struct FMA<std::complex<float>>    : public BasicFlops<false, 8, 0> {};
     template<> struct FMA<std::complex<double>>   : public BasicFlops<false, 0, 8> {};
 
+    // special type for parts that don't do any floating point operations at all
+    template<typename> struct NoOp : public BasicFlops<false, 0, 0> {};
 
 
     //! helper class for counting data transfers
@@ -180,6 +182,7 @@ namespace PITTS
     using internal::Add;
     using internal::Mult;
     using internal::FMA;
+    using internal::NoOp;
 
     // for counting data transfers
     using internal::Update;
