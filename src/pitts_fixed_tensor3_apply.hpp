@@ -13,7 +13,7 @@
 // includes
 #include <array>
 #include "pitts_fixed_tensor3.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -26,10 +26,15 @@ namespace PITTS
   template<typename T, int N, std::size_t N_=N>
   void apply(FixedTensor3<T,N>& t3, const std::array<std::array<T,N_>,N_>& M)
   {
-    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
-
+    // gather performance data
     const auto r1 = t3.r1();
     const auto r2 = t3.r2();
+    const auto timer = PITTS::performance::createScopedTimer<FixedTensor3<T,N>>(
+        {{"r1", "r2"}, {r1, r2}},     // arguments
+        {{r1*r2*N*N*kernel_info::FMA<T>()},    // flops
+         {r1*r2*N*kernel_info::Update<T>() + N*N*kernel_info::Load<T>()}}    // data transfers
+        );
+
     for(int i = 0; i < r1; i++)
       for(int j = 0; j < r2; j++)
       {
