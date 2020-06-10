@@ -13,7 +13,7 @@
 // includes
 #include <random>
 #include "pitts_fixed_tensor3.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -26,15 +26,20 @@ namespace PITTS
   template<typename T, int N>
   void randomize(FixedTensor3<T,N>& t3)
   {
-    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+    const auto r1 = t3.r1();
+    const auto r2 = t3.r2();
+    const auto n = t3.n();
+
+    const auto timer = PITTS::performance::createScopedTimer<FixedTensor3<T,N>>(
+        {{"r1", "r2"}, {r1, r2}},   // arguments
+        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+         {r1*n*r2*kernel_info::Store<T>()}}  // data
+        );
 
     std::random_device randomSeed;
     std::mt19937 randomGenerator(randomSeed());
     std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
-    const auto r1 = t3.r1();
-    const auto r2 = t3.r2();
-    const auto n = t3.n();
     for(int i = 0; i < r1; i++)
       for(int j = 0; j < n; j++)
         for(int k = 0; k < r2; k++)
@@ -49,15 +54,20 @@ namespace PITTS
   template<typename T, int N>
   void randomize(FixedTensor3<std::complex<T>,N>& t3)
   {
-    const auto timer = PITTS::timing::createScopedTimer<FixedTensor3<T,N>>();
+    const auto r1 = t3.r1();
+    const auto r2 = t3.r2();
+    const auto n = t3.n();
+
+    const auto timer = PITTS::performance::createScopedTimer<FixedTensor3<T,N>>(
+        {{"r1", "r2"}, {r1, r2}},   // arguments
+        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+         {r1*n*r2*kernel_info::Store<T>()}}  // data
+        );
 
     std::random_device randomSeed;
     std::mt19937 randomGenerator(randomSeed());
     std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
-    const auto r1 = t3.r1();
-    const auto r2 = t3.r2();
-    const auto n = t3.n();
     for(int i = 0; i < r1; i++)
       for(int j = 0; j < n; j++)
         for(int k = 0; k < r2; k++)
