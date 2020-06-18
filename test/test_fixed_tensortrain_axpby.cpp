@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_tensor2.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_fixed_tensortrain_axpby.hpp"
 #include "pitts_fixed_tensortrain_dot.hpp"

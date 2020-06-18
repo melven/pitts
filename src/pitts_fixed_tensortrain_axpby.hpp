@@ -13,7 +13,6 @@
 // includes
 #include <limits>
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_qb_decomposition.hpp"
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"
