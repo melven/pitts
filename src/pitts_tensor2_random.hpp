@@ -13,7 +13,7 @@
 // includes
 #include <random>
 #include "pitts_tensor2.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -25,14 +25,19 @@ namespace PITTS
   template<typename T>
   void randomize(Tensor2<T>& t2)
   {
-    const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+    const auto r1 = t2.r1();
+    const auto r2 = t2.r2();
+    const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"r1", "r2"}, {r1, r2}},   // arguments
+        {{r1*r2*kernel_info::NoOp<T>()},    // flops
+         {r1*r2*kernel_info::Store<T>()}}  // data
+        );
+
 
     std::random_device randomSeed;
     std::mt19937 randomGenerator(randomSeed());
     std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
-    const auto r1 = t2.r1();
-    const auto r2 = t2.r2();
     for(int i = 0; i < r1; i++)
       for(int j = 0; j < r2; j++)
           t2(i,j) = distribution(randomGenerator);
