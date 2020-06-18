@@ -14,7 +14,7 @@
 #include <vector>
 #include <memory>
 #include "pitts_chunk.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -112,21 +112,24 @@ namespace PITTS
 
   //! explicitly copy a Tensor2 object
   template<typename T>
-  auto copy(const Tensor2<T>& a)
+  void copy(const Tensor2<T>& a, Tensor2<T>& b)
   {
-    const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-
     const auto r1 = a.r1();
     const auto r2 = a.r2();
 
-    Tensor2<T> b(r1, r2);
+    const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"r1", "r2"}, {r1, r2}},   // arguments
+        {{r1*r2*kernel_info::NoOp<T>()},    // flops
+         {r1*r2*kernel_info::Store<T>()+r1*r2*kernel_info::Load<T>()}}  // data
+        );
+
+
+    b.resize(r1, r2);
 
 #pragma omp parallel for collapse(2) schedule(static) if(r1*r2 > 500)
     for(int j = 0; j < r2; j++)
       for(int i = 0; i < r1; i++)
         b(i,j) = a(i,j);
-
-    return b;
   }
 }
 
