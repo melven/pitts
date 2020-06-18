@@ -50,6 +50,9 @@ namespace PITTS
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int r2)
     {
+      // fast return without timer!
+      if( r1 == r1_ && r2 == r2_ )
+        return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       const auto n = r1*r2;

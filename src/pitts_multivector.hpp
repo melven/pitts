@@ -49,6 +49,9 @@ namespace PITTS
     //! adjust the desired multivector dimensions (destroying all data!)
     void resize(int rows, int cols)
     {
+      // fast return without timer!
+      if( rows == rows_ && cols == cols_ )
+        return;
       const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
 
       const auto newRowChunks = (rows-1)/chunkSize+1;

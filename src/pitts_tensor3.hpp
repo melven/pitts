@@ -53,6 +53,9 @@ namespace PITTS
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(int r1, int n, int r2)
     {
+      // fast return without timer!
+      if( r1 == r1_ && n == n_ && r2 == r2_ )
+        return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
       const auto requiredChunks = r1 * r2 * std::max(1, (n-1)/chunkSize+1);
