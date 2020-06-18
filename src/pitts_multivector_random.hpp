@@ -14,7 +14,7 @@
 #include <random>
 #include <omp.h>
 #include "pitts_multivector.hpp"
-#include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -26,14 +26,21 @@ namespace PITTS
   template<typename T>
   void randomize(MultiVector<T>& t2)
   {
-    const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+    const auto rows = t2.rows();
+    const auto cols = t2.cols();
+
+    // gather performance data
+    const double rowsd = rows, colsd = cols;
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"rows", "cols"},{rows, cols}}, // arguments
+        {{rowsd*colsd*kernel_info::NoOp<T>()}, // flops
+         {rowsd*colsd*kernel_info::Store<T>()}} // data transfers
+        );
 
     std::random_device randomSeed;
     //std::mt19937 randomGenerator(randomSeed());
     //std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
-    const auto rows = t2.rows();
-    const auto cols = t2.cols();
 #pragma omp parallel
     {
       std::random_device::result_type seed;
