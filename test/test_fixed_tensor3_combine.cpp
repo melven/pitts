@@ -68,7 +68,7 @@ TYPED_TEST(PITTS_FixedTensor3_combine, N_equals_2)
   for(int i = 0; i < 3; i++)
     for(int j = 0; j < 7; j++)
       for(int k = 0; k < 2; k++)
-        t3b(i,0,j) = 10 + i*0.5 + j*0.337 + k * 0.027;
+        t3b(i,k,j) = 10 + i*0.5 + j*0.337 + k * 0.027;
 
   using Matrix = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   using Map = Eigen::Map<Matrix>;
@@ -108,7 +108,7 @@ TYPED_TEST(PITTS_FixedTensor3_combine, N_equals_2_swapped)
   for(int i = 0; i < 3; i++)
     for(int j = 0; j < 7; j++)
       for(int k = 0; k < 2; k++)
-        t3b(i,0,j) = 10 + i*0.5 + j*0.337 + k * 0.027;
+        t3b(i,k,j) = 10 + i*0.5 + j*0.337 + k * 0.027;
 
   using Matrix = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   using Map = Eigen::Map<Matrix>;

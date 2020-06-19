@@ -84,7 +84,7 @@ TYPED_TEST(PITTS_FixedTensor3_apply, generic)
   for(int i = 0; i < 5; i++)
     for(int j = 0; j < 3; j++)
       for(int k = 0; k < 2; k++)
-      t3(i,j,0) = 100 + i*10 + j*2 + k;
+      t3(i,j,k) = 100 + i*10 + j*2 + k;
 
   const std::array<std::array<Type,3>,3> M = {arr3{1.,2.,3.},arr3{4.,5.,6.},arr3{7.,8.,9.}};
 
