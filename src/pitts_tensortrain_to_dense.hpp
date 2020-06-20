@@ -31,9 +31,6 @@ namespace PITTS
   //! @param TT             the tensor in tensor-train format
   //! @param first          output iterator that points to the first index, e.g. std::begin(someContainer)
   //! @param last           output iterator that points behind the last index, e.g. std::end(someContainer)
-  //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
-  //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
-  //! @return               resulting tensor train
   //!
   template<typename T, class Iter>
   void toDense(const TensorTrain<T>& TT, Iter first, Iter last)

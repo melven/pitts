@@ -46,7 +46,11 @@ namespace PITTS
 
     // abort early for zero dimensions
     if( dimensions.size() == 0 )
+    {
+      if( last - first != 0 )
+        throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
       return TensorTrain<T>{dimensions};
+    }
 
     const auto totalSize = std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
     if( totalSize != last - first )
