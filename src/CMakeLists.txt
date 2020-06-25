@@ -50,6 +50,10 @@ add_executable(kmeans_bench kmeans_bench.cpp)
 
 # Python binding
 if(pybind11_FOUND)
-  pybind11_add_module(pitts_py MODULE pitts_qubit_simulator_pybind.cpp)
+  pybind11_add_module(pitts_py MODULE
+    pitts_pybind.cpp
+    pitts_qubit_simulator_pybind.hpp
+    pitts_qubit_simulator_pybind.cpp
+    )
   install(TARGETS pitts_py LIBRARY DESTINATION lib)
 endif()
