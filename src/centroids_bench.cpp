@@ -4,27 +4,12 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_performance.hpp"
+#include "pitts_common.hpp"
 
 
 int main(int argc, char* argv[])
 {
-#pragma omp parallel
-  {
-    if( omp_get_thread_num() == 0 )
-      std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
-  }
-
-  if( MPI_Init(&argc, &argv) != 0 )
-    throw std::runtime_error("MPI error");
-
-  int nProcs, iProc;
-  if( MPI_Comm_size(MPI_COMM_WORLD, &nProcs) != 0 )
-    throw std::runtime_error("MPI error");
-  if( MPI_Comm_rank(MPI_COMM_WORLD, &iProc) != 0 )
-    throw std::runtime_error("MPI error");
-  if( iProc == 0 )
-    std::cout << "MPI #procs: " << nProcs << std::endl;
+  PITTS::initialize(&argc, &argv);
 
   using Type = float;
   const int n = 50000, m = 50000;
@@ -47,9 +32,8 @@ int main(int argc, char* argv[])
     centroids(X, idx, w, Y);
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "wtime: " << wtime << std::endl;
-  PITTS::performance::printStatistics();
 
-  if( MPI_Finalize() != 0 )
-    throw std::runtime_error("MPI error");
+  PITTS::finalize();
+
   return 0;
 }

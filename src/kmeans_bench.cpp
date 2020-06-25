@@ -6,27 +6,18 @@
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_cdist.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_performance.hpp"
+#include "pitts_common.hpp"
 
 
 int main(int argc, char* argv[])
 {
-#pragma omp parallel
-  {
-    if( omp_get_thread_num() == 0 )
-      std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
-  }
-
-  if( MPI_Init(&argc, &argv) != 0 )
-    throw std::runtime_error("MPI error");
+  PITTS::initialize(&argc, &argv);
 
   int nProcs = 1, iProc = 0;
   if( MPI_Comm_size(MPI_COMM_WORLD, &nProcs) != 0 )
     throw std::runtime_error("MPI error");
   if( MPI_Comm_rank(MPI_COMM_WORLD, &iProc) != 0 )
     throw std::runtime_error("MPI error");
-  if( iProc == 0 )
-    std::cout << "MPI #procs: " << nProcs << std::endl;
 
   double wtime = omp_get_wtime();
 
@@ -112,9 +103,7 @@ int main(int argc, char* argv[])
   if( iProc == 0 )
     std::cout << "20 iterations k-means wtime: " << wtime << std::endl;
 
-  PITTS::performance::printStatistics();
+  PITTS::finalize();
 
-  if( MPI_Finalize() != 0 )
-    throw std::runtime_error("MPI error");
   return 0;
 }

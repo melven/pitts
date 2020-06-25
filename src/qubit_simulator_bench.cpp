@@ -2,7 +2,7 @@
 #include <iostream>
 #include <omp.h>
 #include "pitts_qubit_simulator.hpp"
-#include "pitts_performance.hpp"
+#include "pitts_common.hpp"
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
@@ -19,21 +19,7 @@ namespace
 
 int main(int argc, char* argv[])
 {
-  if( MPI_Init(&argc, &argv) != 0 )
-    throw std::runtime_error("MPI error");
-
-  int nProcs, iProc;
-  if( MPI_Comm_size(MPI_COMM_WORLD, &nProcs) != 0 )
-    throw std::runtime_error("MPI error");
-  if( MPI_Comm_rank(MPI_COMM_WORLD, &iProc) != 0 )
-    throw std::runtime_error("MPI error");
-  if( iProc == 0 )
-    std::cout << "MPI #procs: " << nProcs << std::endl;
-#pragma omp parallel
-  {
-    if( iProc == 0 && omp_get_thread_num() == 0 )
-      std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
-  }
+  PITTS::initialize(&argc, &argv);
 
   PITTS::QubitSimulator::Matrix2 phaseGate;
   phaseGate[0][0] = 1.;
@@ -84,9 +70,7 @@ int main(int argc, char* argv[])
   wtime = omp_get_wtime() - wtime;
   std::cout << "Run time: " << wtime << "\n";
 
-  PITTS::performance::printStatistics();
+  PITTS::finalize();
 
-  if( MPI_Finalize() != 0 )
-    throw std::runtime_error("MPI error");
   return 0;
 }

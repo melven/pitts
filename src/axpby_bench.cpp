@@ -4,26 +4,12 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_random.hpp"
-#include "pitts_performance.hpp"
+#include "pitts_common.hpp"
 
 
 int main(int argc, char* argv[])
 {
-  if( MPI_Init(&argc, &argv) != 0 )
-    throw std::runtime_error("MPI error");
-
-  int nProcs, iProc;
-  if( MPI_Comm_size(MPI_COMM_WORLD, &nProcs) != 0 )
-    throw std::runtime_error("MPI error");
-  if( MPI_Comm_rank(MPI_COMM_WORLD, &iProc) != 0 )
-    throw std::runtime_error("MPI error");
-  if( iProc == 0 )
-    std::cout << "MPI #procs: " << nProcs << std::endl;
-#pragma omp parallel
-  {
-    if( iProc == 0 && omp_get_thread_num() == 0 )
-      std::cout << "OpenMP #threads: " << omp_get_num_threads() << std::endl;
-  }
+  PITTS::initialize(&argc, &argv);
 
   using Type = double;
   PITTS::TensorTrain<Type> TT1(10,100), TT2(10,100);
@@ -37,9 +23,8 @@ int main(int argc, char* argv[])
     tmp += axpby(0.00001, TT1, 0.9, TT2);
   }
   std::cout << "random: " << tmp << std::endl;
-  PITTS::performance::printStatistics();
 
-  if( MPI_Finalize() != 0 )
-    throw std::runtime_error("MPI error");
+  PITTS::finalize();
+
   return 0;
 }
