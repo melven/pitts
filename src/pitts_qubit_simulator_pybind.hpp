@@ -24,6 +24,7 @@ namespace PITTS
   //! namespace for python bindings
   namespace pybind
   {
+    //! create pybind11-wrapper for PITTS::QubitSimulator
     void init_QubitSimulator(py::module& m);
   }
 }

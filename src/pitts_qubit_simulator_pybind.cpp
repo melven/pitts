@@ -21,9 +21,10 @@ namespace PITTS
   //! namespace for python bindings
   namespace pybind
   {
+    // create pybind11-wrapper for PITTS::QubitSimulator
     void init_QubitSimulator(py::module& m)
     {
-      py::class_<QubitSimulator>(m, "QubitSimulator")
+      py::class_<QubitSimulator>(m, "QubitSimulator", "Simplistic backend for simulating a gate-based quantum computer")
         .def(py::init<unsigned int>(), py::arg("randomSeed")=5489, "Create QubitSimulator with given random number generator seed") // mt19937::default_seed
         .def("allocate_qubit", &QubitSimulator::allocateQubit, "Add a new qubit with the given id")
         .def("deallocate_qubit", &QubitSimulator::deallocateQubit, "Remove the qubit with the given id")

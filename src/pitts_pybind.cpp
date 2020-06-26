@@ -13,5 +13,7 @@
 
 PYBIND11_MODULE(pitts_py, m)
 {
+  m.doc() = "Parallel Iterative Tensor Train Solvers (PITTS) library";
+
   PITTS::pybind::init_QubitSimulator(m);
 }
