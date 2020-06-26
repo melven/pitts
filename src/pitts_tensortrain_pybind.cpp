@@ -22,6 +22,7 @@
 #include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_pybind.hpp"
+#include "pitts_scope_info.hpp"
 
 namespace py = pybind11;
 
@@ -58,6 +59,36 @@ namespace PITTS
         return array;
       }
 
+      //! helper function for converting an array to a string
+      template<typename T>
+      std::string to_string(const std::vector<T>& v)
+      {
+        std::string result = "[";
+        for(int i = 0; i < v.size(); i++)
+        {
+          if( i > 0 )
+            result += ", ";
+          result += std::to_string(v[i]);
+        }
+        result += "]";
+        return result;
+      }
+
+      //! helper function to print the attributes of the TensorTrain object nicely
+      template<typename T>
+      std::string TensorTrain_toString(const TensorTrain<T>& TT)
+      {
+        // helper for getting the template type nicely formatted
+        constexpr auto scope = internal::ScopeInfo::current<T>();
+
+        std::string result;
+        result += "PITTS::TensorTrain" + std::string(scope.type_name()) + "\n";
+        result += "        with dimensions = " + to_string(TT.dimensions()) + "\n";
+        result += "             ranks      = " + to_string(TT.getTTranks());
+
+        return result;
+      }
+
       //! provide all TensorTrain<T> related classes and functions
       template<typename T>
       void init_TensorTrain_helper(py::module& m, const std::string& type_name)
@@ -72,7 +103,10 @@ namespace PITTS
           .def("getTTranks", &TensorTrain<T>::getTTranks, "get current sub-tensor dimensions (TT-ranks)")
           .def("setZero", &TensorTrain<T>::setZero, "make this a tensor of zeros")
           .def("setOnes", &TensorTrain<T>::setOnes, "make this a tensor of ones")
-          .def("setUnit", &TensorTrain<T>::setUnit, py::arg("index"), "make this a canonical unit tensor in the given direction");
+          .def("setUnit", &TensorTrain<T>::setUnit, py::arg("index"), "make this a canonical unit tensor in the given direction")
+          .def("__str__",
+              &TensorTrain_toString<T>,
+              "Print the attributes of the given TensorTrain object");
 
         m.def("copy",
             py::overload_cast< const TensorTrain<T>&, TensorTrain<T>& >(&copy<T>),
