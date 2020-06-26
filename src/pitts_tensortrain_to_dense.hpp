@@ -23,7 +23,7 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! calculate tensor-train decomposition of a tensor stored in fully dense format
+  //! calculate fully dense tensor from a tensor-train decomposition
   //!
   //! @tparam T         underlying data type (double, complex, ...)
   //! @tparam Iter      contiguous output iterator to write the dense data
@@ -54,7 +54,7 @@ namespace PITTS
     if( totalSize != last - first )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::toDense");
 
-    using EigenMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+    using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     EigenMatrix tmp = EigenMatrix::Identity(1,1);
     for(int iDim = 0; iDim < TT.dimensions().size(); iDim++)
     {

@@ -24,6 +24,14 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right)
+  //!
+  //! @tparam T  underlying data type (double, complex, ...)
+  //!
+  //! @param TT             tensor in tensor train format, left-normalized on output
+  //! @param rankTolerance  approximation tolerance
+  //! @return               norm of the tensor
+  //!
   template<typename T>
   T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
@@ -35,8 +43,9 @@ namespace PITTS
   //!
   //! @tparam T  underlying data type (double, complex, ...)
   //!
-  //! @param TT   tensor in tensor train format
-  //! @return     norm of the tensor
+  //! @param TT             tensor in tensor train format
+  //! @param rankTolerance  approximation tolerance
+  //! @return               norm of the tensor
   //!
   template<typename T>
   T leftNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
@@ -178,6 +187,14 @@ namespace PITTS
   }
 
 
+  //! Make all sub-tensors orthogonal sweeping right to left
+  //!
+  //! @tparam T  underlying data type (double, complex, ...)
+  //!
+  //! @param TT             tensor in tensor train format
+  //! @param rankTolerance  approximation tolerance
+  //! @return               norm of the tensor
+  //!
   template<typename T>
   T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {

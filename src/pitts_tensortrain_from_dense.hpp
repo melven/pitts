@@ -58,7 +58,7 @@ namespace PITTS
 
     TensorTrain<T> result(dimensions);
 
-    using EigenMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+    using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     EigenMatrix tmp = Eigen::Map<const EigenMatrix>(&(*first), 1, totalSize);
     for(int iDim = 0; iDim+1 < dimensions.size(); iDim++)
     {
