@@ -9,6 +9,7 @@
 // includes
 #include <pybind11/pybind11.h>
 #include "pitts_qubit_simulator_pybind.hpp"
+#include "pitts_tensortrain_pybind.hpp"
 
 
 PYBIND11_MODULE(pitts_py, m)
@@ -16,4 +17,5 @@ PYBIND11_MODULE(pitts_py, m)
   m.doc() = "Parallel Iterative Tensor Train Solvers (PITTS) library";
 
   PITTS::pybind::init_QubitSimulator(m);
+  PITTS::pybind::init_TensorTrain(m);
 }
