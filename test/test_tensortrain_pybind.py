@@ -27,7 +27,7 @@ class TestTensorTrain(unittest.TestCase):
         self.assertEqual([3, 4, 5], tt.dimensions())
         self.assertEqual([1, 1], tt.getTTranks())
 
-    def test_set_get_TTranks(self):
+    def test_setGetTTranks(self):
         tt = pitts_py.TensorTrain_double([2,2,2,2,2])
         self.assertEqual([1,1,1,1], tt.getTTranks())
         tt.setTTranks([1,3,5,2])
@@ -165,6 +165,18 @@ class TestTensorTrain(unittest.TestCase):
         np.testing.assert_almost_equal(norm_ref, norm)
         np.testing.assert_almost_equal(1., pitts_py.norm2(tt))
 
+        t1 = tt.getSubTensor(0)
+        t2 = tt.getSubTensor(1)
+        t3 = tt.getSubTensor(2)
+        r1 = tt.getTTranks()[0]
+        r2 = tt.getTTranks()[1]
+        t1_mat = t1.reshape([t1.size//r1, r1])
+        t2_mat = t2.reshape([t2.size//r2, r2])
+        t3_mat = t3.reshape([t3.size//1, 1])
+        np.testing.assert_array_almost_equal(np.eye(r1,r1), np.dot(t1_mat.transpose(), t1_mat))
+        np.testing.assert_array_almost_equal(np.eye(r2,r2), np.dot(t2_mat.transpose(), t2_mat))
+        np.testing.assert_array_almost_equal(np.eye(1,1), np.dot(t3_mat.transpose(), t3_mat))
+
     def test_rightNormalize(self):
         tt = pitts_py.TensorTrain_double([2,5,3])
         tt.setTTranks([2,2])
@@ -174,6 +186,18 @@ class TestTensorTrain(unittest.TestCase):
         norm = pitts_py.rightNormalize(tt)
         np.testing.assert_almost_equal(norm_ref, norm)
         np.testing.assert_almost_equal(1., pitts_py.norm2(tt))
+
+        t1 = tt.getSubTensor(0)
+        t2 = tt.getSubTensor(1)
+        t3 = tt.getSubTensor(2)
+        r1 = tt.getTTranks()[0]
+        r2 = tt.getTTranks()[1]
+        t1_mat = t1.reshape([1, t1.size//1])
+        t2_mat = t2.reshape([r1, t2.size//r1])
+        t3_mat = t3.reshape([r2, t3.size//r2])
+        np.testing.assert_array_almost_equal(np.eye(1,1), np.dot(t1_mat, t1_mat.transpose()))
+        np.testing.assert_array_almost_equal(np.eye(r1,r1), np.dot(t2_mat, t2_mat.transpose()))
+        np.testing.assert_array_almost_equal(np.eye(2,2), np.dot(t3_mat, t3_mat.transpose()))
 
     def test_normalize(self):
         tt = pitts_py.TensorTrain_double([2,5,3])
@@ -197,6 +221,50 @@ class TestTensorTrain(unittest.TestCase):
         result = nrm2 * pitts_py.toDense(tt2)
 
         np.testing.assert_almost_equal(1.5*fullTensor1 - 0.75*fullTensor2, result)
+
+    def test_getSubTensor_zeros(self):
+        tt = pitts_py.TensorTrain_double([3,2,5])
+        tt.setZero()
+        t1 = tt.getSubTensor(0)
+        t2 = tt.getSubTensor(1)
+        t3 = tt.getSubTensor(2)
+        np.testing.assert_array_almost_equal(np.zeros([1,3,1]), t1)
+        np.testing.assert_array_almost_equal(np.zeros([1,2,1]), t2)
+        np.testing.assert_array_almost_equal(np.zeros([1,5,1]), t3)
+
+    def test_getSubTensor_unit(self):
+        tt = pitts_py.TensorTrain_double([3,2,5])
+        tt.setUnit([1,0,2])
+        t1 = tt.getSubTensor(0)
+        t2 = tt.getSubTensor(1)
+        t3 = tt.getSubTensor(2)
+        np.testing.assert_array_almost_equal([[[0],[1],[0]]], t1)
+        np.testing.assert_array_almost_equal([[[1],[0]]], t2)
+        np.testing.assert_array_almost_equal([[[0],[0],[1],[0],[0]]], t3)
+
+    def test_setSubTensor_invalidShape(self):
+        tt = pitts_py.TensorTrain_double([3,2,5])
+        with self.assertRaises(IndexError):
+            tt.setSubTensor(10, [[[1],[2],[3]]])
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(0, [1,2,3])
+        tt.setSubTensor(0, [[[1],[2],[3]]])
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(1, [[[1],[2],[3]]])
+
+    def test_setGetSubTensor(self):
+        tt = pitts_py.TensorTrain_double([3,2,5])
+        tt.setTTranks([2,3])
+        pitts_py.randomize(tt)
+        t1_ref = np.array([1,2,3,4,5,6]).reshape([1,3,2])
+        t2_ref = np.array([10,11,12,13,14,15,16,17,18,19,20,21]).reshape([2,2,3])
+        t3_ref = np.array([101,102,103,104,105,106,107,108,109,110,111,112,113,114,115]).reshape([3,5,1])
+        tt.setSubTensor(0, t1_ref)
+        tt.setSubTensor(1, t2_ref)
+        tt.setSubTensor(2, t3_ref)
+        np.testing.assert_array_almost_equal(t1_ref, tt.getSubTensor(0))
+        np.testing.assert_array_almost_equal(t2_ref, tt.getSubTensor(1))
+        np.testing.assert_array_almost_equal(t3_ref, tt.getSubTensor(2))
 
 
 if __name__ == '__main__':
