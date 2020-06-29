@@ -13,7 +13,7 @@ namespace
   using Tensor2_double = PITTS::Tensor2<double>;
   using Tensor3_double = PITTS::Tensor3<double>;
   using mat = Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>;
-  constexpr auto eps = 1.e-10;
+  constexpr auto eps = 1.e-8;
 
   // helper function to contract a subtensor of the tensor train
   Tensor2_double leftContract(const Tensor3_double& subT)
