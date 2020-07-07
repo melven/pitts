@@ -236,12 +236,30 @@ TYPED_TEST(PITTS_ChunkOps, negative_sign)
   const Chunk v_ref = v;
 
   Chunk nsgn;
+  for(int i = 0; i < Chunk::size; i++)
+    nsgn[i] = Type(1);
   negative_sign(v, nsgn);
+
+  EXPECT_EQ(v_ref, v);
+  for(int i = 0; i < Chunk::size; i++)
+  {
+    EXPECT_NEAR(1, std::abs(nsgn[i]), eps);
+    EXPECT_TRUE(std::real(nsgn[i]) * std::real(v[i]) <= 0);
+    EXPECT_TRUE(std::imag(nsgn[i]) * std::imag(v[i]) <= 0);
+  }
+
+  Chunk w;
+  randomize(w);
+
+  const Chunk w_ref = w;
+
+  negative_sign(v, w);
 
   for(int i = 0; i < Chunk::size; i++)
   {
-    EXPECT_TRUE(std::real(nsgn[i]) * std::real(v[i]) <= 0);
-    EXPECT_TRUE(std::imag(nsgn[i]) * std::imag(v[i]) <= 0);
+    EXPECT_NEAR(std::abs(w_ref[i]), std::abs(w[i]), eps);
+    EXPECT_NEAR(std::real(nsgn[i]*w_ref[i]), std::real(w[i]), eps);
+    EXPECT_NEAR(std::imag(nsgn[i]*w_ref[i]), std::imag(w[i]), eps);
   }
 }
 
