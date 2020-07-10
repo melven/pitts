@@ -42,6 +42,14 @@ namespace PITTS
       c[i] += a*b[i];
   }
 
+  //! multiply all elements in a chunk with a scalar
+  template<typename T>
+  inline void mul(T a, const Chunk<T>& b, Chunk<T>& c)
+  {
+    for(int i = 0; i < Chunk<T>::size; i++)
+      c[i] = a*b[i];
+  }
+
   //! add the negative element-wise product of two chunks
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, const Chunk<T>& c, Chunk<T>& d)
@@ -215,6 +223,61 @@ namespace PITTS
       __m256d bi = _mm256_load_pd(&b[4*i]);
       __m256d ci = _mm256_load_pd(&c[4*i]);
       ci = _mm256_fmadd_pd(ai,bi,ci);
+      _mm256_store_pd(&c[4*i],ci);
+    }
+#else
+#error "PITTS requires at least AVX2 support!"
+#endif
+  }
+#endif
+
+
+#ifdef __AVX2__
+  // specialization for float for dumb compilers
+  template<>
+  inline void mul<float>(float a, const Chunk<float>& b, Chunk<float>& c)
+  {
+#if defined(__AVX512F__)
+    __m512 ai = _mm512_set1_ps(a);
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512 bi = _mm512_load_ps(&b[16*i]);
+      __m512 ci = _mm512_mul_ps(ai,bi);
+      _mm512_store_ps(&c[16*i],ci);
+    }
+#elif defined(__AVX2__)
+    __m256 ai = _mm256_set1_ps(a);
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256 bi = _mm256_load_ps(&b[8*i]);
+      __m256 ci = _mm256_mul_ps(ai,bi);
+      _mm256_store_ps(&c[8*i],ci);
+    }
+#else
+#error "PITTS requires at least AVX2 support!"
+#endif
+  }
+#endif
+
+#ifdef __AVX2__
+  // specialization for double for dumb compilers
+  template<>
+  inline void mul<double>(double a, const Chunk<double>& b, Chunk<double>& c)
+  {
+#if defined(__AVX512F__)
+    __m512d ai = _mm512_set1_pd(a);
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512d bi = _mm512_load_pd(&b[8*i]);
+      __m512d ci = _mm512_mul_pd(ai,bi);
+      _mm512_store_pd(&c[8*i],ci);
+    }
+#elif defined(__AVX2__)
+    __m256d ai = _mm256_set1_pd(a);
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256d bi = _mm256_load_pd(&b[4*i]);
+      __m256d ci = _mm256_mul_pd(ai,bi);
       _mm256_store_pd(&c[4*i],ci);
     }
 #else
