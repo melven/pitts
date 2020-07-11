@@ -85,35 +85,6 @@ namespace PITTS
     return tmp;
   }
 
-  //! copies the negative sign of the elements of a to b (e.g. sets b_i to -sign(a_i)*b_i)
-  //!
-  //! Also works for complex numbers using the complex sign function.
-  //!
-  //! @warning Does treat sign(0) as 1 in contrast to the common definition of the sign function.
-  //!
-  template<typename T>
-  inline void negative_sign(const Chunk<T>& v, Chunk<T>& w)
-  {
-    for(int i = 0; i < Chunk<T>::size; i++)
-      w[i] *= v[i] == T(0) ? T(-1) : -v[i] / std::abs(v[i]);
-  }
-
-  //! calculates the square root of all elements in a chunk
-  template<typename T>
-  inline void sqrt(const Chunk<T>& a, Chunk<T>& b)
-  {
-    for(int i = 0; i < Chunk<T>::size; i++)
-      b[i] = std::sqrt(a[i]);
-  }
-
-  //! calculate the multiplicative inverse of the square root of all elements in a chunk
-  template<typename T>
-  inline void invsqrt(const Chunk<T>& a, Chunk<T>& b)
-  {
-    for(int i = 0; i < Chunk<T>::size; i++)
-      b[i] = T(1) / std::sqrt(a[i]);
-  }
-
 
 #ifdef __AVX2__
   // specialization for double for dumb compilers
@@ -341,24 +312,6 @@ namespace PITTS
 #else
 #error "PITTS requires at least AVX2 support!"
 #endif
-  }
-#endif
-
-#if defined(__AVX512F__)
-  // specialization for double for dumb compilers
-  template<>
-  inline void negative_sign<double>(const Chunk<double>& a, Chunk<double>& b)
-  {
-    __m512d zero = _mm512_setzero_pd();
-    __m512d minus_one = _mm512_set1_pd(-1);
-    for(int i = 0; i < ALIGNMENT/64; i++)
-    {
-      __m512d ai = _mm512_load_pd(&a[8*i]);
-      __mmask8 mask = _mm512_cmpnlt_pd_mask(ai, zero);
-      __m512d bi = _mm512_load_pd(&b[8*i]);
-      bi = _mm512_mask_mul_pd(bi, mask, minus_one, bi);
-      _mm512_store_pd(&b[i*8], bi);
-    }
   }
 #endif
 
