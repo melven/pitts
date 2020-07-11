@@ -2,6 +2,9 @@ add_library(pitts INTERFACE)
 target_sources(pitts INTERFACE
   pitts_chunk.hpp
   pitts_chunk_ops.hpp
+  pitts_chunk_ops_plain.hpp
+  pitts_chunk_ops_avx2.hpp
+  pitts_chunk_ops_avx512.hpp
   pitts_kernel_info.hpp
   pitts_scope_info.hpp
   pitts_timer.hpp
