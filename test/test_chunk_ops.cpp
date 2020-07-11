@@ -126,6 +126,32 @@ TYPED_TEST(PITTS_ChunkOps, fmadd)
 }
 
 
+TYPED_TEST(PITTS_ChunkOps, fmadd4)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk a, b, c, d;
+  randomize(a);
+  randomize(b);
+  randomize(c);
+  randomize(d);
+
+  const Chunk a_ref = a, b_ref = b, c_ref = c;
+
+  fmadd(a, b, c, d);
+
+  Chunk d_ref;
+  for(int i = 0; i < Chunk::size; i++)
+    d_ref[i] = a_ref[i]*b_ref[i] + c_ref[i];
+
+  EXPECT_EQ(a_ref, a);
+  EXPECT_EQ(b_ref, b);
+  EXPECT_EQ(c_ref, c);
+  EXPECT_NEAR(d_ref, d, eps);
+}
+
+
 TYPED_TEST(PITTS_ChunkOps, scalar_fmadd)
 {
   using Type = TestFixture::Type;
@@ -173,6 +199,32 @@ TYPED_TEST(PITTS_ChunkOps, fnmadd)
   EXPECT_EQ(a_ref, a);
   EXPECT_EQ(b_ref, b);
   EXPECT_NEAR(c_ref, c, eps);
+}
+
+
+TYPED_TEST(PITTS_ChunkOps, fnmadd4)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk a, b, c, d;
+  randomize(a);
+  randomize(b);
+  randomize(c);
+  randomize(d);
+
+  const Chunk a_ref = a, b_ref = b, c_ref = c;
+
+  fnmadd(a, b, c, d);
+
+  Chunk d_ref;
+  for(int i = 0; i < Chunk::size; i++)
+    d_ref[i] = -a_ref[i]*b_ref[i] + c_ref[i];
+
+  EXPECT_EQ(a_ref, a);
+  EXPECT_EQ(b_ref, b);
+  EXPECT_EQ(c_ref, c);
+  EXPECT_NEAR(d_ref, d, eps);
 }
 
 
