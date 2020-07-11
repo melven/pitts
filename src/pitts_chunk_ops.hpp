@@ -164,7 +164,7 @@ namespace PITTS
       __m256d ai = _mm256_load_pd(&a[4*i]);
       __m256d bi = _mm256_load_pd(&b[4*i]);
       __m256d ci = _mm256_load_pd(&c[4*i]);
-      __m512d di = _mm256_fmadd_pd(ai,bi,ci);
+      __m256d di = _mm256_fmadd_pd(ai,bi,ci);
       _mm256_store_pd(&d[4*i],di);
     }
 #else
