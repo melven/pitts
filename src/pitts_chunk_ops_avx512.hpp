@@ -186,6 +186,34 @@ namespace PITTS
       _mm512_store_pd(&result[8*i], yi);
     }
   }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void masked_load_after<double>(const Chunk<double>& src, int index, Chunk<double>& result)
+  {
+    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      unsigned long all = -1; // set to 0xFF....
+      __mmask8 mask = (all<<index)>>(8*i);
+      __m512d vi = _mm512_maskz_load_pd(mask, &src[8*i]);
+      _mm512_store_pd(&result[8*i], vi);
+    }
+  }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void masked_store_after<double>(const Chunk<double>& src, int index, Chunk<double>& result)
+  {
+    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      unsigned long all = -1; // set to 0xFF....
+      __mmask8 mask = (all<<index)>>(8*i);
+      __m512d vi = _mm512_load_pd(&src[8*i]);
+      _mm512_mask_store_pd(&result[8*i], mask, vi);
+    }
+  }
 }
 
 

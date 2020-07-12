@@ -338,3 +338,60 @@ MY_TYPED_TEST(index_bcast)
     EXPECT_NEAR(result, result_ref, eps);
   }
 }
+
+
+MY_TYPED_TEST(masked_load_after)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk src;
+  randomize(src);
+
+  const Chunk src_ref = src;
+
+  for(int i = 0; i < Chunk::size+10; i++)
+  {
+    Chunk result;
+    masked_load_after(src, i, result);
+
+    Chunk result_ref;
+    for(int j = 0; j < i && j < Chunk::size; j++)
+      result_ref[j] = Type(0);
+    for(int j = i; j < Chunk::size; j++)
+      result_ref[j] = src[j];
+
+    EXPECT_EQ(src, src_ref);
+    EXPECT_NEAR(result, result_ref, eps);
+  }
+}
+
+
+MY_TYPED_TEST(masked_store_after)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk src;
+  randomize(src);
+
+  const Chunk src_ref = src;
+
+  for(int i = 0; i < Chunk::size+10; i++)
+  {
+    Chunk result;
+    randomize(result);
+    const Chunk result_in = result;
+
+    masked_store_after(src, i, result);
+
+    Chunk result_ref;
+    for(int j = 0; j < i && j < Chunk::size; j++)
+      result_ref[j] = result_in[j];
+    for(int j = i; j < Chunk::size; j++)
+      result_ref[j] = src[j];
+
+    EXPECT_EQ(src, src_ref);
+    EXPECT_NEAR(result, result_ref, eps);
+  }
+}

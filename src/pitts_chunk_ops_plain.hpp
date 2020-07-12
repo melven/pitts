@@ -99,6 +99,22 @@ namespace PITTS
     for(int i = 0; i < Chunk<T>::size; i++)
       result[i] = (i == index) ? value : src[i];
   }
+
+  // masked load
+  template<typename T>
+  inline void masked_load_after(const Chunk<T>& src, int index, Chunk<T>& result)
+  {
+    for(int i = 0; i < Chunk<T>::size; i++)
+      result[i] = (i < index) ? T(0) : src[i];
+  }
+
+  //! masked store
+  template<typename T>
+  inline void masked_store_after(const Chunk<T>& src, int index, Chunk<T>& result)
+  {
+    for(int i = index; i < Chunk<T>::size; i++)
+      result[i] = src[i];
+  }
 }
 
 
