@@ -91,6 +91,14 @@ namespace PITTS
     for(int i = 0; i < Chunk<T>::size; i++)
       v[i] = tmp;
   }
+
+  // masked broadcast
+  template<typename T>
+  inline void index_bcast(const Chunk<T>& src, int index, T value, Chunk<T>& result)
+  {
+    for(int i = 0; i < Chunk<T>::size; i++)
+      result[i] = (i == index) ? value : src[i];
+  }
 }
 
 

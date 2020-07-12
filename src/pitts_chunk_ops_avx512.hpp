@@ -173,6 +173,19 @@ namespace PITTS
     _mm512_store_pd(&v[0], v6);
     _mm512_store_pd(&v[8], v6);
   }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void index_bcast<double>(const Chunk<double>& src, int index, double value, Chunk<double>& result)
+  {
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __mmask8 mask = (1<<index)>>(8*i);
+      __m512d xi = _mm512_load_pd(&src[8*i]);
+      __m512d yi = _mm512_mask_broadcastsd_pd(xi, mask, _mm_set_pd(0,value));
+      _mm512_store_pd(&result[8*i], yi);
+    }
+  }
 }
 
 

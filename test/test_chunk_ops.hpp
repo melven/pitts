@@ -309,3 +309,32 @@ MY_TYPED_TEST(bcast_sum)
     EXPECT_NEAR(std::imag(result_ref), std::imag(a[i]), eps);
   }
 }
+
+
+MY_TYPED_TEST(index_bcast)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk src;
+  randomize(src);
+  Type value;
+  randomize(value);
+
+  const Chunk src_ref = src;
+  const Type value_ref = value;
+
+  for(int i = 0; i < Chunk::size+10; i++)
+  {
+    Chunk result;
+    index_bcast(src, i, value, result);
+
+    Chunk result_ref = result;
+    if( i < Chunk::size )
+      result_ref[i] = value;
+
+    EXPECT_EQ(src, src_ref);
+    EXPECT_EQ(value, value_ref);
+    EXPECT_NEAR(result, result_ref, eps);
+  }
+}
