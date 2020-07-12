@@ -285,3 +285,27 @@ MY_TYPED_TEST(scaled_sum)
   EXPECT_NEAR(std::real(result_ref), std::real(result), eps);
   EXPECT_NEAR(std::imag(result_ref), std::imag(result), eps);
 }
+
+
+MY_TYPED_TEST(bcast_sum)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk a;
+  randomize(a);
+
+  const Chunk a_in = a;
+
+  bcast_sum(a);
+
+  Type result_ref{};
+  for(int i = 0; i < Chunk::size; i++)
+    result_ref += a_in[i];
+
+  for(int i = 0; i < Chunk::size; i++)
+  {
+    EXPECT_NEAR(std::real(result_ref), std::real(a[i]), eps);
+    EXPECT_NEAR(std::imag(result_ref), std::imag(a[i]), eps);
+  }
+}

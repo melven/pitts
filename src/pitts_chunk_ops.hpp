@@ -41,13 +41,17 @@ namespace PITTS
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c);
 
-  //! small helper function to sum up all elements of a chunk ( return a_1 + ... + a_n )
+  //! sum up all elements of a chunk ( return a_1 + ... + a_n )
   template<typename T>
   inline T sum(const Chunk<T>& a);
 
-  //! small helper function to scale and sum up all elements of a chunk ( return scale * (a_1 + ... + a_n) )
+  //! scale and sum up all elements of a chunk ( return scale * (a_1 + ... + a_n) )
   template<typename T>
   inline T scaled_sum(T scale, const Chunk<T>& a);
+
+  //! sum up all elements of a chunk and broadcast the result to all elements ( a_i = a_1 + ... a_n )
+  template<typename T>
+  inline void bcast_sum(Chunk<double>& v);
 }
 
 

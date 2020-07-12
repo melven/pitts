@@ -63,7 +63,7 @@ namespace PITTS
     fnmadd(a, b, c, c);
   }
 
-  // horizontal sum default implementation
+  // horizontal add default implementation
   template<typename T>
   inline T sum(const Chunk<T>& a)
   {
@@ -81,6 +81,15 @@ namespace PITTS
     for(int i = 0; i < Chunk<T>::size; i++)
       tmp += scale * a[i];
     return tmp;
+  }
+
+  // horizontal add + broadcast default implementation
+  template<typename T>
+  inline void bcast_sum(Chunk<T>& v)
+  {
+    T tmp = sum(v);
+    for(int i = 0; i < Chunk<T>::size; i++)
+      v[i] = tmp;
   }
 }
 
