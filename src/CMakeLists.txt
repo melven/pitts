@@ -51,6 +51,7 @@ add_executable(qubit_simulator_bench qubit_simulator_bench.cpp)
 add_executable(cdist2_bench cdist2_bench.cpp)
 add_executable(centroids_bench centroids_bench.cpp)
 add_executable(kmeans_bench kmeans_bench.cpp)
+add_executable(tsqr_bench tsqr_bench.cpp)
 
 # Python binding
 if(pybind11_FOUND)
