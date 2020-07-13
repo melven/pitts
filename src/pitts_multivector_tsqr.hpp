@@ -31,14 +31,14 @@ namespace PITTS
     {
       //! Apply a Householder rotation of the form (I - v v^T) with ||v|| = sqrt(2)
       //!
-      //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v to improve the performance
+      //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v to improve the performance.
       //!
       //! @tparam T           underlying data type
       //!
       //! @param nChunks      number of rows divided by the Chunk size
       //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow < nChunks)
       //! @param col          current column index
-      //! @param v            vector v with norm sqrt(2), the upper firstRow-1 chunks are ignored.
+      //! @param v            Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
       //! @param pdata        column-major input array with dimension nChunks*lda; can be identical to pdataResult for in-place calculation
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
@@ -63,6 +63,47 @@ namespace PITTS
         for(int i = firstRow; i < nChunks; i++)
           fnmadd(vTx, v[i], pdata[i+lda*col], pdataResult[i+nChunks*col]);
       }
+
+
+      //! Apply two consecutive Householder rotations of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2)
+      //!
+      //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
+      //!
+      //! This routine has the same effect as calling applyHouseholderRotation twice, first with vector w and then with vector v.
+      //! Using this routine avoids to transfer required colums to/from the cache twice.
+      //!
+      //! @tparam T           underlying data type
+      //!
+      //! @param nChunks      number of rows divided by the Chunk size
+      //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow < nChunks)
+      //! @param col          current column index
+      //! @param w            first Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
+      //! @param v            second Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
+      //! @param vTw          scalar product of v and w; required as we apply both transformations at once
+      //! @param pdata        column-major input array with dimension nChunks*lda; can be identical to pdataResult for in-place calculation
+      //! @param lda          offset of columns in pdata
+      //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
+      //!
+      template<typename T>
+      void apply2HouseholderRotations(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      {
+        Chunk<T> wTx{};
+        Chunk<T> vTx{};
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          fmadd(w[i], pdata[i+lda*j], wTx);
+          fmadd(v[i], pdata[i+lda*j], vTx);
+        }
+        bcast_sum(wTx);
+        bcast_sum(vTx);
+        fnmadd(vTw, wTx, vTx);
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
+          fnmadd(vTx, v[i], pdataResult[i+nChunks*j], pdataResult[i+nChunks*j]);
+        }
+      }
+
     }
   }
 }
