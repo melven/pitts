@@ -6,7 +6,7 @@
 #include <Eigen/Dense>
 
 
-TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation_inplace)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -29,7 +29,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation_inplace)
   int col = 3;
   int firstRow = 2;
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), nChunks, &X.chunk(0,0));
 
   // calculate reference result with Eigen
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
@@ -50,7 +50,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation_inplace)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation_out_of_place)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_out_of_place)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -82,7 +82,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation_out_of_place)
       X.chunk(i,col)[j] = 77.;
     }
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), lda, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), lda, &X.chunk(0,0));
 
   // calculate reference result with Eigen
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
@@ -103,7 +103,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation_out_of_place)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2_inplace)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -136,10 +136,10 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2_inplace)
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0));
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::HouseholderQR::internal::applyHouseholderRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   for(int i = 0; i < n; i++)
   {
@@ -151,7 +151,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2_inplace)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2_out_of_place)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2_out_of_place)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -194,10 +194,10 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2_out_of_place)
       X.chunk(i,col)[j] = 77.;
     }
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), lda, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), lda, &X.chunk(0,0));
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::HouseholderQR::internal::applyHouseholderRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   for(int i = 0; i < n; i++)
   {
@@ -209,7 +209,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2_out_of_place)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2x2_inplace)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2x2_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -242,10 +242,10 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2x2_inplace)
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0));
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   for(int i = 0; i < n; i++)
   {
@@ -257,7 +257,7 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2x2_inplace)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2x2_out_of_place)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2x2_out_of_place)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -302,10 +302,10 @@ TEST(PITTS_MultiVector_tsqr, internal_applyHouseholderRotation2x2_out_of_place)
       X.chunk(i,col+1)[j] = 55.;
     }
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), lda, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), lda, &X.chunk(0,0));
 
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::HouseholderQR::internal::applyHouseholderRotation2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   for(int i = 0; i < n; i++)
   {

@@ -1,6 +1,7 @@
 #include <Eigen/Dense>
 #include "pitts_chunk.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_multivector_tsqr.hpp"
 #include <exception>
 #include <charconv>
 #include <iostream>
@@ -14,75 +15,6 @@
 namespace
 {
   using Chunk = PITTS::Chunk<double>;
-
-  void applyRotation(int nChunks, int firstRow, int j, const Chunk* v, const Chunk* pdata, int lda, Chunk* pdataResult)
-  {
-    Chunk vTx{};
-    {
-      int i = firstRow;
-      Chunk vTx_{};
-      for(; i+1 < nChunks; i+=2)
-      {
-        fmadd(v[i], pdata[i+lda*j], vTx);
-        fmadd(v[i+1], pdata[i+1+lda*j], vTx_);
-      }
-      fmadd(1., vTx_, vTx);
-      for(; i < nChunks; i++)
-        fmadd(v[i], pdata[i+lda*j], vTx);
-    }
-    bcast_sum(vTx);
-    for(int i = firstRow; i < nChunks; i++)
-      fnmadd(vTx, v[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
-  }
-
-  // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-  void applyRotation2(int nChunks, int firstRow, int j, const Chunk* w, const Chunk* v, const Chunk &vTw, const Chunk* pdata, int lda, Chunk* pdataResult)
-  {
-    Chunk wTx{};
-    Chunk vTx{};
-    for(int i = firstRow; i < nChunks; i++)
-    {
-      fmadd(w[i], pdata[i+lda*j], wTx);
-      fmadd(v[i], pdata[i+lda*j], vTx);
-    }
-    bcast_sum(wTx);
-    bcast_sum(vTx);
-    fnmadd(vTw, wTx, vTx);
-    for(int i = firstRow; i < nChunks; i++)
-    {
-      fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
-      fnmadd(vTx, v[i], pdataResult[i+nChunks*j], pdataResult[i+nChunks*j]);
-    }
-  }
-
-  // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-  void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk* w, const Chunk* v, const Chunk &vTw, const Chunk* pdata, int lda, Chunk* pdataResult)
-  {
-    Chunk wTx{};
-    Chunk vTx{};
-    Chunk wTy{};
-    Chunk vTy{};
-    for(int i = firstRow; i < nChunks; i++)
-    {
-      fmadd(w[i], pdata[i+lda*j], wTx);
-      fmadd(v[i], pdata[i+lda*j], vTx);
-      fmadd(w[i], pdata[i+lda*(j+1)], wTy);
-      fmadd(v[i], pdata[i+lda*(j+1)], vTy);
-    }
-    bcast_sum(wTx);
-    bcast_sum(vTx);
-    fnmadd(vTw, wTx, vTx);
-    bcast_sum(wTy);
-    bcast_sum(vTy);
-    fnmadd(vTw, wTy, vTy);
-    for(int i = firstRow; i < nChunks; i++)
-    {
-      fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
-      fnmadd(vTx, v[i], pdataResult[i+nChunks*j], pdataResult[i+nChunks*j]);
-      fnmadd(wTy, w[i], pdata[i+lda*(j+1)], pdataResult[i+nChunks*(j+1)]);
-      fnmadd(vTy, v[i], pdataResult[i+nChunks*(j+1)], pdataResult[i+nChunks*(j+1)]);
-    }
-  }
 
 
   void householderQR(int nChunks, int m, const Chunk* pdataIn, int ldaIn, Chunk* pdataResult)
@@ -153,14 +85,14 @@ namespace
 
         int j = col+1;
         for(; j+1 < m; j+=2)
-          applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+          PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
 
         for(; j < m; j++)
-          applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+          PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
       }
       else if( col+1 < m )
       {
-        applyRotation(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
+        PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
       }
 
       pdata = pdataResult;

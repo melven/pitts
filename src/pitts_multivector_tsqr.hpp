@@ -23,11 +23,11 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! helper namespace for TSQR routines
-  namespace HouseholderQR
+  //! namespace for helper functionality
+  namespace internal
   {
-    //! internal details of the block TSQR implementation
-    namespace internal
+    //! helper namespace for TSQR routines
+    namespace HouseholderQR
     {
       //! Apply a Householder rotation of the form (I - v v^T) with ||v|| = sqrt(2)
       //!
@@ -44,7 +44,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      void applyHouseholderRotation(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      inline void applyRotation(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
       {
         Chunk<T> vTx{};
         {
@@ -69,7 +69,7 @@ namespace PITTS
       //!
       //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
-      //! This routine has the same effect as calling applyHouseholderRotation twice, first with vector w and then with vector v.
+      //! This routine has the same effect as calling applyRotation twice, first with vector w and then with vector v.
       //! Using this routine avoids to transfer required colums to/from the cache twice.
       //!
       //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
@@ -87,7 +87,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      void applyHouseholderRotation2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      inline void applyRotation2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
@@ -111,7 +111,7 @@ namespace PITTS
       //!
       //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
-      //! This routine has the same effect as calling apply2HouseholderRotations twice, once for column col, once for column col+1
+      //! This routine has the same effect as calling applyRotation2 twice, once for column col, once for column col+1
       //! Using this routine avoids to transfer required Householder vectors from the cache twice.
       //!
       //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
@@ -129,7 +129,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      void applyHouseholderRotation2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      inline void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
