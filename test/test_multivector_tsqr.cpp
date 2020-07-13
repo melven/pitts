@@ -4,6 +4,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include <Eigen/Dense>
+#include "eigen_test_helper.hpp"
 
 
 TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_inplace)
@@ -314,5 +315,99 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2x2_out_of_plac
       ASSERT_NEAR(X_ref(i,j), X(i,j), eps);
     }
   }
+}
+
+
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
+{
+  constexpr auto eps = 1.e-8;
+  using Chunk = PITTS::Chunk<double>;
+  using MultiVector = PITTS::MultiVector<double>;
+
+  constexpr int n = 40;
+  constexpr int m = 20;
+  constexpr int nChunks = (n-1) / Chunk::size + 1;
+
+  MultiVector X(n,m), X_ref(n,m);
+  randomize(X);
+  // copy X to X_ref
+  for(int i = 0; i < n; i++)
+    for(int j = 0; j < m; j++)
+      X_ref(i,j) = X(i,j);
+
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), nChunks, &X.chunk(0,0));
+
+  // check that the result is upper triangular
+  for(int i = 0; i < n; i++)
+  {
+    for(int j = 0; j < m; j++)
+    {
+      if( i > j )
+      {
+        ASSERT_NEAR(0., X(i,j), eps);
+      }
+    }
+  }
+
+  // use Eigen to check that the singular values and the right singular vectors are identical
+  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+  Eigen::Map<const mat> mapX(&X(0,0), nChunks*Chunk::size, m);
+  Eigen::Map<const mat> mapX_ref(&X_ref(0,0), nChunks*Chunk::size, m);
+  Eigen::BDCSVD<mat> svd(mapX, Eigen::ComputeThinV);
+  Eigen::BDCSVD<mat> svd_ref(mapX_ref, Eigen::ComputeThinV);
+
+  ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+  // V can differ by sign, only consider absolute part
+  ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
+{
+  constexpr auto eps = 1.e-8;
+  using Chunk = PITTS::Chunk<double>;
+  using MultiVector = PITTS::MultiVector<double>;
+
+  constexpr int n = 40;
+  constexpr int m = 20;
+  constexpr int nChunks = (n-1) / Chunk::size + 1;
+
+  MultiVector X(2*n,m), X_ref(2*n,m), Xresult(n,m);
+  randomize(X);
+  randomize(Xresult);
+  // copy X to X_ref
+  for(int i = 0; i < 2*n; i++)
+    for(int j = 0; j < m; j++)
+      X_ref(i,j) = X(i,j);
+
+  int lda = (2*n-1) / Chunk::size + 1;
+
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), lda, &Xresult.chunk(0,0));
+
+  // check that the result is upper triangular
+  for(int i = 0; i < n; i++)
+  {
+    for(int j = 0; j < m; j++)
+    {
+      if( i > j )
+      {
+        ASSERT_NEAR(0., Xresult(i,j), eps);
+      }
+      // X shouldn't change
+      ASSERT_EQ(X_ref(i,j), X(i,j));
+      ASSERT_EQ(X_ref(i+n,j), X(i+n,j));
+    }
+  }
+
+  // use Eigen to check that the singular values and the right singular vectors are identical
+  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+  Eigen::Map<const mat> mapX(&Xresult(0,0), nChunks*Chunk::size, m);
+  Eigen::Map<const mat> mapX_ref(&X_ref(0,0), lda*Chunk::size, m);
+  Eigen::BDCSVD<mat> svd(mapX, Eigen::ComputeThinV);
+  Eigen::BDCSVD<mat> svd_ref(mapX_ref.topRows(mapX.rows()), Eigen::ComputeThinV);
+
+  ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+  // V can differ by sign, only consider absolute part
+  ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
 }
 

@@ -39,7 +39,7 @@ namespace PITTS
       //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow < nChunks)
       //! @param col          current column index
       //! @param v            Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
-      //! @param pdata        column-major input array with dimension nChunks*lda; can be identical to pdataResult for in-place calculation
+      //! @param pdata        column-major input array with dimension lda*#columns; can be identical to pdataResult for in-place calculation
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
@@ -82,7 +82,7 @@ namespace PITTS
       //! @param w            first Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
       //! @param v            second Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
       //! @param vTw          scalar product of v and w; required as we apply both transformations at once
-      //! @param pdata        column-major input array with dimension nChunks*lda; can be identical to pdataResult for in-place calculation
+      //! @param pdata        column-major input array with dimension lda*#columns; can be identical to pdataResult for in-place calculation
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
@@ -124,7 +124,7 @@ namespace PITTS
       //! @param w            first Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
       //! @param v            second Householder vector with norm sqrt(2), the upper firstRow-1 chunks are ignored.
       //! @param vTw          scalar product of v and w; required as we apply both transformations at once
-      //! @param pdata        column-major input array with dimension nChunks*lda; can be identical to pdataResult for in-place calculation
+      //! @param pdata        column-major input array with dimension lda*#columns; can be identical to pdataResult for in-place calculation
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
@@ -154,6 +154,104 @@ namespace PITTS
           fnmadd(vTx, v[i], pdataResult[i+nChunks*j]);
           fnmadd(wTy, w[i], pdata[i+lda*(j+1)], pdataResult[i+nChunks*(j+1)]);
           fnmadd(vTy, v[i], pdataResult[i+nChunks*(j+1)]);
+        }
+      }
+
+
+      //! Calculate the upper triangular part R from a QR-decomposition of a small rectangular block (with more rows than columns)
+      //!
+      //! Can work in-place or out-of-place.
+      //!
+      //! @tparam T           underlying data type
+      //!
+      //! @param nChunks      number of rows divided by the Chunk size
+      //! @param m            number of columns
+      //! @param pdataIn      column-major input array with dimension ldaIn*m; can be identical to pdataResult for in-place calculation
+      //! @param ldaIn        offset of columns in pdata
+      //! @param pdataResult  dense, column-major output array with dimension nChunks*m; contains the upper triangular R on exit; the lower triangular part is set to zero
+      //!
+      template<typename T>
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, int ldaIn, Chunk<T>* pdataResult)
+      {
+        int nPadded = nChunks*Chunk<T>::size;
+        Chunk<T> buff_v[nChunks];
+        Chunk<T> buff_w[nChunks];
+        Chunk<T>* v = buff_v;
+        Chunk<T>* w = buff_w;
+        const Chunk<T>* pdata = pdataIn;
+        int lda = ldaIn;
+        for(int col = 0; col < std::min(m, nPadded); col++)
+        {
+          int firstRow = col / Chunk<T>::size;
+          int idx = col % Chunk<T>::size;
+          Chunk<T> pivotChunk;
+          masked_load_after(pdata[firstRow+lda*col], idx, pivotChunk);
+          // Householder projection P = I - 2 v v^T
+          // u = x - alpha e_1 with alpha = +- ||x||
+          // v = u / ||u||
+          double pivot = pdata[firstRow+lda*col][idx];
+          Chunk<T> uTu{};
+          fmadd(pivotChunk, pivotChunk, uTu);
+          for(int i = firstRow+1; i < nChunks; i++)
+            fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
+
+          double uTu_sum = sum(uTu) + std::numeric_limits<double>::min();
+
+          // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
+          // (falls back to I - 2 e1 e1^T in that case)
+          double alpha = std::sqrt(uTu_sum + std::numeric_limits<double>::min());
+          //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
+          alpha *= (pivot > 0 ? -1 : 1);
+
+          uTu_sum -= pivot*alpha;
+          pivot -= alpha;
+          Chunk<T> alphaChunk;
+          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+          if( col+1 < m )
+          {
+            double beta = 1/std::sqrt(uTu_sum);
+            fmadd(-1., alphaChunk, pivotChunk);
+            mul(beta, pivotChunk, v[firstRow]);
+            for(int i = firstRow+1; i < nChunks; i++)
+              mul(beta, pdata[i+lda*col], v[i]);
+          }
+
+          // apply I - 2 v v^T     (the factor 2 is already included in v)
+          // we already know column col
+          masked_store_after(alphaChunk, idx, pdataResult[firstRow+nChunks*col]);
+          for(int i = firstRow+1; i < nChunks; i++)
+            pdataResult[i+nChunks*col] = Chunk<T>{};
+
+          // outer loop unroll (v and previous v in w)
+          if( col % 2 == 1 )
+          {
+            if( col == 1 )
+            {
+              pdata = pdataIn;
+              lda = ldaIn;
+            }
+
+            // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
+            Chunk<T> vTw{};
+            for(int i = firstRow; i < nChunks; i++)
+              fmadd(v[i], w[i], vTw);
+            bcast_sum(vTw);
+
+            int j = col+1;
+            for(; j+1 < m; j+=2)
+              applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+
+            for(; j < m; j++)
+              applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+          }
+          else if( col+1 < m )
+          {
+            applyRotation(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
+          }
+
+          pdata = pdataResult;
+          lda = nChunks;
+          std::swap(v,w);
         }
       }
 

@@ -12,95 +12,6 @@
 //#include <mkl.h>
 
 
-namespace
-{
-  using Chunk = PITTS::Chunk<double>;
-
-
-  void householderQR(int nChunks, int m, const Chunk* pdataIn, int ldaIn, Chunk* pdataResult)
-  {
-    int nPadded = nChunks*Chunk::size;
-    Chunk buff_v[nChunks];
-    Chunk buff_w[nChunks];
-    Chunk* v = buff_v;
-    Chunk* w = buff_w;
-    const Chunk* pdata = pdataIn;
-    int lda = ldaIn;
-    for(int col = 0; col < std::min(m, nPadded); col++)
-    {
-      int firstRow = col / Chunk::size;
-      int idx = col % Chunk::size;
-      Chunk pivotChunk;
-      masked_load_after(pdata[firstRow+lda*col], idx, pivotChunk);
-      // Householder projection P = I - 2 v v^T
-      // u = x - alpha e_1 with alpha = +- ||x||
-      // v = u / ||u||
-      double pivot = pdata[firstRow+lda*col][idx];
-      Chunk uTu{};
-      fmadd(pivotChunk, pivotChunk, uTu);
-      for(int i = firstRow+1; i < nChunks; i++)
-        fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
-      
-      double uTu_sum = sum(uTu) + std::numeric_limits<double>::min();
-
-      // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
-      // (falls back to I - 2 e1 e1^T in that case)
-      double alpha = std::sqrt(uTu_sum + std::numeric_limits<double>::min());
-      //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
-      alpha *= (pivot > 0 ? -1 : 1);
-
-      uTu_sum -= pivot*alpha;
-      pivot -= alpha;
-      Chunk alphaChunk;
-      index_bcast(Chunk{}, idx, alpha, alphaChunk);
-      if( col+1 < m )
-      {
-        double beta = 1/std::sqrt(uTu_sum);
-        fmadd(-1., alphaChunk, pivotChunk);
-        mul(beta, pivotChunk, v[firstRow]);
-        for(int i = firstRow+1; i < nChunks; i++)
-          mul(beta, pdata[i+lda*col], v[i]);
-      }
-
-      // apply I - 2 v v^T     (the factor 2 is already included in v)
-      // we already know column col
-      masked_store_after(alphaChunk, idx, pdataResult[firstRow+nChunks*col]);
-      for(int i = firstRow+1; i < nChunks; i++)
-        pdataResult[i+nChunks*col] = Chunk{};
-
-      // outer loop unroll (v and previous v in w)
-      if( col % 2 == 1 )
-      {
-        if( col == 1 )
-        {
-          pdata = pdataIn;
-          lda = ldaIn;
-        }
-
-        // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-        Chunk vTw{};
-        for(int i = firstRow; i < nChunks; i++)
-          fmadd(v[i], w[i], vTw);
-        bcast_sum(vTw);
-
-        int j = col+1;
-        for(; j+1 < m; j+=2)
-          PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
-
-        for(; j < m; j++)
-          PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
-      }
-      else if( col+1 < m )
-      {
-        PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
-      }
-
-      pdata = pdataResult;
-      lda = nChunks;
-      std::swap(v,w);
-    }
-  }
-}
 
 int main(int argc, char* argv[])
 {
@@ -176,7 +87,7 @@ for(int i = 0; i < nOuter; i++)
 #pragma omp for schedule(static)
   for(int iter = 0; iter < nIter; iter++)
   {
-    householderQR(nChunks, m, &pdataLarge[ nChunks*iter ], nChunks*nIter, &pdataSmall[0]);
+    PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &pdataLarge[ nChunks*iter ], nChunks*nIter, &pdataSmall[0]);
 
     // copy to local buffer
     for(int j = 0; j < m; j++)
@@ -186,13 +97,13 @@ for(int i = 0; i < nOuter; i++)
 
     if( localBuffOffset+mChunks > nChunks )
     {
-      householderQR(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
+      PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
       localBuffOffset = mChunks;
     }
   }
 // check if we need an additional reduction of plocalBuff
 if( localBuffOffset > mChunks )
-  householderQR(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
 
 int offset = omp_get_thread_num()*mChunks;
 for(int j = 0; j < m; j++)
