@@ -84,37 +84,6 @@ namespace
     }
   }
 
-  void applyRotation2cols(int nChunks, int firstRow, int j, const Chunk* v, const Chunk* pdata, int lda, Chunk* pdataResult)
-  {
-    Chunk vTx{};
-    Chunk vTy{};
-    {
-      int i = firstRow;
-      Chunk vTx_{};
-      Chunk vTy_{};
-      for(; i+1 < nChunks; i+=2)
-      {
-        fmadd(v[i+0], pdata[i+0+lda*(j+0)], vTx);
-        fmadd(v[i+0], pdata[i+0+lda*(j+1)], vTy);
-        fmadd(v[i+1], pdata[i+1+lda*(j+0)], vTx_);
-        fmadd(v[i+1], pdata[i+1+lda*(j+1)], vTy_);
-      }
-      fmadd(1., vTx_, vTx);
-      fmadd(1., vTy_, vTy);
-      for(; i < nChunks; i++)
-      {
-        fmadd(v[i], pdata[i+lda*(j+0)], vTx);
-        fmadd(v[i], pdata[i+lda*(j+1)], vTy);
-      }
-    }
-    bcast_sum(vTx);
-    bcast_sum(vTy);
-    for(int i = firstRow; i < nChunks; i++)
-    {
-      fnmadd(vTx, v[i], pdata[i+lda*(j+0)], pdataResult[i+nChunks*(j+0)]);
-      fnmadd(vTy, v[i], pdata[i+lda*(j+1)], pdataResult[i+nChunks*(j+1)]);
-    }
-  }
 
   void householderQR(int nChunks, int m, const Chunk* pdataIn, int ldaIn, Chunk* pdataResult)
   {
