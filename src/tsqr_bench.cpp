@@ -15,7 +15,7 @@ namespace
 {
   using Chunk = PITTS::Chunk<double>;
 
-  void applyRotation(int nChunks, int firstRow, int j, const Chunk* v, const Chunk* pdata, Chunk* pdataResult)
+  void applyRotation(int nChunks, int firstRow, int j, const Chunk* v, const Chunk* pdata, int lda, Chunk* pdataResult)
   {
     Chunk vTx{};
     {
@@ -23,40 +23,40 @@ namespace
       Chunk vTx_{};
       for(; i+1 < nChunks; i+=2)
       {
-        fmadd(v[i], pdata[i+nChunks*j], vTx);
-        fmadd(v[i+1], pdata[i+1+nChunks*j], vTx_);
+        fmadd(v[i], pdata[i+lda*j], vTx);
+        fmadd(v[i+1], pdata[i+1+lda*j], vTx_);
       }
       fmadd(1., vTx_, vTx);
       for(; i < nChunks; i++)
-        fmadd(v[i], pdata[i+nChunks*j], vTx);
+        fmadd(v[i], pdata[i+lda*j], vTx);
     }
     bcast_sum(vTx);
     for(int i = firstRow; i < nChunks; i++)
-      fnmadd(vTx, v[i], pdata[i+nChunks*j], pdataResult[i+nChunks*j]);
+      fnmadd(vTx, v[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
   }
 
   // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-  void applyRotation2(int nChunks, int firstRow, int j, const Chunk* w, const Chunk* v, const Chunk &vTw, const Chunk* pdata, Chunk* pdataResult)
+  void applyRotation2(int nChunks, int firstRow, int j, const Chunk* w, const Chunk* v, const Chunk &vTw, const Chunk* pdata, int lda, Chunk* pdataResult)
   {
     Chunk wTx{};
     Chunk vTx{};
     for(int i = firstRow; i < nChunks; i++)
     {
-      fmadd(w[i], pdata[i+nChunks*j], wTx);
-      fmadd(v[i], pdata[i+nChunks*j], vTx);
+      fmadd(w[i], pdata[i+lda*j], wTx);
+      fmadd(v[i], pdata[i+lda*j], vTx);
     }
     bcast_sum(wTx);
     bcast_sum(vTx);
     fnmadd(vTw, wTx, vTx);
     for(int i = firstRow; i < nChunks; i++)
     {
-      fnmadd(wTx, w[i], pdata[i+nChunks*j], pdataResult[i+nChunks*j]);
+      fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
       fnmadd(vTx, v[i], pdataResult[i+nChunks*j], pdataResult[i+nChunks*j]);
     }
   }
 
   // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-  void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk* w, const Chunk* v, const Chunk &vTw, const Chunk* pdata, Chunk* pdataResult)
+  void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk* w, const Chunk* v, const Chunk &vTw, const Chunk* pdata, int lda, Chunk* pdataResult)
   {
     Chunk wTx{};
     Chunk vTx{};
@@ -64,10 +64,10 @@ namespace
     Chunk vTy{};
     for(int i = firstRow; i < nChunks; i++)
     {
-      fmadd(w[i], pdata[i+nChunks*j], wTx);
-      fmadd(v[i], pdata[i+nChunks*j], vTx);
-      fmadd(w[i], pdata[i+nChunks*(j+1)], wTy);
-      fmadd(v[i], pdata[i+nChunks*(j+1)], vTy);
+      fmadd(w[i], pdata[i+lda*j], wTx);
+      fmadd(v[i], pdata[i+lda*j], vTx);
+      fmadd(w[i], pdata[i+lda*(j+1)], wTy);
+      fmadd(v[i], pdata[i+lda*(j+1)], vTy);
     }
     bcast_sum(wTx);
     bcast_sum(vTx);
@@ -77,14 +77,14 @@ namespace
     fnmadd(vTw, wTy, vTy);
     for(int i = firstRow; i < nChunks; i++)
     {
-      fnmadd(wTx, w[i], pdata[i+nChunks*j], pdataResult[i+nChunks*j]);
+      fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
       fnmadd(vTx, v[i], pdataResult[i+nChunks*j], pdataResult[i+nChunks*j]);
-      fnmadd(wTy, w[i], pdata[i+nChunks*(j+1)], pdataResult[i+nChunks*(j+1)]);
+      fnmadd(wTy, w[i], pdata[i+lda*(j+1)], pdataResult[i+nChunks*(j+1)]);
       fnmadd(vTy, v[i], pdataResult[i+nChunks*(j+1)], pdataResult[i+nChunks*(j+1)]);
     }
   }
 
-  void applyRotation2cols(int nChunks, int firstRow, int j, const Chunk* v, const Chunk* pdata, Chunk* pdataResult)
+  void applyRotation2cols(int nChunks, int firstRow, int j, const Chunk* v, const Chunk* pdata, int lda, Chunk* pdataResult)
   {
     Chunk vTx{};
     Chunk vTy{};
@@ -94,29 +94,29 @@ namespace
       Chunk vTy_{};
       for(; i+1 < nChunks; i+=2)
       {
-        fmadd(v[i+0], pdata[i+0+nChunks*(j+0)], vTx);
-        fmadd(v[i+0], pdata[i+0+nChunks*(j+1)], vTy);
-        fmadd(v[i+1], pdata[i+1+nChunks*(j+0)], vTx_);
-        fmadd(v[i+1], pdata[i+1+nChunks*(j+1)], vTy_);
+        fmadd(v[i+0], pdata[i+0+lda*(j+0)], vTx);
+        fmadd(v[i+0], pdata[i+0+lda*(j+1)], vTy);
+        fmadd(v[i+1], pdata[i+1+lda*(j+0)], vTx_);
+        fmadd(v[i+1], pdata[i+1+lda*(j+1)], vTy_);
       }
       fmadd(1., vTx_, vTx);
       fmadd(1., vTy_, vTy);
       for(; i < nChunks; i++)
       {
-        fmadd(v[i], pdata[i+nChunks*(j+0)], vTx);
-        fmadd(v[i], pdata[i+nChunks*(j+1)], vTy);
+        fmadd(v[i], pdata[i+lda*(j+0)], vTx);
+        fmadd(v[i], pdata[i+lda*(j+1)], vTy);
       }
     }
     bcast_sum(vTx);
     bcast_sum(vTy);
     for(int i = firstRow; i < nChunks; i++)
     {
-      fnmadd(vTx, v[i], pdata[i+nChunks*(j+0)], pdataResult[i+nChunks*(j+0)]);
-      fnmadd(vTy, v[i], pdata[i+nChunks*(j+1)], pdataResult[i+nChunks*(j+1)]);
+      fnmadd(vTx, v[i], pdata[i+lda*(j+0)], pdataResult[i+nChunks*(j+0)]);
+      fnmadd(vTy, v[i], pdata[i+lda*(j+1)], pdataResult[i+nChunks*(j+1)]);
     }
   }
 
-  void householderQR(int nChunks, int m, const Chunk* pdataIn, Chunk* pdataResult)
+  void householderQR(int nChunks, int m, const Chunk* pdataIn, int ldaIn, Chunk* pdataResult)
   {
     int nPadded = nChunks*Chunk::size;
     Chunk buff_v[nChunks];
@@ -124,20 +124,21 @@ namespace
     Chunk* v = buff_v;
     Chunk* w = buff_w;
     const Chunk* pdata = pdataIn;
+    int lda = ldaIn;
     for(int col = 0; col < std::min(m, nPadded); col++)
     {
       int firstRow = col / Chunk::size;
       int idx = col % Chunk::size;
       Chunk pivotChunk;
-      masked_load_after(pdata[firstRow+nChunks*col], idx, pivotChunk);
+      masked_load_after(pdata[firstRow+lda*col], idx, pivotChunk);
       // Householder projection P = I - 2 v v^T
       // u = x - alpha e_1 with alpha = +- ||x||
       // v = u / ||u||
-      double pivot = pdata[firstRow+nChunks*col][idx];
+      double pivot = pdata[firstRow+lda*col][idx];
       Chunk uTu{};
       fmadd(pivotChunk, pivotChunk, uTu);
       for(int i = firstRow+1; i < nChunks; i++)
-        fmadd(pdata[i+nChunks*col], pdata[i+nChunks*col], uTu);
+        fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
       
       double uTu_sum = sum(uTu) + std::numeric_limits<double>::min();
 
@@ -157,7 +158,7 @@ namespace
         fmadd(-1., alphaChunk, pivotChunk);
         mul(beta, pivotChunk, v[firstRow]);
         for(int i = firstRow+1; i < nChunks; i++)
-          mul(beta, pdata[i+nChunks*col], v[i]);
+          mul(beta, pdata[i+lda*col], v[i]);
       }
 
       // apply I - 2 v v^T     (the factor 2 is already included in v)
@@ -165,27 +166,15 @@ namespace
       masked_store_after(alphaChunk, idx, pdataResult[firstRow+nChunks*col]);
       for(int i = firstRow+1; i < nChunks; i++)
         pdataResult[i+nChunks*col] = Chunk{};
-/*
-{
-  for(int j = col+1; j < m; j++)
-  {
-    Chunk vTx{};
-    for(int i = firstRow; i < nChunks; i++)
-      fmadd(v[i], pdataResult[i+nChunks*j], vTx);
-    bcast_sum(vTx);
-    for(int i = firstRow; i < nChunks; i++)
-      fnmadd(vTx, v[i], pdata[i+nChunks*j], pdataResult[i+nChunks*j]);
-  }
-  pdata = pdataResult;
-  continue;
-}
-*/
 
       // outer loop unroll (v and previous v in w)
       if( col % 2 == 1 )
       {
         if( col == 1 )
+        {
           pdata = pdataIn;
+          lda = ldaIn;
+        }
 
         // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
         Chunk vTw{};
@@ -195,17 +184,18 @@ namespace
 
         int j = col+1;
         for(; j+1 < m; j+=2)
-          applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, pdataResult);
+          applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
 
         for(; j < m; j++)
-          applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, pdataResult);
+          applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
       }
       else if( col+1 < m )
       {
-        applyRotation(nChunks, firstRow, col+1, v, pdata, pdataResult);
+        applyRotation(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
       }
 
       pdata = pdataResult;
+      lda = nChunks;
       std::swap(v,w);
     }
   }
@@ -239,9 +229,6 @@ int nThreads = 1;
   if( reductionFactor < 1 )
     throw std::invalid_argument("block size is too small!");
 
-  // make nIter a multiple of nThreads*reductionFactor
-  nIter = (reductionFactor*nThreads) * ((nIter-1)/(reductionFactor*nThreads)+1);
-
   std::cout << "Block dimensions: " << n << " x " << m << "\n";
   std::cout << "Blocks: " << nIter << "\n";
   std::cout << "Iterations: " << nOuter << "\n";
@@ -250,60 +237,69 @@ int nThreads = 1;
 
   std::unique_ptr<Chunk[]> pdataLarge{new Chunk[nChunks*nIter*m]};
 
-  std::unique_ptr<Chunk[]> psharedBuff(new Chunk[mChunks*nThreads*m]);
+#pragma omp parallel
+{
+  std::unique_ptr<Chunk[]> pdataSmall{new Chunk[nChunks*m]};
+  std::unique_ptr<Chunk[]> plocalBuff{new Chunk[nChunks*m]};
+  Eigen::Map<mat> M(&pdataSmall[0][0], nPadded, m);
+  M = mat::Random(nPadded, m);
+  Eigen::Map<mat> Mlarge(&pdataLarge[0][0], nPadded*nIter, m);
+
+#pragma omp for schedule(static)
+  for(int iter = 0; iter < nIter; iter++)
+    Mlarge.block(iter*nPadded, 0, nPadded, m) = M;
+}
+
+  //Eigen::HouseholderQR<mat> qr(nPadded, m);
 
 double wtime = omp_get_wtime();
+
+  std::unique_ptr<Chunk[]> psharedBuff(new Chunk[mChunks*nThreads*m]);
+
+for(int i = 0; i < nOuter; i++)
+{
 
 #pragma omp parallel
 {
   std::unique_ptr<Chunk[]> pdataSmall{new Chunk[nChunks*m]};
   std::unique_ptr<Chunk[]> plocalBuff{new Chunk[nChunks*m]};
-  {
-    Eigen::Map<mat> M((double*)pdataSmall.get(), nPadded, m);
-    M = mat::Random(nPadded, m);
-    //if( m > 1 )
-    //  M.col(1) = 0.01 * mat::Zero(nPadded, 1);
-    //std::cout << "Random:\n" << M << "\n";
-    //Eigen::BDCSVD<mat> svd(M);
-    //std::cout << "singular values:\n" << svd.singularValues().transpose() << "\n";
-  }
 
-#pragma omp for schedule(static)
-  for(int iter = 0; iter < nIter; iter++)
-    for(int j = 0; j < m; j++)
-      for(int i = 0; i < nChunks; i++)
-        for(int k = 0; k < PITTS::ALIGNMENT/64; k++)
-          _mm512_store_pd(&pdataLarge[i+j*nChunks + (m*nChunks)*iter][8*k], _mm512_load_pd(&pdataSmall[j*nChunks+i][8*k]));
-
-  //Eigen::HouseholderQR<mat> qr(nPadded, m);
-
-for(int i = 0; i < nOuter; i++)
-{
   // fill with zero
   for(int i = 0; i < nChunks; i++)
     for(int j = 0; j < m; j++)
       plocalBuff[i+nChunks*j] = Chunk{};
 
+  // index to the next free block in plocalBuff
+  int localBuffOffset = 0;
+
 #pragma omp for schedule(static)
   for(int iter = 0; iter < nIter; iter++)
   {
-    householderQR(nChunks, m, &pdataLarge[ (m*nChunks)*iter ], &pdataSmall[0]);
+    householderQR(nChunks, m, &pdataLarge[ nChunks*iter ], nChunks*nIter, &pdataSmall[0]);
 
     // copy to local buffer
     for(int j = 0; j < m; j++)
       for(int i = 0; i < mChunks; i++)
-        plocalBuff[(1+iter%reductionFactor)*mChunks + i + nChunks*j] = pdataSmall[i + nChunks*j];
+        plocalBuff[localBuffOffset + i + nChunks*j] = pdataSmall[i + nChunks*j];
+    localBuffOffset += mChunks;
 
-    if( (iter+1)%reductionFactor == 0 )
-      householderQR(nChunks, m, &plocalBuff[0], &plocalBuff[0]);
+    if( localBuffOffset+mChunks > nChunks )
+    {
+      householderQR(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
+      localBuffOffset = mChunks;
+    }
   }
-}
+// check if we need an additional reduction of plocalBuff
+if( localBuffOffset > mChunks )
+  householderQR(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
+
 int offset = omp_get_thread_num()*mChunks;
 for(int j = 0; j < m; j++)
   for(int i = 0; i < mChunks; i++)
     psharedBuff[offset + i + nThreads*mChunks*j] = plocalBuff[i + nChunks*j];
-
 } // omp parallel
+
+}
 wtime = omp_get_wtime() - wtime;
 std::cout << "wtime: " << wtime << "\n";
 
@@ -315,26 +311,20 @@ std::cout << "wtime: " << wtime << "\n";
   }
 /*
   {
-    // calculate original matrix (data is transposed in blocks)
-    mat Morig(nPadded*nIter, m);
-    for(int iter = 0; iter < nIter; iter++)
+    Eigen::Map<mat> Mlarge(&pdataLarge[0][0], nPadded*nIter, m);
     {
-      Eigen::Map<mat> M(&pdataLarge[(m*nChunks)*iter][0], nPadded, m);
-      Morig.block(nPadded*iter, 0, nPadded, m) = M;
-    }
-    {
-      Eigen::HouseholderQR<mat> qr(Morig.rows(), Morig.cols());
+      Eigen::HouseholderQR<mat> qr(Mlarge.rows(), Mlarge.cols());
       wtime = omp_get_wtime();
       for(int i = 0; i < nOuter; i++)
-        qr.compute(Morig);
+        qr.compute(Mlarge);
       wtime = omp_get_wtime() - wtime;
       std::cout << "ref QR wtime: " << wtime << "\n";
     }
-    Eigen::BDCSVD<mat> svd(Morig.rows(), Morig.cols());
+    Eigen::BDCSVD<mat> svd(Mlarge.rows(), Mlarge.cols());
     {
       wtime = omp_get_wtime();
       for(int i = 0; i < nOuter; i++)
-        svd.compute(Morig);
+        svd.compute(Mlarge);
       wtime = omp_get_wtime() - wtime;
       std::cout << "ref SVD wtime: " << wtime << "\n";
     }
