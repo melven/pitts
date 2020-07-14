@@ -3,6 +3,9 @@ enable_testing()
 # get googletest for C++ unit tests
 include(GTest)
 
+# allow code coverage
+include(CodeCoverage)
+
 # files for C++ unit tests
 file(GLOB_RECURSE CPP_SRCUNITTESTS *.cpp *.hpp)
 
@@ -29,3 +32,6 @@ add_custom_target (check
                    COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> -V --timeout 300
                    SOURCES CMakeLists.txt ${PY_UNITTESTS})
 add_dependencies(check pitts_tests)
+if( CODE_COVERAGE )
+  setup_target_for_coverage(check)
+endif()
