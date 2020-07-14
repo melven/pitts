@@ -411,3 +411,59 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
 }
 
+
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
+{
+  constexpr auto eps = 1.e-8;
+  using Chunk = PITTS::Chunk<double>;
+  using MultiVector = PITTS::MultiVector<double>;
+
+  constexpr int nChunks = 5;
+  constexpr int n = nChunks * Chunk::size;
+  constexpr int m = 2;
+  MultiVector work(n, m);
+
+  // prepare work array
+  int workOffset = 0;
+  for(int j = 0; j < m; j++)
+    for(int i = 0; i < n; i++)
+      work(i,j) = 0;
+
+  constexpr int ldaSrc = 4;
+  MultiVector src(ldaSrc*Chunk::size, m);
+  randomize(src);
+
+  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+  mat work_ref(0,m);
+  Eigen::Map<mat> mapSrc(&src(0,0), ldaSrc*Chunk::size, m);
+
+  for(int iter = 0; iter < 10; iter++)
+  {
+    const int nSrc = (iter*2) % 5;
+
+    PITTS::internal::HouseholderQR::copyBlockAndTransformMaybe(nSrc, m, &src.chunk(0,0), ldaSrc, nChunks, &work.chunk(0,0), workOffset);
+
+    // check that the result is zero below workOffset
+    for(int j = 0; j < m; j++)
+    {
+      for(int i = workOffset*Chunk::size; i < n; i++)
+      {
+        ASSERT_NEAR(0., work(i,j), eps);
+      }
+    }
+
+    // calculate reference result using Eigen
+    const int nn = nSrc*Chunk::size;
+    work_ref.conservativeResize(work_ref.rows()+nn, Eigen::NoChange);
+    work_ref.bottomRows(nn) = mapSrc.topRows(nn);
+  }
+  // singular values and right singular vectors should match
+  Eigen::Map<mat> mapWork(&work(0,0), n, m);
+  Eigen::BDCSVD<mat> svd(mapWork, Eigen::ComputeThinV);
+  Eigen::BDCSVD<mat> svd_ref(work_ref, Eigen::ComputeThinV);
+
+  ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+  // V can differ by sign, only consider absolute part
+  ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
+}
+

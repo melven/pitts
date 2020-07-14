@@ -15,6 +15,7 @@
 
 // includes
 #include <memory>
+#include <omp.h>
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
@@ -255,7 +256,124 @@ namespace PITTS
         }
       }
 
+
+      //! Helper function for combining multiple (upper triangular) matrices
+      //!
+      //! Appends the new block to a work matrix. Reduces the work matrix to upper triangular form when it reaches its maximal size
+      //! (the size of the reserved memory for the work matrix).
+      //!
+      //! This is part of the TSQR algorithm where multiple blocks are first transformed to upper triangular form and then the resulting
+      //! upper triangular matrices can be combined again and reduced to upper triangular form...
+      //!
+      //! @tparam T           underlying data type
+      //!
+      //! @param nSrc         number of chunks of rows of the new block
+      //! @param m            number of columns
+      //! @param pdataSrc     new block with dimension nSrc*m, does not need to be upper triangular
+      //! @param ldaSrc       offset of columns in pdataSrc
+      //! @param nChunks      number of rows of the work matrix
+      //! @param pdataWork    work matrix with dimension nChunks*m (currently unused parts are zero)
+      //! @param workOffset   row offset of the next zero block in the work matrix, adjusted on output
+      //!
+      template<typename T>
+      void copyBlockAndTransformMaybe(int nSrc, int m, const Chunk<T>* pdataSrc, int ldaSrc, int nChunks, Chunk<T>* pdataWork, int& workOffset)
+      {
+        const int mChunks = (m-1) / Chunk<T>::size + 1;
+
+        // if there is not enough space, reduce to upper triangular form first
+        if( workOffset + nSrc > nChunks )
+        {
+          transformBlock(nChunks, m, pdataWork, nChunks, pdataWork);
+          workOffset = mChunks;
+        }
+
+        assert(workOffset + nSrc <= nChunks);
+
+        // copy into work buffer
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < nSrc; i++)
+            pdataWork[workOffset + i + nChunks*j] = pdataSrc[i + ldaSrc*j];
+        workOffset += nSrc;
+      }
     }
+  }
+
+
+  template<typename T>
+  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4)
+  {
+    // consider empty matrices
+    if( M.cols() == 0 )
+    {
+      R.resize(M.cols(), M.cols());
+      return;
+    }
+
+    // get the number of OpenMP threads
+    int nThreads = 1;
+#pragma omp parallel shared(nThreads)
+    {
+#pragma omp critical
+      nThreads = omp_get_num_threads();
+    }
+
+    // calculate dimensions and block sizes
+    const int m = M.cols();
+    const int mChunks = (m-1) / Chunk<T>::size + 1;
+    const int nChunks = (reductionFactor+1) * mChunks;
+    const int lda = (M.rows() - 1) / Chunk<T>::size + 1;
+    const int nIter = lda / nChunks;
+
+    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nThreads*m]);
+
+#pragma omp parallel
+    {
+      std::unique_ptr<Chunk<T>[]> pdataSmall{new Chunk<T>[nChunks*m]};
+      std::unique_ptr<Chunk<T>[]> plocalBuff{new Chunk<T>[nChunks*m]};
+
+      // fill with zero
+      for(int i = 0; i < nChunks; i++)
+        for(int j = 0; j < m; j++)
+          plocalBuff[i+nChunks*j] = Chunk<T>{};
+
+      // index to the next free block in plocalBuff
+      int localBuffOffset = 0;
+
+#pragma omp for schedule(static)
+      for(int iter = 0; iter < nIter; iter++)
+      {
+        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &pdataSmall[0]);
+
+        internal::HouseholderQR::copyBlockAndTransformMaybe(mChunks, m, &pdataSmall[0], nChunks, nChunks, &plocalBuff[0], localBuffOffset);
+      }
+      // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
+      if( omp_get_thread_num() == nThreads-1 && nIter*nChunks < lda )
+      {
+        const int nLastChunks = lda-nIter*nChunks;
+        internal::HouseholderQR::transformBlock(nLastChunks, m, &M(nIter*nChunks,0), lda, &pdataSmall[0]);
+        internal::HouseholderQR::copyBlockAndTransformMaybe(std::min(nLastChunks,mChunks), m, &pdataSmall[0], nLastChunks, nChunks, &plocalBuff[0], localBuffOffset);
+      }
+
+      // check if we need an additional reduction of plocalBuff
+      if( localBuffOffset > mChunks )
+        internal::HouseholderQR::transformBlock(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
+
+      int offset = omp_get_thread_num()*mChunks;
+      for(int j = 0; j < m; j++)
+        for(int i = 0; i < mChunks; i++)
+          psharedBuff[offset + i + nThreads*mChunks*j] = plocalBuff[i + nChunks*j];
+    } // omp parallel
+
+    // reduce shared buffer
+    if( nThreads > 1 )
+      internal::HouseholderQR::transformBlock(nThreads*mChunks, m, psharedBuff, nThreads*mChunks, psharedBuff);
+
+    // copy result to R
+    R.resize(m,m);
+    for(int j = 0; j < m; j++)
+      for(int i = 0; i < m; i++)
+        R(i,j) = psharedBuff[ i/Chunk<T>::size + nThreads*mChunks*j ][ i%Chunk<T>::size ];
+
   }
 }
 
