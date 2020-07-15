@@ -4,6 +4,8 @@
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_common.hpp"
+#include "pitts_performance.hpp"
 #include <exception>
 #include <charconv>
 #include <iostream>
@@ -13,6 +15,8 @@
 
 int main(int argc, char* argv[])
 {
+  //PITTS::initialize(&argc, &argv);
+
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
   using Chunk = PITTS::Chunk<double>;
 
@@ -84,6 +88,9 @@ std::cout << "wtime: " << wtime << "\n";
     std::cout << "singular values (ref):\n" << svd.singularValues().transpose() << "\n";
   }
 */
+
+  PITTS::performance::printStatistics();
+  //PITTS::finalize();
 
   return 0;
 }

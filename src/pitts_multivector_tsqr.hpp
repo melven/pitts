@@ -302,6 +302,20 @@ namespace PITTS
   template<typename T>
   void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4)
   {
+    // calculate dimensions and block sizes
+    const int n = M.rows();
+    const int m = M.cols();
+    const int mChunks = (m-1) / Chunk<T>::size + 1;
+    const int nChunks = (reductionFactor+1) * mChunks;
+    const int lda = (n - 1) / Chunk<T>::size + 1;
+    const int nIter = lda / nChunks;
+
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
+        {{(1.+1./reductionFactor)*(n*m*(1.+m))*kernel_info::FMA<T>()}, // flops - extremely roughly estimated
+         {(n*m)*kernel_info::Load<T>() + (m*m)*kernel_info::Store<T>()}} // data transfers
+        );
+
     // consider empty matrices
     if( M.cols() == 0 )
     {
@@ -316,13 +330,6 @@ namespace PITTS
 #pragma omp critical (PITTS_MULTIVECTOR_BLOCK_TSQR)
       nThreads = omp_get_num_threads();
     }
-
-    // calculate dimensions and block sizes
-    const int m = M.cols();
-    const int mChunks = (m-1) / Chunk<T>::size + 1;
-    const int nChunks = (reductionFactor+1) * mChunks;
-    const int lda = (M.rows() - 1) / Chunk<T>::size + 1;
-    const int nIter = lda / nChunks;
 
     std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nThreads*m]);
 
