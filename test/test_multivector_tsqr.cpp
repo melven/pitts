@@ -326,7 +326,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   using MultiVector = PITTS::MultiVector<double>;
 
   constexpr int n = 40;
-  constexpr int m = 20;
+  constexpr int m = 19;
   constexpr int nChunks = (n-1) / Chunk::size + 1;
 
   MultiVector X(n,m), X_ref(n,m);
@@ -370,7 +370,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   using MultiVector = PITTS::MultiVector<double>;
 
   constexpr int n = 40;
-  constexpr int m = 20;
+  constexpr int m = 19;
   constexpr int nChunks = (n-1) / Chunk::size + 1;
 
   MultiVector X(2*n,m), X_ref(2*n,m), Xresult(n,m);
