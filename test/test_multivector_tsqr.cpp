@@ -3,6 +3,7 @@
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include <Eigen/Dense>
 #include "eigen_test_helper.hpp"
 
@@ -467,3 +468,109 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
   ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
 }
 
+
+namespace
+{
+  // helper function for testing block_TSQR with different data dimensions, etc
+  void test_block_TSQR(int n, int m)
+  {
+    constexpr auto eps = 1.e-8;
+    using Chunk = PITTS::Chunk<double>;
+    using MultiVector = PITTS::MultiVector<double>;
+    using Tensor2 = PITTS::Tensor2<double>;
+    using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+
+    const int nPadded = Chunk::size * ( (n-1) / Chunk::size + 1 );
+
+    MultiVector M(n,m);
+    randomize(M);
+
+    // store the original matrix for later
+    Eigen::Map<mat> mapM(&M(0,0), nPadded, m);
+    mat M_ref = mapM.block(0, 0, n, m);
+
+    Tensor2 R;
+    block_TSQR(M, R);
+    ASSERT_EQ(m, R.r1());
+    ASSERT_EQ(m, R.r2());
+    for(int j = 0; j < m; j++)
+    {
+      for(int i = j+1; i < m; i++)
+      {
+        ASSERT_NEAR(0., R(i,j), eps);
+      }
+    }
+
+    // check that the singular values and right singular vectors match...
+    Eigen::BDCSVD<mat> svd(PITTS::ConstEigenMap(R), Eigen::ComputeThinV);
+    Eigen::BDCSVD<mat> svd_ref(M_ref, Eigen::ComputeThinV);
+
+    ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+    // V can differ by sign, only consider absolute part
+    ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
+  }
+
+  // helper function to determine the currently default number of threads in a parallel region
+  int get_default_num_threads()
+  {
+    int numThreads = 1;
+#pragma omp parallel
+    {
+#pragma omp critical (PITTS_TEST_MULTIVECTOR_TSQR)
+      numThreads = omp_get_num_threads();
+    }
+    return numThreads;
+  }
+}
+
+TEST(PITTS_MultiVector_tsqr, block_TSQR_small_serial)
+{
+  int nThreads = get_default_num_threads();
+
+  omp_set_num_threads(1);
+  test_block_TSQR(50, 10);
+  omp_set_num_threads(nThreads);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, block_TSQR_small_4threads)
+{
+  int nThreads = get_default_num_threads();
+
+  ASSERT_LE(4, omp_get_max_threads());
+  omp_set_num_threads(4);
+
+  test_block_TSQR(50, 10);
+
+  omp_set_num_threads(nThreads);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, block_TSQR_large_serial)
+{
+  int nThreads = get_default_num_threads();
+
+  omp_set_num_threads(1);
+  test_block_TSQR(200, 30);
+  omp_set_num_threads(nThreads);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, block_TSQR_large_parallel)
+{
+  test_block_TSQR(200, 30);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, block_TSQR_manyRows_differentNumbersOfThreads)
+{
+  int nThreads = get_default_num_threads();
+
+  ASSERT_LE(4, omp_get_max_threads());
+  for(int iThreads = 1; iThreads < 5; iThreads++)
+  {
+    omp_set_num_threads(iThreads);
+    test_block_TSQR(1000, 1);
+  }
+  omp_set_num_threads(nThreads);
+}

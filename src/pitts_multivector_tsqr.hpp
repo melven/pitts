@@ -313,7 +313,7 @@ namespace PITTS
     int nThreads = 1;
 #pragma omp parallel shared(nThreads)
     {
-#pragma omp critical
+#pragma omp critical (PITTS_MULTIVECTOR_BLOCK_TSQR)
       nThreads = omp_get_num_threads();
     }
 
@@ -350,7 +350,7 @@ namespace PITTS
       if( omp_get_thread_num() == nThreads-1 && nIter*nChunks < lda )
       {
         const int nLastChunks = lda-nIter*nChunks;
-        internal::HouseholderQR::transformBlock(nLastChunks, m, &M(nIter*nChunks,0), lda, &pdataSmall[0]);
+        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nIter*nChunks,0), lda, &pdataSmall[0]);
         internal::HouseholderQR::copyBlockAndTransformMaybe(std::min(nLastChunks,mChunks), m, &pdataSmall[0], nLastChunks, nChunks, &plocalBuff[0], localBuffOffset);
       }
 
@@ -366,7 +366,7 @@ namespace PITTS
 
     // reduce shared buffer
     if( nThreads > 1 )
-      internal::HouseholderQR::transformBlock(nThreads*mChunks, m, psharedBuff, nThreads*mChunks, psharedBuff);
+      internal::HouseholderQR::transformBlock(nThreads*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0]);
 
     // copy result to R
     R.resize(m,m);
