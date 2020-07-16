@@ -64,6 +64,8 @@ if(pybind11_FOUND)
     pitts_tensortrain_pybind.cpp
     pitts_common_pybind.hpp
     pitts_common_pybind.cpp
+    pitts_multivector_pybind.hpp
+    pitts_multivector_pybind.cpp
     )
   install(TARGETS pitts_py LIBRARY DESTINATION lib)
 endif()

@@ -56,7 +56,7 @@ namespace PITTS
             fmadd(v[i], pdata[i+lda*col], vTx);
             fmadd(v[i+1], pdata[i+1+lda*col], vTx_);
           }
-          fmadd(1., vTx_, vTx);
+          fmadd(T(1), vTx_, vTx);
           for(; i < nChunks; i++)
             fmadd(v[i], pdata[i+lda*col], vTx);
         }
@@ -196,11 +196,11 @@ namespace PITTS
           for(int i = firstRow+1; i < nChunks; i++)
             fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
 
-          double uTu_sum = sum(uTu) + std::numeric_limits<double>::min();
+          T uTu_sum = sum(uTu) + std::numeric_limits<double>::min();
 
           // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
           // (falls back to I - 2 e1 e1^T in that case)
-          double alpha = std::sqrt(uTu_sum + std::numeric_limits<double>::min());
+          T alpha = std::sqrt(uTu_sum + std::numeric_limits<double>::min());
           //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
           alpha *= (pivot > 0 ? -1 : 1);
 
@@ -210,8 +210,8 @@ namespace PITTS
           index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
           if( col+1 < m )
           {
-            double beta = 1/std::sqrt(uTu_sum);
-            fmadd(-1., alphaChunk, pivotChunk);
+            T beta = 1/std::sqrt(uTu_sum);
+            fmadd(T(-1), alphaChunk, pivotChunk);
             mul(beta, pivotChunk, v[firstRow]);
             for(int i = firstRow+1; i < nChunks; i++)
               mul(beta, pdata[i+lda*col], v[i]);
@@ -307,7 +307,7 @@ namespace PITTS
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = (reductionFactor+1) * mChunks;
-    const int lda = (n - 1) / Chunk<T>::size + 1;
+    const int lda = M.rowChunks();
     const int nIter = lda / nChunks;
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
