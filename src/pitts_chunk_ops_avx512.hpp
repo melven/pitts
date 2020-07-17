@@ -130,6 +130,38 @@ namespace PITTS
 
   // specialization for double for dumb compilers
   template<>
+  inline float sum<float>(const Chunk<float>& v)
+  {
+    // not sure if this is actually faster that vadd;
+    // I assume it pipelines better with other AVX512 ops
+    __m512 vl0 = _mm512_load_ps(&v[0]);
+    __m512 vh0 = _mm512_load_ps(&v[16]);
+
+    __m512 vl1 = _mm512_permute_ps(vl0, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
+    __m512 vh1 = _mm512_permute_ps(vh0, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
+    __m512 vl2 = _mm512_add_ps(vl0, vl1);
+    __m512 vh2 = _mm512_add_ps(vh0, vh1);
+
+    __m512 vl3 = _mm512_permute_ps(vl2, 2<<0 | 3<<2 | 0<<4 | 1<<6 );
+    __m512 vh3 = _mm512_permute_ps(vh2, 2<<0 | 3<<2 | 0<<4 | 1<<6 );
+    __m512 vl4 = _mm512_add_ps(vl2, vl3);
+    __m512 vh4 = _mm512_add_ps(vh2, vh3);
+
+    __m512 vl5 = _mm512_permutexvar_ps(_mm512_set_epi32(11,10,9,8,15,14,13,12,3,2,1,0,7,6,5,4), vl4);
+    __m512 vh5 = _mm512_permutexvar_ps(_mm512_set_epi32(11,10,9,8,15,14,13,12,3,2,1,0,7,6,5,4), vh4);
+    __m512 vl6 = _mm512_add_ps(vl4, vl5);
+    __m512 vh6 = _mm512_add_ps(vh4, vh5);
+
+    __m512 vl7 = _mm512_permutexvar_ps(_mm512_set_epi32(7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8), vl6);
+    __m512 vh7 = _mm512_permutexvar_ps(_mm512_set_epi32(7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8), vh6);
+    __m512 vl8 = _mm512_add_ps(vl6, vl7);
+    __m512 vh8 = _mm512_add_ps(vh6, vh7);
+
+    return vh8[0] + vl8[0];
+  }
+
+  // specialization for double for dumb compilers
+  template<>
   inline double sum<double>(const Chunk<double>& v)
   {
     // not sure if this is actually faster that vadd;
@@ -157,6 +189,28 @@ namespace PITTS
 
   // specialization for double for dumb compilers
   template<>
+  inline void bcast_sum<float>(Chunk<float>& v)
+  {
+    __m512 v0 = _mm512_add_ps(_mm512_load_ps(&v[0]), _mm512_load_ps(&v[16]));
+
+    __m512 v1 = _mm512_permute_ps(v0, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
+    __m512 v2 = _mm512_add_ps(v0, v1);
+
+    __m512 v3 = _mm512_permute_ps(v2, 2<<0 | 3<<2 | 0<<4 | 1<<6 );
+    __m512 v4 = _mm512_add_ps(v2, v3);
+
+    __m512 v5 = _mm512_permutexvar_ps(_mm512_set_epi32(11,10,9,8,15,14,13,12,3,2,1,0,7,6,5,4), v4);
+    __m512 v6 = _mm512_add_ps(v4, v5);
+
+    __m512 v7 = _mm512_permutexvar_ps(_mm512_set_epi32(7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8), v6);
+    __m512 v8 = _mm512_add_ps(v6, v7);
+
+    _mm512_store_ps(&v[0], v8);
+    _mm512_store_ps(&v[16], v8);
+  }
+
+  // specialization for double for dumb compilers
+  template<>
   inline void bcast_sum<double>(Chunk<double>& v)
   {
     __m512d v0 = _mm512_add_pd(_mm512_load_pd(&v[0]), _mm512_load_pd(&v[8]));
@@ -176,6 +230,19 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
+  inline void index_bcast<float>(const Chunk<float>& src, int index, float value, Chunk<float>& result)
+  {
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      __mmask16 mask = (1<<index)>>(16*i);
+      __m512 xi = _mm512_load_ps(&src[16*i]);
+      __m512 yi = _mm512_mask_broadcastss_ps(xi, mask, _mm_set_ps(0,0,0,value));
+      _mm512_store_ps(&result[16*i], yi);
+    }
+  }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
   inline void index_bcast<double>(const Chunk<double>& src, int index, double value, Chunk<double>& result)
   {
     for(int i = 0; i < ALIGNMENT/64; i++)
@@ -184,6 +251,20 @@ namespace PITTS
       __m512d xi = _mm512_load_pd(&src[8*i]);
       __m512d yi = _mm512_mask_broadcastsd_pd(xi, mask, _mm_set_pd(0,value));
       _mm512_store_pd(&result[8*i], yi);
+    }
+  }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void masked_load_after<float>(const Chunk<float>& src, int index, Chunk<float>& result)
+  {
+    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      unsigned long all = -1; // set to 0xFF....
+      __mmask16 mask = (all<<index)>>(16*i);
+      __m512 vi = _mm512_maskz_load_ps(mask, &src[16*i]);
+      _mm512_store_ps(&result[16*i], vi);
     }
   }
 
@@ -198,6 +279,20 @@ namespace PITTS
       __mmask8 mask = (all<<index)>>(8*i);
       __m512d vi = _mm512_maskz_load_pd(mask, &src[8*i]);
       _mm512_store_pd(&result[8*i], vi);
+    }
+  }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void masked_store_after<float>(const Chunk<float>& src, int index, Chunk<float>& result)
+  {
+    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      unsigned long all = -1; // set to 0xFF....
+      __mmask16 mask = (all<<index)>>(16*i);
+      __m512 vi = _mm512_load_ps(&src[16*i]);
+      _mm512_mask_store_ps(&result[16*i], mask, vi);
     }
   }
 
