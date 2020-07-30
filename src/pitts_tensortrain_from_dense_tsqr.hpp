@@ -19,6 +19,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_tsqr.hpp"
+#include "pitts_multivector_transform.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_timer.hpp"
@@ -118,36 +119,12 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
           for(int k = 0; k < subT.r2(); k++)
             subT(i,j,k) = svd.matrixV()(j+subT.n()*k, i);
 
-      // update tmp <- tmp * V
-      buff.resize(tmp.rows(), rank);
-#pragma omp parallel for schedule(static)
-      for(int iChunk = 0; iChunk < tmp.rowChunks(); iChunk++)
-      {
-        for(int j = 0; j < rank; j++)
-        {
-          buff.chunk(iChunk,j) = Chunk<T>{};
-          for(int k = 0; k < tmp.cols(); k++)
-            fmadd(svd.matrixV()(k,j), tmp.chunk(iChunk,k), buff.chunk(iChunk,j));
-        }
-      }
+      tmpR.resize(tmp.cols(), rank);
+      EigenMap(tmpR) = svd.matrixV().leftCols(rank);
 
       const auto nextDim = dimensions[iDim-1];
-      tmp.resize(buff.rows()/nextDim, buff.cols()*nextDim);
-#pragma omp parallel for schedule(static)
-      for(int iChunk = 0; iChunk < tmp.rowChunks(); iChunk++)
-      {
-        for(int j = 0; j < tmp.cols(); j++)
-        {
-          for(int ii = 0; ii < Chunk<T>::size; ii++)
-          {
-            int i = iChunk*Chunk<T>::size + ii;
-            if( i >= tmp.rows() )
-              continue;
-            tmp.chunk(iChunk,j)[ii] = buff(i+(j%nextDim)*tmp.rows(),j/nextDim);
-          }
-        }
-      }
-
+      transform(tmp, tmpR, buff, {tmp.rows()/nextDim, rank*nextDim});
+      std::swap(tmp, buff);
     }
     // last sub-tensor is now in tmp
     auto& lastSubT = result.editableSubTensors()[0];
