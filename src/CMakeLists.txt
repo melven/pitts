@@ -24,6 +24,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_axpby.hpp
   pitts_tensortrain_laplace_operator.hpp
   pitts_tensortrain_from_dense.hpp
+  pitts_tensortrain_from_dense_tsqr.hpp
   pitts_tensortrain_to_dense.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp

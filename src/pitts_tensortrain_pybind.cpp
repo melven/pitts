@@ -20,6 +20,7 @@
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
+#include "pitts_tensortrain_from_dense_tsqr.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_pybind.hpp"
 #include "pitts_scope_info.hpp"
@@ -88,6 +89,16 @@ namespace PITTS
         const auto last = first + array.size();
         auto shape = std::vector<int>{array.shape(), array.shape()+array.ndim()};
         return fromDense(first, last, shape, rankTolerance);
+      }
+
+      //! helper function for fromDense_TSQR -> TensorTrain
+      template<typename T>
+      TensorTrain<T> TensorTrain_fromDense_TSQR(py::array_t<T, py::array::f_style> array, T rankTolerance)
+      {
+        const auto first = static_cast<const T*>(array.data());
+        const auto last = first + array.size();
+        auto shape = std::vector<int>{array.shape(), array.shape()+array.ndim()};
+        return fromDense_TSQR(first, last, shape, rankTolerance);
       }
 
       //! helper function for TensorTrain -> toDense
@@ -179,6 +190,11 @@ namespace PITTS
 
         m.def("fromDense",
             &TensorTrain_fromDense<T>,
+            py::arg("array"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
+            "calculate tensor-train decomposition of a tensor stored in fully dense format");
+
+        m.def("fromDense_TSQR",
+            &TensorTrain_fromDense_TSQR<T>,
             py::arg("array"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
             "calculate tensor-train decomposition of a tensor stored in fully dense format");
 

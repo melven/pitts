@@ -35,7 +35,7 @@ namespace PITTS
   //! @return               resulting tensor train
   //!
   template<class Iter, typename T = std::iterator_traits<Iter>::value_type>
-  TensorTrain<T> fromDense(Iter first, Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  TensorTrain<T> fromDense(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
