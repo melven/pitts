@@ -39,6 +39,7 @@ target_sources(pitts INTERFACE
   pitts_multivector_centroids.hpp
   pitts_multivector_tsqr.hpp
   pitts_multivector_eigen_adaptor.hpp
+  pitts_multivector_transform.hpp
   )
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
