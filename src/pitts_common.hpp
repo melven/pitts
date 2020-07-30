@@ -24,7 +24,7 @@ namespace PITTS
   namespace common
   {
     //! flag to indicate if PITTS called MPI_Init or somebody else did it before
-    static inline int mpiInitializedBefore = false;
+    static inline int mpiInitializedBefore = true;
   }
 
 
