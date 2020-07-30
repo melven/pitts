@@ -395,3 +395,26 @@ MY_TYPED_TEST(masked_store_after)
     EXPECT_NEAR(result, result_ref, eps);
   }
 }
+
+
+MY_TYPED_TEST(streaming_store)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk src;
+  randomize(src);
+
+  const Chunk src_ref = src;
+
+  for(int i = 0; i < Chunk::size+10; i++)
+  {
+    Chunk result;
+    randomize(result);
+
+    streaming_store(src, result);
+
+    EXPECT_EQ(src_ref, src);
+    EXPECT_EQ(src, result);
+  }
+}

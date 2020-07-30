@@ -127,6 +127,26 @@ namespace PITTS
       _mm256_store_pd(&d[4*i],di);
     }
   }
+
+  // streaming store
+  template<>
+  inline void streaming_store<float>(const Chunk<float>& src, Chunk<float>& result)
+  {
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      _mm256_stream_ps(&result[8*i], _mm256_load_ps(&src[8*i]));
+    }
+  }
+
+  // streaming store
+  template<>
+  inline void streaming_store<double>(const Chunk<double>& src, Chunk<double>& result)
+  {
+    for(int i = 0; i < ALIGNMENT/32; i++)
+    {
+      _mm256_stream_pd(&result[4*i], _mm256_load_pd(&src[4*i]));
+    }
+  }
 }
 
 

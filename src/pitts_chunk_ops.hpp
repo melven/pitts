@@ -64,6 +64,10 @@ namespace PITTS
   //! masked store: store all values after a given index, keep first values ( result_i = (i < startIndex) ? result_i : src_i )
   template<typename T>
   inline void masked_store_after(const Chunk<T>& src, int index, Chunk<T>& result);
+
+  //! streaming store: write chunk to memory using a non-temporal store hint
+  template<typename T>
+  inline void streaming_store(const Chunk<T>& src, Chunk<T>& result);
 }
 
 

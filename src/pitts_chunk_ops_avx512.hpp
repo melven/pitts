@@ -309,6 +309,26 @@ namespace PITTS
       _mm512_mask_store_pd(&result[8*i], mask, vi);
     }
   }
+
+  // streaming store
+  template<>
+  inline void streaming_store<float>(const Chunk<float>& src, Chunk<float>& result)
+  {
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      _mm512_stream_ps(&result[16*i], _mm512_load_ps(&src[16*i]));
+    }
+  }
+
+  // streaming store
+  template<>
+  inline void streaming_store<double>(const Chunk<double>& src, Chunk<double>& result)
+  {
+    for(int i = 0; i < ALIGNMENT/64; i++)
+    {
+      _mm512_stream_pd(&result[8*i], _mm512_load_pd(&src[8*i]));
+    }
+  }
 }
 
 

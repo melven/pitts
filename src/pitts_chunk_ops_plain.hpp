@@ -115,6 +115,13 @@ namespace PITTS
     for(int i = index; i < Chunk<T>::size; i++)
       result[i] = src[i];
   }
+
+  // streaming store
+  template<typename T>
+  inline void streaming_store(const Chunk<T>& src, Chunk<T>& result)
+  {
+    result = src;
+  }
 }
 
 
