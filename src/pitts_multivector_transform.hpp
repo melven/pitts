@@ -74,8 +74,7 @@ namespace PITTS
             tmpx[ii] = *(&X(xi,k)+ii);
           fmadd(M(k,mj), tmpx, tmpy);
         }
-        // TODO stream if large...
-        Y.chunk(yChunk,yj) = tmpy;
+        streaming_store(tmpy, Y.chunk(yChunk,yj));
       }
     }
 
