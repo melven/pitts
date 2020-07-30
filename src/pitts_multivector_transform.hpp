@@ -53,8 +53,10 @@ namespace PITTS
 
     Y.resize(reshape[0], reshape[1]);
 #pragma omp parallel for schedule(static)
-    for(int yChunk = 0; yChunk < Y.rowChunks()-1; yChunk++)
+    for(int yChunk = 0; yChunk < Y.rowChunks(); yChunk++)
     {
+      if( yChunk == Y.rowChunks()-1 )
+        continue;
       for(int yj = 0; yj < Y.cols(); yj++)
       {
         // calculate indices
