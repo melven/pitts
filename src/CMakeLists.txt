@@ -60,7 +60,7 @@ add_executable(multivector_copy_bench multivector_copy_bench.cpp)
 
 # Python binding
 if(pybind11_FOUND)
-  pybind11_add_module(pitts_py MODULE
+  pybind11_add_module(pitts_py MODULE NO_EXTRAS
     pitts_pybind.cpp
     pitts_qubit_simulator_pybind.hpp
     pitts_qubit_simulator_pybind.cpp
