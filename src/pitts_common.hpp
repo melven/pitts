@@ -16,6 +16,8 @@
 #include <iostream>
 #include "pitts_performance.hpp"
 
+//#include <sched.h>
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -41,6 +43,7 @@ namespace PITTS
     {
       if( omp_get_thread_num() == 0 && verbose )
         std::cout << "PITTS: OpenMP #threads: " << omp_get_num_threads() << "\n";
+//      printf("OpenMP thread %d / %d on core %d\n", omp_get_thread_num(), omp_get_num_threads(), sched_getcpu());
     }
 
     if( MPI_Initialized(&common::mpiInitializedBefore) != 0 )
