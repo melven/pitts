@@ -47,6 +47,18 @@ class TestMultiVector(unittest.TestCase):
         mv_view2 = np.array(mv, copy=False)
         np.testing.assert_array_almost_equal(np.ones([3, 4]), mv_view2)
 
+    def test_copy(self):
+        mv = pitts_py.MultiVector_double(20, 5)
+        mv_view = np.array(mv, copy=False)
+        mv_view[...] = np.random.rand(20, 5)
+
+        mw = pitts_py.MultiVector_double()
+        print(mw)
+        print(mv)
+        pitts_py.copy(mv, mw)
+        mw_view = np.array(mw, copy=False)
+        np.testing.assert_array_almost_equal(mv_view, mw_view)
+
     def test_randomize(self):
         mv = pitts_py.MultiVector_double(20, 5)
 

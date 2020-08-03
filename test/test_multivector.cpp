@@ -145,3 +145,61 @@ TEST(PITTS_MultiVector, operator_indexing)
       EXPECT_EQ(i*7+j, M(i,j));
     }
 }
+
+TEST(PITTS_MultiVector, copy_small)
+{
+  constexpr auto eps = 1.e-10;
+  using MultiVector_double = PITTS::MultiVector<double>;
+
+  MultiVector_double M(3, 7);
+
+  // set to some known constants
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 7; j++)
+      M(i,j) = 1023*i + j;
+
+  MultiVector_double N;
+  copy(M, N);
+
+  ASSERT_EQ(3, N.rows());
+  ASSERT_EQ(7, N.cols());
+  ASSERT_EQ(3, M.rows());
+  ASSERT_EQ(7, M.cols());
+  for(int i = 0; i < 3; i++)
+  {
+    for(int j = 0; j < 7; j++)
+    {
+      ASSERT_NEAR(1023*i + j, M(i,j), eps);
+      ASSERT_NEAR(1023*i + j, N(i,j), eps);
+    }
+  }
+}
+
+TEST(PITTS_MultiVector, copy_large)
+{
+  constexpr auto eps = 1.e-10;
+  using MultiVector_double = PITTS::MultiVector<double>;
+
+  MultiVector_double M(103, 3);
+
+  // set to some known constants
+  for(int i = 0; i < 103; i++)
+    for(int j = 0; j < 3; j++)
+      M(i,j) = 1023*i + j;
+
+  MultiVector_double N;
+  copy(M, N);
+
+  ASSERT_EQ(103, N.rows());
+  ASSERT_EQ(3, N.cols());
+  ASSERT_EQ(103, M.rows());
+  ASSERT_EQ(3, M.cols());
+  for(int i = 0; i < 103; i++)
+  {
+    for(int j = 0; j < 3; j++)
+    {
+      ASSERT_NEAR(1023*i + j, M(i,j), eps);
+      ASSERT_NEAR(1023*i + j, N(i,j), eps);
+    }
+  }
+}
