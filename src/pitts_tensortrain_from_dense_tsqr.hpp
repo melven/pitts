@@ -10,11 +10,8 @@
 #define PITTS_TENSORTRAIN_FROM_DENSE_TSQR_HPP
 
 // includes
-#include <cstddef>
-#include <functional>
-#include <iterator>
+#include <limits>
 #include <numeric>
-#include <type_traits>
 #include <Eigen/Dense>
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
@@ -29,56 +26,33 @@ namespace PITTS
 {
   //! calculate tensor-train decomposition of a tensor stored in fully dense format
   //!
-  //! @tparam Iter      contiguous input iterator to access the dense data
   //! @tparam T         underlying data type (double, complex, ...)
   //!
-  //! @param first          input iterator that points to the first index, e.g. std::begin(someContainer)
-  //! @param last           input iterator that points behind the last index, e.g. std::end(someContainer)
+  //! @param X              input tensor, modified / destroyed on output, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
   //! @return               resulting tensor train
   //!
-  template<class Iter, typename T = std::iterator_traits<Iter>::value_type>
-  TensorTrain<T> fromDense_TSQR(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  template<typename T>
+  TensorTrain<T> fromDense_TSQR(MultiVector<T>&& X, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    // check that the input is contiguous in memory
-    //static_assert(std::is_base_of< std::contiguous_iterator_tag, typename std::iterator_traits<Iter>::iterator_category >::value, "fromDense only works with contiguous iterators!");
-    static_assert(std::is_base_of< std::random_access_iterator_tag, typename std::iterator_traits<Iter>::iterator_category >::value, "fromDense only works with contiguous iterators!");
-
     // abort early for zero dimensions
     if( dimensions.size() == 0 )
     {
-      if( last - first != 0 )
+      if( X.rows()*X.cols() !=  0 )
         throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
       return TensorTrain<T>{dimensions};
     }
 
     const auto totalSize = std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
-    if( totalSize != last - first )
-      throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
     const auto nDims = dimensions.size();
+    if( X.rows() != totalSize/dimensions[nDims-1] || X.cols() != dimensions[nDims-1] )
+      throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
     TensorTrain<T> result(dimensions);
-
-    // copy to padded buffer
-    MultiVector<T> tmp(totalSize/dimensions[nDims-1], dimensions[nDims-1]);
-#pragma omp parallel for schedule(static)
-    for(int iChunk = 0; iChunk < tmp.rowChunks(); iChunk++)
-    {
-      for(int j = 0; j < tmp.cols(); j++)
-      {
-        for(int ii = 0; ii < Chunk<T>::size; ii++)
-        {
-          int i = iChunk*Chunk<T>::size + ii;
-          if( i >= tmp.rows() )
-            continue;
-          tmp.chunk(iChunk,j)[ii] = first[i+j*tmp.rows()];
-        }
-      }
-    }
 
     // actually convert to tensor train format
     Tensor2<T> tmpR;
@@ -87,19 +61,19 @@ namespace PITTS
     //Eigen::BDCSVD<EigenMatrix> svd;
     for(int iDim = nDims-1; iDim > 0; iDim--)
     {
-std::cout << "iDim: " << iDim << ", matrix dimensions: " << tmp.rows() << " x " << tmp.cols() << "\n";
-      if( tmp.rows() > 10*tmp.cols())
+std::cout << "iDim: " << iDim << ", matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
+      if( X.rows() > 10*X.cols())
       {
         // calculate QR decomposition
-        block_TSQR(tmp, tmpR);
+        block_TSQR(X, tmpR);
       }
       else
       {
         // not tall and skinny, just copy to tmpR for simplicity
-        tmpR.resize(tmp.rows(), tmp.cols());
-        for(int j = 0; j < tmp.cols(); j++)
-          for(int i = 0; i < tmp.rows(); i++)
-            tmpR(i,j) = tmp(i,j);
+        tmpR.resize(X.rows(), X.cols());
+        for(int j = 0; j < X.cols(); j++)
+          for(int i = 0; i < X.rows(); i++)
+            tmpR(i,j) = X(i,j);
       }
 //std::cout << "tmpR:\n" << ConstEigenMap(tmpR) << "\n";
 
@@ -113,25 +87,25 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
       svd.setThreshold(rankTolerance);
       const int rank = svd.rank();
       auto& subT = result.editableSubTensors()[iDim];
-      subT.resize(rank, dimensions[iDim], tmp.cols()/dimensions[iDim]);
+      subT.resize(rank, dimensions[iDim], X.cols()/dimensions[iDim]);
       for(int i = 0; i < subT.r1(); i++)
         for(int j = 0; j < subT.n(); j++)
           for(int k = 0; k < subT.r2(); k++)
             subT(i,j,k) = svd.matrixV()(j+subT.n()*k, i);
 
-      tmpR.resize(tmp.cols(), rank);
+      tmpR.resize(X.cols(), rank);
       EigenMap(tmpR) = svd.matrixV().leftCols(rank);
 
       const auto nextDim = dimensions[iDim-1];
-      transform(tmp, tmpR, buff, {tmp.rows()/nextDim, rank*nextDim});
-      std::swap(tmp, buff);
+      transform(X, tmpR, buff, {X.rows()/nextDim, rank*nextDim});
+      std::swap(X, buff);
     }
-    // last sub-tensor is now in tmp
+    // last sub-tensor is now in X
     auto& lastSubT = result.editableSubTensors()[0];
-    lastSubT.resize(1, dimensions[0], tmp.cols()/dimensions[0]);
+    lastSubT.resize(1, dimensions[0], X.cols()/dimensions[0]);
     for(int i = 0; i < lastSubT.n(); i++)
       for(int j = 0; j < lastSubT.r2(); j++)
-        lastSubT(0, i, j) = tmp(0, i+j*dimensions[0]);
+        lastSubT(0, i, j) = X(0, i+j*dimensions[0]);
 
     return result;
   }
