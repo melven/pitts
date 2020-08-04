@@ -284,3 +284,55 @@ TEST(PITTS_TensorTrain_fromDense, tensor_5d_2x3x4x2x3_unit)
   EXPECT_NEAR(1., norm2(refTT), eps);
   EXPECT_NEAR(1., dot(TT, refTT), eps);
 }
+
+TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5_maxRank)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  std::array<double,4*5> M;
+  const std::vector<int> dimensions = {4,5};
+  for(int i = 0; i < 4; i++)
+    for(int j = 0; j < 5; j++)
+      M[i+j*4] = (i == j ? 10.-i : 0.);
+
+  {
+    // full / exact
+    TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+
+    ASSERT_EQ(TT.dimensions(), dimensions);
+
+    // check result with dot products
+    TensorTrain_double testTT(dimensions);
+    for(int i = 0; i < 4; i++)
+      for(int j = 0; j < 5; j++)
+      {
+        testTT.setUnit({i,j});
+        EXPECT_NEAR((i == j ? 10.-i : 0.), dot(testTT, TT), eps);
+      }
+  }
+
+  {
+    // truncated
+    TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions, 1.e-16, 3);
+
+    ASSERT_EQ(TT.dimensions(), dimensions);
+
+    // check result with dot products
+    TensorTrain_double testTT(dimensions);
+    for(int i = 0; i < 4; i++)
+      for(int j = 0; j < 5; j++)
+      {
+        testTT.setUnit({i,j});
+        if( i == j && i < 3 )
+        {
+          EXPECT_NEAR(10.-i, dot(testTT, TT), eps);
+        }
+        else
+        {
+          EXPECT_NEAR(0., dot(testTT, TT), eps);
+        }
+      }
+  }
+
+}

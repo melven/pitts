@@ -31,10 +31,11 @@ namespace PITTS
   //! @param X              input tensor, modified / destroyed on output, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
+  //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense_TSQR(MultiVector<T>&& X, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  TensorTrain<T> fromDense_TSQR(MultiVector<T>&& X, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -85,7 +86,9 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 
       // copy V to the TT sub-tensor
       svd.setThreshold(rankTolerance);
-      const int rank = svd.rank();
+      int rank = svd.rank();
+      if( maxRank > 0 )
+        rank = std::min(maxRank, rank);
       auto& subT = result.editableSubTensors()[iDim];
       subT.resize(rank, dimensions[iDim], X.cols()/dimensions[iDim]);
       for(int i = 0; i < subT.r1(); i++)
