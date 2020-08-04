@@ -145,10 +145,15 @@ namespace PITTS
 
     b.resize(rows, cols);
 
-#pragma omp parallel for collapse(2) schedule(static) if(rows*cols > 500)
-    for(int j = 0; j < cols; j++)
-      for(int iChunk = 0; iChunk < rowChunks; iChunk++)
-        streaming_store(a.chunk(iChunk,j), b.chunk(iChunk,j));
+#pragma omp parallel
+    {
+      for(int j = 0; j < cols; j++)
+      {
+#pragma omp for schedule(static) nowait
+        for(int iChunk = 0; iChunk < rowChunks; iChunk++)
+          streaming_store(a.chunk(iChunk,j), b.chunk(iChunk,j));
+      }
+    }
   }
 }
 
