@@ -24,10 +24,10 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  void randomize(MultiVector<T>& t2)
+  void randomize(MultiVector<T>& X)
   {
-    const auto rows = t2.rows();
-    const auto cols = t2.cols();
+    const auto rows = X.rows();
+    const auto cols = X.cols();
 
     // gather performance data
     const double rowsd = rows, colsd = cols;
@@ -50,10 +50,12 @@ namespace PITTS
       }
       std::mt19937 randomGenerator(seed);
       std::uniform_real_distribution<T> distribution(T(-1), T(1));
-#pragma omp for schedule(static) collapse(2)
       for(int j = 0; j < cols; j++)
+      {
+#pragma omp for schedule(static) nowait
         for(int i = 0; i < rows; i++)
-          t2(i,j) = distribution(randomGenerator);
+          X(i,j) = distribution(randomGenerator);
+      }
     }
   }
 
