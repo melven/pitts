@@ -16,9 +16,11 @@
 #include <iterator>
 #include <numeric>
 #include <type_traits>
-#include <Eigen/Dense>
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
+#include "pitts_tensor2.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_transform.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -54,25 +56,39 @@ namespace PITTS
     if( totalSize != last - first )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::toDense");
 
-    using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    EigenMatrix tmp = EigenMatrix::Identity(1,1);
-    for(int iDim = 0; iDim < TT.dimensions().size(); iDim++)
+    // use "multivector <- multivector * tensor2" ("transform") implementation
+    // as in most cases the calculation becomes memory bound and requires lots of reshaping
+    MultiVector<T> X;
     {
-      // copy sub-tensor to matrix to make it easier
+      const auto& subT = TT.subTensors()[0];
+      assert(subT.r1() == 1);
+      X.resize(subT.n(), subT.r2());
+      for(int j = 0; j < X.cols(); j++)
+        for(int i = 0; i < X.rows(); i++)
+          X(i,j) = subT(0,i,j);
+    }
+
+    MultiVector<T> Y;
+    Tensor2<T> M;
+    for(int iDim = 1; iDim < TT.dimensions().size(); iDim++)
+    {
+      // copy sub-tensor to Tensor2 to pass it to transform later
       const auto& subT = TT.subTensors()[iDim];
-      EigenMatrix subT_matrix(subT.r1(), subT.n()*subT.r2());
+      M.resize(subT.r1(), subT.n()*subT.r2());
       for(int k = 0; k < subT.r2(); k++)
         for(int j = 0; j < subT.n(); j++)
           for(int i = 0; i < subT.r1(); i++)
-            subT_matrix(i, j + k*subT.n()) = subT(i,j,k);
+            M(i, j+subT.n()*k) = subT(i,j,k);
 
-      EigenMatrix newTmp = tmp * subT_matrix;
-      tmp.resize(newTmp.rows()*subT.n(), newTmp.cols()/subT.n());
-      tmp = Eigen::Map<EigenMatrix>(newTmp.data(), tmp.rows(), tmp.cols());
+      transform(X, M, Y, {X.rows()*subT.n(),subT.r2()});
+      std::swap(X, Y);
     }
+    assert(X.rows() == totalSize && X.cols() == 1);
 
-    // copy to output
-    Eigen::Map<EigenMatrix>(&(*first), totalSize, 1) = tmp;
+    // copy X to output
+#pragma omp parallel for schedule(static)
+    for(long long i = 0; i < totalSize; i++)
+      first[i] = X(i,0);
   }
 
 }
