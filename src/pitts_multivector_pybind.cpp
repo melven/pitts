@@ -18,6 +18,8 @@
 #include "pitts_multivector_cdist.hpp"
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_tsqr.hpp"
+#include "pitts_multivector_transform.hpp"
+#include "pitts_multivector_transpose.hpp"
 #include "pitts_multivector_pybind.hpp"
 #include "pitts_scope_info.hpp"
 
@@ -102,6 +104,16 @@ namespace PITTS
               },
             py::arg("M"),
             "Calculate upper triangular part R from a QR-decomposition of the given tall-skinny matrix (multi-vector) M");
+
+        m.def("transform",
+            py::overload_cast< const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long,2> >(&PITTS::transform<T>),
+            py::arg("X"), py::arg("M"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0},
+            "Calculate the matrix-matrix product of a tall-skinny matrix (multivector) with a small matrix (Y <- X*M)");
+
+        m.def("transpose",
+            py::overload_cast< const MultiVector<T>&, MultiVector<T>&, std::array<long long,2> >(&PITTS::transpose<T>),
+            py::arg("X"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0},
+            "Reshape and transpose a tall-skinny matrix");
       }
     }
 
