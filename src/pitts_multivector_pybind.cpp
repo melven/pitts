@@ -38,8 +38,8 @@ namespace PITTS
       py::array_t<T> copy(const Tensor2<T>& buff)
       {
         py::array_t<T> result({buff.r1(), buff.r2()});
-        for(int i = 0; i < buff.r1(); i++)
-          for(int j = 0; j < buff.r2(); j++)
+        for(long long i = 0; i < buff.r1(); i++)
+          for(long long j = 0; j < buff.r2(); j++)
             *result.mutable_data(i,j) = buff(i,j);
         return result;
       }
@@ -61,7 +61,7 @@ namespace PITTS
         const std::string className = "MultiVector_" + type_name;
 
         py::class_<MultiVector<T>>(m, className.c_str(), py::buffer_protocol(), "Simple multi-vector class")
-          .def(py::init<int,int>(), py::arg("rows")=0, py::arg("cols")=0, "Create MultiVector with given dimensions")
+          .def(py::init<long long,long long>(), py::arg("rows")=0, py::arg("cols")=0, "Create MultiVector with given dimensions")
           .def_buffer([](MultiVector<T>& mv) {
               return py::buffer_info(&mv(0,0), sizeof(T), py::format_descriptor<T>::format(), 2, {mv.rows(), mv.cols()}, {sizeof(T), sizeof(T)*(&mv(0,1)-&mv(0,0))});
               })
@@ -81,7 +81,7 @@ namespace PITTS
             "fill a multi-vector with random values (keeping current dimensions)");
 
         m.def("centroids",
-            py::overload_cast< const MultiVector<T>&, const std::vector<int>&, const std::vector<T>&, MultiVector<T>& >(&centroids<T>),
+            py::overload_cast< const MultiVector<T>&, const std::vector<long long>&, const std::vector<T>&, MultiVector<T>& >(&centroids<T>),
             py::arg("X"), py::arg("idx"), py::arg("weights"), py::arg("Y"),
             "Calculate weighted sum of columns of X and store the result in Y: (sums up Y with Y(idx_i) += weights_i*X_i)");
 

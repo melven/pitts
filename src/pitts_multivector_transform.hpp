@@ -31,14 +31,14 @@ namespace PITTS
   //! @param reshape  desired shape of the resulting multi-vector, total size must be n*k
   //!
   template<typename T>
-  void transform(const MultiVector<T>& X, const Tensor2<T>& M, MultiVector<T>& Y, std::array<int,2> reshape = {0, 0})
+  void transform(const MultiVector<T>& X, const Tensor2<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape = {0, 0})
   {
     // check dimensions
     if( X.cols() != M.r1() )
       throw std::invalid_argument("MultiVector::transform: dimension mismatch!");
 
-    if( reshape == std::array<int,2>{0, 0} )
-      reshape = std::array<int,2>{X.rows(), M.r2()};
+    if( reshape == std::array<long long,2>{0, 0} )
+      reshape = std::array<long long,2>{X.rows(), M.r2()};
 
     if( reshape[0] * reshape[1] != X.rows()*M.r2() )
       throw std::invalid_argument("MultiVector::transform: invalid reshape dimensions!");
@@ -53,26 +53,26 @@ namespace PITTS
 
     Y.resize(reshape[0], reshape[1]);
 #pragma omp parallel for schedule(static)
-    for(int yChunk = 0; yChunk < Y.rowChunks(); yChunk++)
+    for(long long yChunk = 0; yChunk < Y.rowChunks(); yChunk++)
     {
       if( yChunk == Y.rowChunks()-1 )
         continue;
-      for(int yj = 0; yj < Y.cols(); yj++)
+      for(long long yj = 0; yj < Y.cols(); yj++)
       {
         // calculate indices
-        const auto index = yChunk*Chunk<T>::size + ((long long)(Y.rows()))*yj;
-        const auto xi = int(index % X.rows());
-        const auto mj = int(index / X.rows());
+        const auto index = yChunk*Chunk<T>::size + Y.rows()*yj;
+        const auto xi = index % X.rows();
+        const auto mj = index / X.rows();
         // non-contiguous case handled later
         if( xi >= (X.rowChunks()-1)*Chunk<T>::size )
           continue;
 
         // contiguous but possibly unaligned...
         Chunk<T> tmpy{};
-        for(int k = 0; k < M.r1(); k++)
+        for(long long k = 0; k < M.r1(); k++)
         {
           Chunk<T> tmpx;
-          for(int ii = 0; ii < Chunk<T>::size; ii++)
+          for(long long ii = 0; ii < Chunk<T>::size; ii++)
             tmpx[ii] = *(&X(xi,k)+ii);
           fmadd(M(k,mj), tmpx, tmpy);
         }
@@ -84,17 +84,17 @@ namespace PITTS
     if( Y.rowChunks() > 0 )
     {
       const auto lastChunkOffset = (Y.rowChunks()-1)*Chunk<T>::size;
-      for(int yi = lastChunkOffset; yi < Y.rows(); yi++)
+      for(long long yi = lastChunkOffset; yi < Y.rows(); yi++)
       {
-        for(int yj = 0; yj < Y.cols(); yj++)
+        for(long long yj = 0; yj < Y.cols(); yj++)
         {
           // calculate indices
-          const auto index = yi + ((long long)(Y.rows()))*yj;
-          const auto xi = int(index % X.rows());
-          const auto mj = int(index / X.rows());
+          const auto index = yi + Y.rows()*yj;
+          const auto xi = index % X.rows();
+          const auto mj = index / X.rows();
 
           Y(yi,yj) = T(0);
-          for(int k = 0; k < M.r1(); k++)
+          for(long long k = 0; k < M.r1(); k++)
             Y(yi,yj) += X(xi,k)*M(k,mj);
         }
       }
@@ -104,17 +104,17 @@ namespace PITTS
     if( X.rowChunks() > 0 && X.rows() != Y.rows() )
     {
       const auto lastChunkOffset = (X.rowChunks()-1)*Chunk<T>::size;
-      for(int xi = lastChunkOffset; xi < X.rows(); xi++)
+      for(long long xi = lastChunkOffset; xi < X.rows(); xi++)
       {
-        for(int mj = 0; mj < M.r2(); mj++)
+        for(long long mj = 0; mj < M.r2(); mj++)
         {
           // calculate indices
-          const auto index = xi + ((long long)(X.rows()))*mj;
-          const auto yi = int(index % Y.rows());
-          const auto yj = int(index / Y.rows());
+          const auto index = xi + X.rows()*mj;
+          const auto yi = index % Y.rows();
+          const auto yj = index / Y.rows();
 
           Y(yi,yj) = T(0);
-          for(int k = 0; k < M.r1(); k++)
+          for(long long k = 0; k < M.r1(); k++)
             Y(yi,yj) += X(xi,k)*M(k,mj);
         }
       }
@@ -123,17 +123,17 @@ namespace PITTS
     // special handling for the first row-chunk of X (possibly left out above when reshaping)
     if( X.rowChunks() > 1 && X.rows() != Y.rows() )
     {
-      for(int xi = 0; xi < Chunk<T>::size; xi++)
+      for(long long xi = 0; xi < Chunk<T>::size; xi++)
       {
-        for(int mj = 0; mj < M.r2(); mj++)
+        for(long long mj = 0; mj < M.r2(); mj++)
         {
           // calculate indices
-          const auto index = xi + ((long long)(X.rows()))*mj;
-          const auto yi = int(index % Y.rows());
-          const auto yj = int(index / Y.rows());
+          const auto index = xi + X.rows()*mj;
+          const auto yi = index % Y.rows();
+          const auto yj = index / Y.rows();
 
           Y(yi,yj) = T(0);
-          for(int k = 0; k < M.r1(); k++)
+          for(long long k = 0; k < M.r1(); k++)
             Y(yi,yj) += X(xi,k)*M(k,mj);
         }
       }

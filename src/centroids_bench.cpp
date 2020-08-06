@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   PITTS::MultiVector<Type> X(n, m), Y(n,2);
   randomize(X);
 
-  std::vector<int> idx(m);
+  std::vector<long long> idx(m);
   for(int j = 0; j < m; j++)
     idx[j] = j % 2;
   std::vector<float> w(m, 0.5*m);

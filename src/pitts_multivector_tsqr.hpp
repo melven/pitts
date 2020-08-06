@@ -45,7 +45,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyRotation(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      inline void applyRotation(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> vTx{};
         {
@@ -88,7 +88,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyRotation2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      inline void applyRotation2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
@@ -130,7 +130,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, int lda, Chunk<T>* pdataResult)
+      inline void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
@@ -172,7 +172,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*m; contains the upper triangular R on exit; the lower triangular part is set to zero
       //!
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, int ldaIn, Chunk<T>* pdataResult)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult)
       {
         int nPadded = nChunks*Chunk<T>::size;
         Chunk<T> buff_v[nChunks];
@@ -180,7 +180,7 @@ namespace PITTS
         Chunk<T>* v = buff_v;
         Chunk<T>* w = buff_w;
         const Chunk<T>* pdata = pdataIn;
-        int lda = ldaIn;
+        long long lda = ldaIn;
         for(int col = 0; col < std::min(m, nPadded); col++)
         {
           int firstRow = col / Chunk<T>::size;
@@ -276,7 +276,7 @@ namespace PITTS
       //! @param workOffset   row offset of the next zero block in the work matrix, adjusted on output
       //!
       template<typename T>
-      void copyBlockAndTransformMaybe(int nSrc, int m, const Chunk<T>* pdataSrc, int ldaSrc, int nChunks, Chunk<T>* pdataWork, int& workOffset)
+      void copyBlockAndTransformMaybe(int nSrc, int m, const Chunk<T>* pdataSrc, long long ldaSrc, int nChunks, Chunk<T>* pdataWork, int& workOffset)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -303,12 +303,12 @@ namespace PITTS
   void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4)
   {
     // calculate dimensions and block sizes
-    const int n = M.rows();
+    const long long n = M.rows();
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = (reductionFactor+1) * mChunks;
-    const int lda = M.rowChunks();
-    const int nIter = lda / nChunks;
+    const long long lda = M.rowChunks();
+    const long long nIter = lda / nChunks;
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
@@ -347,7 +347,7 @@ namespace PITTS
       int localBuffOffset = 0;
 
 #pragma omp for schedule(static)
-      for(int iter = 0; iter < nIter; iter++)
+      for(long long iter = 0; iter < nIter; iter++)
       {
         internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &pdataSmall[0]);
 

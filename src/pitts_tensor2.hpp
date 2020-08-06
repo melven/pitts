@@ -36,7 +36,7 @@ namespace PITTS
     //! @param r1   dimension of the first index, can be small
     //! @param r2   dimension of the third index, can be small
     //!
-    Tensor2(int r1, int r2)
+    Tensor2(long long r1, long long r2)
     {
       resize(r1,r2);
     }
@@ -48,7 +48,7 @@ namespace PITTS
     Tensor2() = default;
 
     //! adjust the desired tensor dimensions (destroying all data!)
-    void resize(int r1, int r2)
+    void resize(long long r1, long long r2)
     {
       // fast return without timer!
       if( r1 == r1_ && r2 == r2_ )
@@ -56,7 +56,7 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       const auto n = r1*r2;
-      const auto requiredChunks = std::max(1, (n-1)/chunkSize+1);
+      const auto requiredChunks = std::max((long long)1, (n-1)/chunkSize+1);
       if( requiredChunks > reservedChunks_ )
       {
         data_.reset(new Chunk<T>[requiredChunks]);
@@ -69,18 +69,18 @@ namespace PITTS
     }
 
     //! access matrix entries (column-wise ordering, const variant)
-    inline const T& operator()(int i, int j) const
+    inline const T& operator()(long long i, long long j) const
     {
-        int k = i + j*r1_;
+        const auto k = i + j*r1_;
         //return data_[k/chunkSize][k%chunkSize];
         const auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
         return pdata[k];
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
-    inline T& operator()(int i, int j)
+    inline T& operator()(long long i, long long j)
     {
-        int k = i + j*r1_;
+        const auto k = i + j*r1_;
         //return data_[k/chunkSize][k%chunkSize];
         auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
         return pdata[k];
@@ -97,17 +97,17 @@ namespace PITTS
     //!
     //! (workaround for missing static function size() of std::array!)
     //!
-    static constexpr int chunkSize = Chunk<T>::size;
+    static constexpr long long chunkSize = Chunk<T>::size;
 
   private:
     //! size of the buffer
-    int reservedChunks_ = 0;
+    long long reservedChunks_ = 0;
 
     //! first dimension
-    int r1_ = 0;
+    long long r1_ = 0;
 
     //! second dimension
-    int r2_ = 0;
+    long long r2_ = 0;
 
     //! the actual data...
     std::unique_ptr<Chunk<T>[]> data_ = nullptr;
@@ -130,8 +130,8 @@ namespace PITTS
     b.resize(r1, r2);
 
 #pragma omp parallel for collapse(2) schedule(static) if(r1*r2 > 500)
-    for(int j = 0; j < r2; j++)
-      for(int i = 0; i < r1; i++)
+    for(long long j = 0; j < r2; j++)
+      for(long long i = 0; i < r1; i++)
         b(i,j) = a(i,j);
   }
 }

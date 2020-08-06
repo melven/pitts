@@ -38,8 +38,8 @@ namespace PITTS
     std::mt19937 randomGenerator(randomSeed());
     std::uniform_real_distribution<T> distribution(T(-1), T(1));
 
-    for(int i = 0; i < r1; i++)
-      for(int j = 0; j < r2; j++)
+    for(long long i = 0; i < r1; i++)
+      for(long long j = 0; j < r2; j++)
           t2(i,j) = distribution(randomGenerator);
   }
 

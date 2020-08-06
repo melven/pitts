@@ -13,7 +13,7 @@ TEST(PITTS_MultiVector_centroids, single_vector)
   randomize(X);
   randomize(Y);
 
-  std::vector<int> idx(1, 0);
+  std::vector<long long> idx(1, 0);
   std::vector<double> w(1, 77.);
 
   centroids(X, idx, w, Y);
@@ -35,7 +35,7 @@ TEST(PITTS_MultiVector_centroids, n_x_1)
   randomize(X);
   randomize(Y);
 
-  std::vector<int> idx = {0, 0, 0};
+  std::vector<long long> idx = {0, 0, 0};
   std::vector<double> w = {66., 77., 88.};
 
   centroids(X, idx, w, Y);
@@ -56,7 +56,7 @@ TEST(PITTS_MultiVector_centroids, n_x_m)
   randomize(X);
   randomize(Y);
 
-  std::vector<int> idx = {1, 0, 0, 1, 0};
+  std::vector<long long> idx = {1, 0, 0, 1, 0};
   std::vector<double> w = {44., 55., 66., 77., 88.};
 
   centroids(X, idx, w, Y);
