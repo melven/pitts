@@ -60,6 +60,8 @@ add_executable(tsqr_bench tsqr_bench.cpp)
 add_executable(tsmm_bench tsmm_bench.cpp)
 add_executable(transpose_bench transpose_bench.cpp)
 add_executable(multivector_copy_bench multivector_copy_bench.cpp)
+add_executable(tt_from_dense_bench tt_from_dense_bench.cpp)
+add_executable(tt_from_dense_tsqr_bench tt_from_dense_tsqr_bench.cpp)
 
 # Python binding
 if(pybind11_FOUND)
