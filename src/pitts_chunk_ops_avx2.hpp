@@ -22,7 +22,7 @@ namespace PITTS
   template<>
   inline void fmadd<float>(const Chunk<float>& a, const Chunk<float>& b, const Chunk<float>& c, Chunk<float>& d)
   {
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256 ai = _mm256_load_ps(&a[8*i]);
       __m256 bi = _mm256_load_ps(&b[8*i]);
@@ -36,7 +36,7 @@ namespace PITTS
   template<>
   inline void fmadd<double>(const Chunk<double>& a, const Chunk<double>& b, const Chunk<double>& c, Chunk<double>& d)
   {
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256d ai = _mm256_load_pd(&a[4*i]);
       __m256d bi = _mm256_load_pd(&b[4*i]);
@@ -51,7 +51,7 @@ namespace PITTS
   inline void fmadd<float>(float a, const Chunk<float>& b, Chunk<float>& c)
   {
     __m256 ai = _mm256_set1_ps(a);
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256 bi = _mm256_load_ps(&b[8*i]);
       __m256 ci = _mm256_load_ps(&c[8*i]);
@@ -65,7 +65,7 @@ namespace PITTS
   inline void fmadd<double>(double a, const Chunk<double>& b, Chunk<double>& c)
   {
     __m256d ai = _mm256_set1_pd(a);
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256d bi = _mm256_load_pd(&b[4*i]);
       __m256d ci = _mm256_load_pd(&c[4*i]);
@@ -79,7 +79,7 @@ namespace PITTS
   inline void mul<float>(float a, const Chunk<float>& b, Chunk<float>& c)
   {
     __m256 ai = _mm256_set1_ps(a);
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256 bi = _mm256_load_ps(&b[8*i]);
       __m256 ci = _mm256_mul_ps(ai,bi);
@@ -92,7 +92,7 @@ namespace PITTS
   inline void mul<double>(double a, const Chunk<double>& b, Chunk<double>& c)
   {
     __m256d ai = _mm256_set1_pd(a);
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256d bi = _mm256_load_pd(&b[4*i]);
       __m256d ci = _mm256_mul_pd(ai,bi);
@@ -104,7 +104,7 @@ namespace PITTS
   template<>
   inline void fnmadd<float>(const Chunk<float>& a, const Chunk<float>& b, const Chunk<float>& c, Chunk<float>& d)
   {
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256 ai = _mm256_load_ps(&a[8*i]);
       __m256 bi = _mm256_load_ps(&b[8*i]);
@@ -118,7 +118,7 @@ namespace PITTS
   template<>
   inline void fnmadd<double>(const Chunk<double>& a, const Chunk<double>& b, const Chunk<double>& c, Chunk<double>& d)
   {
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       __m256d ai = _mm256_load_pd(&a[4*i]);
       __m256d bi = _mm256_load_pd(&b[4*i]);
@@ -132,7 +132,7 @@ namespace PITTS
   template<>
   inline void streaming_store<float>(const Chunk<float>& src, Chunk<float>& result)
   {
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       _mm256_stream_ps(&result[8*i], _mm256_load_ps(&src[8*i]));
     }
@@ -142,7 +142,7 @@ namespace PITTS
   template<>
   inline void streaming_store<double>(const Chunk<double>& src, Chunk<double>& result)
   {
-    for(int i = 0; i < ALIGNMENT/32; i++)
+    for(short i = 0; i < ALIGNMENT/32; i++)
     {
       _mm256_stream_pd(&result[4*i], _mm256_load_pd(&src[4*i]));
     }

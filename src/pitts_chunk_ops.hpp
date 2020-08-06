@@ -55,15 +55,15 @@ namespace PITTS
 
   //! masked broadcast to given index, sets result to value at given index and to src everywhere else ( result_i = (i==index) ? value : src_i )
   template<typename T>
-  inline void index_bcast(const Chunk<T>& src, int index, T value, Chunk<T>& result);
+  inline void index_bcast(const Chunk<T>& src, short index, T value, Chunk<T>& result);
 
   //! masked load: load all values after a given index, zero out first values ( result_i = (i < startIndex) ? 0 : src_i )
   template<typename T>
-  inline void masked_load_after(const Chunk<T>& src, int index, Chunk<T>& result);
+  inline void masked_load_after(const Chunk<T>& src, short index, Chunk<T>& result);
 
   //! masked store: store all values after a given index, keep first values ( result_i = (i < startIndex) ? result_i : src_i )
   template<typename T>
-  inline void masked_store_after(const Chunk<T>& src, int index, Chunk<T>& result);
+  inline void masked_store_after(const Chunk<T>& src, short index, Chunk<T>& result);
 
   //! streaming store: write chunk to memory using a non-temporal store hint
   template<typename T>

@@ -22,7 +22,7 @@ namespace PITTS
   template<>
   inline void fmadd<float>(const Chunk<float>& a, const Chunk<float>& b, const Chunk<float>& c, Chunk<float>& d)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512 ai = _mm512_load_ps(&a[16*i]);
       __m512 bi = _mm512_load_ps(&b[16*i]);
@@ -36,7 +36,7 @@ namespace PITTS
   template<>
   inline void fmadd<double>(const Chunk<double>& a, const Chunk<double>& b, const Chunk<double>& c, Chunk<double>& d)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512d ai = _mm512_load_pd(&a[8*i]);
       __m512d bi = _mm512_load_pd(&b[8*i]);
@@ -51,7 +51,7 @@ namespace PITTS
   inline void fmadd<float>(float a, const Chunk<float>& b, Chunk<float>& c)
   {
     __m512 ai = _mm512_set1_ps(a);
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512 bi = _mm512_load_ps(&b[16*i]);
       __m512 ci = _mm512_load_ps(&c[16*i]);
@@ -65,7 +65,7 @@ namespace PITTS
   inline void fmadd<double>(double a, const Chunk<double>& b, Chunk<double>& c)
   {
     __m512d ai = _mm512_set1_pd(a);
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512d bi = _mm512_load_pd(&b[8*i]);
       __m512d ci = _mm512_load_pd(&c[8*i]);
@@ -79,7 +79,7 @@ namespace PITTS
   inline void mul<float>(float a, const Chunk<float>& b, Chunk<float>& c)
   {
     __m512 ai = _mm512_set1_ps(a);
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512 bi = _mm512_load_ps(&b[16*i]);
       __m512 ci = _mm512_mul_ps(ai,bi);
@@ -92,7 +92,7 @@ namespace PITTS
   inline void mul<double>(double a, const Chunk<double>& b, Chunk<double>& c)
   {
     __m512d ai = _mm512_set1_pd(a);
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512d bi = _mm512_load_pd(&b[8*i]);
       __m512d ci = _mm512_mul_pd(ai,bi);
@@ -104,7 +104,7 @@ namespace PITTS
   template<>
   inline void fnmadd<float>(const Chunk<float>& a, const Chunk<float>& b, const Chunk<float>& c, Chunk<float>& d)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512 ai = _mm512_load_ps(&a[16*i]);
       __m512 bi = _mm512_load_ps(&b[16*i]);
@@ -118,7 +118,7 @@ namespace PITTS
   template<>
   inline void fnmadd<double>(const Chunk<double>& a, const Chunk<double>& b, const Chunk<double>& c, Chunk<double>& d)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __m512d ai = _mm512_load_pd(&a[8*i]);
       __m512d bi = _mm512_load_pd(&b[8*i]);
@@ -230,9 +230,9 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
-  inline void index_bcast<float>(const Chunk<float>& src, int index, float value, Chunk<float>& result)
+  inline void index_bcast<float>(const Chunk<float>& src, short index, float value, Chunk<float>& result)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __mmask16 mask = (1<<index)>>(16*i);
       __m512 xi = _mm512_load_ps(&src[16*i]);
@@ -243,9 +243,9 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
-  inline void index_bcast<double>(const Chunk<double>& src, int index, double value, Chunk<double>& result)
+  inline void index_bcast<double>(const Chunk<double>& src, short index, double value, Chunk<double>& result)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       __mmask8 mask = (1<<index)>>(8*i);
       __m512d xi = _mm512_load_pd(&src[8*i]);
@@ -256,10 +256,10 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
-  inline void masked_load_after<float>(const Chunk<float>& src, int index, Chunk<float>& result)
+  inline void masked_load_after<float>(const Chunk<float>& src, short index, Chunk<float>& result)
   {
     // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       unsigned long all = -1; // set to 0xFF....
       __mmask16 mask = (all<<index)>>(16*i);
@@ -270,10 +270,10 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
-  inline void masked_load_after<double>(const Chunk<double>& src, int index, Chunk<double>& result)
+  inline void masked_load_after<double>(const Chunk<double>& src, short index, Chunk<double>& result)
   {
     // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       unsigned long all = -1; // set to 0xFF....
       __mmask8 mask = (all<<index)>>(8*i);
@@ -284,10 +284,10 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
-  inline void masked_store_after<float>(const Chunk<float>& src, int index, Chunk<float>& result)
+  inline void masked_store_after<float>(const Chunk<float>& src, short index, Chunk<float>& result)
   {
     // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       unsigned long all = -1; // set to 0xFF....
       __mmask16 mask = (all<<index)>>(16*i);
@@ -298,10 +298,10 @@ namespace PITTS
 
   // compilers seem not to generate masked SIMD commands
   template<>
-  inline void masked_store_after<double>(const Chunk<double>& src, int index, Chunk<double>& result)
+  inline void masked_store_after<double>(const Chunk<double>& src, short index, Chunk<double>& result)
   {
     // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       unsigned long all = -1; // set to 0xFF....
       __mmask8 mask = (all<<index)>>(8*i);
@@ -314,7 +314,7 @@ namespace PITTS
   template<>
   inline void streaming_store<float>(const Chunk<float>& src, Chunk<float>& result)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       _mm512_stream_ps(&result[16*i], _mm512_load_ps(&src[16*i]));
     }
@@ -324,7 +324,7 @@ namespace PITTS
   template<>
   inline void streaming_store<double>(const Chunk<double>& src, Chunk<double>& result)
   {
-    for(int i = 0; i < ALIGNMENT/64; i++)
+    for(short i = 0; i < ALIGNMENT/64; i++)
     {
       _mm512_stream_pd(&result[8*i], _mm512_load_pd(&src[8*i]));
     }

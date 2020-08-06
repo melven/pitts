@@ -21,7 +21,7 @@ namespace PITTS
   template<typename T>
   inline void fmadd(const Chunk<T>& a, const Chunk<T>& b, const Chunk<T>& c, Chunk<T>& d)
   {
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       d[i] = a[i]*b[i] + c[i];
   }
 
@@ -36,7 +36,7 @@ namespace PITTS
   template<typename T>
   inline void fmadd(T a, const Chunk<T>& b, Chunk<T>& c)
   {
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       c[i] += a*b[i];
   }
 
@@ -44,7 +44,7 @@ namespace PITTS
   template<typename T>
   inline void mul(T a, const Chunk<T>& b, Chunk<T>& c)
   {
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       c[i] = a*b[i];
   }
 
@@ -52,7 +52,7 @@ namespace PITTS
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, const Chunk<T>& c, Chunk<T>& d)
   {
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       d[i] = c[i] - a[i]*b[i];
   }
 
@@ -68,7 +68,7 @@ namespace PITTS
   inline T sum(const Chunk<T>& a)
   {
     T tmp = T(0);
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       tmp += a[i];
     return tmp;
   }
@@ -78,7 +78,7 @@ namespace PITTS
   inline T scaled_sum(T scale, const Chunk<T>& a)
   {
     T tmp = T(0);
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       tmp += scale * a[i];
     return tmp;
   }
@@ -88,31 +88,31 @@ namespace PITTS
   inline void bcast_sum(Chunk<T>& v)
   {
     T tmp = sum(v);
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       v[i] = tmp;
   }
 
   // masked broadcast
   template<typename T>
-  inline void index_bcast(const Chunk<T>& src, int index, T value, Chunk<T>& result)
+  inline void index_bcast(const Chunk<T>& src, short index, T value, Chunk<T>& result)
   {
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       result[i] = (i == index) ? value : src[i];
   }
 
   // masked load
   template<typename T>
-  inline void masked_load_after(const Chunk<T>& src, int index, Chunk<T>& result)
+  inline void masked_load_after(const Chunk<T>& src, short index, Chunk<T>& result)
   {
-    for(int i = 0; i < Chunk<T>::size; i++)
+    for(short i = 0; i < Chunk<T>::size; i++)
       result[i] = (i < index) ? T(0) : src[i];
   }
 
   //! masked store
   template<typename T>
-  inline void masked_store_after(const Chunk<T>& src, int index, Chunk<T>& result)
+  inline void masked_store_after(const Chunk<T>& src, short index, Chunk<T>& result)
   {
-    for(int i = index; i < Chunk<T>::size; i++)
+    for(short i = index; i < Chunk<T>::size; i++)
       result[i] = src[i];
   }
 
