@@ -151,7 +151,7 @@ namespace PITTS
 
 
     //! ArgumentInfo with fixed (maximal) number of arguments to allow non-template struct
-    using FixedArgumentInfo = ArgumentInfo<4>;
+    using FixedArgumentInfo = ArgumentInfo<5>;
 
 
     //! helper type for combining scope and argument information
