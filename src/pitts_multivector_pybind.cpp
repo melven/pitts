@@ -111,8 +111,8 @@ namespace PITTS
             "Calculate the matrix-matrix product of a tall-skinny matrix (multivector) with a small matrix (Y <- X*M)");
 
         m.def("transpose",
-            py::overload_cast< const MultiVector<T>&, MultiVector<T>&, std::array<long long,2> >(&PITTS::transpose<T>),
-            py::arg("X"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0},
+            py::overload_cast< const MultiVector<T>&, MultiVector<T>&, std::array<long long,2>, bool >(&PITTS::transpose<T>),
+            py::arg("X"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0}, py::arg("reverse")=false,
             "Reshape and transpose a tall-skinny matrix");
       }
     }
