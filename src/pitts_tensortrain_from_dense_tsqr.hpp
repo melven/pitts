@@ -1,4 +1,5 @@
-/*! @file pitts_tensortrain_from_dense_tsqr.hpp * @brief conversion of a dense tensor to the tensor-train format (based on a hopefully faster TSQR algorithm)
+/*! @file pitts_tensortrain_from_dense_tsqr.hpp
+* @brief conversion of a dense tensor to the tensor-train format (based on a hopefully faster TSQR algorithm)
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2020-06-19
 * @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
