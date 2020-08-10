@@ -72,8 +72,7 @@ namespace PITTS
         for(long long k = 0; k < M.r1(); k++)
         {
           Chunk<T> tmpx;
-          for(long long ii = 0; ii < Chunk<T>::size; ii++)
-            tmpx[ii] = *(&X(xi,k)+ii);
+          unaligned_load(&X(xi,k), tmpx);
           fmadd(M(k,mj), tmpx, tmpy);
         }
         streaming_store(tmpy, Y.chunk(yChunk,yj));
