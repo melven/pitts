@@ -108,11 +108,19 @@ namespace PITTS
       result[i] = (i < index) ? T(0) : src[i];
   }
 
-  //! masked store
+  // masked store
   template<typename T>
   inline void masked_store_after(const Chunk<T>& src, short index, Chunk<T>& result)
   {
     for(short i = index; i < Chunk<T>::size; i++)
+      result[i] = src[i];
+  }
+
+  // unaligned load
+  template<typename T>
+  inline void unaligned_load(const T* src, Chunk<T>& result)
+  {
+    for(short i = 0; i < Chunk<T>::size; i++)
       result[i] = src[i];
   }
 

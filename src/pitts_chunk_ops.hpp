@@ -65,6 +65,10 @@ namespace PITTS
   template<typename T>
   inline void masked_store_after(const Chunk<T>& src, short index, Chunk<T>& result);
 
+  //! unaligned load: read chunk from memory address with unknown alignment
+  template<typename T>
+  inline void unaligned_load(const T* src, Chunk<T>& result);
+
   //! streaming store: write chunk to memory using a non-temporal store hint
   template<typename T>
   inline void streaming_store(const Chunk<T>& src, Chunk<T>& result);
