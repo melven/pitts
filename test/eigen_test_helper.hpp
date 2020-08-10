@@ -32,6 +32,14 @@ AssertionResult DoubleNearPredFormat(const char* expr1,
        (val1_.cols() == val2_.cols() ) )
     return AssertionSuccess();
 
+  // handle different shapes
+  if( val1_.rows() != val2_.rows() ||
+      val1_.cols() != val2_.cols() )
+    return AssertionFailure()
+      << "Mismatching dimensions between " << expr1 << " and " << expr2 << ", where\n"
+      << expr1 << " evaluates to\n" << val1 << ",\nand\n"
+      << expr2 << " evaluates to\n" << val2 << ".";
+
   // let Eigen determine if they are equal enough
   auto diff = (val1_-val2_).array().abs().eval();
   if (diff.maxCoeff() <= abs_error) return AssertionSuccess();
