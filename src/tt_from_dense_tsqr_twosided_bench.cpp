@@ -2,7 +2,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_tensortrain.hpp"
-#include "pitts_tensortrain_from_dense_tsqr.hpp"
+#include "pitts_tensortrain_from_dense_tsqr_twosided.hpp"
 #include <charconv>
 #include <vector>
 
@@ -10,7 +10,7 @@
 
 int main(int argc, char* argv[])
 {
-  //PITTS::initialize(&argc, &argv);
+//  PITTS::initialize(&argc, &argv);
 
   if( argc != 5 )
     throw std::invalid_argument("Requires 4 arguments!");
@@ -30,12 +30,11 @@ int main(int argc, char* argv[])
   }
 
   PITTS::MultiVector<double> data(nTotal/n, n);
+  randomize(data);
 
   for(int iter = 0; iter < nIter; iter++)
   {
-    data.resize(nTotal/n, n);
-    randomize(data);
-    const auto TT = fromDense_TSQR(std::move(data), shape, 1.e-8, max_r);
+    const auto TT = fromDense_TSQR_twoSided(data, shape, 1.e-8, max_r);
   }
 
   PITTS::finalize();

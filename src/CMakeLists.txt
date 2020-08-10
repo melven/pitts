@@ -25,6 +25,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_laplace_operator.hpp
   pitts_tensortrain_from_dense.hpp
   pitts_tensortrain_from_dense_tsqr.hpp
+  pitts_tensortrain_from_dense_tsqr_twosided.hpp
   pitts_tensortrain_to_dense.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp
@@ -62,6 +63,7 @@ add_executable(transpose_bench transpose_bench.cpp)
 add_executable(multivector_copy_bench multivector_copy_bench.cpp)
 add_executable(tt_from_dense_bench tt_from_dense_bench.cpp)
 add_executable(tt_from_dense_tsqr_bench tt_from_dense_tsqr_bench.cpp)
+add_executable(tt_from_dense_tsqr_twosided_bench tt_from_dense_tsqr_twosided_bench.cpp)
 
 # Python binding
 if(pybind11_FOUND)
