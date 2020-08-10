@@ -307,8 +307,9 @@ namespace PITTS
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = (reductionFactor+1) * mChunks;
-    const long long lda = M.rowChunks();
-    const long long nIter = lda / nChunks;
+    const long long nTotalChunks = M.rowChunks();
+    const long long nIter = nTotalChunks / nChunks;
+    const long long lda = M.colStrideChunks();
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
@@ -354,9 +355,9 @@ namespace PITTS
         internal::HouseholderQR::copyBlockAndTransformMaybe(mChunks, m, &pdataSmall[0], nChunks, nChunks, &plocalBuff[0], localBuffOffset);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
-      if( omp_get_thread_num() == nThreads-1 && nIter*nChunks < lda )
+      if( omp_get_thread_num() == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
-        const int nLastChunks = lda-nIter*nChunks;
+        const int nLastChunks = nTotalChunks-nIter*nChunks;
         internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nIter*nChunks,0), lda, &pdataSmall[0]);
         internal::HouseholderQR::copyBlockAndTransformMaybe(std::min(nLastChunks,mChunks), m, &pdataSmall[0], nLastChunks, nChunks, &plocalBuff[0], localBuffOffset);
       }

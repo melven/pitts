@@ -2,6 +2,7 @@
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include <Eigen/Dense>
@@ -16,7 +17,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_inplace)
 
   constexpr int n = 40;
   constexpr int m = 5;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
 
   MultiVector X(n,m), X_ref(n,m);
   randomize(X);
@@ -31,16 +31,15 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_inplace)
   int col = 3;
   int firstRow = 2;
 
-  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(X.rowChunks(), firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
-  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  Eigen::Map<mat> mapX_ref(&X_ref(0,0), nChunks*Chunk::size, m);
-  Eigen::Map<mat> mapV(&v(0,0), nChunks*Chunk::size, 1);
+  auto mapX_ref = EigenMap(X_ref);
+  auto mapV = ConstEigenMap(v);
 
   int offset = firstRow*Chunk::size;
-  int n_ = nChunks*Chunk::size - offset;
-  mapX_ref.block(offset, col, n_, 1) = (mat::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
+  int n_ = n - offset;
+  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
 
   for(int i = 0; i < n; i++)
   {
@@ -74,7 +73,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_out_of_place)
 
   int col = 3;
   int firstRow = 2;
-  int lda = (2*n-1) / Chunk::size + 1;
 
   // set parts of X that will be overwritten to just some number
   for(int i = firstRow; i < nChunks; i++)
@@ -84,16 +82,15 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation_out_of_place)
       X.chunk(i,col)[j] = 77.;
     }
 
-  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), lda, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
-  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  Eigen::Map<mat> mapX_ref(&X_ref(0,0), nChunks*Chunk::size, m);
-  Eigen::Map<mat> mapV(&v(0,0), nChunks*Chunk::size, 1);
+  auto mapX_ref = EigenMap(X_ref);
+  auto mapV = ConstEigenMap(v);
 
   int offset = firstRow*Chunk::size;
-  int n_ = nChunks*Chunk::size - offset;
-  mapX_ref.block(offset, col, n_, 1) = (mat::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
+  int n_ = n - offset;
+  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
 
   for(int i = 0; i < n; i++)
   {
@@ -138,7 +135,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2_inplace)
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
   PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
@@ -177,7 +174,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2_out_of_place)
 
   int col = 3;
   int firstRow = 2;
-  int lda = (2*n-1) / Chunk::size + 1;
 
   // calculate vTw
   double vTw = 0;
@@ -196,7 +192,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2_out_of_place)
       X.chunk(i,col)[j] = 77.;
     }
 
-  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), lda, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
   PITTS::internal::HouseholderQR::applyRotation(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
@@ -244,7 +240,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2x2_inplace)
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
   PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
@@ -283,7 +279,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2x2_out_of_plac
 
   int col = 3;
   int firstRow = 2;
-  int lda = (2*n-1) / Chunk::size + 1;
 
   // calculate vTw
   double vTw = 0;
@@ -304,7 +299,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyRotation2x2_out_of_plac
       X.chunk(i,col+1)[j] = 55.;
     }
 
-  PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), lda, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyRotation2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
   PITTS::internal::HouseholderQR::applyRotation2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
@@ -336,7 +331,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), nChunks, &X.chunk(0,0));
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
 
   // check that the result is upper triangular
   for(int i = 0; i < n; i++)
@@ -351,11 +346,10 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   }
 
   // use Eigen to check that the singular values and the right singular vectors are identical
-  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  Eigen::Map<const mat> mapX(&X(0,0), nChunks*Chunk::size, m);
-  Eigen::Map<const mat> mapX_ref(&X_ref(0,0), nChunks*Chunk::size, m);
-  Eigen::BDCSVD<mat> svd(mapX, Eigen::ComputeThinV);
-  Eigen::BDCSVD<mat> svd_ref(mapX_ref, Eigen::ComputeThinV);
+  auto mapX = ConstEigenMap(X);
+  auto mapX_ref = ConstEigenMap(X_ref);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -381,9 +375,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
 
-  int lda = (2*n-1) / Chunk::size + 1;
-
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), lda, &Xresult.chunk(0,0));
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0)); // memory layout ok because X is small enough
 
   // check that the result is upper triangular
   for(int i = 0; i < n; i++)
@@ -401,11 +393,10 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   }
 
   // use Eigen to check that the singular values and the right singular vectors are identical
-  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  Eigen::Map<const mat> mapX(&Xresult(0,0), nChunks*Chunk::size, m);
-  Eigen::Map<const mat> mapX_ref(&X_ref(0,0), lda*Chunk::size, m);
-  Eigen::BDCSVD<mat> svd(mapX, Eigen::ComputeThinV);
-  Eigen::BDCSVD<mat> svd_ref(mapX_ref.topRows(mapX.rows()), Eigen::ComputeThinV);
+  auto mapX = ConstEigenMap(X);
+  auto mapX_ref = ConstEigenMap(X_ref);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref.topRows(mapX.rows()), Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -430,19 +421,17 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
     for(int i = 0; i < n; i++)
       work(i,j) = 0;
 
-  constexpr int ldaSrc = 4;
-  MultiVector src(ldaSrc*Chunk::size, m);
+  MultiVector src(4*Chunk::size, m);
   randomize(src);
 
-  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  mat work_ref(0,m);
-  Eigen::Map<mat> mapSrc(&src(0,0), ldaSrc*Chunk::size, m);
+  Eigen::MatrixXd work_ref(0,m);
+  auto mapSrc = ConstEigenMap(src);
 
   for(int iter = 0; iter < 10; iter++)
   {
     const int nSrc = (iter*2) % 5;
 
-    PITTS::internal::HouseholderQR::copyBlockAndTransformMaybe(nSrc, m, &src.chunk(0,0), ldaSrc, nChunks, &work.chunk(0,0), workOffset);
+    PITTS::internal::HouseholderQR::copyBlockAndTransformMaybe(nSrc, m, &src.chunk(0,0), src.colStrideChunks(), nChunks, &work.chunk(0,0), workOffset); // memory layout ok because work is small enough
 
     // check that the result is zero below workOffset
     for(int j = 0; j < m; j++)
@@ -459,9 +448,9 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
     work_ref.bottomRows(nn) = mapSrc.topRows(nn);
   }
   // singular values and right singular vectors should match
-  Eigen::Map<mat> mapWork(&work(0,0), n, m);
-  Eigen::BDCSVD<mat> svd(mapWork, Eigen::ComputeThinV);
-  Eigen::BDCSVD<mat> svd_ref(work_ref, Eigen::ComputeThinV);
+  auto mapWork = ConstEigenMap(work);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapWork, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(work_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -478,16 +467,12 @@ namespace
     using Chunk = PITTS::Chunk<double>;
     using MultiVector = PITTS::MultiVector<double>;
     using Tensor2 = PITTS::Tensor2<double>;
-    using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-
-    const int nPadded = Chunk::size * ( (n-1) / Chunk::size + 1 );
 
     MultiVector M(n,m);
     randomize(M);
 
     // store the original matrix for later
-    Eigen::Map<mat> mapM(&M(0,0), nPadded, m);
-    mat M_ref = mapM.block(0, 0, n, m);
+    Eigen::MatrixXd M_ref = ConstEigenMap(M);
 
     Tensor2 R;
     block_TSQR(M, R);
@@ -502,8 +487,8 @@ namespace
     }
 
     // check that the singular values and right singular vectors match...
-    Eigen::BDCSVD<mat> svd(PITTS::ConstEigenMap(R), Eigen::ComputeThinV);
-    Eigen::BDCSVD<mat> svd_ref(M_ref, Eigen::ComputeThinV);
+    Eigen::BDCSVD<Eigen::MatrixXd> svd(PITTS::ConstEigenMap(R), Eigen::ComputeThinV);
+    Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(M_ref, Eigen::ComputeThinV);
 
     ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
     // V can differ by sign, only consider absolute part

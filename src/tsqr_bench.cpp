@@ -66,28 +66,6 @@ std::cout << "wtime: " << wtime << "\n";
     //std::cout << "Result:\n" << M << "\n";
     std::cout << "singular values (new):\n" << svd.singularValues().transpose() << "\n";
   }
-/*
-  {
-    Eigen::Map<mat> Mlarge(&M(0,0), nPadded*nIter, m);
-    {
-      Eigen::HouseholderQR<mat> qr(Mlarge.rows(), Mlarge.cols());
-      wtime = omp_get_wtime();
-      for(int i = 0; i < nOuter; i++)
-        qr.compute(Mlarge);
-      wtime = omp_get_wtime() - wtime;
-      std::cout << "ref QR wtime: " << wtime << "\n";
-    }
-    Eigen::BDCSVD<mat> svd(Mlarge.rows(), Mlarge.cols());
-    {
-      wtime = omp_get_wtime();
-      for(int i = 0; i < nOuter; i++)
-        svd.compute(Mlarge);
-      wtime = omp_get_wtime() - wtime;
-      std::cout << "ref SVD wtime: " << wtime << "\n";
-    }
-    std::cout << "singular values (ref):\n" << svd.singularValues().transpose() << "\n";
-  }
-*/
 
   PITTS::performance::printStatistics();
   //PITTS::finalize();
