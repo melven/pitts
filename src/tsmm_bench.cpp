@@ -17,12 +17,12 @@ int main(int argc, char* argv[])
   if( argc != 5 && argc != 7 )
     throw std::invalid_argument("Requires 4 or 6 arguments!");
 
-  std::size_t n = 0, m = 0, k = 0, nIter = 0;
+  long long n = 0, m = 0, k = 0, nIter = 0;
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], m);
   std::from_chars(argv[3], argv[4], k);
   std::from_chars(argv[4], argv[5], nIter);
-  std::size_t n_ = n, m_ = m;
+  long long n_ = n, m_ = m;
   if( argc == 7 )
   {
     std::from_chars(argv[5], argv[6], n_);
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
   double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
-    transform(X, M, Y);
+    transform(X, M, Y, {n_, m_});
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "wtime: " << wtime << std::endl;
 
