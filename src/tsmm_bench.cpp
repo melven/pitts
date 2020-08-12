@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   std::from_chars(argv[2], argv[3], m);
   std::from_chars(argv[3], argv[4], k);
   std::from_chars(argv[4], argv[5], nIter);
-  long long n_ = n, m_ = m;
+  long long n_ = n, m_ = k;
   if( argc == 7 )
   {
     std::from_chars(argv[5], argv[6], n_);
