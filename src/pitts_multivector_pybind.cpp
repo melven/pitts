@@ -33,7 +33,7 @@ namespace PITTS
     //! internal namespace for helper functions
     namespace
     {
-      //! helper function to copy PITTS::Tensor2 into a numpy array
+      //! helper function to copy PITTS::MultiVector into a numpy array
       template<typename T>
       py::array_t<T> copy(const Tensor2<T>& buff)
       {
@@ -69,6 +69,11 @@ namespace PITTS
           .def("cols", &MultiVector<T>::cols, "number of columns")
           .def("resize", &MultiVector<T>::resize, "change the number of rows and columns (destroying all data!)")
           .def("__str__", &MultiVector_toString<T>, "Print the attributes of the given MultiVector object");
+
+        m.def("copy",
+            py::overload_cast< const MultiVector<T>&, MultiVector<T>& >(&PITTS::copy<T>),
+            py::arg("source"), py::arg("destination"),
+            "explicitly copy a MultiVector object");
 
         m.def("randomize",
             py::overload_cast< MultiVector<T>& >(&randomize<T>),
