@@ -395,3 +395,56 @@ MY_TYPED_TEST(masked_store_after)
     EXPECT_NEAR(result, result_ref, eps);
   }
 }
+
+
+MY_TYPED_TEST(unaligned_load)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  std::unique_ptr<Type[]> src(new Type[Chunk::size]);
+  for(int i = 0; i < Chunk::size; i++)
+    src[i] = Type(i + 0.7);
+
+  std::unique_ptr<Type[]> src_ref(new Type[Chunk::size]);
+  for(int i = 0; i < Chunk::size; i++)
+    src_ref[i] = src[i];
+
+  for(int i = 0; i < Chunk::size+10; i++)
+  {
+    Chunk result;
+    randomize(result);
+
+    const Type* pData = src.get();
+    unaligned_load(pData, result);
+
+    for(int i = 0; i < Chunk::size; i++)
+    {
+      EXPECT_EQ(src_ref[i], src[i]);
+      EXPECT_EQ(src[i], result[i]);
+    }
+  }
+}
+
+
+MY_TYPED_TEST(streaming_store)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk src;
+  randomize(src);
+
+  const Chunk src_ref = src;
+
+  for(int i = 0; i < Chunk::size+10; i++)
+  {
+    Chunk result;
+    randomize(result);
+
+    streaming_store(src, result);
+
+    EXPECT_EQ(src_ref, src);
+    EXPECT_EQ(src, result);
+  }
+}
