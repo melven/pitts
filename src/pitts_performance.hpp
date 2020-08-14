@@ -77,7 +77,7 @@ namespace PITTS
 
 
     //! Measure the runtime of the curent function or scope and gather performance statistics
-    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, int callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::current())
+    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, double callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::current())
     {
       const internal::ScopeWithArgumentInfo scopeArgs{scope, arguments, callsPerFunction};
       const auto [iter, didInsert] = globalPerformanceStatisticsMap.insert({scopeArgs, {internal::TimingStatistics(), kernel}});
@@ -87,7 +87,7 @@ namespace PITTS
 
     //! Measure the runtime of the curent function or scope and gather performance statistics (variant with template type information)
     template<typename T>
-    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, int callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
+    inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, double callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::template current<T>())
     {
       return createScopedTimer(arguments, kernel, callsPerFunction, scope);
     }

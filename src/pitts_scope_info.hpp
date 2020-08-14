@@ -110,7 +110,7 @@ namespace PITTS
 
     //! Helper type to store information on function/scope arguments
     //!
-    //! mostly required for data dimensions, therefore we just support int argument values for now
+    //! mostly required for data dimensions, therefore we just support integer argument values for now
     //!
     //! @tparam N number of arguments
     //!
@@ -121,13 +121,13 @@ namespace PITTS
       std::array<const char*, N> names;
 
       //! argument values
-      std::array<int, N> values;
+      std::array<long long, N> values;
 
       //! make a readable string
       std::string to_string() const
       {
         std::string result;
-        for(int i = 0; i < N; i++)
+        for(std::size_t i = 0; i < N; i++)
         {
           if( !names[i] )
             break;
@@ -143,7 +143,7 @@ namespace PITTS
       //! calculate a hash of the argument values (constexpr)
       constexpr djb_hash_type hash_values(djb_hash_type hash = djb_hash_init) const noexcept
       {
-        const auto size = sizeof(int) * values.size();
+        const auto size = sizeof(values[0]) * values.size();
         const auto raw_buff = std::string_view(reinterpret_cast<const char*>(values.data()), size);
         return djb_hash(raw_buff, hash);
       }
@@ -151,7 +151,7 @@ namespace PITTS
 
 
     //! ArgumentInfo with fixed (maximal) number of arguments to allow non-template struct
-    using FixedArgumentInfo = ArgumentInfo<4>;
+    using FixedArgumentInfo = ArgumentInfo<5>;
 
 
     //! helper type for combining scope and argument information
@@ -170,7 +170,7 @@ namespace PITTS
       //!
       //! This is used to accumulate function-level call counts while measuring parts of a function.
       //!
-      int callsPerFunction = 1;
+      double callsPerFunction = 1;
 
       //! Callable to combine hashes from ScopeInfo and ArgumentInfo objects, can be used with std::unordered_map
       struct Hash final
