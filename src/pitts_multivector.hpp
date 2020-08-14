@@ -57,10 +57,11 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
 
       const auto newRowChunks = (rows-1)/chunkSize+1;
-      if( newRowChunks*cols > reservedChunks_ )
+      const auto newColStrideChunks = newRowChunks + (newRowChunks % 2 == 0);
+      if( newColStrideChunks*cols > reservedChunks_ )
       {
-        data_.reset(new Chunk<T>[newRowChunks*cols]);
-        reservedChunks_ = newRowChunks*cols;
+        data_.reset(new Chunk<T>[newColStrideChunks*cols]);
+        reservedChunks_ = newColStrideChunks*cols;
       }
       rows_ = rows;
       cols_ = cols;
@@ -84,15 +85,13 @@ namespace PITTS
     //! chunk-wise access (const variant)
     inline const Chunk<T>& chunk(long long i, long long j) const
     {
-      const auto rowChunks = (rows_-1)/chunkSize+1;
-      return data_[i+j*rowChunks];
+      return data_[i+j*colStrideChunks()];
     }
 
     //! chunk-wise access (const variant)
     inline Chunk<T>& chunk(long long i, long long j)
     {
-      const auto rowChunks = (rows_-1)/chunkSize+1;
-      return data_[i+j*rowChunks];
+      return data_[i+j*colStrideChunks()];
     }
 
     //! first dimension 
@@ -104,8 +103,15 @@ namespace PITTS
     //! number of chunks in first dimension
     inline auto rowChunks() const {return (rows_-1)/chunkSize+1;}
 
+    //! number of chunks between two columns (stride in second dimension)
+    inline auto colStrideChunks() const
+    {
+      // return uneven number to avoid cache thrashing
+      return rowChunks() + (rowChunks() % 2 == 0);
+    }
+
     //! total size of the data array including padding (e.g. for MPI communication)
-    inline auto totalPaddedSize() const {return rowChunks()*chunkSize*cols_;}
+    inline auto totalPaddedSize() const {return colStrideChunks()*chunkSize*cols_;}
 
   protected:
     //! the array dimension of chunks
