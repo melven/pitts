@@ -40,6 +40,7 @@ target_sources(pitts INTERFACE
   pitts_multivector_tsqr.hpp
   pitts_multivector_eigen_adaptor.hpp
   pitts_multivector_transform.hpp
+  pitts_multivector_transpose.hpp
   )
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
@@ -56,6 +57,7 @@ add_executable(centroids_bench centroids_bench.cpp)
 add_executable(kmeans_bench kmeans_bench.cpp)
 add_executable(tsqr_bench tsqr_bench.cpp)
 add_executable(tsmm_bench tsmm_bench.cpp)
+add_executable(transpose_bench transpose_bench.cpp)
 add_executable(multivector_copy_bench multivector_copy_bench.cpp)
 
 # Python binding
