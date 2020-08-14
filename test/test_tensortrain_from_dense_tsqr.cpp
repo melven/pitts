@@ -1,9 +1,27 @@
 #include <gtest/gtest.h>
-#include "pitts_tensortrain_from_dense.hpp"
+#include "pitts_tensortrain_from_dense_tsqr.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_random.hpp"
 
-TEST(PITTS_TensorTrain_fromDense, scalar)
+namespace
+{
+  auto toMultiVector(const double* begin, const double* end, const std::vector<int>& dimensions)
+  {
+    int size = 1;
+    for(auto d: dimensions)
+      size *= d;
+    assert(end - begin == size);
+    PITTS::MultiVector<double> result(size / dimensions.back(), dimensions.back());
+    for(int j = 0; j < result.cols(); j++)
+      for(int i = 0; i < result.rows(); i++)
+        result(i,j) = *(begin++);
+    return result;
+  }
+}
+
+TEST(PITTS_TensorTrain_fromDense_TSQR, scalar)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -11,13 +29,14 @@ TEST(PITTS_TensorTrain_fromDense, scalar)
   const std::array<double,1> scalar = {5};
   const std::vector<int> dimensions = {1};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(scalar), end(scalar), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(scalar), end(scalar), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_NEAR(5., TT.subTensors()[0](0,0,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, dimension_mismatch)
+/*
+TEST(PITTS_TensorTrain_fromDense_TSQR, dimension_mismatch)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -25,12 +44,13 @@ TEST(PITTS_TensorTrain_fromDense, dimension_mismatch)
   std::vector<double> data;
 
   data.resize(10);
-  EXPECT_THROW(PITTS::fromDense(begin(data), end(data), std::vector<int>{1}), std::out_of_range);
-  EXPECT_NO_THROW(PITTS::fromDense(begin(data), end(data), std::vector<int>{2,5}));
-  EXPECT_THROW(PITTS::fromDense(begin(data), end(data), std::vector<int>{1,3,7}), std::out_of_range);
+  EXPECT_THROW(PITTS::fromDense_TSQR(begin(data), end(data), std::vector<int>{1}), std::out_of_range);
+  EXPECT_NO_THROW(PITTS::fromDense_TSQR(begin(data), end(data), std::vector<int>{2,5}));
+  EXPECT_THROW(PITTS::fromDense_TSQR(begin(data), end(data), std::vector<int>{1,3,7}), std::out_of_range);
 }
+*/
 
-TEST(PITTS_TensorTrain_fromDense, vector_1d)
+TEST(PITTS_TensorTrain_fromDense_TSQR, vector_1d)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -38,7 +58,7 @@ TEST(PITTS_TensorTrain_fromDense, vector_1d)
   const std::array<double,7> scalar = {1,2,3,4,5,6,7};
   const std::vector<int> dimensions = {7};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(scalar), end(scalar), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(scalar), end(scalar), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_EQ(1, TT.subTensors()[0].r1());
@@ -53,7 +73,7 @@ TEST(PITTS_TensorTrain_fromDense, vector_1d)
   ASSERT_NEAR(7., TT.subTensors()[0](0,6,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x1)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_1x1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -61,20 +81,20 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x1)
   const std::array<double,1> M = {7.};
   const std::vector<int> dimensions = {1,1};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_EQ(1, TT.subTensors()[0].r1());
   ASSERT_EQ(1, TT.subTensors()[0].n());
   ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0), eps);
+  ASSERT_NEAR(7., TT.subTensors()[0](0,0,0), eps);
   ASSERT_EQ(1, TT.subTensors()[1].r1());
   ASSERT_EQ(1, TT.subTensors()[1].n());
   ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(7., TT.subTensors()[1](0,0,0), eps);
+  ASSERT_NEAR(1., TT.subTensors()[1](0,0,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x5)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_1x5)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -82,7 +102,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x5)
   const std::array<double,5> M = {1., 2., 3., 4., 5.};
   const std::vector<int> dimensions = {1,5};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_EQ(1, TT.subTensors()[0].r1());
@@ -98,7 +118,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x5)
   ASSERT_NEAR(5., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,4,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x1)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_5x1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -106,7 +126,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x1)
   const std::array<double,5> M = {1., 2., 3., 4., 5.};
   const std::vector<int> dimensions = {5,1};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_EQ(1, TT.subTensors()[0].r1());
@@ -122,7 +142,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x1)
   ASSERT_NEAR(5., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,0,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x2_rank1)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_5x2_rank1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -130,7 +150,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x2_rank1)
   const std::array<double,10> M = {1., 2., 3., 4., 5., 2., 4., 6., 8., 10.};
   const std::vector<int> dimensions = {5,2};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_EQ(1, TT.subTensors()[0].r1());
@@ -151,7 +171,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x2_rank1)
   ASSERT_NEAR(10., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,1,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_2x5_rank1)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_2x5_rank1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -159,7 +179,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_2x5_rank1)
   const std::array<double,10> M = {1., 2., 2., 4., 3., 6., 4., 8., 5., 10.};
   const std::vector<int> dimensions = {2,5};
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   ASSERT_EQ(1, TT.subTensors()[0].r1());
@@ -180,7 +200,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_2x5_rank1)
   ASSERT_NEAR(10., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,4,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_4x5)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -191,7 +211,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5)
     for(int j = 0; j < 5; j++)
       M[i+j*4] = i + j*4;
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
 
@@ -205,7 +225,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5)
     }
 }
 
-TEST(PITTS_TensorTrain_fromDense, tensor_3d_rank1)
+TEST(PITTS_TensorTrain_fromDense_TSQR, tensor_3d_rank1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -217,7 +237,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_3d_rank1)
       for(int k = 0; k < 5; k++)
         M[i+j*3+k*3*4] = 1.;
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   std::vector<int> ones = {1,1};
@@ -234,7 +254,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_3d_rank1)
       }
 }
 
-TEST(PITTS_TensorTrain_fromDense, tensor_3d_3x4x5)
+TEST(PITTS_TensorTrain_fromDense_TSQR, tensor_3d_3x4x5)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -246,7 +266,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_3d_3x4x5)
       for(int k = 0; k < 5; k++)
         M[i+j*3+k*3*4] = i + j*10 + k*100;
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
 
@@ -261,7 +281,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_3d_3x4x5)
       }
 }
 
-TEST(PITTS_TensorTrain_fromDense, tensor_5d_2x3x4x2x3_unit)
+TEST(PITTS_TensorTrain_fromDense_TSQR, tensor_5d_2x3x4x2x3_unit)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -271,7 +291,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_5d_2x3x4x2x3_unit)
   const std::vector<int> dir = {1,0,2,0,2};
   M[ dir[0] + 2*dir[1] + 2*3*dir[2] + 2*3*4*dir[3] + 2*3*4*2*dir[4] ] = 1.;
 
-  TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+  TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
   std::vector<int> ones = {1,1,1,1};
@@ -285,7 +305,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_5d_2x3x4x2x3_unit)
   EXPECT_NEAR(1., dot(TT, refTT), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5_maxRank)
+TEST(PITTS_TensorTrain_fromDense_TSQR, matrix_2d_4x5_maxRank)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -298,7 +318,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5_maxRank)
 
   {
     // full / exact
-    TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions);
+    TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions);
 
     ASSERT_EQ(TT.dimensions(), dimensions);
 
@@ -314,7 +334,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5_maxRank)
 
   {
     // truncated
-    TensorTrain_double TT = PITTS::fromDense(begin(M), end(M), dimensions, 1.e-16, 3);
+    TensorTrain_double TT = PITTS::fromDense_TSQR(toMultiVector(begin(M), end(M), dimensions), dimensions, 1.e-16, 3);
 
     ASSERT_EQ(TT.dimensions(), dimensions);
 
@@ -335,4 +355,21 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5_maxRank)
       }
   }
 
+}
+
+TEST(PITTS_TensorTrain_fromDense_TSQR, tensor5d_random_maxRank)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+
+  std::vector<int> shape = {2,3,4,2,3};
+  MultiVector_double M(2*3*4*2, 3);
+  randomize(M);
+
+  TensorTrain_double TT = PITTS::fromDense_TSQR(std::move(M), shape, 1.e-16, 2);
+
+  for(auto r: TT.getTTranks())
+  {
+    ASSERT_LE(r, 2);
+  }
 }

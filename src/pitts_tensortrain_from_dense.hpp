@@ -32,10 +32,11 @@ namespace PITTS
   //! @param last           input iterator that points behind the last index, e.g. std::end(someContainer)
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
+  //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @return               resulting tensor train
   //!
   template<class Iter, typename T = std::iterator_traits<Iter>::value_type>
-  TensorTrain<T> fromDense(Iter first, Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  TensorTrain<T> fromDense(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -65,7 +66,9 @@ namespace PITTS
       tmp.resize(tmp.rows()*dimensions[iDim], tmp.cols()/dimensions[iDim]);
       Eigen::BDCSVD<EigenMatrix> svd(tmp, Eigen::ComputeThinU | Eigen::ComputeThinV);
       svd.setThreshold(rankTolerance);
-      const int rank = svd.rank();
+      int rank = svd.rank();
+      if( maxRank > 0 )
+        rank = std::min(rank, maxRank);
 
       auto& subT = result.editableSubTensors()[iDim];
       subT.resize(tmp.rows()/dimensions[iDim], dimensions[iDim], rank);
