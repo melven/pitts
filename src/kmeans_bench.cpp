@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
   wtime = omp_get_wtime();
 
-  std::vector<int> idx(m);
+  std::vector<long long> idx(m);
   std::vector<float> w(m);
   float tmp_w0 = 0, tmp_w1 = 0;
 #pragma omp parallel for schedule(static) reduction(+:tmp_w0,tmp_w1)

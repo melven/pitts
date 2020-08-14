@@ -50,10 +50,10 @@ namespace PITTS
       }
       std::mt19937 randomGenerator(seed);
       std::uniform_real_distribution<T> distribution(T(-1), T(1));
-      for(int j = 0; j < cols; j++)
+      for(long long j = 0; j < cols; j++)
       {
 #pragma omp for schedule(static) nowait
-        for(int i = 0; i < rows; i++)
+        for(long long i = 0; i < rows; i++)
           X(i,j) = distribution(randomGenerator);
       }
     }

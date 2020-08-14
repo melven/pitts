@@ -46,49 +46,49 @@ namespace PITTS
 
     D.resize(n,m);
 
-    constexpr int blockSize = 10; // required for reducing memory traffic of Y (X is loaded only once, Y n/blockSize times)
+    constexpr long long blockSize = 10; // required for reducing memory traffic of Y (X is loaded only once, Y n/blockSize times)
 
 #pragma omp parallel
     {
       std::unique_ptr<Chunk<T>[]> tmpX(new Chunk<T>[blockSize]);
       std::unique_ptr<Chunk<T>[]> tmpXY(new Chunk<T>[m*blockSize]);
 #pragma omp for schedule(static)
-      for(int iB = 0; iB < n; iB+=blockSize)
+      for(long long iB = 0; iB < n; iB+=blockSize)
       {
         const auto nb = std::min(blockSize, n-iB);
-        for(int i = 0; i < nb; i++)
+        for(long long i = 0; i < nb; i++)
           tmpX[i] = Chunk<T>{};
 
-        for(int i = 0; i < nb; i++)
-          for(int j = 0; j < m; j++)
+        for(long long i = 0; i < nb; i++)
+          for(long long j = 0; j < m; j++)
             tmpXY[i+j*blockSize] = Chunk<T>{};
 
-        for(int c = 0; c < chunks; c++)
+        for(long long c = 0; c < chunks; c++)
         {
-          for(int i = 0; i < nb; i++)
+          for(long long i = 0; i < nb; i++)
           {
             fmadd(X.chunk(c,iB+i), X.chunk(c,iB+i), tmpX[i]);
-            for(int j = 0; j < m; j++)
+            for(long long j = 0; j < m; j++)
               fmadd(X.chunk(c,iB+i), Y.chunk(c,j), tmpXY[i+j*blockSize]);
           }
         }
 
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < nb; i++)
+        for(long long j = 0; j < m; j++)
+          for(long long i = 0; i < nb; i++)
             D(iB+i,j) = sum(tmpX[i]) - 2 * sum(tmpXY[i+j*blockSize]);
       }
     }
 
 #pragma omp parallel for schedule(static)
-    for(int j = 0; j < m; j++)
+    for(long long j = 0; j < m; j++)
     {
       Chunk<T> tmpY = Chunk<T>{};
 
-      for(int c = 0; c < chunks; c++)
+      for(long long c = 0; c < chunks; c++)
         fmadd(Y.chunk(c,j), Y.chunk(c,j), tmpY);
 
       const auto s = sum(tmpY);
-      for(int i = 0; i < n; i++)
+      for(long long i = 0; i < n; i++)
         D(i,j) += s;
     }
 

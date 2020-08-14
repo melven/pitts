@@ -29,7 +29,7 @@ namespace PITTS
   //! @param Y    weighted sums of columns of X
   //!
   template<typename T>
-  void centroids(const MultiVector<T>& X, const std::vector<int>& idx, const std::vector<T>& w, MultiVector<T>& Y)
+  void centroids(const MultiVector<T>& X, const std::vector<long long>& idx, const std::vector<T>& w, MultiVector<T>& Y)
   {
     const auto chunks = X.rowChunks();
     const auto n = X.cols();
@@ -44,24 +44,24 @@ namespace PITTS
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"rows","Xcols","Ycols"},{X.rows(),n,m}}, // arguments
         {{(rowsd*nd)*kernel_info::FMA<T>()}, // flops
-         {(nd*rowsd+nd)*kernel_info::Load<T>() + nd*kernel_info::Load<int>() + (md*rowsd)*kernel_info::Store<T>()}});
+         {(nd*rowsd+nd)*kernel_info::Load<T>() + nd*kernel_info::Load<long long>() + (md*rowsd)*kernel_info::Store<T>()}});
 
 
 #pragma omp parallel
     {
-      for(int j = 0; j < m; j++)
+      for(long long j = 0; j < m; j++)
       {
 #pragma omp for schedule(static) nowait
-        for(int c = 0; c < chunks; c++)
+        for(long long c = 0; c < chunks; c++)
 	{
           Y.chunk(c,j) = Chunk<T>{};
 	}
       }
 
-      for(int i = 0; i < n; i++)
+      for(long long i = 0; i < n; i++)
       {
 #pragma omp for schedule(static) nowait
-        for(int c = 0; c < chunks; c++)
+        for(long long c = 0; c < chunks; c++)
           fmadd(w[i], X.chunk(c,i), Y.chunk(c,idx[i]));
       }
     }

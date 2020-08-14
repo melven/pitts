@@ -37,7 +37,7 @@ namespace PITTS
     //! @param rows   dimension of the first index, should be large
     //! @param cols   dimension of the third index, can be small
     //!
-    MultiVector(int rows, int cols)
+    MultiVector(long long rows, long long cols)
     {
       resize(rows,cols);
     }
@@ -49,7 +49,7 @@ namespace PITTS
     MultiVector() = default;
 
     //! adjust the desired multivector dimensions (destroying all data!)
-    void resize(int rows, int cols)
+    void resize(long long rows, long long cols)
     {
       // fast return without timer!
       if( rows == rows_ && cols == cols_ )
@@ -65,31 +65,31 @@ namespace PITTS
       rows_ = rows;
       cols_ = cols;
       // ensure padding is zero
-      for(int j = 0; j < cols; j++)
+      for(long long j = 0; j < cols; j++)
         chunk(newRowChunks-1, j) = Chunk<T>{};
     }
 
     //! access matrix entries (column-wise ordering, const variant)
-    inline const T& operator()(int i, int j) const
+    inline const T& operator()(long long i, long long j) const
     {
       return chunk(i/chunkSize, j)[i%chunkSize];
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
-    inline T& operator()(int i, int j)
+    inline T& operator()(long long i, long long j)
     {
       return chunk(i/chunkSize, j)[i%chunkSize];
     }
 
     //! chunk-wise access (const variant)
-    inline const Chunk<T>& chunk(int i, int j) const
+    inline const Chunk<T>& chunk(long long i, long long j) const
     {
       const auto rowChunks = (rows_-1)/chunkSize+1;
       return data_[i+j*rowChunks];
     }
 
     //! chunk-wise access (const variant)
-    inline Chunk<T>& chunk(int i, int j)
+    inline Chunk<T>& chunk(long long i, long long j)
     {
       const auto rowChunks = (rows_-1)/chunkSize+1;
       return data_[i+j*rowChunks];
@@ -112,17 +112,17 @@ namespace PITTS
     //!
     //! (workaround for missing static function size() of std::array!)
     //!
-    static constexpr int chunkSize = Chunk<T>::size;
+    static constexpr long long chunkSize = Chunk<T>::size;
 
   private:
     //! size of the buffer
-    int reservedChunks_ = 0;
+    long long reservedChunks_ = 0;
 
     //! first dimension
-    int rows_ = 0;
+    long long rows_ = 0;
 
     //! second dimension
-    int cols_ = 0;
+    long long cols_ = 0;
 
     //! the actual data...
     std::unique_ptr<Chunk<T>[]> data_ = nullptr;
@@ -147,10 +147,10 @@ namespace PITTS
 
 #pragma omp parallel
     {
-      for(int j = 0; j < cols; j++)
+      for(long long j = 0; j < cols; j++)
       {
 #pragma omp for schedule(static) nowait
-        for(int iChunk = 0; iChunk < rowChunks; iChunk++)
+        for(long long iChunk = 0; iChunk < rowChunks; iChunk++)
           streaming_store(a.chunk(iChunk,j), b.chunk(iChunk,j));
       }
     }
