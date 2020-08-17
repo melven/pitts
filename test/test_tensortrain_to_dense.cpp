@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_to_dense.hpp"
-#include "pitts_tensortrain_from_dense.hpp"
+#include "pitts_tensortrain_from_dense_classical.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_dot.hpp"
 
@@ -153,7 +153,7 @@ TEST(PITTS_TensorTrain_toDense, tensor_5d_from_to_dense_random)
   Eigen::VectorXd refData = Eigen::VectorXd::Random(2*4*3*5*2);
 
   // to TT format
-  const TensorTrain_double TT = PITTS::fromDense(refData.data(), refData.data()+refData.size(), dimensions);
+  const TensorTrain_double TT = PITTS::fromDense_classical(refData.data(), refData.data()+refData.size(), dimensions);
 
   // convert back to dense format
   Eigen::VectorXd data(refData.size());

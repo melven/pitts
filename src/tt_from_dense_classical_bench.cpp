@@ -2,7 +2,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_tensortrain.hpp"
-#include "pitts_tensortrain_from_dense.hpp"
+#include "pitts_tensortrain_from_dense_classical.hpp"
 #include <charconv>
 #include <vector>
 
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
   for(int iter = 0; iter < nIter; iter++)
   {
-    const auto TT = PITTS::fromDense(&data(0,0), &data(0,0)+nTotal, shape, 1.e-8, max_r);
+    const auto TT = PITTS::fromDense_classical(&data(0,0), &data(0,0)+nTotal, shape, 1.e-8, max_r);
   }
 
   PITTS::finalize();

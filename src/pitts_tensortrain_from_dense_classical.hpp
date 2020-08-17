@@ -1,5 +1,5 @@
 /*! @file pitts_tensortrain_from_dense.hpp
-* @brief conversion of a dense tensor to the tensor-train format
+* @brief conversion of a dense tensor to the tensor-train format, classical TT-SVD algorithm
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2020-06-19
 * @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
@@ -23,7 +23,7 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! calculate tensor-train decomposition of a tensor stored in fully dense format
+  //! calculate tensor-train decomposition of a tensor stored in fully dense format (slow classical TT-SVD)
   //!
   //! @tparam Iter      contiguous input iterator to access the dense data
   //! @tparam T         underlying data type (double, complex, ...)
@@ -36,7 +36,7 @@ namespace PITTS
   //! @return               resulting tensor train
   //!
   template<class Iter, typename T = std::iterator_traits<Iter>::value_type>
-  TensorTrain<T> fromDense(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
+  TensorTrain<T> fromDense_classical(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
