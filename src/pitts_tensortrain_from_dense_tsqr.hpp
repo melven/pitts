@@ -27,16 +27,22 @@ namespace PITTS
 {
   //! calculate tensor-train decomposition of a tensor stored in fully dense format
   //!
+  //! Passing a large enough buffer in work helps to avoid costly reallocations + later page-faults for large data.
+  //!
+  //! @warning To reduce memory overhead, this function will overwrite the input arguments with temporary data.
+  //!          Please pass a copy of the data if you still need it!
+  //!
   //! @tparam T         underlying data type (double, complex, ...)
   //!
-  //! @param X              input tensor, modified / destroyed on output, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
+  //! @param X              input tensor, overwritten and modified output, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
+  //! @param work           buffer for temporary data, will be resized and modified
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense_TSQR(MultiVector<T>&& X, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
+  TensorTrain<T> fromDense_TSQR(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -58,7 +64,6 @@ namespace PITTS
 
     // actually convert to tensor train format
     Tensor2<T> tmpR;
-    MultiVector<T> buff;
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     //Eigen::BDCSVD<EigenMatrix> svd;
     for(int iDim = nDims-1; iDim > 0; iDim--)
@@ -101,8 +106,8 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
       EigenMap(tmpR) = svd.matrixV().leftCols(rank);
 
       const auto nextDim = dimensions[iDim-1];
-      transform(X, tmpR, buff, {X.rows()/nextDim, rank*nextDim});
-      std::swap(X, buff);
+      transform(X, tmpR, work, {X.rows()/nextDim, rank*nextDim});
+      std::swap(X, work);
     }
     // last sub-tensor is now in X
     auto& lastSubT = result.editableSubTensors()[0];

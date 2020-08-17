@@ -30,12 +30,15 @@ int main(int argc, char* argv[])
   }
 
   PITTS::MultiVector<double> data(nTotal/n, n);
+  randomize(data);
+
+  PITTS::MultiVector<double> X(nTotal/n, n);
+  PITTS::MultiVector<double> work(nTotal/n, n);
 
   for(int iter = 0; iter < nIter; iter++)
   {
-    data.resize(nTotal/n, n);
-    randomize(data);
-    const auto TT = fromDense_TSQR(std::move(data), shape, 1.e-8, max_r);
+    copy(data, X);
+    const auto TT = fromDense_TSQR(X, work, shape, 1.e-8, max_r);
   }
 
   PITTS::finalize();

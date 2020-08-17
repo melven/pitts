@@ -91,13 +91,6 @@ namespace PITTS
         return fromDense(first, last, shape, rankTolerance, maxRank);
       }
 
-      //! helper function for fromDense -> TensorTrain
-      template<typename T>
-      TensorTrain<T> TensorTrain_fromDense_TSQR(MultiVector<T>& X, const std::vector<int>& shape, T rankTolerance, int maxRank)
-      {
-        return fromDense_TSQR(std::move(X), shape, rankTolerance, maxRank);
-      }
-
       //! helper function for TensorTrain -> toDense
       template<typename T>
       py::array_t<T, py::array::f_style> TensorTrain_toDense(const TensorTrain<T>& TT)
@@ -191,9 +184,9 @@ namespace PITTS
             "calculate tensor-train decomposition of a tensor stored in fully dense format");
 
         m.def("fromDense_TSQR",
-            &TensorTrain_fromDense_TSQR<T>,
-            py::arg("X"), py::arg("dimensions"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
-            "calculate tensor-train decomposition of a tensor stored in fully dense format (using a PITTS::MultiVector as buffer); WARNING: X is destroyed!");
+            &fromDense_TSQR<T>,
+            py::arg("X"), py::arg("work"), py::arg("dimensions"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
+            "calculate tensor-train decomposition of a tensor stored in fully dense format (using a PITTS::MultiVector as buffer);\nWARNING: X is overwritten with temporary data to reduce memory consumption!");
 
         m.def("toDense",
             &TensorTrain_toDense<T>,
