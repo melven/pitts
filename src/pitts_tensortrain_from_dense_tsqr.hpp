@@ -69,19 +69,8 @@ namespace PITTS
     for(int iDim = nDims-1; iDim > 0; iDim--)
     {
 std::cout << "iDim: " << iDim << ", matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
-      if( X.rows() > 10*X.cols())
-      {
-        // calculate QR decomposition
-        block_TSQR(X, tmpR);
-      }
-      else
-      {
-        // not tall and skinny, just copy to tmpR for simplicity
-        tmpR.resize(X.rows(), X.cols());
-        for(int j = 0; j < X.cols(); j++)
-          for(int i = 0; i < X.rows(); i++)
-            tmpR(i,j) = X(i,j);
-      }
+      // calculate QR decomposition
+      block_TSQR(X, tmpR);
 //std::cout << "tmpR:\n" << ConstEigenMap(tmpR) << "\n";
 
       // calculate SVD of R
