@@ -145,7 +145,8 @@ namespace PITTS
           << std::setw(10) << "#calls" << "\t "
           << std::setw(10) << "GFlop/s DP" << "\t "
           << std::setw(10) << "GFlop/s SP" << "\t "
-          << std::setw(10) << "GByte/s" << "\n";
+          << std::setw(10) << "GByte/s" << "\t"
+          << std::setw(10) << "Flops/Byte" << "\n";
       for(const auto& line: lines)
       {
         out << std::setw(maxDescLen) << line.description << "\t "
@@ -153,7 +154,8 @@ namespace PITTS
             << std::setw(10) << line.calls << "\t "
             << std::setw(10) << line.gflops_dp << "\t "
             << std::setw(10) << line.gflops_sp << "\t "
-            << std::setw(10) << line.gbytes << "\n";
+            << std::setw(10) << line.gbytes << "\t"
+            << std::setw(10) << (line.gflops_sp+line.gflops_dp) / line.gbytes << "\n";
       }
 
 
