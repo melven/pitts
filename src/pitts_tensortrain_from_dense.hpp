@@ -1,4 +1,4 @@
-/*! @file pitts_tensortrain_from_dense_tsqr.hpp
+/*! @file pitts_tensortrain_from_dense.hpp
 * @brief conversion of a dense tensor to the tensor-train format (based on a hopefully faster TSQR algorithm)
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2020-06-19
@@ -7,8 +7,8 @@
 **/
 
 // include guard
-#ifndef PITTS_TENSORTRAIN_FROM_DENSE_TSQR_HPP
-#define PITTS_TENSORTRAIN_FROM_DENSE_TSQR_HPP
+#ifndef PITTS_TENSORTRAIN_FROM_DENSE_HPP
+#define PITTS_TENSORTRAIN_FROM_DENSE_HPP
 
 // includes
 #include <limits>
@@ -42,7 +42,7 @@ namespace PITTS
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense_TSQR(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
+  TensorTrain<T> fromDense(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -111,4 +111,4 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 }
 
 
-#endif // PITTS_TENSORTRAIN_FROM_DENSE_TSQR_HPP
+#endif // PITTS_TENSORTRAIN_FROM_DENSE_HPP

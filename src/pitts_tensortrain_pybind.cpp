@@ -20,7 +20,7 @@
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_from_dense_classical.hpp"
-#include "pitts_tensortrain_from_dense_tsqr.hpp"
+#include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_pybind.hpp"
 #include "pitts_scope_info.hpp"
@@ -183,8 +183,8 @@ namespace PITTS
             py::arg("array"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
             "calculate tensor-train decomposition of a tensor stored in fully dense format");
 
-        m.def("fromDense_TSQR",
-            &fromDense_TSQR<T>,
+        m.def("fromDense",
+            &fromDense<T>,
             py::arg("X"), py::arg("work"), py::arg("dimensions"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
             "calculate tensor-train decomposition of a tensor stored in fully dense format (using a PITTS::MultiVector as buffer);\nWARNING: X is overwritten with temporary data to reduce memory consumption!");
 

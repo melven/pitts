@@ -1,4 +1,4 @@
-/*! @file pitts_tensortrain_from_dense_tsqr_twosided.hpp
+/*! @file pitts_tensortrain_from_dense_twosided.hpp
 * @brief conversion of a dense tensor to the tensor-train format (based on a hopefully faster TSQR algorithm, two-sided variant)
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2020-08-08
@@ -7,8 +7,8 @@
 **/
 
 // include guard
-#ifndef PITTS_TENSORTRAIN_FROM_DENSE_TSQR_TWOSIDED_HPP
-#define PITTS_TENSORTRAIN_FROM_DENSE_TSQR_TWOSIDED_HPP
+#ifndef PITTS_TENSORTRAIN_FROM_DENSE_TWOSIDED_HPP
+#define PITTS_TENSORTRAIN_FROM_DENSE_TWOSIDED_HPP
 
 // includes
 #include <limits>
@@ -86,7 +86,7 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense_TSQR_twoSided(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
+  TensorTrain<T> fromDense_twoSided(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -173,4 +173,4 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 }
 
 
-#endif // PITTS_TENSORTRAIN_FROM_DENSE_TSQR_TWOSIDED_HPP
+#endif // PITTS_TENSORTRAIN_FROM_DENSE_TWOSIDED_HPP
