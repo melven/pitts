@@ -36,21 +36,6 @@ TEST(PITTS_TensorTrain_fromDense_TSQR, scalar)
   ASSERT_NEAR(5., TT.subTensors()[0](0,0,0), eps);
 }
 
-/*
-TEST(PITTS_TensorTrain_fromDense_TSQR, dimension_mismatch)
-{
-  using TensorTrain_double = PITTS::TensorTrain<double>;
-  constexpr auto eps = 1.e-10;
-
-  std::vector<double> data;
-
-  data.resize(10);
-  EXPECT_THROW(PITTS::fromDense_TSQR(begin(data), end(data), std::vector<int>{1}), std::out_of_range);
-  EXPECT_NO_THROW(PITTS::fromDense_TSQR(begin(data), end(data), std::vector<int>{2,5}));
-  EXPECT_THROW(PITTS::fromDense_TSQR(begin(data), end(data), std::vector<int>{1,3,7}), std::out_of_range);
-}
-*/
-
 TEST(PITTS_TensorTrain_fromDense_TSQR, vector_1d)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
