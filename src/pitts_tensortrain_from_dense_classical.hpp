@@ -1,4 +1,4 @@
-/*! @file pitts_tensortrain_from_dense.hpp
+/*! @file pitts_tensortrain_from_dense_classical.hpp
 * @brief conversion of a dense tensor to the tensor-train format, classical TT-SVD algorithm
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2020-06-19
@@ -7,8 +7,8 @@
 **/
 
 // include guard
-#ifndef PITTS_TENSORTRAIN_FROM_DENSE_HPP
-#define PITTS_TENSORTRAIN_FROM_DENSE_HPP
+#ifndef PITTS_TENSORTRAIN_FROM_DENSE_CLASSICAL_HPP
+#define PITTS_TENSORTRAIN_FROM_DENSE_CLASSICAL_HPP
 
 // includes
 #include <cstddef>
@@ -94,4 +94,4 @@ namespace PITTS
 }
 
 
-#endif // PITTS_TENSORTRAIN_FROM_DENSE_HPP
+#endif // PITTS_TENSORTRAIN_FROM_DENSE_CLASSICAL_HPP
