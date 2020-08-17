@@ -3,7 +3,7 @@
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
 
-TEST(PITTS_TensorTrain_fromDense, scalar)
+TEST(PITTS_TensorTrain_fromDense_classical, scalar)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -17,7 +17,7 @@ TEST(PITTS_TensorTrain_fromDense, scalar)
   ASSERT_NEAR(5., TT.subTensors()[0](0,0,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, dimension_mismatch)
+TEST(PITTS_TensorTrain_fromDense_classical, dimension_mismatch)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -30,7 +30,7 @@ TEST(PITTS_TensorTrain_fromDense, dimension_mismatch)
   EXPECT_THROW(PITTS::fromDense_classical(begin(data), end(data), std::vector<int>{1,3,7}), std::out_of_range);
 }
 
-TEST(PITTS_TensorTrain_fromDense, vector_1d)
+TEST(PITTS_TensorTrain_fromDense_classical, vector_1d)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -53,7 +53,7 @@ TEST(PITTS_TensorTrain_fromDense, vector_1d)
   ASSERT_NEAR(7., TT.subTensors()[0](0,6,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x1)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_1x1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -74,7 +74,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x1)
   ASSERT_NEAR(7., TT.subTensors()[1](0,0,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x5)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_1x5)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -98,7 +98,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x5)
   ASSERT_NEAR(5., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,4,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x1)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_5x1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -122,7 +122,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x1)
   ASSERT_NEAR(5., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,0,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x2_rank1)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_5x2_rank1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -151,7 +151,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_5x2_rank1)
   ASSERT_NEAR(10., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,1,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_2x5_rank1)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_2x5_rank1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -180,7 +180,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_2x5_rank1)
   ASSERT_NEAR(10., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,4,0), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_4x5)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -205,7 +205,7 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5)
     }
 }
 
-TEST(PITTS_TensorTrain_fromDense, tensor_3d_rank1)
+TEST(PITTS_TensorTrain_fromDense_classical, tensor_3d_rank1)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -234,7 +234,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_3d_rank1)
       }
 }
 
-TEST(PITTS_TensorTrain_fromDense, tensor_3d_3x4x5)
+TEST(PITTS_TensorTrain_fromDense_classical, tensor_3d_3x4x5)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -261,7 +261,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_3d_3x4x5)
       }
 }
 
-TEST(PITTS_TensorTrain_fromDense, tensor_5d_2x3x4x2x3_unit)
+TEST(PITTS_TensorTrain_fromDense_classical, tensor_5d_2x3x4x2x3_unit)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
@@ -285,7 +285,7 @@ TEST(PITTS_TensorTrain_fromDense, tensor_5d_2x3x4x2x3_unit)
   EXPECT_NEAR(1., dot(TT, refTT), eps);
 }
 
-TEST(PITTS_TensorTrain_fromDense, matrix_2d_4x5_maxRank)
+TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_4x5_maxRank)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
   constexpr auto eps = 1.e-10;
