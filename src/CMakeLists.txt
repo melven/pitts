@@ -64,6 +64,7 @@ add_executable(multivector_copy_bench multivector_copy_bench.cpp)
 add_executable(tt_from_dense_bench tt_from_dense_bench.cpp)
 add_executable(tt_from_dense_tsqr_bench tt_from_dense_tsqr_bench.cpp)
 add_executable(tt_from_dense_tsqr_twosided_bench tt_from_dense_tsqr_twosided_bench.cpp)
+add_executable(tt_from_dense_tsqr_thickbounds_bench tt_from_dense_tsqr_thickbounds_bench.cpp)
 
 # Python binding
 if(pybind11_FOUND)
