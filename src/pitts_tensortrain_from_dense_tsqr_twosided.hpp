@@ -71,16 +71,22 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 
   //! calculate tensor-train decomposition of a tensor stored in fully dense format
   //!
+  //! Passing a large enough buffer in work helps to avoid costly reallocations + later page-faults for large data.
+  //!
+  //! @warning To reduce memory overhead, this function will overwrite the input arguments with temporary data.
+  //!          Please pass a copy of the data if you still need it!
+  //!
   //! @tparam T         underlying data type (double, complex, ...)
   //!
-  //! @param X              input tensor, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
+  //! @param X              input tensor, overwritten and modified output, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
+  //! @param work           buffer for temporary data, will be resized and modified
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense_TSQR_twoSided(const MultiVector<T>& X, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
+  TensorTrain<T> fromDense_TSQR_twoSided(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -102,8 +108,6 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 
     // actually convert to tensor train format
     Tensor2<T> M;
-    MultiVector<T> tmpX, Y;
-    const MultiVector<T> *pX = &X; // use X in the first iteration, then use own buffers
     for(int ii = 0; ii < nDims; ii++)
     {
       if( ii % 2 == 0 )
@@ -114,21 +118,21 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
         {
           const auto r1 = result.subTensors()[iDim+1].r1();
           const auto n = dimensions[iDim];
-          transpose(Y, tmpX, {(Y.rows()*Y.cols())/(n*r1), n*r1}, true);
+          transpose(work, X, {(work.rows()*work.cols())/(n*r1), n*r1}, true);
         }
         if( ii != nDims-1 )
         {
-          internal::HOSVD::split(*pX, Y, M, 1, rankTolerance, maxRank);
+          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank);
         }
         else
         {
-          M.resize(pX->cols(), pX->rows());
-          EigenMap(M) = ConstEigenMap(*pX).transpose();
+          M.resize(X.cols(), X.rows());
+          EigenMap(M) = ConstEigenMap(X).transpose();
         }
 
         auto& subT = result.editableSubTensors()[iDim];
         const int rank = M.r2();
-        subT.resize(rank, dimensions[iDim], pX->cols()/dimensions[iDim]);
+        subT.resize(rank, dimensions[iDim], X.cols()/dimensions[iDim]);
         for(int i = 0; i < rank; i++)
           for(int j = 0; j < subT.n(); j++)
             for(int k = 0; k < subT.r2(); k++)
@@ -141,27 +145,26 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
         {
           const auto r2 = (iDim == 0 ) ? 1 : result.subTensors()[iDim-1].r2();
           const auto n = dimensions[iDim];
-          transpose(Y, tmpX, {(Y.cols()*Y.rows())/(n*r2), n*r2}, false);
+          transpose(work, X, {(work.cols()*work.rows())/(n*r2), n*r2}, false);
         }
         if( ii != nDims - 1 )
         {
-          internal::HOSVD::split(*pX, Y, M, 1, rankTolerance, maxRank);
+          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank);
         }
         else
         {
-          M.resize(pX->cols(), pX->rows());
-          EigenMap(M) = ConstEigenMap(*pX).transpose();
+          M.resize(X.cols(), X.rows());
+          EigenMap(M) = ConstEigenMap(X).transpose();
         }
 
         auto& subT = result.editableSubTensors()[iDim];
         const int rank = M.r2();
-        subT.resize(pX->cols()/dimensions[iDim], dimensions[iDim], rank);
+        subT.resize(X.cols()/dimensions[iDim], dimensions[iDim], rank);
         for(int i = 0; i < rank; i++)
           for(int j = 0; j < subT.n(); j++)
             for(int k = 0; k < subT.r1(); k++)
               subT(k,j,i) = M(k+j*subT.r1(), i);
       }
-      pX = &tmpX;
     }
 
     return result;
