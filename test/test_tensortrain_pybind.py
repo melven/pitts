@@ -35,7 +35,22 @@ class TestTensorTrain(unittest.TestCase):
 
     def test_from_to_dense_float_ones(self):
         fullTensor_ref = np.ones([5, 3, 2, 3], dtype=np.float32)
-        tt = pitts_py.fromDense(fullTensor_ref)
+        tt = pitts_py.fromDense_classical(fullTensor_ref)
+        self.assertTrue(isinstance(tt, pitts_py.TensorTrain_float))
+        self.assertEqual(list(fullTensor_ref.shape), tt.dimensions())
+        self.assertEqual([1, 1, 1], tt.getTTranks())
+        fullTensor = pitts_py.toDense(tt)
+        self.assertEqual(fullTensor_ref.dtype, fullTensor.dtype)
+        np.testing.assert_array_almost_equal(fullTensor_ref, fullTensor)
+
+    def test_from_to_dense_tsqr_float_ones(self):
+        fullTensor_ref = np.ones([5, 3, 2, 3], dtype=np.float32)
+        work = pitts_py.MultiVector_float()
+        data = pitts_py.MultiVector_float(5*3*2, 3)
+        data_view = np.array(data, copy=False)
+        data_view[...] = fullTensor_ref.reshape([5*3*2, 3])
+        data_view = None
+        tt = pitts_py.fromDense(data, work, dimensions=[5, 3, 2, 3])
         self.assertTrue(isinstance(tt, pitts_py.TensorTrain_float))
         self.assertEqual(list(fullTensor_ref.shape), tt.dimensions())
         self.assertEqual([1, 1, 1], tt.getTTranks())
@@ -45,7 +60,22 @@ class TestTensorTrain(unittest.TestCase):
 
     def test_from_to_dense_double_ones(self):
         fullTensor_ref = np.ones([5, 3, 2, 3], dtype=np.float64)
-        tt = pitts_py.fromDense(fullTensor_ref)
+        tt = pitts_py.fromDense_classical(fullTensor_ref)
+        self.assertTrue(isinstance(tt, pitts_py.TensorTrain_double))
+        self.assertEqual(list(fullTensor_ref.shape), tt.dimensions())
+        self.assertEqual([1, 1, 1], tt.getTTranks())
+        fullTensor = pitts_py.toDense(tt)
+        self.assertEqual(fullTensor_ref.dtype, fullTensor.dtype)
+        np.testing.assert_array_almost_equal(fullTensor_ref, fullTensor)
+
+    def test_from_to_dense_tsqr_double_ones(self):
+        fullTensor_ref = np.ones([5, 3, 2, 3], dtype=np.float64)
+        work = pitts_py.MultiVector_double()
+        data = pitts_py.MultiVector_double(5*3*2, 3)
+        data_view = np.array(data, copy=False)
+        data_view[...] = fullTensor_ref.reshape([5*3*2, 3])
+        data_view = None
+        tt = pitts_py.fromDense(data, work, dimensions=[5, 3, 2, 3])
         self.assertTrue(isinstance(tt, pitts_py.TensorTrain_double))
         self.assertEqual(list(fullTensor_ref.shape), tt.dimensions())
         self.assertEqual([1, 1, 1], tt.getTTranks())
@@ -55,7 +85,7 @@ class TestTensorTrain(unittest.TestCase):
 
     def test_from_to_dense_float_random(self):
         fullTensor_ref = np.random.rand(5, 3, 2, 3).astype(dtype=np.float32)
-        tt = pitts_py.fromDense(fullTensor_ref)
+        tt = pitts_py.fromDense_classical(fullTensor_ref)
         self.assertTrue(isinstance(tt, pitts_py.TensorTrain_float))
         self.assertEqual(list(fullTensor_ref.shape), tt.dimensions())
         fullTensor = pitts_py.toDense(tt)
@@ -64,7 +94,7 @@ class TestTensorTrain(unittest.TestCase):
 
     def test_from_to_dense_double_random(self):
         fullTensor_ref = np.random.rand(5, 3, 2, 3).astype(dtype=np.float64)
-        tt = pitts_py.fromDense(fullTensor_ref)
+        tt = pitts_py.fromDense_classical(fullTensor_ref)
         self.assertTrue(isinstance(tt, pitts_py.TensorTrain_double))
         self.assertEqual(list(fullTensor_ref.shape), tt.dimensions())
         fullTensor = pitts_py.toDense(tt)
@@ -213,8 +243,8 @@ class TestTensorTrain(unittest.TestCase):
         fullTensor1 = np.random.rand(2,4,3)
         fullTensor2 = np.random.rand(2,4,3)
 
-        tt1 = pitts_py.fromDense(fullTensor1)
-        tt2 = pitts_py.fromDense(fullTensor2)
+        tt1 = pitts_py.fromDense_classical(fullTensor1)
+        tt2 = pitts_py.fromDense_classical(fullTensor2)
 
         nrm2 = pitts_py.axpby(1.5, tt1, -0.75, tt2)
 

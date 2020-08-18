@@ -178,7 +178,7 @@ namespace PITTS
             py::arg("TT"),
             "fill a tensor train format with random values (keeping current TT-ranks)");
 
-        m.def("fromDense",
+        m.def("fromDense_classical",
             &TensorTrain_fromDense_classical<T>,
             py::arg("array"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
             "calculate tensor-train decomposition of a tensor stored in fully dense format");
