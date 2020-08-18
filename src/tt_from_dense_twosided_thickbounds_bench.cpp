@@ -2,7 +2,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_tensortrain.hpp"
-#include "pitts_tensortrain_from_dense_tsqr.hpp"
+#include "pitts_tensortrain_from_dense_twosided.hpp"
 #include <charconv>
 #include <vector>
 
@@ -29,16 +29,29 @@ int main(int argc, char* argv[])
     shape[i] = n;
   }
 
-  PITTS::MultiVector<double> data(nTotal/n, n);
+  // compress shape, s.t. first and last dimensions are bigger than max_r
+  while( shape.size() > 2 && shape.front() < 1.7*max_r )
+  {
+    shape[1] *= shape[0];
+    shape.erase(shape.begin());
+  }
+  while( shape.size() > 2 && shape.back() < 1.7*max_r )
+  {
+    n = shape.size();
+    shape[n-2] *= shape[n-1];
+    shape.pop_back();
+  }
+
+  PITTS::MultiVector<double> data(nTotal/shape.back(), shape.back());
   randomize(data);
 
-  PITTS::MultiVector<double> X(nTotal/n, n);
-  PITTS::MultiVector<double> work(nTotal/n, n);
+  PITTS::MultiVector<double> X(nTotal/shape.back(), shape.back());
+  PITTS::MultiVector<double> work(nTotal/shape.back(), shape.back());
 
   for(int iter = 0; iter < nIter; iter++)
   {
     copy(data, X);
-    const auto TT = fromDense_TSQR(X, work, shape, 1.e-8, max_r);
+    const auto TT = fromDense_twoSided(X, work, shape, 1.e-8, max_r);
   }
 
   PITTS::finalize();

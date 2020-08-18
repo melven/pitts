@@ -19,8 +19,8 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensortrain_from_dense_classical.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
-#include "pitts_tensortrain_from_dense_tsqr.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_pybind.hpp"
 #include "pitts_scope_info.hpp"
@@ -83,12 +83,12 @@ namespace PITTS
 
       //! helper function for fromDense -> TensorTrain
       template<typename T>
-      TensorTrain<T> TensorTrain_fromDense(py::array_t<T, py::array::f_style> array, T rankTolerance, int maxRank)
+      TensorTrain<T> TensorTrain_fromDense_classical(py::array_t<T, py::array::f_style> array, T rankTolerance, int maxRank)
       {
         const auto first = static_cast<const T*>(array.data());
         const auto last = first + array.size();
         auto shape = std::vector<int>{array.shape(), array.shape()+array.ndim()};
-        return fromDense(first, last, shape, rankTolerance, maxRank);
+        return fromDense_classical(first, last, shape, rankTolerance, maxRank);
       }
 
       //! helper function for TensorTrain -> toDense
@@ -178,13 +178,13 @@ namespace PITTS
             py::arg("TT"),
             "fill a tensor train format with random values (keeping current TT-ranks)");
 
-        m.def("fromDense",
-            &TensorTrain_fromDense<T>,
+        m.def("fromDense_classical",
+            &TensorTrain_fromDense_classical<T>,
             py::arg("array"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
             "calculate tensor-train decomposition of a tensor stored in fully dense format");
 
-        m.def("fromDense_TSQR",
-            &fromDense_TSQR<T>,
+        m.def("fromDense",
+            &fromDense<T>,
             py::arg("X"), py::arg("work"), py::arg("dimensions"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
             "calculate tensor-train decomposition of a tensor stored in fully dense format (using a PITTS::MultiVector as buffer);\nWARNING: X is overwritten with temporary data to reduce memory consumption!");
 
