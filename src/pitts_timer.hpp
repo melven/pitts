@@ -11,6 +11,8 @@
 #define PITTS_TIMER_HPP
 
 // includes
+#include "pitts_parallel.hpp"
+#include "pitts_scope_info.hpp"
 #include <chrono>
 #include <limits>
 #include <unordered_map>
@@ -19,7 +21,6 @@
 #include <numeric>
 #include <vector>
 #include <string>
-#include "pitts_scope_info.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -65,6 +66,16 @@ namespace PITTS
       {
         *this = *this + other;
         return *this;
+      }
+
+      //! allow reading/writing with cereal
+      template<class Archive>
+      void serialize(Archive & ar)
+      {
+        ar( CEREAL_NVP(totalTime),
+            CEREAL_NVP(minTime),
+            CEREAL_NVP(maxTime),
+            CEREAL_NVP(calls) );
       }
     };
 
@@ -128,11 +139,10 @@ namespace PITTS
     };
 
     //! gather timings in a vector, so they can be sorted and printed more easily
-    inline auto gatherTimings(const TimingStatisticsMap& map)
+    inline auto gatherTimings(const TimingStatisticsMap& map, bool mpiGlobal = true)
     {
-      std::vector<NamedTiming> result;
-      result.reserve(map.size());
-
+      // copy to serializable map (ScopeInfo is read-only)
+      std::unordered_map<std::string,TimingStatistics> namedMap;
       for(const auto& [scope, timings]: map)
       {
         std::string fullName;
@@ -140,8 +150,16 @@ namespace PITTS
           fullName = scope.type_name() + std::string("::");
         fullName += scope.function_name();
 
-        result.emplace_back(NamedTiming{std::move(fullName), timings});
+        namedMap.insert({std::move(fullName),timings});
       }
+
+      if( mpiGlobal )
+        namedMap = parallel::combineMaps(namedMap);
+
+      std::vector<NamedTiming> result;
+      result.reserve(namedMap.size());
+      for(const auto& [name, timings]: namedMap)
+        result.emplace_back(NamedTiming{name, timings});
 
       return result;
     }
@@ -174,7 +192,7 @@ namespace PITTS
     inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
     {
       using internal::NamedTiming;
-      std::vector<NamedTiming> lines = gatherTimings(globalTimingStatisticsMap);
+      std::vector<NamedTiming> lines = gatherTimings(globalTimingStatisticsMap, false);
 
       // sort by decreasing time
       std::sort(lines.begin(), lines.end(), [](const NamedTiming& l1, const NamedTiming& l2){return l1.timings.totalTime > l2.timings.totalTime;});
