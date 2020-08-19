@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <numeric>
 #include <vector>
+#include <string>
 #include "pitts_scope_info.hpp"
 
 
@@ -114,6 +115,36 @@ namespace PITTS
         ab[scope] += timings;
       return ab;
     }
+
+
+    //! helper type for a timing result with a name
+    struct NamedTiming final
+    {
+      //! description (function name, parameters, etc)
+      std::string name;
+
+      //! timing results
+      TimingStatistics timings;
+    };
+
+    //! gather timings in a vector, so they can be sorted and printed more easily
+    inline auto gatherTimings(const TimingStatisticsMap& map)
+    {
+      std::vector<NamedTiming> result;
+      result.reserve(map.size());
+
+      for(const auto& [scope, timings]: map)
+      {
+        std::string fullName;
+        if( !std::string_view(scope.type_name()).empty() )
+          fullName = scope.type_name() + std::string("::");
+        fullName += scope.function_name();
+
+        result.emplace_back(NamedTiming{std::move(fullName), timings});
+      }
+
+      return result;
+    }
   }
 
 
@@ -142,29 +173,13 @@ namespace PITTS
     //! print nice statistics using globalTimingStatisticsMap
     inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
     {
-      // For sorting and nicer formatting, first copy all stuff into an array of small helper structs
-      struct Line final
-      {
-        std::string name;
-        double totalTime;
-        std::size_t calls;
-      };
-      std::vector<Line> lines;
-      lines.reserve(globalTimingStatisticsMap.size());
+      using internal::NamedTiming;
+      std::vector<NamedTiming> lines = gatherTimings(globalTimingStatisticsMap);
 
-      for(const auto& [scope, timings]: globalTimingStatisticsMap)
-      {
-        std::string fullName;
-        if( !std::string_view(scope.type_name()).empty() )
-          fullName = scope.type_name() + std::string("::");
-        fullName += scope.function_name();
-
-        lines.emplace_back(Line{fullName, timings.totalTime, timings.calls});
-      }
       // sort by decreasing time
-      std::sort(lines.begin(), lines.end(), [](const Line& l1, const Line& l2){return l1.totalTime > l2.totalTime;});
+      std::sort(lines.begin(), lines.end(), [](const NamedTiming& l1, const NamedTiming& l2){return l1.timings.totalTime > l2.timings.totalTime;});
       // get maximal length of the name string
-      const auto maxNameLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const Line& l){return std::max(n, l.name.size());});
+      const auto maxNameLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const NamedTiming& l){return std::max(n, l.name.size());});
 
       // actual output
       out << "Timing statistics:\n";
@@ -175,8 +190,8 @@ namespace PITTS
       for(const auto& line: lines)
       {
         out << std::setw(maxNameLen) << line.name << "\t "
-            << std::setw(10) << line.totalTime << "\t "
-            << std::setw(10) << line.calls << "\n";
+            << std::setw(10) << line.timings.totalTime << "\t "
+            << std::setw(10) << line.timings.calls << "\n";
       }
 
       if( clear )
