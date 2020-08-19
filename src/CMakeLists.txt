@@ -10,6 +10,7 @@ target_sources(pitts INTERFACE
   pitts_timer.hpp
   pitts_performance.hpp
   pitts_common.hpp
+  pitts_parallel.hpp
   pitts_tensor2.hpp
   pitts_tensor2_random.hpp
   pitts_tensor2_eigen_adaptor.hpp
