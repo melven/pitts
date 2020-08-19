@@ -15,7 +15,7 @@ TEST(PITTS_Parallel, combineMaps)
   ASSERT_EQ(0, MPI_Comm_size(MPI_COMM_WORLD, &nProcs));
   ASSERT_EQ(0, MPI_Comm_rank(MPI_COMM_WORLD, &iProc));
 
-  StringMap globalMap = PITTS::parallel::combineMaps(localMap, op);
+  StringMap globalMap = PITTS::internal::parallel::combineMaps(localMap, op);
 
   if( iProc == 0 )
   {
@@ -35,7 +35,7 @@ TEST(PITTS_Parallel, combineMaps)
   localMap["proc"] = std::to_string(iProc);
   localMap["only_local: "+std::to_string(iProc)] = "I'm here";
 
-  globalMap = PITTS::parallel::combineMaps(localMap);
+  globalMap = PITTS::internal::parallel::combineMaps(localMap);
 
   if( iProc == 0 )
   {
