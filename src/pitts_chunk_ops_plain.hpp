@@ -124,6 +124,14 @@ namespace PITTS
       result[i] = src[i];
   }
 
+  // unaligned store
+  template<typename T>
+  inline void unaligned_store(const Chunk<T>& src, T* result)
+  {
+    for(short i = 0; i < Chunk<T>::size; i++)
+      result[i] = src[i];
+  }
+
   // streaming store
   template<typename T>
   inline void streaming_store(const Chunk<T>& src, Chunk<T>& result)

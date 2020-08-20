@@ -427,6 +427,30 @@ MY_TYPED_TEST(unaligned_load)
 }
 
 
+MY_TYPED_TEST(unaligned_store)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  std::unique_ptr<Type[]> result(new Type[Chunk::size+10]);
+
+  for(int iter = 0; iter < 10; iter++)
+  {
+    Chunk src;
+    randomize(src);
+    const Chunk src_ref = src;
+
+    unaligned_store(src, result.get()+iter);
+
+    for(int i = 0; i < Chunk::size; i++)
+    {
+      EXPECT_EQ(src_ref[i], src[i]);
+      EXPECT_EQ(src[i], result[i+iter]);
+    }
+  }
+}
+
+
 MY_TYPED_TEST(streaming_store)
 {
   using Type = TestFixture::Type;
