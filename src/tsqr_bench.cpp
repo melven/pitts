@@ -15,7 +15,7 @@
 
 int main(int argc, char* argv[])
 {
-  //PITTS::initialize(&argc, &argv);
+  PITTS::initialize(&argc, &argv);
 
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
   using Chunk = PITTS::Chunk<double>;
@@ -49,8 +49,7 @@ std::cout << "wtime: " << wtime << "\n";
     std::cout << "singular values (new):\n" << svd.singularValues().transpose() << "\n";
   }
 
-  PITTS::performance::printStatistics();
-  //PITTS::finalize();
+  PITTS::finalize();
 
   return 0;
 }

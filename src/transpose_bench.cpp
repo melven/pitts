@@ -10,7 +10,7 @@
 
 int main(int argc, char* argv[])
 {
-//  PITTS::initialize(&argc, &argv);
+  PITTS::initialize(&argc, &argv);
 
   if( argc != 7 )
     throw std::invalid_argument("Requires 5 arguments: n m n_ m_ reverse nIter!");

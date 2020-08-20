@@ -12,7 +12,7 @@
 
 int main(int argc, char* argv[])
 {
-//  PITTS::initialize(&argc, &argv);
+  PITTS::initialize(&argc, &argv);
 
   if( argc != 5 && argc != 7 )
     throw std::invalid_argument("Requires 4 or 6 arguments!");
