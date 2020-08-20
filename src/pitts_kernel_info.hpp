@@ -13,6 +13,7 @@
 // includes
 #include <type_traits>
 #include <complex>
+#include <cereal/cereal.hpp>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -32,6 +33,19 @@ namespace PITTS
 
       //! number of double precision floating point operations
       double doublePrecision;
+
+
+      //! allow reading/writing with cereal
+      template<class Archive>
+      void serialize(Archive & ar)
+      {
+        ar( CEREAL_NVP(noFMA),
+            CEREAL_NVP(singlePrecision),
+            CEREAL_NVP(doublePrecision) );
+      }
+
+      //! default equality operator
+      constexpr bool operator==(const Flops&) const = default;
     };
 
     //! allow to multiply a Flops object with a scalar, e.g. the dimension of the data
@@ -120,6 +134,20 @@ namespace PITTS
 
       //! number of bytes that are only written
       double store;
+
+
+      //! allow reading/writing with cereal
+      template<class Archive>
+      void serialize(Archive & ar)
+      {
+        ar( CEREAL_NVP(dataSize),
+            CEREAL_NVP(update),
+            CEREAL_NVP(load),
+            CEREAL_NVP(store) );
+      }
+
+      //! default equality operator
+      constexpr bool operator==(const Bytes&) const = default;
     };
 
     //! allow to multiply a Bytes object with a scalar, e.g. the dimension of the data
@@ -197,6 +225,18 @@ namespace PITTS
 
       //! number and kind of data transfers
       internal::Bytes bytes;
+
+
+      //! allow reading/writing with cereal
+      template<class Archive>
+      void serialize(Archive & ar)
+      {
+        ar( CEREAL_NVP(flops),
+            CEREAL_NVP(bytes) );
+      }
+
+      //! default equality operator
+      constexpr bool operator==(const KernelInfo&) const = default;
     };
   }
 }

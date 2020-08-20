@@ -35,6 +35,18 @@ namespace PITTS
 
       //! theoretical information on required operations and data transfers
       kernel_info::KernelInfo kernel;
+
+      //! number of processing units involved (e.g. MPI processes)
+      int nProcs = 1;
+
+      //! allow reading/writing with cereal
+      template<class Archive>
+      void serialize(Archive & ar)
+      {
+        ar( CEREAL_NVP(timings),
+            CEREAL_NVP(kernel),
+            CEREAL_NVP(nProcs) );
+      }
     };
 
 
@@ -81,12 +93,11 @@ namespace PITTS
     };
 
     //! gather performance data in a vector, so they can be sorted and printed more easily
-    inline auto gatherPerformance(const PerformanceStatisticsMap& map)
+    inline auto gatherPerformance(const PerformanceStatisticsMap& map, bool mpiGlobal = true)
     {
-      std::vector<NamedPerformance> result;
-      result.reserve(map.size());
-
-      for(const auto& [scopeWithArgs, performanceData]: map)
+      // copy to serializable map (ScopInfo is read-only)
+      std::unordered_map<std::string,PerformanceStatistics> namedMap;
+      for(const auto& [scopeWithArgs, performance]: map)
       {
         const auto& scope = scopeWithArgs.scope;
         const auto& args = scopeWithArgs.args;
@@ -97,8 +108,27 @@ namespace PITTS
         fullName += scope.function_name();
         fullName += "(" + args.to_string() + ")";
 
-        result.emplace_back(NamedPerformance{std::move(fullName),performanceData});
+        namedMap.insert({std::move(fullName),performance});
       }
+
+      if( mpiGlobal )
+      {
+        // operator that only adds up timings
+        const auto combineOp = [](const PerformanceStatistics& a, const PerformanceStatistics& b)
+        {
+          // check that kernel data matches!!
+          if( a.kernel != b.kernel )
+            throw std::invalid_argument("Trying to combine timings of functions with different performance characteristics (Flops, Bytes)!");
+          return PerformanceStatistics{a.timings+b.timings, a.kernel, a.nProcs+b.nProcs};
+        };
+        namedMap = parallel::mpiCombineMaps(namedMap, combineOp);
+      }
+
+      std::vector<NamedPerformance> result;
+      result.reserve(namedMap.size());
+
+      for(const auto& [name, performance]: namedMap)
+        result.emplace_back(NamedPerformance{name, performance});
 
       return result;
     }
@@ -130,39 +160,51 @@ namespace PITTS
 
 
     //! print nice statistics using globalPerformanceStatisticsMap
-    inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
+    inline void printStatistics(bool clear = true, std::ostream& out = std::cout, bool mpiGlobal = true)
     {
       using internal::NamedPerformance;
-      std::vector<NamedPerformance> lines = internal::gatherPerformance(globalPerformanceStatisticsMap);
+      std::vector<NamedPerformance> lines = internal::gatherPerformance(globalPerformanceStatisticsMap, mpiGlobal);
 
       // sort by decreasing time
       std::sort(lines.begin(), lines.end(), [](const NamedPerformance& l1, const NamedPerformance& l2){return l1.performance.timings.totalTime > l2.performance.timings.totalTime;});
       // get maximal length of the name string
       const auto maxDescLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const NamedPerformance& l){return std::max(n, l.name.size());});
 
+      // prevent output on non-root with mpiGlobal == true (but omit mpiProcInfo call when mpiGlobal == false)
+      bool doOutput = true;
 
-      // actual output
-      out << "Performance statistics:\n";
-      out << std::left;
-      out << std::setw(maxDescLen) << "function" << "\t "
-          << std::setw(10) << "time [s]" << "\t "
-          << std::setw(10) << "#calls" << "\t "
-          << std::setw(10) << "GFlop/s DP" << "\t "
-          << std::setw(10) << "GFlop/s SP" << "\t "
-          << std::setw(10) << "GByte/s" << "\t"
-          << std::setw(10) << "Flops/Byte" << "\n";
-      for(const auto& line: lines)
+      if( mpiGlobal )
       {
-        const auto& timings = line.performance.timings;
-        const auto& flops = line.performance.kernel.flops;
-        const auto& bytes = line.performance.kernel.bytes;
-        out << std::setw(maxDescLen) << line.name << "\t "
-            << std::setw(10) << timings.totalTime << "\t "
-            << std::setw(10) << timings.calls << "\t "
-            << std::setw(10) << timings.calls*flops.doublePrecision/timings.totalTime*1.e-9 << "\t "
-            << std::setw(10) << timings.calls*flops.singlePrecision/timings.totalTime*1.e-9 << "\t "
-            << std::setw(10) << timings.calls*(2*bytes.update+bytes.load+bytes.store)/timings.totalTime*1.e-9 << "\t "
-            << std::setw(10) << (flops.doublePrecision+flops.singlePrecision) / (2*bytes.update+bytes.load+bytes.store) << "\n";
+        const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
+        doOutput = iProc == 0;
+      }
+
+      if( doOutput )
+      {
+        // actual output
+        out << "Performance statistics:\n";
+        out << std::left;
+        out << std::setw(maxDescLen) << "function" << "\t "
+            << std::setw(10) << "time [s]" << "\t "
+            << std::setw(10) << "#calls" << "\t "
+            << std::setw(10) << "GFlop/s DP" << "\t "
+            << std::setw(10) << "GFlop/s SP" << "\t "
+            << std::setw(10) << "GByte/s" << "\t"
+            << std::setw(10) << "Flops/Byte" << "\n";
+        for(const auto& line: lines)
+        {
+          const auto& timings = line.performance.timings;
+          const auto& nProcs = line.performance.nProcs;
+          const auto& flops = line.performance.kernel.flops;
+          const auto& bytes = line.performance.kernel.bytes;
+          out << std::setw(maxDescLen) << line.name << "\t "
+              << std::setw(10) << timings.totalTime/nProcs << "\t "
+              << std::setw(10) << std::lround(timings.calls*1.0/nProcs) << "\t "
+              << std::setw(10) << timings.calls*flops.doublePrecision/(timings.totalTime/nProcs)*1.e-9 << "\t "
+              << std::setw(10) << timings.calls*flops.singlePrecision/(timings.totalTime/nProcs)*1.e-9 << "\t "
+              << std::setw(10) << timings.calls*(2*bytes.update+bytes.load+bytes.store)/(timings.totalTime/nProcs)*1.e-9 << "\t "
+              << std::setw(10) << (flops.doublePrecision+flops.singlePrecision) / (2*bytes.update+bytes.load+bytes.store) << "\n";
+        }
       }
 
 
