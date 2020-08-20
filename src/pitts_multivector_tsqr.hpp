@@ -14,12 +14,13 @@
 #define PITTS_MULTIVECTOR_TSQR_HPP
 
 // includes
-#include <memory>
-#include <omp.h>
+#include "pitts_parallel.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include <memory>
+#include <omp.h>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -325,17 +326,14 @@ namespace PITTS
     }
 
     // get the number of OpenMP threads
-    int nThreads = 1;
-#pragma omp parallel shared(nThreads)
-    {
-#pragma omp critical (PITTS_MULTIVECTOR_BLOCK_TSQR)
-      nThreads = omp_get_num_threads();
-    }
+    int nMaxThreads = omp_get_max_threads();
 
-    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nThreads*m]);
+    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nMaxThreads*m]);
 
 #pragma omp parallel
     {
+      const auto& [iThread,nThreads] = internal::parallel::ompThreadInfo();
+
       std::unique_ptr<Chunk<T>[]> pdataSmall{new Chunk<T>[nChunks*m]};
       std::unique_ptr<Chunk<T>[]> plocalBuff{new Chunk<T>[nChunks*m]};
 
@@ -355,7 +353,7 @@ namespace PITTS
         internal::HouseholderQR::copyBlockAndTransformMaybe(mChunks, m, &pdataSmall[0], nChunks, nChunks, &plocalBuff[0], localBuffOffset);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
-      if( omp_get_thread_num() == nThreads-1 && nIter*nChunks < nTotalChunks )
+      if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
         const int nLastChunks = nTotalChunks-nIter*nChunks;
         internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nIter*nChunks,0), lda, &pdataSmall[0]);
@@ -366,21 +364,26 @@ namespace PITTS
       if( localBuffOffset > mChunks )
         internal::HouseholderQR::transformBlock(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
 
-      int offset = omp_get_thread_num()*mChunks;
+      int offset = iThread*mChunks;
       for(int j = 0; j < m; j++)
         for(int i = 0; i < mChunks; i++)
           psharedBuff[offset + i + nThreads*mChunks*j] = plocalBuff[i + nChunks*j];
+
+#pragma omp barrier
+
+#pragma omp master
+      {
+        // reduce shared buffer
+        if( nThreads > 1 )
+          internal::HouseholderQR::transformBlock(nThreads*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0]);
+
+        // copy result to R
+        R.resize(m,m);
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < m; i++)
+            R(i,j) = psharedBuff[ i/Chunk<T>::size + nThreads*mChunks*j ][ i%Chunk<T>::size ];
+      }
     } // omp parallel
-
-    // reduce shared buffer
-    if( nThreads > 1 )
-      internal::HouseholderQR::transformBlock(nThreads*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0]);
-
-    // copy result to R
-    R.resize(m,m);
-    for(int j = 0; j < m; j++)
-      for(int i = 0; i < m; i++)
-        R(i,j) = psharedBuff[ i/Chunk<T>::size + nThreads*mChunks*j ][ i%Chunk<T>::size ];
 
   }
 }
