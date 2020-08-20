@@ -12,12 +12,15 @@
 
 // includes
 #include <mpi.h>
+#include <omp.h>
 #include <unordered_map>
 #include <numeric>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <functional>
+#include <tuple>
+#include <exception>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/unordered_map.hpp>
@@ -32,6 +35,74 @@ namespace PITTS
     //! helper functionality for distribution of data and parallelization
     namespace parallel
     {
+      //! OpenMP helper: get index of the current thread and the total number of threads
+      //!
+      //! @warning This must be called from inside an OpenMP parallel region.
+      //!          In an OpenMP-serial scope, it returns iThread=0, nThreads=1
+      //!
+      //! @returns  pair(iThread,nThreads)
+      //!
+      inline auto ompThreadInfo()
+      {
+        const auto iThread = omp_get_thread_num();
+        const auto nThreads = omp_get_num_threads();
+        return std::make_pair(iThread, nThreads);
+      }
+
+      //! MPI helper: get index of the curreant process and the total number of processes
+      //!
+      //! @param comm   MPI communicator
+      //!
+      //! @returns  pair(iProc,nProcs)
+      //!
+      inline auto mpiProcInfo(MPI_Comm comm = MPI_COMM_WORLD)
+      {
+        int iProc = 0, nProcs = 1;
+
+        if( MPI_Comm_rank(comm, &iProc) != MPI_SUCCESS ) [[unlikely]]
+          throw std::runtime_error("failure returned from MPI_Comm_rank");
+
+        if( MPI_Comm_size(comm, &nProcs) != MPI_SUCCESS ) [[unlikely]]
+          throw std::runtime_error("failure returned from MPI_Comm_rank");
+
+        return std::make_pair(iProc, nProcs);
+      }
+
+      //! Calculate offsets to distribute a given number of elements equally on the given number of processing units
+      //!
+      //! This can be used for both MPI and OpenMP (for cases where the loop structure inhibits just using `#pragma omp for schedule(static)`)
+      //!
+      //! @warning This function returns an index range (firstElem,lastElem) in the form (offset,offset+nLocal-1) where lastElem is actually the last index that should be handled.
+      //!          For fewer elements than processing units, some processing units don't have any work to do, so in that case lastElem=firstElem-1.
+      //!
+      //! @param nElems             global number of elements to distribute
+      //! @param procIndexAndTotal  pair(i,n) where 0<=i<n is the index of the current processing unit and n is the number of processing units
+      //! @returns                  pair(firstElem,lastElem); index range of elements that should be handled by this processing unit
+      //!
+      constexpr auto distribute(long long nElems, const std::pair<int,int>& procIndexAndTotal) noexcept
+      {
+        const auto& [iProc,nProcs] = procIndexAndTotal;
+        long long firstElem = 0;
+        long long lastElem = nElems - 1;
+        if( nProcs > 1 )
+        {
+          long long nElemsPerThread = nElems / nProcs;
+          long long nElemsModThreads = nElems % nProcs;
+          if( iProc < nElemsModThreads )
+          {
+            firstElem = iProc * (nElemsPerThread+1);
+            lastElem = firstElem + nElemsPerThread;
+          }
+          else
+          {
+            firstElem = iProc * nElemsPerThread + nElemsModThreads;
+            lastElem = firstElem + nElemsPerThread-1;
+          }
+        }
+        return std::make_pair(firstElem, lastElem);
+      }
+
+
       //! helper function to combine std::unordered_map from multiple MPI processes
       //!
       //! @tparam Key               std::unordered_map key type, must be serializable using cereal
