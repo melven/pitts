@@ -11,49 +11,18 @@
 #define PITTS_MULTIVECTOR_TRANSPOSE_HPP
 
 // includes
+#include "pitts_parallel.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_chunk_ops.hpp"
 #include <array>
 #include <exception>
 #include <memory>
 #include <tuple>
-#include <omp.h>
-#include "pitts_multivector.hpp"
-#include "pitts_performance.hpp"
-#include "pitts_chunk_ops.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! namespace for helper functionality
-  namespace internal
-  {
-    //! helper functionality for distribution of data and parallelization
-    namespace parallel
-    {
-      inline auto distribute(long long nElems, int iThread = omp_get_thread_num(), int nThreads = omp_get_num_threads())
-      {
-        long long firstElem = 0;
-        long long lastElem = nElems - 1;
-        if( nThreads > 1 )
-        {
-          long long nElemsPerThread = nElems / nThreads;
-          long long nElemsModThreads = nElems % nThreads;
-          if( iThread < nElemsModThreads )
-          {
-            firstElem = iThread * (nElemsPerThread+1);
-            lastElem = firstElem + nElemsPerThread;
-          }
-          else
-          {
-            firstElem = iThread * nElemsPerThread + nElemsModThreads;
-            lastElem = firstElem + nElemsPerThread-1;
-          }
-        }
-        return std::make_pair(firstElem, lastElem);
-      }
-
-    }
-  }
-
   //! reshape and transpose a tall-skinny matrix
   //!
   //! This is equivalent to first adjusting the shape (but keeping the data in the same ordering) and then transposing
@@ -92,7 +61,7 @@ namespace PITTS
         std::unique_ptr<Chunk<T>[]> buff(new Chunk<T>[reshape[1]]);
 
 
-        const auto [firstChunk, lastChunk] = internal::parallel::distribute(Y.rowChunks());
+        const auto [firstChunk, lastChunk] = internal::parallel::distribute(Y.rowChunks(), internal::parallel::ompThreadInfo());
         const auto indexOffset = firstChunk * Chunk<T>::size * Y.cols();
         long long ix = indexOffset % X.rows();
         long long jx = indexOffset / X.rows();
@@ -128,7 +97,7 @@ namespace PITTS
     {
 #pragma omp parallel
       {
-        const auto [firstChunk, lastChunk] = internal::parallel::distribute(Y.rowChunks());
+        const auto [firstChunk, lastChunk] = internal::parallel::distribute(Y.rowChunks(), internal::parallel::ompThreadInfo());
 
         for(long long jy = 0; jy < Y.cols(); jy++)
         {

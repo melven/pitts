@@ -61,6 +61,10 @@ else()
   message(STATUS "Did not find pybind11, not building the python interface...")
 endif()
 
+# cereal for for data (de-)serialization
+find_package(cereal REQUIRED NO_MODULE)
+link_libraries(cereal)
+
 
 ###
 ### Define source files and executables

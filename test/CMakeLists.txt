@@ -12,6 +12,7 @@ file(GLOB_RECURSE CPP_SRCUNITTESTS *.cpp *.hpp)
 # executable for the unit tests
 add_executable(pitts_tests EXCLUDE_FROM_ALL ${CPP_SRCUNITTESTS} ${GTEST_SOURCES})
 target_include_directories(pitts_tests PRIVATE ${GTEST_INCLUDE_PATH} ${CMAKE_SOURCE_DIR}/src)
+target_compile_definitions(pitts_tests PRIVATE "-DGTEST_HAS_MPI=1")
 
 # add the unit tests
 add_test(NAME unittests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND $<TARGET_FILE:pitts_tests> --gtest_output=xml:pitts_tests.xml)
