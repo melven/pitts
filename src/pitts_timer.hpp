@@ -189,27 +189,46 @@ namespace PITTS
 
 
     //! print nice statistics using globalTimingStatisticsMap
-    inline void printStatistics(bool clear = true, std::ostream& out = std::cout)
+    inline void printStatistics(bool clear = true, std::ostream& out = std::cout, bool mpiGlobal = true)
     {
       using internal::NamedTiming;
-      std::vector<NamedTiming> lines = gatherTimings(globalTimingStatisticsMap, false);
+      std::vector<NamedTiming> lines = gatherTimings(globalTimingStatisticsMap, mpiGlobal);
 
       // sort by decreasing time
       std::sort(lines.begin(), lines.end(), [](const NamedTiming& l1, const NamedTiming& l2){return l1.timings.totalTime > l2.timings.totalTime;});
       // get maximal length of the name string
       const auto maxNameLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const NamedTiming& l){return std::max(n, l.name.size());});
 
-      // actual output
-      out << "Timing statistics:\n";
-      out << std::left;
-      out << std::setw(maxNameLen) << "function" << "\t "
-          << std::setw(10) << "time [s]" << "\t "
-          << std::setw(10) << "#calls" << "\n";
-      for(const auto& line: lines)
+      // prevent output on non-root with mpiGlobal == true (but omit mpiProcInfo call when mpiGlobal == false)
+      bool doOutput = true;
+
+      if( mpiGlobal )
       {
-        out << std::setw(maxNameLen) << line.name << "\t "
-            << std::setw(10) << line.timings.totalTime << "\t "
-            << std::setw(10) << line.timings.calls << "\n";
+        // divide data by number of processes (average timings/calls)
+        const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
+        for(auto& line: lines)
+        {
+          line.timings.totalTime /= nProcs;
+          line.timings.calls /= nProcs;
+        }
+
+        doOutput = iProc == 0;
+      }
+
+      if( doOutput )
+      {
+        // actual output
+        out << "Timing statistics:\n";
+        out << std::left;
+        out << std::setw(maxNameLen) << "function" << "\t "
+            << std::setw(10) << "time [s]" << "\t "
+            << std::setw(10) << "#calls" << "\n";
+        for(const auto& line: lines)
+        {
+          out << std::setw(maxNameLen) << line.name << "\t "
+              << std::setw(10) << line.timings.totalTime << "\t "
+              << std::setw(10) << line.timings.calls << "\n";
+        }
       }
 
       if( clear )
