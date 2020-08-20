@@ -154,7 +154,7 @@ namespace PITTS
       }
 
       if( mpiGlobal )
-        namedMap = parallel::combineMaps(namedMap);
+        namedMap = parallel::mpiCombineMaps(namedMap);
 
       std::vector<NamedTiming> result;
       result.reserve(namedMap.size());

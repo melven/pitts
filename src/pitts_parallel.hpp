@@ -17,6 +17,7 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <string_view>
 #include <sstream>
 #include <functional>
 #include <tuple>
@@ -59,10 +60,10 @@ namespace PITTS
       {
         int iProc = 0, nProcs = 1;
 
-        if( MPI_Comm_rank(comm, &iProc) != MPI_SUCCESS ) [[unlikely]]
+        if( MPI_Comm_rank(comm, &iProc) != MPI_SUCCESS )
           throw std::runtime_error("failure returned from MPI_Comm_rank");
 
-        if( MPI_Comm_size(comm, &nProcs) != MPI_SUCCESS ) [[unlikely]]
+        if( MPI_Comm_size(comm, &nProcs) != MPI_SUCCESS )
           throw std::runtime_error("failure returned from MPI_Comm_rank");
 
         return std::make_pair(iProc, nProcs);
@@ -103,7 +104,40 @@ namespace PITTS
       }
 
 
-      //! helper function to combine std::unordered_map from multiple MPI processes
+      //! gather "raw" data of arbitrary length from multiple MPI processes
+      //!
+      //! @param localData    part of the data of the current process
+      //! @param root         (optional) MPI root process, must be identical on all MPI processes
+      //! @param comm         (optional) MPI communicator, must be identical on all MPI processes
+      //! @returns            pair(data,offsets) with the gathered data from process i at data[offset[i]...offset[i+1]-1] on the root process (otherwise empty)
+      //!
+      inline std::pair<std::string,std::vector<int>> mpiGather(const std::string_view& localData, int root = 0, MPI_Comm comm = MPI_COMM_WORLD)
+      {
+        const auto& [iProc,nProcs] = mpiProcInfo(comm);
+
+        // gather sizes
+        std::vector<int> sizes(nProcs,0);
+        int localSize = localData.size();
+        if( MPI_Gather(&localSize, 1, MPI_INT, sizes.data(), 1, MPI_INT, root, comm) != MPI_SUCCESS )
+          throw std::runtime_error("failure returned from MPI_Gather");
+
+        // calculate offsets
+        std::vector<int> offsets;
+        offsets.reserve(nProcs+1);
+        offsets.push_back(0);
+        std::inclusive_scan(sizes.begin(), sizes.end(), std::back_inserter(offsets));
+
+        // allocate buffer and gather data
+        std::string globalData(offsets.back(), '\0');
+        if( MPI_Gatherv(localData.data(), localData.size(), MPI_CHAR, globalData.data(), sizes.data(), offsets.data(), MPI_CHAR, root, comm) != MPI_SUCCESS )
+          throw std::runtime_error("failure returned from MPI_Gatherv");
+
+        // return the result
+        return {std::move(globalData),std::move(offsets)};
+      }
+
+
+      //! combine std::unordered_map from multiple MPI processes
       //!
       //! @tparam Key               std::unordered_map key type, must be serializable using cereal
       //! @tparam Value             std::unordered_map value type, must be serializable using cereal
@@ -111,10 +145,12 @@ namespace PITTS
       //!
       //! @param localMap           std::unordered_map on each process
       //! @param op                 (optional) operator to combine values of keys that occur on multiple processes, only relevant on process 0
+      //! @param root               (optional) MPI root process, must be identical on all MPI processes
       //! @param comm               (optional) MPI communicator, must be identical on all MPI processes
+      //! @returns                  combined map of all process on the root process, otherwise an empty
       //!
       template<typename Key, typename Value, class BinaryOperation = std::function<Value(Value,Value)>>
-      std::unordered_map<Key,Value> combineMaps(const std::unordered_map<Key,Value>& localMap, BinaryOperation op = std::plus<Value>(), MPI_Comm comm = MPI_COMM_WORLD)
+      std::unordered_map<Key,Value> mpiCombineMaps(const std::unordered_map<Key,Value>& localMap, BinaryOperation op = std::plus<Value>(), int root = 0, MPI_Comm comm = MPI_COMM_WORLD)
       {
         // serialize data
         std::ostringstream oss;
@@ -123,34 +159,20 @@ namespace PITTS
           ar( localMap );
         }
 
-        // get number of processes
-        int nProcs = 1, iProc = 0;
-        if( MPI_Comm_size(comm, &nProcs) != 0 )
-          throw std::runtime_error("MPI error");
-        if( MPI_Comm_rank(comm, &iProc) != 0 )
-          throw std::runtime_error("MPI error");
+        const auto& [iProc,nProcs] = mpiProcInfo(comm);
 
         // communicate raw data: all processes -> root
-        std::vector<int> sizes(nProcs, 0);
-        int localSize = oss.str().size();
-        if( MPI_Gather(&localSize, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, comm) != 0 )
-          throw std::runtime_error("MPI error");
-        std::vector<int> offsets;
-        std::exclusive_scan(sizes.begin(), sizes.end(), std::back_inserter(offsets), 0);
-        int totalSize = offsets.back() + sizes.back();
-        std::string raw(totalSize, '\0');
-        if( MPI_Gatherv(oss.str().data(), oss.str().size(), MPI_CHAR, raw.data(), sizes.data(), offsets.data(), MPI_CHAR, 0, comm) != 0 )
-          throw std::runtime_error("MPI error");
+        const auto& [rawData,offsets] = mpiGather(oss.str(), root, comm);
 
         // put result from all processes into a global map
         std::unordered_map<Key,Value> globalMap;
-        if( iProc == 0 )
+        if( iProc == root )
         {
           for(int i = 0; i < nProcs; i++)
           {
             std::unordered_map<Key,Value> otherMap;
             {
-              std::istringstream iss(raw.substr(offsets[i], sizes[i]));
+              std::istringstream iss(rawData.substr(offsets[i], offsets[i+1]-offsets[i]));
               cereal::BinaryInputArchive ar(iss);
               ar( otherMap );
             }

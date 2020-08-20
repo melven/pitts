@@ -136,7 +136,33 @@ TEST(PITTS_Parallel, distribute_tooManyProcs)
 }
 
 
-TEST(PITTS_Parallel, combineMaps)
+TEST(PITTS_Parallel, mpiGather)
+{
+  const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
+  const std::string localData = "Hello from process " + std::to_string(iProc) + ".\n";
+
+  const int root = nProcs - 1;
+
+  const auto& [globalData,offsets] = PITTS::internal::parallel::mpiGather(localData, root);
+
+  std::string globalData_ref(0, '\0');
+  std::vector<int> offsets_ref(nProcs+1, 0);
+
+  if( iProc == root )
+  {
+    for(int i = 0; i < nProcs; i++)
+    {
+      globalData_ref += "Hello from process " + std::to_string(i) + ".\n";
+      offsets_ref[i+1] = globalData_ref.size();
+    }
+  }
+
+  EXPECT_EQ(globalData_ref, globalData);
+  EXPECT_EQ(offsets_ref, offsets);
+}
+
+
+TEST(PITTS_Parallel, mpiCombineMaps)
 {
   using StringMap = std::unordered_map<std::string,std::string>;
 
@@ -149,7 +175,7 @@ TEST(PITTS_Parallel, combineMaps)
   ASSERT_EQ(0, MPI_Comm_size(MPI_COMM_WORLD, &nProcs));
   ASSERT_EQ(0, MPI_Comm_rank(MPI_COMM_WORLD, &iProc));
 
-  StringMap globalMap = PITTS::internal::parallel::combineMaps(localMap, op);
+  StringMap globalMap = PITTS::internal::parallel::mpiCombineMaps(localMap, op);
 
   if( iProc == 0 )
   {
@@ -169,7 +195,7 @@ TEST(PITTS_Parallel, combineMaps)
   localMap["proc"] = std::to_string(iProc);
   localMap["only_local: "+std::to_string(iProc)] = "I'm here";
 
-  globalMap = PITTS::internal::parallel::combineMaps(localMap);
+  globalMap = PITTS::internal::parallel::mpiCombineMaps(localMap);
 
   if( iProc == 0 )
   {
