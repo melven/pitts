@@ -19,6 +19,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include <cassert>
 #include <memory>
 #include <omp.h>
 

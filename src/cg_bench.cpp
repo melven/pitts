@@ -1,12 +1,11 @@
-#include <mpi.h>
-#include <omp.h>
-#include <iostream>
+#include "pitts_parallel.hpp"
+#include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_laplace_operator.hpp"
-#include "pitts_common.hpp"
+#include <iostream>
 
 namespace
 {
