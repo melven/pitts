@@ -1,8 +1,7 @@
-#include <mpi.h>
-#include <iostream>
-#include <omp.h>
-#include "pitts_qubit_simulator.hpp"
+#include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
+#include "pitts_qubit_simulator.hpp"
+#include <iostream>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 

@@ -1,10 +1,9 @@
-#include <mpi.h>
-#include <omp.h>
-#include <iostream>
+#include "pitts_parallel.hpp"
+#include "pitts_common.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_common.hpp"
+#include <iostream>
 
 
 int main(int argc, char* argv[])

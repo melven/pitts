@@ -1,16 +1,14 @@
-#include <Eigen/Dense>
+#include "pitts_parallel.hpp"
+#include "pitts_common.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
-#include "pitts_common.hpp"
-#include "pitts_performance.hpp"
 #include <exception>
 #include <charconv>
 #include <iostream>
-#include <omp.h>
-
+#include <Eigen/Dense>
 
 
 int main(int argc, char* argv[])
@@ -21,7 +19,7 @@ int main(int argc, char* argv[])
   using Chunk = PITTS::Chunk<double>;
 
   if( argc != 5 )
-    throw std::invalid_argument("Requires 4 arguments!");
+    throw std::invalid_argument("Requires 4 arguments (n m reductionFactor nIter)!");
 
   long long n = 0, m = 0;
   int reductionFactor = 4, nIter = 0;
@@ -29,6 +27,11 @@ int main(int argc, char* argv[])
   std::from_chars(argv[2], argv[3], m);
   std::from_chars(argv[3], argv[4], reductionFactor);
   std::from_chars(argv[4], argv[5], nIter);
+
+  {
+    const auto& [nFirst,nLast] = PITTS::internal::parallel::distribute(n, PITTS::internal::parallel::mpiProcInfo());
+    n = nLast - nFirst + 1;
+  }
 
   PITTS::MultiVector<double> M(n, m);
   randomize(M);

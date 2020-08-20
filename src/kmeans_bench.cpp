@@ -1,28 +1,25 @@
-#include <mpi.h>
-#include <omp.h>
-#include <iostream>
+#include "pitts_parallel.hpp"
+#include "pitts_common.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_centroids.hpp"
 #include "pitts_multivector_cdist.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_common.hpp"
+#include <iostream>
 
 
 int main(int argc, char* argv[])
 {
   PITTS::initialize(&argc, &argv);
 
-  int nProcs = 1, iProc = 0;
-  if( MPI_Comm_size(MPI_COMM_WORLD, &nProcs) != 0 )
-    throw std::runtime_error("MPI error");
-  if( MPI_Comm_rank(MPI_COMM_WORLD, &iProc) != 0 )
-    throw std::runtime_error("MPI error");
+  const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
 
   double wtime = omp_get_wtime();
 
   using Type = float;
-  const int n = 50000, m = 50000/nProcs;
+  const long long n = 50000, mTotal = 50000;
+  const auto& [mFirst,mLast] = PITTS::internal::parallel::distribute(mTotal, {iProc,nProcs});
+  const long long m = mLast - mFirst + 1;
   PITTS::MultiVector<Type> X(n, m), Y(n,2);
   PITTS::Tensor2<Type> D(m,2);
 

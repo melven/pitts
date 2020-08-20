@@ -1,13 +1,12 @@
-#include <mpi.h>
-#include <omp.h>
-#include <iostream>
-#include <charconv>
+#include "pitts_parallel.hpp"
+#include "pitts_common.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_random.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_random.hpp"
-#include "pitts_common.hpp"
+#include <iostream>
+#include <charconv>
 
 
 int main(int argc, char* argv[])
@@ -29,6 +28,13 @@ int main(int argc, char* argv[])
     std::from_chars(argv[6], argv[7], m_);
   }
 
+  {
+    const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
+    const auto& [nFirst,nLast] = PITTS::internal::parallel::distribute(n, {iProc,nProcs});
+    n = nLast - nFirst + 1;
+    const auto& [n_First,n_Last] = PITTS::internal::parallel::distribute(n_, {iProc,nProcs});
+    n_ = n_Last - n_First + 1;
+  }
 
   using Type = double;
   PITTS::MultiVector<Type> X(n, m), Y(n_, m_);
