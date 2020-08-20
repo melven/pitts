@@ -11,13 +11,14 @@
 #define PITTS_PERFORMANCE_HPP
 
 // includes
+#include "pitts_parallel.hpp"
+#include "pitts_kernel_info.hpp"
+#include "pitts_timer.hpp"
 #include <cmath>
 #include <iomanip>
 #include <vector>
 #include <numeric>
 #include <string>
-#include "pitts_kernel_info.hpp"
-#include "pitts_timer.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -166,15 +167,23 @@ namespace PITTS
 
 
       // also print timing statistics
-      auto timingStatisticsMap = timing::globalTimingStatisticsMap;
-
-      timing::globalTimingStatisticsMap = timingStatisticsMap + combineTimingsPerFunction(globalPerformanceStatisticsMap);
-
-      timing::printStatistics(clear, out);
-      std::swap(timingStatisticsMap, timing::globalTimingStatisticsMap);
-
       if( clear )
+      {
+        timing::globalTimingStatisticsMap += combineTimingsPerFunction(globalPerformanceStatisticsMap);
+        timing::printStatistics(true, out);
+
         globalPerformanceStatisticsMap.clear();
+      }
+      else
+      {
+        // no clearing, need to restore globalTimingStatisticsMap after the call
+        auto timingStatisticsMap = timing::globalTimingStatisticsMap;
+
+        timing::globalTimingStatisticsMap += combineTimingsPerFunction(globalPerformanceStatisticsMap);
+
+        timing::printStatistics(false, out);
+        std::swap(timingStatisticsMap, timing::globalTimingStatisticsMap);
+      }
     }
   }
 }

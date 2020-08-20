@@ -119,12 +119,11 @@ namespace PITTS
     using TimingStatisticsMap = std::unordered_map<internal::ScopeInfo, internal::TimingStatistics, internal::ScopeInfo::Hash>;
 
     //! allow to combine timing statistics by adding them up...
-    inline TimingStatisticsMap operator+(const TimingStatisticsMap& a, const TimingStatisticsMap& b)
+    inline const TimingStatisticsMap& operator+=(TimingStatisticsMap& a, const TimingStatisticsMap& b)
     {
-      TimingStatisticsMap ab = a;
       for(const auto& [scope, timings]: b)
-        ab[scope] += timings;
-      return ab;
+        a[scope] += timings;
+      return a;
     }
 
 
