@@ -297,6 +297,49 @@ namespace PITTS
             pdataWork[workOffset + i + nChunks*j] = pdataSrc[i + ldaSrc*j];
         workOffset += nSrc;
       }
+
+
+      //! Helper function for combining two upper triangular factors in an MPI_Reduce operation
+      //!
+      //! @param invec      upper triangular part of this process (memory layout + padding see implementation)
+      //! @param inoutvec   upper triangular part of the next process (memory layout + padding see implementation)
+      //! @param len        number of entries (including all padding, etc)
+      //! @param datatype   MPI data type (ignored)
+      //!
+      template<typename T>
+      void combineTwoBlocks(const T* invec, T* inoutvec, const int* len, const MPI_Datatype* datatype)
+      {
+        // get dimensions
+        int m = 1, mChunks = 1;
+        while( m*mChunks*Chunk<T>::size < *len )
+        {
+          if( m % Chunk<T>::size == 0 )
+            mChunks++;
+          m++;
+        }
+        assert( mChunks == (m-1) / Chunk<T>::size + 1 );
+        assert( mChunks*Chunk<T>::size*m == *len );
+
+        const auto nChunks = 2*mChunks;
+
+        // get required buffer
+        std::unique_ptr<Chunk<T>[]> buff{new Chunk<T>[nChunks*m]};
+
+        // copy to buffer
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < mChunks; i++)
+            unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*nChunks]);
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < mChunks; i++)
+            unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*nChunks]);
+
+        transformBlock(nChunks, m, &buff[0], nChunks, &buff[0]);
+
+        // copy back to inoutvec
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < mChunks; i++)
+            unaligned_store(buff[i+j*nChunks], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+      }
     }
   }
 
