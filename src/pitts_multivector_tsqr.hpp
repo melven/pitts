@@ -340,12 +340,20 @@ namespace PITTS
           for(int i = 0; i < mChunks; i++)
             unaligned_store(buff[i+j*nChunks], inoutvec+(i+j*mChunks)*Chunk<T>::size);
       }
+
+      //! wrapper function for MPI (otherwise the function signature does not match!)
+      template<typename T>
+      void combineTwoBlocks_mpiOp(void* invec, void* inoutvec, int* len, MPI_Datatype* datatype)
+      {
+        int lenT = *len / sizeof(T);
+        combineTwoBlocks<T>((const T*)invec, (T*)inoutvec, &lenT, nullptr);
+      }
     }
   }
 
 
   template<typename T>
-  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4)
+  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4, bool mpiGlobal = true)
   {
     // calculate dimensions and block sizes
     const long long n = M.rows();
@@ -435,6 +443,27 @@ namespace PITTS
         }
       }
     } // omp parallel
+
+    if( mpiGlobal )
+    {
+      const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
+      if( nProcs > 1 )
+      {
+        // register MPI reduction operation
+        MPI_Op tsqrOp;
+        if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 0, &tsqrOp) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Op_create");
+
+        // actual MPI reduction, reusing buffers
+        std::swap(psharedBuff, presultBuff);
+        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), mChunks*Chunk<T>::size*m*sizeof(T), MPI_CHAR, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Allreduce");
+
+        // unregister MPI reduction operation
+        if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Op_free");
+      }
+    }
 
     // copy result to R
     R.resize(m,m);
