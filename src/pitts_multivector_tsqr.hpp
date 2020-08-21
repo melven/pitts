@@ -21,7 +21,7 @@
 #include "pitts_chunk_ops.hpp"
 #include <cassert>
 #include <memory>
-#include <omp.h>
+#include <cstdint>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -327,20 +327,61 @@ namespace PITTS
         // get required buffer
         std::unique_ptr<Chunk<T>[]> buff{new Chunk<T>[nChunks*m]};
 
+        // check alignement of buffers, we might be lucky often (because MPI allocated aligned buffers or we get our own buffers from the MPI_Allreduce call)
+        const Chunk<T>* invecChunked = nullptr;
+        Chunk<T>* inoutvecChunked = nullptr;
+        if( reinterpret_cast<std::uintptr_t>(invec) % ALIGNMENT == 0 )
+          invecChunked = (const Chunk<T>*) invec;
+        if( reinterpret_cast<std::uintptr_t>(inoutvec) % ALIGNMENT == 0 )
+          inoutvecChunked = (Chunk<T>*) inoutvec;
+
         // copy to buffer
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < mChunks; i++)
-            unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*nChunks]);
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < mChunks; i++)
-            unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*nChunks]);
+        if( invecChunked )
+        {
+          // aligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              buff[i+j*nChunks] = invecChunked[i+j*mChunks];
+        }
+        else
+        {
+          // unaligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*nChunks]);
+        }
+        if( inoutvecChunked )
+        {
+          // aligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              buff[mChunks+i+j*nChunks] = inoutvecChunked[i+j*mChunks];
+        }
+        else
+        {
+          // unaligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*nChunks]);
+        }
 
         transformBlock(nChunks, m, &buff[0], nChunks, &buff[0]);
 
         // copy back to inoutvec
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < mChunks; i++)
-            unaligned_store(buff[i+j*nChunks], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+        if( inoutvecChunked )
+        {
+          // aligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              inoutvecChunked[i+j*mChunks] = buff[i+j*nChunks];
+        }
+        else
+        {
+          // unaligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              unaligned_store(buff[i+j*nChunks], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+        }
       }
 
       //! wrapper function for MPI (otherwise the function signature does not match!)
