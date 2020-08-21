@@ -42,7 +42,7 @@ std::cout << "HOSVD::split  matrix dimensions: " << X.rows() << " x " << X.cols(
         if( X.rows() > 10*X.cols() )
         {
           // calculate QR decomposition (QR-trick: X=QR,SVD(R))
-          block_TSQR(X, M);
+          block_TSQR(X, M, 5, false);
           svd.compute(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
         }
         else
