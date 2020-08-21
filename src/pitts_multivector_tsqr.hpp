@@ -309,6 +309,8 @@ namespace PITTS
       template<typename T>
       void combineTwoBlocks(const T* invec, T* inoutvec, const int* len, const MPI_Datatype* datatype)
       {
+        assert( *datatype == parallel::mpiType<T>() );
+
         // get dimensions
         int m = 1, mChunks = 1;
         while( m*mChunks*Chunk<T>::size < *len )
@@ -345,8 +347,7 @@ namespace PITTS
       template<typename T>
       void combineTwoBlocks_mpiOp(void* invec, void* inoutvec, int* len, MPI_Datatype* datatype)
       {
-        int lenT = *len / sizeof(T);
-        combineTwoBlocks<T>((const T*)invec, (T*)inoutvec, &lenT, nullptr);
+        combineTwoBlocks<T>((const T*)invec, (T*)inoutvec, len, datatype);
       }
     }
   }
@@ -456,7 +457,7 @@ namespace PITTS
 
         // actual MPI reduction, reusing buffers
         std::swap(psharedBuff, presultBuff);
-        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), mChunks*Chunk<T>::size*m*sizeof(T), MPI_CHAR, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Allreduce");
 
         // unregister MPI reduction operation
