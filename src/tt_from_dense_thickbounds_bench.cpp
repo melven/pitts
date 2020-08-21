@@ -1,3 +1,4 @@
+#include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
@@ -21,16 +22,12 @@ int main(int argc, char* argv[])
   std::from_chars(argv[3], argv[4], max_r);
   std::from_chars(argv[4], argv[5], nIter);
 
-  std::size_t nTotal = 1;
-  std::vector<int> shape(d);
-  for(int i = 0; i < d; i++)
-  {
-    nTotal *= n;
-    shape[i] = n;
-  }
+  const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
 
   // compress shape, s.t. first and last dimensions are bigger than max_r
-  while( shape.size() > 2 && shape.front() < 1.7*max_r )
+  // first dimension is distributed over MPI processes
+  std::vector<int> shape(d,n);
+  while( shape.size() > 2 && shape.front() < 1.7*max_r*nProcs )
   {
     shape[1] *= shape[0];
     shape.erase(shape.begin());
@@ -42,6 +39,17 @@ int main(int argc, char* argv[])
     shape.pop_back();
   }
 
+  // distribute first dimension
+  {
+    const auto& [first,last] = PITTS::internal::parallel::distribute(shape[0], {iProc,nProcs});
+    shape[0] = last - first + 1;
+  }
+
+  std::size_t nTotal = 1;
+  for(auto ni: shape)
+    nTotal *= ni;
+
+
   PITTS::MultiVector<double> data(nTotal/shape.back(), shape.back());
   randomize(data);
 
@@ -51,7 +59,7 @@ int main(int argc, char* argv[])
   for(int iter = 0; iter < nIter; iter++)
   {
     copy(data, X);
-    const auto TT = fromDense(X, work, shape, 1.e-8, max_r);
+    const auto TT = fromDense(X, work, shape, 1.e-8, max_r, true);
   }
 
   PITTS::finalize();
