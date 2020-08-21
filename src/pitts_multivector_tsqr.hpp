@@ -373,6 +373,7 @@ namespace PITTS
     int nMaxThreads = omp_get_max_threads();
 
     std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nMaxThreads*m]);
+    std::unique_ptr<Chunk<T>[]> presultBuff(new Chunk<T>[mChunks*m]);
 
 #pragma omp parallel
     {
@@ -417,18 +418,29 @@ namespace PITTS
 
 #pragma omp master
       {
-        // reduce shared buffer
         if( nThreads > 1 )
+        {
+          // reduce shared buffer
           internal::HouseholderQR::transformBlock(nThreads*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0]);
 
-        // copy result to R
-        R.resize(m,m);
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < m; i++)
-            R(i,j) = psharedBuff[ i/Chunk<T>::size + nThreads*mChunks*j ][ i%Chunk<T>::size ];
+          // compress result
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              presultBuff[i+mChunks*j] = psharedBuff[i+nThreads*mChunks*j];
+        }
+        else
+        {
+          // psharedBuff is already as small as possible
+          std::swap(psharedBuff,presultBuff);
+        }
       }
     } // omp parallel
 
+    // copy result to R
+    R.resize(m,m);
+    for(int j = 0; j < m; j++)
+      for(int i = 0; i < m; i++)
+        R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
   }
 }
 
