@@ -97,12 +97,12 @@ namespace PITTS
             "Calculate the squared distance of each vector in one multi-vector X with each vector in another (small) multi-vector Y");
 
         m.def("block_TSQR",
-            [](const MultiVector<T>& M) {
+            [](const MultiVector<T>& M, int reductionFactor, bool mpiGlobal) {
               Tensor2<T> buff;
-              block_TSQR(M, buff);
+              block_TSQR(M, buff, reductionFactor, mpiGlobal);
               return copy(buff);
               },
-            py::arg("M"),
+            py::arg("M"), py::arg("reductionFactor")=5, py::arg("mpiGlobal")=true,
             "Calculate upper triangular part R from a QR-decomposition of the given tall-skinny matrix (multi-vector) M");
 
         m.def("transform",

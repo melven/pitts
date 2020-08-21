@@ -28,8 +28,9 @@ int main(int argc, char* argv[])
   std::from_chars(argv[3], argv[4], reductionFactor);
   std::from_chars(argv[4], argv[5], nIter);
 
+  const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
   {
-    const auto& [nFirst,nLast] = PITTS::internal::parallel::distribute(n, PITTS::internal::parallel::mpiProcInfo());
+    const auto& [nFirst,nLast] = PITTS::internal::parallel::distribute(n, {iProc,nProcs});
     n = nLast - nFirst + 1;
   }
 
@@ -44,8 +45,10 @@ double wtime = omp_get_wtime();
     block_TSQR(M, R, reductionFactor);
   }
 wtime = omp_get_wtime() - wtime;
-std::cout << "wtime: " << wtime << "\n";
+  if( iProc == 0 )
+    std::cout << "wtime: " << wtime << "\n";
 
+  if( iProc == 0 )
   {
     Eigen::BDCSVD<mat> svd(ConstEigenMap(R));
     //std::cout << "Result:\n" << M << "\n";

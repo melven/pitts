@@ -22,6 +22,8 @@
 #include <functional>
 #include <tuple>
 #include <exception>
+#include <type_traits>
+#include <complex>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/unordered_map.hpp>
@@ -101,6 +103,33 @@ namespace PITTS
           }
         }
         return std::make_pair(firstElem, lastElem);
+      }
+
+      // small helper type that defers static_assert evaluation to template instantiation
+      // (copied from https://www.fluentcpp.com/2019/08/23/how-to-make-sfinae-pretty-and-robust/)
+      template<typename>
+      inline constexpr bool dependent_false_v{ false };
+
+      //! Return corresponding MPI data type
+      //!
+      //! @warning Only implemented for a few commonly used types
+      //!
+      //! @tparam T   C++ data type
+      //! @returns    MPI data type
+      //!
+      template<typename T>
+      inline MPI_Datatype mpiType() noexcept
+      {
+        if constexpr( std::is_same<T, double>:: value )
+          return MPI_DOUBLE;
+        else if constexpr( std::is_same<T, float>::value )
+          return MPI_FLOAT;
+        else if constexpr( std::is_same<T, std::complex<double>>::value )
+          return MPI_C_DOUBLE_COMPLEX;
+        else if constexpr( std::is_same<T, std::complex<float>>::value )
+          return MPI_C_FLOAT_COMPLEX;
+        else
+          static_assert( dependent_false_v<T>, "Desired type is not implemented!");
       }
 
 

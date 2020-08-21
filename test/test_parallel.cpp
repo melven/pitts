@@ -136,6 +136,18 @@ TEST(PITTS_Parallel, distribute_tooManyProcs)
 }
 
 
+TEST(PITTS_Parallel, mpiType)
+{
+  ASSERT_EQ(MPI_DOUBLE,             PITTS::internal::parallel::mpiType<double>());
+  ASSERT_EQ(MPI_FLOAT,              PITTS::internal::parallel::mpiType<float>());
+  ASSERT_EQ(MPI_C_DOUBLE_COMPLEX,   PITTS::internal::parallel::mpiType<std::complex<double>>());
+  ASSERT_EQ(MPI_C_FLOAT_COMPLEX,    PITTS::internal::parallel::mpiType<std::complex<float>>());
+
+  // generates a compilation error:
+  // PITTS::internal::parallel::mpiType<int>();
+}
+
+
 TEST(PITTS_Parallel, mpiGather)
 {
   const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();

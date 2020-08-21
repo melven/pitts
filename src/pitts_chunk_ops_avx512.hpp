@@ -330,6 +330,26 @@ namespace PITTS
     }
   }
 
+  // unaligned store
+  template<>
+  inline void unaligned_store<float>(const Chunk<float>& src, float* result)
+  {
+    for(short i = 0; i < ALIGNMENT/64; i++)
+    {
+      _mm512_storeu_ps(&result[16*i], _mm512_load_ps(&src[16*i]));
+    }
+  }
+
+  // unaligned store
+  template<>
+  inline void unaligned_store<double>(const Chunk<double>& src, double* result)
+  {
+    for(short i = 0; i < ALIGNMENT/64; i++)
+    {
+      _mm512_storeu_pd(&result[8*i], _mm512_load_pd(&src[8*i]));
+    }
+  }
+
 
   // streaming store
   template<>

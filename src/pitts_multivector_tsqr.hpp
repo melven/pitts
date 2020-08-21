@@ -21,7 +21,7 @@
 #include "pitts_chunk_ops.hpp"
 #include <cassert>
 #include <memory>
-#include <omp.h>
+#include <cstdint>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -297,12 +297,105 @@ namespace PITTS
             pdataWork[workOffset + i + nChunks*j] = pdataSrc[i + ldaSrc*j];
         workOffset += nSrc;
       }
+
+
+      //! Helper function for combining two upper triangular factors in an MPI_Reduce operation
+      //!
+      //! @param invec      upper triangular part of this process (memory layout + padding see implementation)
+      //! @param inoutvec   upper triangular part of the next process (memory layout + padding see implementation)
+      //! @param len        number of entries (including all padding, etc)
+      //! @param datatype   MPI data type (ignored)
+      //!
+      template<typename T>
+      void combineTwoBlocks(const T* invec, T* inoutvec, const int* len, const MPI_Datatype* datatype)
+      {
+        assert( *datatype == parallel::mpiType<T>() );
+
+        // get dimensions
+        int m = 1, mChunks = 1;
+        while( m*mChunks*Chunk<T>::size < *len )
+        {
+          if( m % Chunk<T>::size == 0 )
+            mChunks++;
+          m++;
+        }
+        assert( mChunks == (m-1) / Chunk<T>::size + 1 );
+        assert( mChunks*Chunk<T>::size*m == *len );
+
+        const auto nChunks = 2*mChunks;
+
+        // get required buffer
+        std::unique_ptr<Chunk<T>[]> buff{new Chunk<T>[nChunks*m]};
+
+        // check alignement of buffers, we might be lucky often (because MPI allocated aligned buffers or we get our own buffers from the MPI_Allreduce call)
+        const Chunk<T>* invecChunked = nullptr;
+        Chunk<T>* inoutvecChunked = nullptr;
+        if( reinterpret_cast<std::uintptr_t>(invec) % ALIGNMENT == 0 )
+          invecChunked = (const Chunk<T>*) invec;
+        if( reinterpret_cast<std::uintptr_t>(inoutvec) % ALIGNMENT == 0 )
+          inoutvecChunked = (Chunk<T>*) inoutvec;
+
+        // copy to buffer
+        if( invecChunked )
+        {
+          // aligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              buff[i+j*nChunks] = invecChunked[i+j*mChunks];
+        }
+        else
+        {
+          // unaligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*nChunks]);
+        }
+        if( inoutvecChunked )
+        {
+          // aligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              buff[mChunks+i+j*nChunks] = inoutvecChunked[i+j*mChunks];
+        }
+        else
+        {
+          // unaligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*nChunks]);
+        }
+
+        transformBlock(nChunks, m, &buff[0], nChunks, &buff[0]);
+
+        // copy back to inoutvec
+        if( inoutvecChunked )
+        {
+          // aligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              inoutvecChunked[i+j*mChunks] = buff[i+j*nChunks];
+        }
+        else
+        {
+          // unaligned variant
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              unaligned_store(buff[i+j*nChunks], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+        }
+      }
+
+      //! wrapper function for MPI (otherwise the function signature does not match!)
+      template<typename T>
+      void combineTwoBlocks_mpiOp(void* invec, void* inoutvec, int* len, MPI_Datatype* datatype)
+      {
+        combineTwoBlocks<T>((const T*)invec, (T*)inoutvec, len, datatype);
+      }
     }
   }
 
 
   template<typename T>
-  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4)
+  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4, bool mpiGlobal = true)
   {
     // calculate dimensions and block sizes
     const long long n = M.rows();
@@ -330,6 +423,7 @@ namespace PITTS
     int nMaxThreads = omp_get_max_threads();
 
     std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nMaxThreads*m]);
+    std::unique_ptr<Chunk<T>[]> presultBuff(new Chunk<T>[mChunks*m]);
 
 #pragma omp parallel
     {
@@ -374,18 +468,50 @@ namespace PITTS
 
 #pragma omp master
       {
-        // reduce shared buffer
         if( nThreads > 1 )
+        {
+          // reduce shared buffer
           internal::HouseholderQR::transformBlock(nThreads*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0]);
 
-        // copy result to R
-        R.resize(m,m);
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < m; i++)
-            R(i,j) = psharedBuff[ i/Chunk<T>::size + nThreads*mChunks*j ][ i%Chunk<T>::size ];
+          // compress result
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < mChunks; i++)
+              presultBuff[i+mChunks*j] = psharedBuff[i+nThreads*mChunks*j];
+        }
+        else
+        {
+          // psharedBuff is already as small as possible
+          std::swap(psharedBuff,presultBuff);
+        }
       }
     } // omp parallel
 
+    if( mpiGlobal )
+    {
+      const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
+      if( nProcs > 1 )
+      {
+        // register MPI reduction operation
+        MPI_Op tsqrOp;
+        if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 0, &tsqrOp) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Op_create");
+
+        // actual MPI reduction, reusing buffers
+        std::swap(psharedBuff, presultBuff);
+        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Allreduce");
+
+        // unregister MPI reduction operation
+        if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Op_free");
+      }
+    }
+
+    // copy result to R
+    R.resize(m,m);
+    for(int j = 0; j < m; j++)
+      for(int i = 0; i < m; i++)
+        R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
   }
 }
 

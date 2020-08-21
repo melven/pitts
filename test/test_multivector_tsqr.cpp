@@ -458,6 +458,54 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
 }
 
 
+TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
+{
+  constexpr auto eps = 1.e-8;
+  using Chunk = PITTS::Chunk<double>;
+  using MultiVector = PITTS::MultiVector<double>;
+
+  MultiVector R1;
+  MultiVector R2;
+  for(int m = 1; m < 77; m+=7)
+  {
+    // implementation also works with non-triangular factors, so for simplicity just use random square blocks
+    R1.resize(m,m);
+    R2.resize(m,m);
+    randomize(R1);
+    randomize(R2);
+
+    // we need buffers of correctly padded size...
+    const auto mChunks = (m-1) / Chunk::size + 1;
+    const int totalSize = int(mChunks*m*Chunk::size);
+    std::vector<Chunk> buff1(mChunks*m);
+    std::vector<Chunk> buff2(mChunks*m);
+
+    for(int j = 0; j < m; j++)
+    {
+      for(int i = 0; i < mChunks; i++)
+      {
+        buff1[i+j*mChunks] = R1.chunk(i,j);
+        buff2[i+j*mChunks] = R2.chunk(i,j);
+      }
+    }
+
+    MPI_Datatype mpi_double = MPI_DOUBLE;
+    PITTS::internal::HouseholderQR::combineTwoBlocks((const double*)(&(buff1[0][0])), &(buff2[0][0]), &totalSize, &mpi_double);
+
+    // compara singular values with Eigen
+    Eigen::MatrixXd R12(2*m,m);
+    R12.block(0,0,m,m) = ConstEigenMap(R1);
+    R12.block(m,0,m,m) = ConstEigenMap(R2);
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd_ref(R12);
+
+    Eigen::Map<Eigen::MatrixXd> result(&(buff2[0][0]), mChunks*Chunk::size, m);
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(result);
+
+    EXPECT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+  }
+}
+
+
 namespace
 {
   // helper function for testing block_TSQR with different data dimensions, etc
@@ -475,7 +523,7 @@ namespace
     Eigen::MatrixXd M_ref = ConstEigenMap(M);
 
     Tensor2 R;
-    block_TSQR(M, R);
+    block_TSQR(M, R, 4, false);
     ASSERT_EQ(m, R.r1());
     ASSERT_EQ(m, R.r2());
     for(int j = 0; j < m; j++)
@@ -558,4 +606,49 @@ TEST(PITTS_MultiVector_tsqr, block_TSQR_manyRows_differentNumbersOfThreads)
     test_block_TSQR(1000, 1);
   }
   omp_set_num_threads(nThreads);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
+{
+  constexpr auto eps = 1.e-8;
+  using Chunk = PITTS::Chunk<double>;
+  using MultiVector = PITTS::MultiVector<double>;
+  using Tensor2 = PITTS::Tensor2<double>;
+
+  const long long nTotal = 500;
+  const long long m = 4;
+
+  const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
+  const auto& [nFirst,nLast] = PITTS::internal::parallel::distribute(nTotal, {iProc,nProcs});
+  const long long n = nLast - nFirst + 1;
+
+  Eigen::MatrixXd Mglobal = Eigen::MatrixXd::Random(nTotal, 4);
+  MPI_Bcast(Mglobal.data(), nTotal*m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  MultiVector M(n,m);
+  {
+    auto mapM = EigenMap(M);
+    mapM = Mglobal.block(nFirst,0,n,m);
+  }
+
+  Tensor2 R;
+  block_TSQR(M, R);
+  ASSERT_EQ(m, R.r1());
+  ASSERT_EQ(m, R.r2());
+  for(int j = 0; j < m; j++)
+  {
+    for(int i = j+1; i < m; i++)
+    {
+      ASSERT_NEAR(0., R(i,j), eps);
+    }
+  }
+
+  // check that the singular values and right singular vectors match...
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(ConstEigenMap(R), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(Mglobal, Eigen::ComputeThinV);
+
+  ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+  // V can differ by sign, only consider absolute part
+  ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
 }
