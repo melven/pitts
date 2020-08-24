@@ -116,6 +116,10 @@ namespace PITTS
       for(int j = 0; j < lastSubT.r2(); j++)
         lastSubT(0, i, j) = X(0, i+j*dimensions[0]);
 
+    // make sure we swap X and work back: prevents problems where the reserved space in X is used again later AND the data does only fit into memory once ;)
+    if( nDims % 2 == 0 )
+      std::swap(X, work);
+
     return result;
   }
 
