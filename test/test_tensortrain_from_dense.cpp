@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
+#include "pitts_parallel.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
+#include <Eigen/Dense>
 
 namespace
 {
@@ -371,4 +374,110 @@ TEST(PITTS_TensorTrain_fromDense, tensor5d_random_maxRank)
   {
     ASSERT_LE(r, 2);
   }
+}
+
+
+// anonymous namespace with helper functions
+namespace
+{
+  // check that the distributed (MPI parallel) algorithm obtains the same result as the "serial" algorithm
+  void check_mpiGlobal_result(const std::vector<int>& localShape)
+  {
+    using TensorTrain_double = PITTS::TensorTrain<double>;
+    using MultiVector_double = PITTS::MultiVector<double>;
+    constexpr auto eps = 1.e-8;
+
+    ASSERT_GE(localShape.size(), 2);
+    const auto nDim = localShape.size();
+
+    const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
+
+    std::vector<int> globalShape = localShape;
+    globalShape[0] *= nProcs;
+    const long long nLocal = std::accumulate(localShape.begin(), localShape.end(), 1, std::multiplies<long long>());
+    const long long nGlobal = nLocal * nProcs;
+
+    // generate random data and distribute it
+    using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    mat globalData = mat::Random(nGlobal/globalShape.back(), globalShape.back());
+    MPI_Bcast(globalData.data(), nGlobal, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    // calculate the global solution on each process
+    MultiVector_double Mglobal(nGlobal/globalShape.back(), globalShape.back());
+    {
+      auto mapMglobal = EigenMap(Mglobal);
+      mapMglobal = globalData;
+    }
+    MultiVector_double work;
+    const auto globalTT = PITTS::fromDense(Mglobal, work, globalShape, 1.e-12, 5, false);
+
+
+    // calculate distributed solution
+    MultiVector_double Mlocal(nLocal/localShape.back(), localShape.back());
+    {
+      auto mapMlocal = EigenMap(Mlocal);
+      Eigen::Map<mat> mapGlobalData = Eigen::Map<mat>(globalData.data(), nProcs, nGlobal/nProcs);
+      mat localData = mapGlobalData.row(iProc);
+      Eigen::Map<mat> mapLocalData = Eigen::Map<mat>(localData.data(), nLocal/localShape.back(), localShape.back());
+      mapMlocal = mapLocalData;
+    }
+//    MultiVector_double work1;
+    const auto distributedTT = PITTS::fromDense(Mlocal, work, localShape, 1.e-12, 5, true);
+
+    // distributedTT and globalTT should be identical, only the first sub-tensor is distributed onto multiple processes...
+    for(int iDim = 1; iDim < nDim; iDim++)
+    {
+      const auto& subT_ref = globalTT.subTensors()[iDim];
+      const auto& subT = distributedTT.subTensors()[iDim];
+
+      ASSERT_EQ(subT_ref.r1(), subT.r1());
+      ASSERT_EQ(subT_ref.n(), subT.n());
+      ASSERT_EQ(subT_ref.r2(), subT.r2());
+
+      for(int i = 0; i < subT.r1(); i++)
+        for(int j = 0; j < subT.n(); j++)
+          for(int k = 0; k < subT.r2(); k++)
+          {
+            EXPECT_NEAR(subT_ref(i,j,k), subT(i,j,k), eps);
+          }
+    }
+
+    // first dimension is distributed
+    {
+      const auto& subT_ref = globalTT.subTensors()[0];
+      const auto& subT = distributedTT.subTensors()[0];
+
+      ASSERT_EQ(subT_ref.r1(), subT.r1());
+      ASSERT_EQ(globalShape[0], subT_ref.n());
+      ASSERT_EQ(localShape[0], subT.n());
+      ASSERT_EQ(subT_ref.r2(), subT.r2());
+
+      for(int i = 0; i < subT.r1(); i++)
+        for(int j = 0; j < subT.n(); j++)
+          for(int k = 0; k < subT.r2(); k++)
+          {
+            EXPECT_NEAR(subT_ref(i,iProc+j,k), subT(i,j,k), eps);
+          }
+    }
+  }
+}
+
+TEST(PITTS_TensorTrain_fromDense, tensor2d_mpiGlobal)
+{
+  check_mpiGlobal_result({1, 10});
+}
+
+TEST(DISABLED_PITTS_TensorTrain_fromDense, larger_tensor2d_mpiGlobal)
+{
+  check_mpiGlobal_result({3, 1});
+}
+
+TEST(PITTS_TensorTrain_fromDense, tensor3d_mpiGlobal)
+{
+  check_mpiGlobal_result({1, 5, 5});
+}
+
+TEST(PITTS_TensorTrain_fromDense, tensor5d_mpiGlobal)
+{
+  check_mpiGlobal_result({1, 5, 4, 5, 3});
 }
