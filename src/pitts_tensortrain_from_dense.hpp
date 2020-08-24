@@ -11,9 +11,7 @@
 #define PITTS_TENSORTRAIN_FROM_DENSE_HPP
 
 // includes
-#include <limits>
-#include <numeric>
-#include <Eigen/Dense>
+#include "pitts_parallel.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_tsqr.hpp"
@@ -21,6 +19,9 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_timer.hpp"
+#include <limits>
+#include <numeric>
+#include <Eigen/Dense>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -39,10 +40,11 @@ namespace PITTS
   //! @param work           buffer for temporary data, will be resized and modified
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
+  //! @param mpiGlobal      (experimental) perform a MPI parallel decomposition, this assumes that the data is distributed on the MPI processes and dimensions specify the local dimensions
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1)
+  TensorTrain<T> fromDense(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1, bool mpiGlobal = false)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -60,6 +62,13 @@ namespace PITTS
     if( X.rows() != totalSize/dimensions[nDims-1] || X.cols() != dimensions[nDims-1] )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
+    bool root = true;
+    if( mpiGlobal )
+    {
+      const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
+      root = iProc == 0;
+    }
+
     TensorTrain<T> result(dimensions);
 
     // actually convert to tensor train format
@@ -68,16 +77,18 @@ namespace PITTS
     //Eigen::BDCSVD<EigenMatrix> svd;
     for(int iDim = nDims-1; iDim > 0; iDim--)
     {
-std::cout << "iDim: " << iDim << ", matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
+      if( root )
+        std::cout << "iDim: " << iDim << ", matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
       // calculate QR decomposition
-      block_TSQR(X, tmpR, 5, false);
+      block_TSQR(X, tmpR, 5, mpiGlobal);
 //std::cout << "tmpR:\n" << ConstEigenMap(tmpR) << "\n";
 
       // calculate SVD of R
       //svd.compute(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
       Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
       svd.setThreshold(rankTolerance);
-std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
+      if( root )
+        std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 
       // copy V to the TT sub-tensor
       svd.setThreshold(rankTolerance);
