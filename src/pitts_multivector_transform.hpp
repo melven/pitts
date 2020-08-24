@@ -78,7 +78,7 @@ namespace PITTS
 
           streaming_store(tmp1, Y.chunk(yChunk, yj));
           yChunk += X.rowChunks();
-          while( yChunk > Y.rowChunks() )
+          while( yChunk >= Y.rowChunks() )
           {
             yj++;
             yChunk -= Y.rowChunks();
@@ -86,7 +86,7 @@ namespace PITTS
 
           streaming_store(tmp2, Y.chunk(yChunk, yj));
           yChunk += X.rowChunks();
-          while( yChunk > Y.rowChunks() )
+          while( yChunk >= Y.rowChunks() )
           {
             yj++;
             yChunk -= Y.rowChunks();
@@ -94,7 +94,7 @@ namespace PITTS
 
           streaming_store(tmp3, Y.chunk(yChunk, yj));
           yChunk += X.rowChunks();
-          while( yChunk > Y.rowChunks() )
+          while( yChunk >= Y.rowChunks() )
           {
             yj++;
             yChunk -= Y.rowChunks();
@@ -102,7 +102,7 @@ namespace PITTS
 
           streaming_store(tmp4, Y.chunk(yChunk, yj));
           yChunk += X.rowChunks();
-          while( yChunk > Y.rowChunks() )
+          while( yChunk >= Y.rowChunks() )
           {
             yj++;
             yChunk -= Y.rowChunks();
@@ -117,7 +117,7 @@ namespace PITTS
 
           streaming_store(tmp, Y.chunk(yChunk, yj));
           yChunk += X.rowChunks();
-          while( yChunk > Y.rowChunks() )
+          while( yChunk >= Y.rowChunks() )
           {
             yj++;
             yChunk -= Y.rowChunks();
