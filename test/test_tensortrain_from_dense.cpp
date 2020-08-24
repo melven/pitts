@@ -421,7 +421,6 @@ namespace
       Eigen::Map<mat> mapLocalData = Eigen::Map<mat>(localData.data(), nLocal/localShape.back(), localShape.back());
       mapMlocal = mapLocalData;
     }
-//    MultiVector_double work1;
     const auto distributedTT = PITTS::fromDense(Mlocal, work, localShape, 1.e-12, 5, true);
 
     // distributedTT and globalTT should be identical, only the first sub-tensor is distributed onto multiple processes...
@@ -453,10 +452,10 @@ namespace
       ASSERT_EQ(subT_ref.r2(), subT.r2());
 
       for(int i = 0; i < subT.r1(); i++)
-        for(int j = 0; j < subT.n(); j++)
-          for(int k = 0; k < subT.r2(); k++)
+        for(int k = 0; k < subT.r2(); k++)
+          for(int j = 0; j < subT.n(); j++)
           {
-            EXPECT_NEAR(subT_ref(i,iProc+j,k), subT(i,j,k), eps);
+            EXPECT_NEAR(subT_ref(i,iProc+j*nProcs,k), subT(i,j,k), eps);
           }
     }
   }
@@ -467,9 +466,14 @@ TEST(PITTS_TensorTrain_fromDense, tensor2d_mpiGlobal)
   check_mpiGlobal_result({1, 10});
 }
 
-TEST(DISABLED_PITTS_TensorTrain_fromDense, larger_tensor2d_mpiGlobal)
+TEST(PITTS_TensorTrain_fromDense, another_tensor2d_mpiGlobal)
 {
   check_mpiGlobal_result({3, 1});
+}
+
+TEST(PITTS_TensorTrain_fromDense, larger_tensor2d_mpiGlobal)
+{
+  check_mpiGlobal_result({7, 15});
 }
 
 TEST(PITTS_TensorTrain_fromDense, tensor3d_mpiGlobal)
@@ -477,7 +481,17 @@ TEST(PITTS_TensorTrain_fromDense, tensor3d_mpiGlobal)
   check_mpiGlobal_result({1, 5, 5});
 }
 
+TEST(PITTS_TensorTrain_fromDense, another_tensor3d_mpiGlobal)
+{
+  check_mpiGlobal_result({3, 5, 5});
+}
+
 TEST(PITTS_TensorTrain_fromDense, tensor5d_mpiGlobal)
 {
   check_mpiGlobal_result({1, 5, 4, 5, 3});
+}
+
+TEST(PITTS_TensorTrain_fromDense, another_tensor5d_mpiGlobal)
+{
+  check_mpiGlobal_result({2, 5, 4, 5, 3});
 }
