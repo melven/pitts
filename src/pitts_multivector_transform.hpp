@@ -44,8 +44,8 @@ namespace PITTS
       throw std::invalid_argument("MultiVector::transform: invalid reshape dimensions!");
 
     // check if we can do the fast aligned variant (depends on the reshape dimensions)
-    bool fast = X.rows() == Y.rows() ||
-                (X.rows() % Chunk<T>::size == 0 && Y.rows() % Chunk<T>::size == 0);
+    bool fast = X.rows() == reshape[0] ||
+                (X.rows() % Chunk<T>::size == 0 && reshape[0] % Chunk<T>::size == 0);
 
     // gather performance data
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
