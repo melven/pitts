@@ -50,16 +50,16 @@ int main(int argc, char* argv[])
     nTotal *= ni;
 
 
-  PITTS::MultiVector<double> data(nTotal/shape.back(), shape.back());
+  PITTS::MultiVector<float> data(nTotal/shape.back(), shape.back());
   randomize(data);
 
-  PITTS::MultiVector<double> X(nTotal/shape.back(), shape.back());
-  PITTS::MultiVector<double> work;
+  PITTS::MultiVector<float> X(nTotal/shape.back(), shape.back());
+  PITTS::MultiVector<float> work;
 
   for(int iter = 0; iter < nIter; iter++)
   {
     copy(data, X);
-    const auto TT = fromDense(X, work, shape, 1.e-8, max_r, true);
+    const auto TT = fromDense(X, work, shape, float(1.e-5), max_r, true);
   }
 
   PITTS::finalize();
