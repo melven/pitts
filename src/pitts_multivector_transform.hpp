@@ -65,15 +65,16 @@ namespace PITTS
         long long yj = xChunk / Y.rowChunks();
 
         long long mj = 0;
-        for(; mj+3 < M.r2(); mj+=4)
+        for(; mj+4 < M.r2(); mj+=5)
         {
-          Chunk<T> tmp1{}, tmp2{}, tmp3{}, tmp4{};
+          Chunk<T> tmp1{}, tmp2{}, tmp3{}, tmp4{}, tmp5{};
           for(long long k = 0; k < M.r1(); k++)
           {
             fmadd(M(k,mj+0), X.chunk(xChunk,k), tmp1);
             fmadd(M(k,mj+1), X.chunk(xChunk,k), tmp2);
             fmadd(M(k,mj+2), X.chunk(xChunk,k), tmp3);
             fmadd(M(k,mj+3), X.chunk(xChunk,k), tmp4);
+            fmadd(M(k,mj+4), X.chunk(xChunk,k), tmp5);
           }
 
           streaming_store(tmp1, Y.chunk(yChunk, yj));
@@ -101,6 +102,14 @@ namespace PITTS
           }
 
           streaming_store(tmp4, Y.chunk(yChunk, yj));
+          yChunk += X.rowChunks();
+          while( yChunk >= Y.rowChunks() )
+          {
+            yj++;
+            yChunk -= Y.rowChunks();
+          }
+
+          streaming_store(tmp5, Y.chunk(yChunk, yj));
           yChunk += X.rowChunks();
           while( yChunk >= Y.rowChunks() )
           {
