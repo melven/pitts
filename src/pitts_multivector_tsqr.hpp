@@ -226,7 +226,7 @@ namespace PITTS
             pdataResult[i+nChunks*col] = Chunk<T>{};
 
           // outer loop unroll (v and previous v in w)
-          if( col % 2 == 1 )
+          if( col % 2 == 1 && col+1 < m)
           {
             if( col == 1 )
             {
