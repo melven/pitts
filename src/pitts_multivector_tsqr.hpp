@@ -32,9 +32,9 @@ namespace PITTS
     //! helper namespace for TSQR routines
     namespace HouseholderQR
     {
-      //! Apply a Householder rotation of the form (I - v v^T) with ||v|| = sqrt(2)
+      //! Apply a Householder reflection of the form (I - v v^T) with ||v|| = sqrt(2)
       //!
-      //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v to improve the performance.
+      //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v to improve the performance.
       //!
       //! @tparam T           underlying data type
       //!
@@ -47,7 +47,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyRotation(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
+      inline void applyReflection(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> vTx{};
         {
@@ -68,11 +68,11 @@ namespace PITTS
       }
 
 
-      //! Apply two consecutive Householder rotations of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2)
+      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2)
       //!
-      //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
+      //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
-      //! This routine has the same effect as calling applyRotation twice, first with vector w and then with vector v.
+      //! This routine has the same effect as calling applyReflection twice, first with vector w and then with vector v.
       //! Using this routine avoids to transfer required colums to/from the cache twice.
       //!
       //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
@@ -90,7 +90,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyRotation2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
+      inline void applyReflection2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
@@ -110,11 +110,11 @@ namespace PITTS
       }
 
 
-      //! Apply two consecutive Householder rotations of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to two columns
+      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to two columns
       //!
-      //! Usually, a Householder rotation has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
+      //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
-      //! This routine has the same effect as calling applyRotation2 twice, once for column col, once for column col+1
+      //! This routine has the same effect as calling applyReflection2 twice, once for column col, once for column col+1
       //! Using this routine avoids to transfer required Householder vectors from the cache twice.
       //!
       //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
@@ -132,7 +132,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyRotation2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
+      inline void applyReflection2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
@@ -242,14 +242,14 @@ namespace PITTS
 
             int j = col+1;
             for(; j+1 < m; j+=2)
-              applyRotation2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+              applyReflection2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
 
             for(; j < m; j++)
-              applyRotation2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+              applyReflection2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
           }
           else if( col+1 < m )
           {
-            applyRotation(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
+            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult);
           }
 
           pdata = pdataResult;
