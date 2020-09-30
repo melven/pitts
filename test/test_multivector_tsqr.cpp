@@ -207,14 +207,14 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_plac
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x2_inplace)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x3_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
   constexpr int n = 40;
-  constexpr int m = 5;
+  constexpr int m = 7;
   constexpr int nChunks = (n-1) / Chunk::size + 1;
 
   MultiVector X(n,m), X_ref(n,m);
@@ -240,10 +240,11 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x2_inplace)
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::internal::HouseholderQR::applyReflection2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection2x3(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
   PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+2, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   for(int i = 0; i < n; i++)
   {
@@ -255,14 +256,14 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x2_inplace)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x2_out_of_place)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x3_out_of_place)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
   constexpr int n = 40;
-  constexpr int m = 5;
+  constexpr int m = 7;
   constexpr int nChunks = (n-1) / Chunk::size + 1;
 
   MultiVector X(n,m), X_ref(n,m), X_in(2*n,m);
@@ -295,14 +296,17 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x2_out_of_pl
     {
       X_in.chunk(i,col)[j] = X.chunk(i,col)[j];
       X_in.chunk(i,col+1)[j] = X.chunk(i,col+1)[j];
+      X_in.chunk(i,col+2)[j] = X.chunk(i,col+2)[j];
       X.chunk(i,col)[j] = 77.;
       X.chunk(i,col+1)[j] = 55.;
+      X.chunk(i,col+2)[j] = -33.;
     }
 
-  PITTS::internal::HouseholderQR::applyReflection2x2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection2x3(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
   PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
+  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+2, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   for(int i = 0; i < n; i++)
   {

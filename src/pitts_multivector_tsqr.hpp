@@ -47,6 +47,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
+      [[gnu::always_inline]]
       inline void applyReflection(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> vTx{};
@@ -90,27 +91,29 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyReflection2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
+      [[gnu::always_inline]]
+      inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
         for(int i = firstRow; i < nChunks; i++)
         {
-          fmadd(w[i], pdata[i+lda*j], wTx);
-          fmadd(v[i], pdata[i+lda*j], vTx);
+          fmadd(w[i], pdata[i+lda*col], wTx);
+          fmadd(v[i], pdata[i+lda*col], vTx);
         }
         bcast_sum(wTx);
         bcast_sum(vTx);
         fnmadd(vTw, wTx, vTx);
         for(int i = firstRow; i < nChunks; i++)
         {
-          fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
-          fnmadd(vTx, v[i], pdataResult[i+nChunks*j]);
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdata[i+lda*col], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+nChunks*col]);
         }
       }
 
 
-      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to two columns
+      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to three columns
       //!
       //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
@@ -132,31 +135,42 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension nChunks*#columns, the upper firstRow-1 chunks of rows are not touched
       //!
       template<typename T>
-      inline void applyReflection2x2(int nChunks, int firstRow, int j, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
+      [[gnu::always_inline]]
+      inline void applyReflection2x3(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult)
       {
         Chunk<T> wTx{};
         Chunk<T> vTx{};
         Chunk<T> wTy{};
         Chunk<T> vTy{};
+        Chunk<T> wTz{};
+        Chunk<T> vTz{};
         for(int i = firstRow; i < nChunks; i++)
         {
-          fmadd(w[i], pdata[i+lda*j], wTx);
-          fmadd(v[i], pdata[i+lda*j], vTx);
-          fmadd(w[i], pdata[i+lda*(j+1)], wTy);
-          fmadd(v[i], pdata[i+lda*(j+1)], vTy);
+          fmadd(w[i], pdata[i+lda*(col+0)], wTx);
+          fmadd(w[i], pdata[i+lda*(col+1)], wTy);
+          fmadd(w[i], pdata[i+lda*(col+2)], wTz);
+          fmadd(v[i], pdata[i+lda*(col+0)], vTx);
+          fmadd(v[i], pdata[i+lda*(col+1)], vTy);
+          fmadd(v[i], pdata[i+lda*(col+2)], vTz);
         }
         bcast_sum(wTx);
         bcast_sum(vTx);
-        fnmadd(vTw, wTx, vTx);
         bcast_sum(wTy);
         bcast_sum(vTy);
+        bcast_sum(wTz);
+        bcast_sum(vTz);
+        fnmadd(vTw, wTx, vTx);
         fnmadd(vTw, wTy, vTy);
+        fnmadd(vTw, wTz, vTz);
         for(int i = firstRow; i < nChunks; i++)
         {
-          fnmadd(wTx, w[i], pdata[i+lda*j], pdataResult[i+nChunks*j]);
-          fnmadd(vTx, v[i], pdataResult[i+nChunks*j]);
-          fnmadd(wTy, w[i], pdata[i+lda*(j+1)], pdataResult[i+nChunks*(j+1)]);
-          fnmadd(vTy, v[i], pdataResult[i+nChunks*(j+1)]);
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdata[i+lda*(col+0)], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+nChunks*(col+0)]);
+          fnmadd(wTy, w[i], pdata[i+lda*(col+1)], tmp);
+          fnmadd(vTy, v[i], tmp, pdataResult[i+nChunks*(col+1)]);
+          fnmadd(wTz, w[i], pdata[i+lda*(col+2)], tmp);
+          fnmadd(vTz, v[i], tmp, pdataResult[i+nChunks*(col+2)]);
         }
       }
 
@@ -192,28 +206,26 @@ namespace PITTS
           // Householder projection P = I - 2 v v^T
           // u = x - alpha e_1 with alpha = +- ||x||
           // v = u / ||u||
-          double pivot = pdata[firstRow+lda*col][idx];
+          T pivot = pdata[firstRow+lda*col][idx];
           Chunk<T> uTu{};
           fmadd(pivotChunk, pivotChunk, uTu);
           for(int i = firstRow+1; i < nChunks; i++)
             fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
 
-          T uTu_sum = sum(uTu) + std::numeric_limits<double>::min();
+          T uTu_sum = sum(uTu) + std::numeric_limits<T>::min();
 
           // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
           // (falls back to I - 2 e1 e1^T in that case)
-          T alpha = std::sqrt(uTu_sum + std::numeric_limits<double>::min());
+          T alpha = std::sqrt(uTu_sum + std::numeric_limits<T>::min());
           //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
           alpha *= (pivot > 0 ? -1 : 1);
 
-          uTu_sum -= pivot*alpha;
-          pivot -= alpha;
-          Chunk<T> alphaChunk;
-          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
           if( col+1 < m )
           {
+            uTu_sum -= pivot*alpha;
+            pivot -= alpha;
+            index_bcast(pivotChunk, idx, pivot, pivotChunk);
             T beta = 1/std::sqrt(uTu_sum);
-            fmadd(T(-1), alphaChunk, pivotChunk);
             mul(beta, pivotChunk, v[firstRow]);
             for(int i = firstRow+1; i < nChunks; i++)
               mul(beta, pdata[i+lda*col], v[i]);
@@ -221,6 +233,8 @@ namespace PITTS
 
           // apply I - 2 v v^T     (the factor 2 is already included in v)
           // we already know column col
+          Chunk<T> alphaChunk;
+          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
           masked_store_after(alphaChunk, idx, pdataResult[firstRow+nChunks*col]);
           for(int i = firstRow+1; i < nChunks; i++)
             pdataResult[i+nChunks*col] = Chunk<T>{};
@@ -241,8 +255,8 @@ namespace PITTS
             bcast_sum(vTw);
 
             int j = col+1;
-            for(; j+1 < m; j+=2)
-              applyReflection2x2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
+            for(; j+2 < m; j+=3)
+              applyReflection2x3(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
 
             for(; j < m; j++)
               applyReflection2(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult);
