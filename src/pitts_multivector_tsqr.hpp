@@ -68,6 +68,34 @@ namespace PITTS
           fnmadd(vTx, v[i], pdata[i+lda*col], pdataResult[i+nChunks*col]);
       }
 
+      template<typename T>
+      [[gnu::always_inline]]
+      inline void applyReflection_reduction(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      {
+        if( pdata == pdataResult || firstRow >= nChunks )
+        {
+          Chunk<T> vTx{};
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+              fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+          bcast_sum(vTx);
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+              fnmadd(vTx, v[i], pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col]);
+          return;
+        }
+
+        // generic case
+        Chunk<T> vTx{};
+        for(int i = firstRow; i < nChunks; i++)
+          fmadd(v[i], pdata[i+lda*col], vTx);
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+          fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+        bcast_sum(vTx);
+        for(int i = firstRow; i < nChunks; i++)
+          fnmadd(vTx, v[i], pdata[i+lda*col], pdataResult[i+ldaResult*col]);
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+          fnmadd(vTx, v[i], pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col]);
+      }
+
 
       //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2)
       //!
@@ -109,6 +137,62 @@ namespace PITTS
           Chunk<T> tmp;
           fnmadd(wTx, w[i], pdata[i+lda*col], tmp);
           fnmadd(vTx, v[i], tmp, pdataResult[i+nChunks*col]);
+        }
+      }
+
+
+      template<typename T>
+      [[gnu::always_inline]]
+      inline void applyReflection2_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      {
+        if( pdata == pdataResult || firstRow >= nChunks )
+        {
+          Chunk<T> wTx{};
+          Chunk<T> vTx{};
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+          {
+            fmadd(w[i], pdataResult[i+ldaResult*col], wTx);
+            fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+          }
+          bcast_sum(wTx);
+          bcast_sum(vTx);
+          fnmadd(vTw, wTx, vTx);
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+          {
+            Chunk<T> tmp;
+            fnmadd(wTx, w[i], pdataResult[i+ldaResult*col], tmp);
+            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*col]);
+          }
+          return;
+        }
+
+        // generic case
+        Chunk<T> wTx{};
+        Chunk<T> vTx{};
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          fmadd(w[i], pdata[i+lda*col], wTx);
+          fmadd(v[i], pdata[i+lda*col], vTx);
+        }
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+        {
+          fmadd(w[i], pdataResult[i+ldaResult*col], wTx);
+          fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+        }
+        bcast_sum(wTx);
+        bcast_sum(vTx);
+        fnmadd(vTw, wTx, vTx);
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdata[i+lda*col], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*col]);
+        }
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+        {
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdataResult[i+ldaResult*col], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*col]);
         }
       }
 
@@ -171,6 +255,106 @@ namespace PITTS
           fnmadd(vTy, v[i], tmp, pdataResult[i+nChunks*(col+1)]);
           fnmadd(wTz, w[i], pdata[i+lda*(col+2)], tmp);
           fnmadd(vTz, v[i], tmp, pdataResult[i+nChunks*(col+2)]);
+        }
+      }
+
+
+      template<typename T>
+      [[gnu::always_inline]]
+      inline void applyReflection2x3_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      {
+        if( pdata == pdataResult || firstRow >= nChunks )
+        {
+          Chunk<T> wTx{};
+          Chunk<T> vTx{};
+          Chunk<T> wTy{};
+          Chunk<T> vTy{};
+          Chunk<T> wTz{};
+          Chunk<T> vTz{};
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+          {
+            fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
+            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
+            fmadd(w[i], pdataResult[i+ldaResult*(col+2)], wTz);
+            fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
+            fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
+            fmadd(v[i], pdataResult[i+ldaResult*(col+2)], vTz);
+          }
+          bcast_sum(wTx);
+          bcast_sum(vTx);
+          bcast_sum(wTy);
+          bcast_sum(vTy);
+          bcast_sum(wTz);
+          bcast_sum(vTz);
+          fnmadd(vTw, wTx, vTx);
+          fnmadd(vTw, wTy, vTy);
+          fnmadd(vTw, wTz, vTz);
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+          {
+            Chunk<T> tmp;
+            fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
+            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
+            fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
+            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+            fnmadd(wTz, w[i], pdataResult[i+ldaResult*(col+2)], tmp);
+            fnmadd(vTz, v[i], tmp, pdataResult[i+ldaResult*(col+2)]);
+          }
+          return;
+        }
+
+        // generic case
+        Chunk<T> wTx{};
+        Chunk<T> vTx{};
+        Chunk<T> wTy{};
+        Chunk<T> vTy{};
+        Chunk<T> wTz{};
+        Chunk<T> vTz{};
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          fmadd(w[i], pdata[i+lda*(col+0)], wTx);
+          fmadd(w[i], pdata[i+lda*(col+1)], wTy);
+          fmadd(w[i], pdata[i+lda*(col+2)], wTz);
+          fmadd(v[i], pdata[i+lda*(col+0)], vTx);
+          fmadd(v[i], pdata[i+lda*(col+1)], vTy);
+          fmadd(v[i], pdata[i+lda*(col+2)], vTz);
+        }
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+        {
+          fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
+          fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
+          fmadd(w[i], pdataResult[i+ldaResult*(col+2)], wTz);
+          fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
+          fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
+          fmadd(v[i], pdataResult[i+ldaResult*(col+2)], vTz);
+        }
+        bcast_sum(wTx);
+        bcast_sum(vTx);
+        bcast_sum(wTy);
+        bcast_sum(vTy);
+        bcast_sum(wTz);
+        bcast_sum(vTz);
+        fnmadd(vTw, wTx, vTx);
+        fnmadd(vTw, wTy, vTy);
+        fnmadd(vTw, wTz, vTz);
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdata[i+lda*(col+0)], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
+          fnmadd(wTy, w[i], pdata[i+lda*(col+1)], tmp);
+          fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+          fnmadd(wTz, w[i], pdata[i+lda*(col+2)], tmp);
+          fnmadd(vTz, v[i], tmp, pdataResult[i+ldaResult*(col+2)]);
+        }
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+        {
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
+          fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
+          fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+          fnmadd(wTz, w[i], pdataResult[i+ldaResult*(col+2)], tmp);
+          fnmadd(vTz, v[i], tmp, pdataResult[i+ldaResult*(col+2)]);
         }
       }
 
@@ -273,6 +457,102 @@ namespace PITTS
       }
 
 
+      template<typename T>
+      void transformBlock_reduction(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult)
+      {
+        const int mChunks = (m-1) / Chunk<T>::size + 1;
+        Chunk<T> buff_v[nChunks+mChunks];
+        Chunk<T> buff_w[nChunks+mChunks];
+        Chunk<T>* v = buff_v;
+        Chunk<T>* w = buff_w;
+        const Chunk<T>* pdata = pdataIn;
+        long long lda = ldaIn;
+        for(int col = 0; col < m; col++)
+        {
+          int firstRow = col / Chunk<T>::size;
+          int idx = col % Chunk<T>::size;
+          Chunk<T> pivotChunk;
+          masked_load_after(pdata[firstRow+lda*col], idx, pivotChunk);
+          // Householder projection P = I - 2 v v^T
+          // u = x - alpha e_1 with alpha = +- ||x||
+          // v = u / ||u||
+          T pivot = pdata[firstRow+lda*col][idx];
+          Chunk<T> uTu{};
+          fmadd(pivotChunk, pivotChunk, uTu);
+          {
+            int i = firstRow + 1;
+            for(; i < nChunks; i++)
+              fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
+            for(; i <= nChunks+firstRow; i++)
+              fmadd(pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col], uTu);
+          }
+
+          T uTu_sum = sum(uTu) + std::numeric_limits<T>::min();
+
+          // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
+          // (falls back to I - 2 e1 e1^T in that case)
+          T alpha = std::sqrt(uTu_sum + std::numeric_limits<T>::min());
+          //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
+          alpha *= (pivot > 0 ? -1 : 1);
+
+          if( col+1 < m )
+          {
+            uTu_sum -= pivot*alpha;
+            pivot -= alpha;
+            index_bcast(pivotChunk, idx, pivot, pivotChunk);
+            T beta = 1/std::sqrt(uTu_sum);
+            mul(beta, pivotChunk, v[firstRow]);
+            {
+              int i = firstRow + 1;
+              for(; i < nChunks; i++)
+                mul(beta, pdata[i+lda*col], v[i]);
+              for(; i <= nChunks+firstRow; i++)
+                mul(beta, pdataResult[i+ldaResult*col], v[i]);
+            }
+          }
+
+          // apply I - 2 v v^T     (the factor 2 is already included in v)
+          // we already know column col
+          Chunk<T> alphaChunk;
+          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+          masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
+          for(int i = firstRow+1; i <= nChunks+firstRow; i++)
+            pdataResult[i+ldaResult*col] = Chunk<T>{};
+
+          // outer loop unroll (v and previous v in w)
+          if( col % 2 == 1 && col+1 < m)
+          {
+            if( col == 1 )
+            {
+              pdata = pdataIn;
+              lda = ldaIn;
+            }
+
+            // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
+            Chunk<T> vTw{};
+            for(int i = firstRow; i <= nChunks+firstRow; i++)
+              fmadd(v[i], w[i], vTw);
+            bcast_sum(vTw);
+
+            int j = col+1;
+            for(; j+2 < m; j+=3)
+              applyReflection2x3_reduction(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+
+            for(; j < m; j++)
+              applyReflection2_reduction(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+          }
+          else if( col+1 < m )
+          {
+            applyReflection_reduction(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
+          }
+
+          pdata = pdataResult;
+          lda = ldaResult;
+          std::swap(v,w);
+        }
+      }
+
+
       //! Helper function for combining multiple (upper triangular) matrices
       //!
       //! Appends the new block to a work matrix. Reduces the work matrix to upper triangular form when it reaches its maximal size
@@ -310,6 +590,44 @@ namespace PITTS
           for(int i = 0; i < nSrc; i++)
             pdataWork[workOffset + i + nChunks*j] = pdataSrc[i + ldaSrc*j];
         workOffset += nSrc;
+      }
+
+
+      template<typename T>
+      void copyBlockAndTransformReduction(int nSrc, int m, const Chunk<T>* pdataSrc, long long ldaSrc, int nWork, Chunk<T>* pdataWork, int ldaWork, int& workOffset)
+      {
+        const int mChunks = (m-1) / Chunk<T>::size + 1;
+
+//printf("workOffset %d, nSrc %d, ldaWork %d, m %d\n", workOffset, nSrc, ldaWork, m);
+        if( true || workOffset < nSrc )
+        {
+          // copy down, so there is enough space above the R block
+          int newWorkOffset = nWork - m*ldaWork;
+//printf("Copy to new workOffset: %d\n", newWorkOffset);
+          assert( newWorkOffset >= nSrc );
+          //assert( newWorkOffset >= workOffset + m*ldaWork );
+          /*
+          for(int j = 0; j < m; j++)
+          {
+            for(int i = 0; i < mChunks; i++)
+              pdataWork[newWorkOffset + i + ldaWork*j] = pdataWork[workOffset + i + ldaWork*j];
+            for(int i = mChunks; i < ldaWork; i++)
+              pdataWork[newWorkOffset + i + ldaWork*j] = Chunk<T>{};
+          }
+          */
+          for(int j = m-1; j >= 0; j--)
+          {
+            for(int i = ldaWork-1; i >= mChunks; i--)
+              pdataWork[newWorkOffset + i + ldaWork*j] = Chunk<T>{};
+            for(int i = mChunks-1; i >= 0; i--)
+              pdataWork[newWorkOffset + i + ldaWork*j] = pdataWork[workOffset + i + ldaWork*j];
+          }
+
+          workOffset = newWorkOffset;
+        }
+
+        workOffset -= nSrc;
+        transformBlock_reduction(nSrc, m, pdataSrc, ldaSrc, pdataWork+workOffset, ldaWork);
       }
 
 
@@ -415,7 +733,10 @@ namespace PITTS
     const long long n = M.rows();
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
-    const int nChunks = (reductionFactor+1) * mChunks;
+    const int nChunks = reductionFactor;
+    const int ldaBuff = nChunks + mChunks;
+    const int nBuffer = m*ldaBuff + 10*nChunks;
+//printf("nBuffer: %d\n", nBuffer);
     const long long nTotalChunks = M.rowChunks();
     const long long nIter = nTotalChunks / nChunks;
     const long long lda = M.colStrideChunks();
@@ -443,13 +764,11 @@ namespace PITTS
     {
       const auto& [iThread,nThreads] = internal::parallel::ompThreadInfo();
 
-      std::unique_ptr<Chunk<T>[]> pdataSmall{new Chunk<T>[nChunks*m]};
-      std::unique_ptr<Chunk<T>[]> plocalBuff{new Chunk<T>[nChunks*m]};
+      std::unique_ptr<Chunk<T>[]> plocalBuff{new Chunk<T>[nBuffer]};
 
       // fill with zero
-      for(int i = 0; i < nChunks; i++)
-        for(int j = 0; j < m; j++)
-          plocalBuff[i+nChunks*j] = Chunk<T>{};
+      for(int i = 0; i < nBuffer; i++)
+          plocalBuff[i] = Chunk<T>{};
 
       // index to the next free block in plocalBuff
       int localBuffOffset = 0;
@@ -457,26 +776,19 @@ namespace PITTS
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
       {
-        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &pdataSmall[0]);
-
-        internal::HouseholderQR::copyBlockAndTransformMaybe(mChunks, m, &pdataSmall[0], nChunks, nChunks, &plocalBuff[0], localBuffOffset);
+        internal::HouseholderQR::copyBlockAndTransformReduction(nChunks, m, &M.chunk(nChunks*iter,0), lda, nBuffer, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
       if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
         const int nLastChunks = nTotalChunks-nIter*nChunks;
-        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nIter*nChunks,0), lda, &pdataSmall[0]);
-        internal::HouseholderQR::copyBlockAndTransformMaybe(std::min(nLastChunks,mChunks), m, &pdataSmall[0], nLastChunks, nChunks, &plocalBuff[0], localBuffOffset);
+        internal::HouseholderQR::copyBlockAndTransformReduction(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, nBuffer, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
-
-      // check if we need an additional reduction of plocalBuff
-      if( localBuffOffset > mChunks )
-        internal::HouseholderQR::transformBlock(nChunks, m, &plocalBuff[0], nChunks, &plocalBuff[0]);
 
       int offset = iThread*mChunks;
       for(int j = 0; j < m; j++)
         for(int i = 0; i < mChunks; i++)
-          psharedBuff[offset + i + nThreads*mChunks*j] = plocalBuff[i + nChunks*j];
+          psharedBuff[offset + i + nThreads*mChunks*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
 
 #pragma omp barrier
 
