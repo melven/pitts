@@ -274,10 +274,10 @@ namespace PITTS
           for(int i = firstRow; i <= nChunks+firstRow; i++)
           {
             fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+2)], wTz);
             fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
+            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
             fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
+            fmadd(w[i], pdataResult[i+ldaResult*(col+2)], wTz);
             fmadd(v[i], pdataResult[i+ldaResult*(col+2)], vTz);
           }
           bcast_sum(wTx);
@@ -743,7 +743,7 @@ namespace PITTS
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
-        {{(1.+1./reductionFactor)*(n*m*(1.+m))*kernel_info::FMA<T>()}, // flops - extremely roughly estimated
+        {{(1.+1./reductionFactor)*(n*(m + m*(m-1.)))*kernel_info::FMA<T>()}, // flops - roughly estimated
          {(n*m)*kernel_info::Load<T>() + (m*m)*kernel_info::Store<T>()}} // data transfers
         );
 
