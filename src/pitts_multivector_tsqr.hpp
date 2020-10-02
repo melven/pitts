@@ -261,6 +261,84 @@ namespace PITTS
 
       template<typename T>
       [[gnu::always_inline]]
+      inline void applyReflection2x2_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      {
+        if( pdata == pdataResult || firstRow >= nChunks )
+        {
+          Chunk<T> wTx{};
+          Chunk<T> vTx{};
+          Chunk<T> wTy{};
+          Chunk<T> vTy{};
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+          {
+            fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
+            fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
+            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
+            fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
+          }
+          bcast_sum(wTx);
+          bcast_sum(vTx);
+          bcast_sum(wTy);
+          bcast_sum(vTy);
+          fnmadd(vTw, wTx, vTx);
+          fnmadd(vTw, wTy, vTy);
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+          {
+            Chunk<T> tmp;
+            fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
+            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
+            fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
+            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+          }
+          return;
+        }
+
+        // generic case
+        Chunk<T> wTx{};
+        Chunk<T> vTx{};
+        Chunk<T> wTy{};
+        Chunk<T> vTy{};
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          fmadd(w[i], pdata[i+lda*(col+0)], wTx);
+          fmadd(w[i], pdata[i+lda*(col+1)], wTy);
+          fmadd(v[i], pdata[i+lda*(col+0)], vTx);
+          fmadd(v[i], pdata[i+lda*(col+1)], vTy);
+        }
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+        {
+          fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
+          fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
+          fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
+          fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
+        }
+        bcast_sum(wTx);
+        bcast_sum(vTx);
+        bcast_sum(wTy);
+        bcast_sum(vTy);
+        fnmadd(vTw, wTx, vTx);
+        fnmadd(vTw, wTy, vTy);
+        for(int i = firstRow; i < nChunks; i++)
+        {
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdata[i+lda*(col+0)], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
+          fnmadd(wTy, w[i], pdata[i+lda*(col+1)], tmp);
+          fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+        }
+        for(int i = nChunks; i <= nChunks+firstRow; i++)
+        {
+          Chunk<T> tmp;
+          fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
+          fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
+          fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
+          fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+        }
+      }
+
+
+      template<typename T>
+      [[gnu::always_inline]]
       inline void applyReflection2x3_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
         if( pdata == pdataResult || firstRow >= nChunks )
