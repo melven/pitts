@@ -9,42 +9,6 @@
 #include "eigen_test_helper.hpp"
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int n = 40;
-  constexpr int m = 5;
-
-  MultiVector X(n,m), X_ref(n,m);
-  randomize(X);
-  // copy X to X_ref
-  for(int i = 0; i < n; i++)
-    for(int j = 0; j < m; j++)
-      X_ref(i,j) = X(i,j);
-
-  MultiVector v(n,1);
-  randomize(v);
-
-  int col = 3;
-  int firstRow = 2;
-
-  PITTS::internal::HouseholderQR::applyReflection(X.rowChunks(), firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
-
-  // calculate reference result with Eigen
-  auto mapX_ref = EigenMap(X_ref);
-  auto mapV = ConstEigenMap(v);
-
-  int offset = firstRow*Chunk::size;
-  int n_ = n - offset;
-  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
-
-  ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
-}
-
-
 TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_inplace)
 {
   constexpr auto eps = 1.e-8;
@@ -112,51 +76,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_in
     v(i,0) = 0;
 
   PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
-
-  // calculate reference result with Eigen
-  auto mapX_ref = EigenMap(X_ref);
-  auto mapV = ConstEigenMap(v);
-
-  int offset = firstRow*Chunk::size;
-  int n_ = n - offset;
-  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
-
-  ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
-}
-
-
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int n = 40;
-  constexpr int m = 5;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
-
-  MultiVector X(n,m), X_ref(n,m), X_in(2*n,m);
-  randomize(X);
-  // copy X to X_ref
-  for(int i = 0; i < n; i++)
-    for(int j = 0; j < m; j++)
-      X_ref(i,j) = X(i,j);
-
-  MultiVector v(n,1);
-  randomize(v);
-
-  int col = 3;
-  int firstRow = 2;
-
-  // set parts of X that will be overwritten to just some number
-  for(int i = firstRow; i < nChunks; i++)
-    for(int j = 0; j < Chunk::size; j++)
-    {
-      X_in.chunk(i,col)[j] = X.chunk(i,col)[j];
-      X.chunk(i,col)[j] = 77.;
-    }
-
-  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
   auto mapX_ref = EigenMap(X_ref);
@@ -261,48 +180,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_ou
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int n = 40;
-  constexpr int m = 5;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
-
-  MultiVector X(n,m), X_ref(n,m);
-  randomize(X);
-  // copy X to X_ref
-  for(int i = 0; i < n; i++)
-    for(int j = 0; j < m; j++)
-      X_ref(i,j) = X(i,j);
-
-  MultiVector v(n,1);
-  randomize(v);
-  MultiVector w(n,1);
-  randomize(w);
-
-  int col = 3;
-  int firstRow = 2;
-
-  // calculate vTw
-  double vTw = 0;
-  for(int i = firstRow*Chunk::size; i < n; i++)
-      vTw += v(i,0) * w(i,0);
-  Chunk vTw_chunk;
-  for(int i = 0; i < Chunk::size; i++)
-    vTw_chunk[i] = vTw;
-
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
-
-  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-
-  ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
-}
-
-
 TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_inplace)
 {
   constexpr auto eps = 1.e-8;
@@ -341,57 +218,6 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_i
 
   PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
   PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
-
-  ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
-}
-
-
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_place)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int n = 40;
-  constexpr int m = 5;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
-
-  MultiVector X(n,m), X_ref(n,m), X_in(2*n,m);
-  randomize(X);
-  // copy X to X_ref
-  for(int i = 0; i < n; i++)
-    for(int j = 0; j < m; j++)
-      X_ref(i,j) = X(i,j);
-
-  MultiVector v(n,1);
-  randomize(v);
-  MultiVector w(n,1);
-  randomize(w);
-
-  int col = 3;
-  int firstRow = 2;
-
-  // calculate vTw
-  double vTw = 0;
-  for(int i = firstRow*Chunk::size; i < n; i++)
-      vTw += v(i,0) * w(i,0);
-  Chunk vTw_chunk;
-  for(int i = 0; i < Chunk::size; i++)
-    vTw_chunk[i] = vTw;
-
-
-  // set parts of X that will be overwritten to just some number
-  for(int i = firstRow; i < nChunks; i++)
-    for(int j = 0; j < Chunk::size; j++)
-    {
-      X_in.chunk(i,col)[j] = X.chunk(i,col)[j];
-      X.chunk(i,col)[j] = 77.;
-    }
-
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
-
-  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
@@ -449,123 +275,30 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_o
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x3_inplace)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int n = 40;
-  constexpr int m = 7;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
-
-  MultiVector X(n,m), X_ref(n,m);
-  randomize(X);
-  // copy X to X_ref
-  for(int i = 0; i < n; i++)
-    for(int j = 0; j < m; j++)
-      X_ref(i,j) = X(i,j);
-
-  MultiVector v(n,1);
-  randomize(v);
-  MultiVector w(n,1);
-  randomize(w);
-
-  int col = 3;
-  int firstRow = 2;
-
-  // calculate vTw
-  double vTw = 0;
-  for(int i = firstRow*Chunk::size; i < n; i++)
-      vTw += v(i,0) * w(i,0);
-  Chunk vTw_chunk;
-  for(int i = 0; i < Chunk::size; i++)
-    vTw_chunk[i] = vTw;
-
-  PITTS::internal::HouseholderQR::applyReflection2x3(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
-
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+2, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-
-  ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
-}
-
-
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2x3_out_of_place)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int n = 40;
-  constexpr int m = 7;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
-
-  MultiVector X(n,m), X_ref(n,m), X_in(2*n,m);
-  randomize(X);
-  // copy X to X_ref
-  for(int i = 0; i < n; i++)
-    for(int j = 0; j < m; j++)
-      X_ref(i,j) = X(i,j);
-
-  MultiVector v(n,1);
-  randomize(v);
-  MultiVector w(n,1);
-  randomize(w);
-
-  int col = 3;
-  int firstRow = 2;
-
-  // calculate vTw
-  double vTw = 0;
-  for(int i = firstRow*Chunk::size; i < n; i++)
-      vTw += v(i,0) * w(i,0);
-  Chunk vTw_chunk;
-  for(int i = 0; i < Chunk::size; i++)
-    vTw_chunk[i] = vTw;
-
-
-  // set parts of X that will be overwritten to just some number
-  for(int i = firstRow; i < nChunks; i++)
-    for(int j = 0; j < Chunk::size; j++)
-    {
-      X_in.chunk(i,col)[j] = X.chunk(i,col)[j];
-      X_in.chunk(i,col+1)[j] = X.chunk(i,col+1)[j];
-      X_in.chunk(i,col+2)[j] = X.chunk(i,col+2)[j];
-      X.chunk(i,col)[j] = 77.;
-      X.chunk(i,col+1)[j] = 55.;
-      X.chunk(i,col+2)[j] = -33.;
-    }
-
-  PITTS::internal::HouseholderQR::applyReflection2x3(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0)); // memory layout ok because X is small enough
-
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+1, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col+2, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_ref.chunk(0,0), nChunks, &X_ref.chunk(0,0));
-
-  ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
-}
-
-
 TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
-  constexpr int n = 40;
+  constexpr int n = 70;
   constexpr int m = 19;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
+  constexpr int mChunks = (m-1) / Chunk::size + 1;
+  constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
+  constexpr int nChunks = nTotalChunks - mChunks;
 
   MultiVector X(n,m), X_ref(n,m);
   randomize(X);
+  // make lower triangular part zero...
+  for(int j = 0; j < m; j++)
+    for(int i = nChunks+j/Chunk::size+1; i < nTotalChunks; i++)
+      X.chunk(i,j) = Chunk{};
   // copy X to X_ref
   for(int i = 0; i < n; i++)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), nChunks, &X.chunk(0,0)); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::transformBlock_reduction(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks());
 
   // check that the result is upper triangular
   for(int i = 0; i < n; i++)
@@ -597,19 +330,33 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
-  constexpr int n = 40;
+  constexpr int n = 77;
   constexpr int m = 19;
-  constexpr int nChunks = (n-1) / Chunk::size + 1;
+  constexpr int mChunks = (m-1) / Chunk::size + 1;
+  constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
+  constexpr int nChunks = nTotalChunks - mChunks;
 
-  MultiVector X(2*n,m), X_ref(2*n,m), Xresult(n,m);
+  MultiVector X(n,m), X_ref(n,m), Xresult(n,m);
   randomize(X);
   randomize(Xresult);
+  // make lower triangular part zero...
+  for(int j = 0; j < m; j++)
+    for(int i = nChunks+j/Chunk::size+1; i < nTotalChunks; i++)
+      X.chunk(i,j) = Chunk{};
   // copy X to X_ref
-  for(int i = 0; i < 2*n; i++)
+  for(int i = 0; i < n; i++)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
+  // prepare lower part of result
+  for(int col = 0; col < m; col++)
+    for(int i = nChunks; i < nTotalChunks; i++)
+      for(int j = 0; j < Chunk::size; j++)
+      {
+        Xresult.chunk(i,col)[j] = X.chunk(i,col)[j];
+        X.chunk(i,col)[j] = 77;
+      }
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0)); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::transformBlock_reduction(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks());
 
   // check that the result is upper triangular
   for(int i = 0; i < n; i++)
@@ -621,16 +368,22 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
         ASSERT_NEAR(0., Xresult(i,j), eps);
       }
       // X shouldn't change
-      ASSERT_EQ(X_ref(i,j), X(i,j));
-      ASSERT_EQ(X_ref(i+n,j), X(i+n,j));
+      if( i < nChunks*Chunk::size )
+      {
+        ASSERT_EQ(X_ref(i,j), X(i,j));
+      }
+      else
+      {
+        ASSERT_EQ(77., X(i,j));
+      }
     }
   }
 
   // use Eigen to check that the singular values and the right singular vectors are identical
-  auto mapX = ConstEigenMap(X);
+  auto mapXresult = ConstEigenMap(Xresult);
   auto mapX_ref = ConstEigenMap(X_ref);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX, Eigen::ComputeThinV);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref.topRows(mapX.rows()), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -638,7 +391,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformReduction)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -646,16 +399,18 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
 
   constexpr int nChunks = 5;
   constexpr int n = nChunks * Chunk::size;
-  constexpr int m = 2;
-  MultiVector work(n, m);
+  constexpr int m = 20;
+  constexpr int mChunks = (m-1) / Chunk::size + 1;
 
   // prepare work array
+  constexpr int ldaWork = mChunks+nChunks;
+  constexpr int nWork = m*ldaWork + 2*nChunks;
+  std::unique_ptr<Chunk[]> work(new Chunk[nWork]);
   int workOffset = 0;
-  for(int j = 0; j < m; j++)
-    for(int i = 0; i < n; i++)
-      work(i,j) = 0;
+  for(int i = 0; i < nWork; i++)
+    work[i] = Chunk{};
 
-  MultiVector src(4*Chunk::size, m);
+  MultiVector src(nChunks*Chunk::size, m);
   randomize(src);
 
   Eigen::MatrixXd work_ref(0,m);
@@ -663,16 +418,18 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
 
   for(int iter = 0; iter < 10; iter++)
   {
-    const int nSrc = (iter*2) % 5;
+    const int nSrc = (iter*2) % 5 + 1;
 
-    PITTS::internal::HouseholderQR::copyBlockAndTransformMaybe(nSrc, m, &src.chunk(0,0), src.colStrideChunks(), nChunks, &work.chunk(0,0), workOffset); // memory layout ok because work is small enough
+    PITTS::internal::HouseholderQR::copyBlockAndTransformReduction(nSrc, m, &src.chunk(0,0), src.colStrideChunks(), nWork, &work[0], ldaWork, workOffset);
 
-    // check that the result is zero below workOffset
+    // check that the lower triangular part of the result is zero (stored at workOffset)
     for(int j = 0; j < m; j++)
     {
-      for(int i = workOffset*Chunk::size; i < n; i++)
+      for(int i = j+1; i < mChunks*Chunk::size; i++)
       {
-        ASSERT_NEAR(0., work(i,j), eps);
+        int idx = (workOffset + j*ldaWork)*Chunk::size + i;
+        ASSERT_LT(idx, nWork*Chunk::size);
+        ASSERT_NEAR(0., work[idx/Chunk::size][idx%Chunk::size], eps);
       }
     }
 
@@ -680,15 +437,20 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformMaybe)
     const int nn = nSrc*Chunk::size;
     work_ref.conservativeResize(work_ref.rows()+nn, Eigen::NoChange);
     work_ref.bottomRows(nn) = mapSrc.topRows(nn);
-  }
-  // singular values and right singular vectors should match
-  auto mapWork = ConstEigenMap(work);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapWork, Eigen::ComputeThinV);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(work_ref, Eigen::ComputeThinV);
 
-  ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
-  // V can differ by sign, only consider absolute part
-  ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
+    std::cout << "iter: " << iter << "\n";
+
+    // singular values and right singular vectors should match
+    Eigen::Map<const Eigen::MatrixXd> mapWork(&work[workOffset][0], ldaWork*Chunk::size, m);
+    const int mm = std::min(m, (int)work_ref.rows());
+    Eigen::BDCSVD<Eigen::MatrixXd> svd(mapWork.topRows(mm), Eigen::ComputeThinV);
+    Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(work_ref, Eigen::ComputeThinV);
+
+    ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+    // V can differ by sign, only consider absolute part
+    ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
+
+  }
 }
 
 
@@ -707,6 +469,10 @@ TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
     R2.resize(m,m);
     randomize(R1);
     randomize(R2);
+    // should both be upper triangular
+    for(int i = 0; i < m; i++)
+      for(int j = i+1; j < m; j++)
+        R1(j,i) = R2(j,i) = 0;
 
     // we need buffers of correctly padded size...
     const auto mChunks = (m-1) / Chunk::size + 1;
