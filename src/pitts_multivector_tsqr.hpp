@@ -94,7 +94,7 @@ namespace PITTS
       }
 
 
-      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2)
+      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to possibly multiple columns
       //!
       //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
@@ -106,10 +106,11 @@ namespace PITTS
       //! See applyReflection_reduction for details on the assumed memory layout.
       //!
       //! @tparam T           underlying data type
+      //! @tparam NC          column unroll factor
       //!
       //! @param nChunks      number of non-zero rows in v (divided by the Chunk size)
       //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow)
-      //! @param col          current column index
+      //! @param col          index of the first of NC consecutive columns.
       //! @param w            first Householder vector with norm sqrt(2), only considers the chunks [firstRow:firstRow+nChunks]
       //! @param v            second Householder vector with norm sqrt(2), only considers the chunks [firstRow:firstRow+nChunks]
       //! @param vTw          scalar product of v and w; required as we apply both transformations at once
@@ -118,289 +119,87 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
       //! @param ldaResult    offset of columns in pdataResult
       //!
-      template<typename T>
+      template<typename T, int NC = 1>
       [[gnu::always_inline]]
       inline void applyReflection2_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
+        Chunk<T> wTx[NC]{};
+        Chunk<T> vTx[NC]{};
         if( pdata == pdataResult || firstRow >= nChunks )
         {
           // fast case: in-place operation
-          Chunk<T> wTx{};
-          Chunk<T> vTx{};
           for(int i = firstRow; i <= nChunks+firstRow; i++)
           {
-            fmadd(w[i], pdataResult[i+ldaResult*col], wTx);
-            fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+            for(int j = 0; j < NC; j++)
+            {
+              fmadd(w[i], pdataResult[i+ldaResult*(col+j)], wTx[j]);
+              fmadd(v[i], pdataResult[i+ldaResult*(col+j)], vTx[j]);
+            }
           }
-          bcast_sum(wTx);
-          bcast_sum(vTx);
-          fnmadd(vTw, wTx, vTx);
+          for(int j = 0; j < NC; j++)
+          {
+            bcast_sum(wTx[j]);
+            bcast_sum(vTx[j]);
+          }
+          for(int j = 0; j < NC; j++)
+          {
+            fnmadd(vTw, wTx[j], vTx[j]);
+          }
           for(int i = firstRow; i <= nChunks+firstRow; i++)
           {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdataResult[i+ldaResult*col], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*col]);
+            for(int j = 0; j < NC; j++)
+            {
+              Chunk<T> tmp;
+              fnmadd(wTx[j], w[i], pdataResult[i+ldaResult*(col+j)], tmp);
+              fnmadd(vTx[j], v[i], tmp, pdataResult[i+ldaResult*(col+j)]);
+            }
           }
         }
         else
         {
           // generic case: out-of-place operation with input data from both pdata and pdataResult
-          Chunk<T> wTx{};
-          Chunk<T> vTx{};
           for(int i = firstRow; i < nChunks; i++)
           {
-            fmadd(w[i], pdata[i+lda*col], wTx);
-            fmadd(v[i], pdata[i+lda*col], vTx);
+            for(int j = 0; j < NC; j++)
+            {
+              fmadd(w[i], pdata[i+lda*(col+j)], wTx[j]);
+              fmadd(v[i], pdata[i+lda*(col+j)], vTx[j]);
+            }
           }
           for(int i = nChunks; i <= nChunks+firstRow; i++)
           {
-            fmadd(w[i], pdataResult[i+ldaResult*col], wTx);
-            fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+            for(int j = 0; j < NC; j++)
+            {
+              fmadd(w[i], pdataResult[i+ldaResult*(col+j)], wTx[j]);
+              fmadd(v[i], pdataResult[i+ldaResult*(col+j)], vTx[j]);
+            }
           }
-          bcast_sum(wTx);
-          bcast_sum(vTx);
-          fnmadd(vTw, wTx, vTx);
+          for(int j = 0; j < NC; j++)
+          {
+            bcast_sum(wTx[j]);
+            bcast_sum(vTx[j]);
+          }
+          for(int j = 0; j < NC; j++)
+          {
+            fnmadd(vTw, wTx[j], vTx[j]);
+          }
           for(int i = firstRow; i < nChunks; i++)
           {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdata[i+lda*col], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*col]);
-          }
-          for(int i = nChunks; i <= nChunks+firstRow; i++)
-          {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdataResult[i+ldaResult*col], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*col]);
-          }
-        }
-      }
-
-
-      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to two columns
-      //!
-      //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
-      //!
-      //! This routine has the same effect as calling applyReflection_reduction twice, once for column col, once for column col+1
-      //! Using this routine avoids to transfer required Householder vectors from the cache twice.
-      //!
-      //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
-      //!
-      //! See applyReflection_reduction for details on the assumed memory layout.
-      //!
-      //! @tparam T           underlying data type
-      //!
-      //! @param nChunks      number of non-zero rows in v (divided by the Chunk size)
-      //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow)
-      //! @param col          index of the first of the two consecutive columns.
-      //! @param w            first Householder vector with norm sqrt(2), only considers the chunks [firstRow:firstRow+nChunks]
-      //! @param v            second Householder vector with norm sqrt(2), only considers the chunks [firstRow:firstRow+nChunks]
-      //! @param vTw          scalar product of v and w; required as we apply both transformations at once
-      //! @param pdata        column-major input array with dimension lda*#columns; can be identical to pdataResult for in-place calculation
-      //! @param lda          offset of columns in pdata
-      //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
-      //! @param ldaResult    offset of columns in pdataResult
-      //!
-      template<typename T>
-      [[gnu::always_inline]]
-      inline void applyReflection2x2_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
-      {
-        if( pdata == pdataResult || firstRow >= nChunks )
-        {
-          // fast case: in-place operation
-          Chunk<T> wTx{};
-          Chunk<T> vTx{};
-          Chunk<T> wTy{};
-          Chunk<T> vTy{};
-          for(int i = firstRow; i <= nChunks+firstRow; i++)
-          {
-            fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
-          }
-          bcast_sum(wTx);
-          bcast_sum(vTx);
-          bcast_sum(wTy);
-          bcast_sum(vTy);
-          fnmadd(vTw, wTx, vTx);
-          fnmadd(vTw, wTy, vTy);
-          for(int i = firstRow; i <= nChunks+firstRow; i++)
-          {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
-            fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
-            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
-          }
-        }
-        else
-        {
-          // generic case: out-of-place operation with input data from both pdata and pdataResult
-          Chunk<T> wTx{};
-          Chunk<T> vTx{};
-          Chunk<T> wTy{};
-          Chunk<T> vTy{};
-          for(int i = firstRow; i < nChunks; i++)
-          {
-            fmadd(w[i], pdata[i+lda*(col+0)], wTx);
-            fmadd(w[i], pdata[i+lda*(col+1)], wTy);
-            fmadd(v[i], pdata[i+lda*(col+0)], vTx);
-            fmadd(v[i], pdata[i+lda*(col+1)], vTy);
-          }
-          for(int i = nChunks; i <= nChunks+firstRow; i++)
-          {
-            fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
-          }
-          bcast_sum(wTx);
-          bcast_sum(vTx);
-          bcast_sum(wTy);
-          bcast_sum(vTy);
-          fnmadd(vTw, wTx, vTx);
-          fnmadd(vTw, wTy, vTy);
-          for(int i = firstRow; i < nChunks; i++)
-          {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdata[i+lda*(col+0)], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
-            fnmadd(wTy, w[i], pdata[i+lda*(col+1)], tmp);
-            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
+            for(int j = 0; j < NC; j++)
+            {
+              Chunk<T> tmp;
+              fnmadd(wTx[j], w[i], pdata[i+lda*(col+j)], tmp);
+              fnmadd(vTx[j], v[i], tmp, pdataResult[i+ldaResult*(col+j)]);
+            }
           }
           for(int i = nChunks; i <= nChunks+firstRow; i++)
           {
             Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
-            fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
-            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
-          }
-        }
-      }
-
-
-      //! Apply two consecutive Householder reflection of the form (I - v v^T) (I - w w^T) with ||v|| = ||w|| = sqrt(2) to three columns
-      //!
-      //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
-      //!
-      //! This routine has the same effect as calling applyReflection_reduction twice, once for column col, once for column col+1
-      //! Using this routine avoids to transfer required Householder vectors from the cache twice.
-      //!
-      //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
-      //!
-      //! See applyReflection_reduction for details on the assumed memory layout.
-      //!
-      //! @tparam T           underlying data type
-      //!
-      //! @param nChunks      number of non-zero rows in v (divided by the Chunk size)
-      //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow)
-      //! @param col          index of the first of the three consecutive columns.
-      //! @param w            first Householder vector with norm sqrt(2), only considers the chunks [firstRow:firstRow+nChunks]
-      //! @param v            second Householder vector with norm sqrt(2), only considers the chunks [firstRow:firstRow+nChunks]
-      //! @param vTw          scalar product of v and w; required as we apply both transformations at once
-      //! @param pdata        column-major input array with dimension lda*#columns; can be identical to pdataResult for in-place calculation
-      //! @param lda          offset of columns in pdata
-      //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
-      //! @param ldaResult    offset of columns in pdataResult
-      //!
-      template<typename T>
-      [[gnu::always_inline]]
-      inline void applyReflection2x3_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
-      {
-        if( pdata == pdataResult || firstRow >= nChunks )
-        {
-          // fast case: in-place operation
-          Chunk<T> wTx{};
-          Chunk<T> vTx{};
-          Chunk<T> wTy{};
-          Chunk<T> vTy{};
-          Chunk<T> wTz{};
-          Chunk<T> vTz{};
-          for(int i = firstRow; i <= nChunks+firstRow; i++)
-          {
-            fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+2)], wTz);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+2)], vTz);
-          }
-          bcast_sum(wTx);
-          bcast_sum(vTx);
-          bcast_sum(wTy);
-          bcast_sum(vTy);
-          bcast_sum(wTz);
-          bcast_sum(vTz);
-          fnmadd(vTw, wTx, vTx);
-          fnmadd(vTw, wTy, vTy);
-          fnmadd(vTw, wTz, vTz);
-          for(int i = firstRow; i <= nChunks+firstRow; i++)
-          {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
-            fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
-            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
-            fnmadd(wTz, w[i], pdataResult[i+ldaResult*(col+2)], tmp);
-            fnmadd(vTz, v[i], tmp, pdataResult[i+ldaResult*(col+2)]);
-          }
-        }
-        else
-        {
-          // generic case: out-of-place operation with input data from both pdata and pdataResult
-          Chunk<T> wTx{};
-          Chunk<T> vTx{};
-          Chunk<T> wTy{};
-          Chunk<T> vTy{};
-          Chunk<T> wTz{};
-          Chunk<T> vTz{};
-          for(int i = firstRow; i < nChunks; i++)
-          {
-            fmadd(w[i], pdata[i+lda*(col+0)], wTx);
-            fmadd(w[i], pdata[i+lda*(col+1)], wTy);
-            fmadd(w[i], pdata[i+lda*(col+2)], wTz);
-            fmadd(v[i], pdata[i+lda*(col+0)], vTx);
-            fmadd(v[i], pdata[i+lda*(col+1)], vTy);
-            fmadd(v[i], pdata[i+lda*(col+2)], vTz);
-          }
-          for(int i = nChunks; i <= nChunks+firstRow; i++)
-          {
-            fmadd(w[i], pdataResult[i+ldaResult*(col+0)], wTx);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+1)], wTy);
-            fmadd(w[i], pdataResult[i+ldaResult*(col+2)], wTz);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+0)], vTx);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+1)], vTy);
-            fmadd(v[i], pdataResult[i+ldaResult*(col+2)], vTz);
-          }
-          bcast_sum(wTx);
-          bcast_sum(vTx);
-          bcast_sum(wTy);
-          bcast_sum(vTy);
-          bcast_sum(wTz);
-          bcast_sum(vTz);
-          fnmadd(vTw, wTx, vTx);
-          fnmadd(vTw, wTy, vTy);
-          fnmadd(vTw, wTz, vTz);
-          for(int i = firstRow; i < nChunks; i++)
-          {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdata[i+lda*(col+0)], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
-            fnmadd(wTy, w[i], pdata[i+lda*(col+1)], tmp);
-            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
-            fnmadd(wTz, w[i], pdata[i+lda*(col+2)], tmp);
-            fnmadd(vTz, v[i], tmp, pdataResult[i+ldaResult*(col+2)]);
-          }
-          for(int i = nChunks; i <= nChunks+firstRow; i++)
-          {
-            Chunk<T> tmp;
-            fnmadd(wTx, w[i], pdataResult[i+ldaResult*(col+0)], tmp);
-            fnmadd(vTx, v[i], tmp, pdataResult[i+ldaResult*(col+0)]);
-            fnmadd(wTy, w[i], pdataResult[i+ldaResult*(col+1)], tmp);
-            fnmadd(vTy, v[i], tmp, pdataResult[i+ldaResult*(col+1)]);
-            fnmadd(wTz, w[i], pdataResult[i+ldaResult*(col+2)], tmp);
-            fnmadd(vTz, v[i], tmp, pdataResult[i+ldaResult*(col+2)]);
+            for(int j = 0; j < NC; j++)
+            {
+              fnmadd(wTx[j], w[i], pdataResult[i+ldaResult*(col+j)], tmp);
+              fnmadd(vTx[j], v[i], tmp, pdataResult[i+ldaResult*(col+j)]);
+            }
           }
         }
       }
@@ -513,11 +312,11 @@ namespace PITTS
 
             int j = col+1;
             for(; j+2 < m; j+=3)
-              applyReflection2x3_reduction(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2_reduction<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             if( j+1 < m )
-              applyReflection2x2_reduction(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2_reduction<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             else if( j < m )
-              applyReflection2_reduction(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2_reduction<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
           }
           else if( col+1 < m )
           {
