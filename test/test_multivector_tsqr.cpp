@@ -9,7 +9,7 @@
 #include "eigen_test_helper.hpp"
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_inplace)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -35,7 +35,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_in
   for(int i = (nChunks+firstRow+1)*Chunk::size; i < n; i++)
     v(i,0) = 0;
 
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
   auto mapX_ref = EigenMap(X_ref);
@@ -49,7 +49,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_in
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_inplace_firstRow_bigger_nChunks)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace_firstRow_bigger_nChunks)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -75,7 +75,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_in
   for(int i = (nChunks+firstRow+1)*Chunk::size; i < n; i++)
     v(i,0) = 0;
 
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
   auto mapX_ref = EigenMap(X_ref);
@@ -89,7 +89,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_in
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_out_of_place)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -124,7 +124,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_ou
     }
 
 
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
   auto mapX_ref = EigenMap(X_ref);
@@ -138,7 +138,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_ou
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_out_of_place_firstRow_bigger_nChunks)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place_firstRow_bigger_nChunks)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -166,7 +166,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_ou
 
   // X_in is completely ignored as firstRow >= nChunks
 
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
 
   // calculate reference result with Eigen
   auto mapX_ref = EigenMap(X_ref);
@@ -180,7 +180,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_reduction_ou
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_inplace)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -214,16 +214,16 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_i
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::internal::HouseholderQR::applyReflection2_reduction(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
 
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_out_of_place)
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_place)
 {
   constexpr auto eps = 1.e-8;
   using Chunk = PITTS::Chunk<double>;
@@ -266,10 +266,10 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_reduction_o
       X.chunk(i,col)[j] = 77.;
     }
 
-  PITTS::internal::HouseholderQR::applyReflection2_reduction(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
 
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
-  PITTS::internal::HouseholderQR::applyReflection_reduction(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
+  PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
@@ -298,7 +298,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
 
-  PITTS::internal::HouseholderQR::transformBlock_reduction(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks());
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks());
 
   // check that the result is upper triangular
   for(int i = 0; i < n; i++)
@@ -356,7 +356,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
         X.chunk(i,col)[j] = 77;
       }
 
-  PITTS::internal::HouseholderQR::transformBlock_reduction(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks());
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks());
 
   // check that the result is upper triangular
   for(int i = 0; i < n; i++)

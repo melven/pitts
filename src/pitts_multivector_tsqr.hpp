@@ -65,7 +65,7 @@ namespace PITTS
       //!
       template<typename T>
       [[gnu::always_inline]]
-      inline void applyReflection_reduction(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      inline void applyReflection(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
         if( pdata == pdataResult || firstRow >= nChunks )
         {
@@ -98,12 +98,12 @@ namespace PITTS
       //!
       //! Usually, a Householder reflection has the form (I - 2 v v^T), the factor 2 is included in v and w to improve the performance.
       //!
-      //! This function has the same effect as calling applyReflection_reduction twice, first with vector w and then with vector v.
+      //! This function has the same effect as calling applyReflection twice, first with vector w and then with vector v.
       //! Using this function avoids to transfer required colums to/from the cache twice.
       //!
       //! Exploits (I - v v^T) (I -w w^T) = I - v (v^T - v^T w w^T) - w w^T where v^T w can be calculated in advance.
       //!
-      //! See applyReflection_reduction for details on the assumed memory layout.
+      //! See applyReflection for details on the assumed memory layout.
       //!
       //! @tparam T           underlying data type
       //! @tparam NC          column unroll factor
@@ -121,7 +121,7 @@ namespace PITTS
       //!
       template<typename T, int NC = 1>
       [[gnu::always_inline]]
-      inline void applyReflection2_reduction(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
         Chunk<T> wTx[NC]{};
         Chunk<T> vTx[NC]{};
@@ -234,7 +234,7 @@ namespace PITTS
       //! @param ldaResult    offset of columns in pdataResult
       //!
       template<typename T>
-      void transformBlock_reduction(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         Chunk<T> buff_v[nChunks+mChunks];
@@ -312,15 +312,15 @@ namespace PITTS
 
             int j = col+1;
             for(; j+2 < m; j+=3)
-              applyReflection2_reduction<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             if( j+1 < m )
-              applyReflection2_reduction<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             else if( j < m )
-              applyReflection2_reduction<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
           }
           else if( col+1 < m )
           {
-            applyReflection_reduction(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
+            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
           }
 
           pdata = pdataResult;
@@ -332,7 +332,7 @@ namespace PITTS
 
       //! Helper function for combining a new block of of rows with a previously calculated upper triangular matrix
       //! 
-      //! Mostly takes care of managing a ring buffer required for calling transformBlock_reduction.
+      //! Mostly takes care of managing a ring buffer required for calling transformBlock.
       //!
       //! With each call, a few rows are added at the top of the current data in the work buffer (and transformed to upper triangular form again).
       //! So, the data is slightly moved up in the work buffer. When the data is already at the top, it is copied to the end of the buffer first.
@@ -371,7 +371,7 @@ namespace PITTS
         }
 
         workOffset -= nSrc;
-        transformBlock_reduction(nSrc, m, pdataSrc, ldaSrc, pdataWork+workOffset, ldaWork);
+        transformBlock(nSrc, m, pdataSrc, ldaSrc, pdataWork+workOffset, ldaWork);
       }
 
 
@@ -441,7 +441,7 @@ namespace PITTS
               unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*nTotalChunks]);
         }
 
-        transformBlock_reduction(mChunks, m, &buff[0], nTotalChunks, &buff[0], nTotalChunks);
+        transformBlock(mChunks, m, &buff[0], nTotalChunks, &buff[0], nTotalChunks);
 
         // copy back to inoutvec
         if( inoutvecChunked )
@@ -541,7 +541,7 @@ namespace PITTS
         if( nThreads > 1 )
         {
           // reduce shared buffer
-          internal::HouseholderQR::transformBlock_reduction((nThreads-1)*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0], nThreads*mChunks);
+          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0], nThreads*mChunks);
 
           // compress result
           for(int j = 0; j < m; j++)
