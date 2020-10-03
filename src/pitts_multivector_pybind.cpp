@@ -102,7 +102,7 @@ namespace PITTS
               block_TSQR(M, buff, reductionFactor, mpiGlobal);
               return copy(buff);
               },
-            py::arg("M"), py::arg("reductionFactor")=5, py::arg("mpiGlobal")=true,
+            py::arg("M"), py::arg("reductionFactor")=20, py::arg("mpiGlobal")=true,
             "Calculate upper triangular part R from a QR-decomposition of the given tall-skinny matrix (multi-vector) M");
 
         m.def("transform",

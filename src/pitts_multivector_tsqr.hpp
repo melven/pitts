@@ -471,7 +471,7 @@ namespace PITTS
 
 
   template<typename T>
-  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 4, bool mpiGlobal = true)
+  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 20, bool mpiGlobal = true)
   {
     // calculate dimensions and block sizes
     const long long n = M.rows();

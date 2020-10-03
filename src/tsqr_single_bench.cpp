@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     throw std::invalid_argument("Requires 4 arguments (n m reductionFactor nIter)!");
 
   long long n = 0, m = 0;
-  int reductionFactor = 4, nIter = 0;
+  int reductionFactor = 20, nIter = 0;
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], m);
   std::from_chars(argv[3], argv[4], reductionFactor);
