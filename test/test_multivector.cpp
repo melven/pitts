@@ -58,7 +58,7 @@ TEST(PITTS_MultiVector, resize)
   ASSERT_EQ(3, M.cols());
 }
 
-TEST(PITTS_MultiVector, memory_layout_and_zero_padding_small)
+TEST(PITTS_MultiVector, memory_layout_and_zero_padding_singleChunk)
 {
   using MultiVector_double = PITTS::MultiVector<double>;
   constexpr auto chunkSize = PITTS::Chunk<double>::size;
@@ -104,6 +104,36 @@ TEST(PITTS_MultiVector, memory_layout_and_zero_padding_small)
   }
 }
 
+TEST(PITTS_MultiVector, memory_layout_and_zero_padding_small)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  constexpr auto chunkSize = PITTS::Chunk<double>::size;
+
+  MultiVector_double M;
+
+  for(auto n: {1, 2, 3, 10, 20, 31, 32, 33, 50, 60, 61, 62, 63, 64, 128})
+  {
+    // check that the memory layout avoids strides that are powers of two
+    M.resize(n, 3);
+    EXPECT_EQ(M.rowChunks(), M.colStrideChunks());
+    ASSERT_EQ(n, M.rows());
+    ASSERT_EQ(3, M.cols());
+    ASSERT_GE(M.rowChunks()*chunkSize, n);
+
+    // check that there is zero padding directly behind the data
+    for(int j = 0; j < 3; j++)
+    {
+      const auto iChunk = M.rowChunks() - 1;
+      if( n % chunkSize == 0 )
+        continue;
+      for(auto ii = n % chunkSize; ii < chunkSize; ii++)
+      {
+        EXPECT_EQ(0., M.chunk(iChunk,j)[ii]);
+      }
+    }
+  }
+}
+
 TEST(PITTS_MultiVector, memory_layout_and_zero_padding_large)
 {
   using MultiVector_double = PITTS::MultiVector<double>;
@@ -111,11 +141,11 @@ TEST(PITTS_MultiVector, memory_layout_and_zero_padding_large)
 
   MultiVector_double M;
 
-  for(auto n: {1, 2, 10, 20, 33, 50, 128, 250, 333, 512})
+  for(auto n: {250, 333, 480, 496, 500, 504, 512, 520, 528, 576, 786, 1000, 1024, 1040})
   {
     // check that the memory layout avoids strides that are powers of two
     M.resize(n, 3);
-    ASSERT_FALSE(M.colStrideChunks() % 2 == 0);
+    EXPECT_EQ(4, M.colStrideChunks() % 8);
     ASSERT_EQ(n, M.rows());
     ASSERT_EQ(3, M.cols());
     ASSERT_GE(M.rowChunks()*chunkSize, n);

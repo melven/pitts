@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   PITTS::initialize(&argc, &argv);
 
   if( argc != 5 )
-    throw std::invalid_argument("Requires 4 arguments!");
+    throw std::invalid_argument("Requires 4 arguments (n d max_r nIter)!");
 
   std::size_t n = 0, d = 0, max_r = 0, nIter = 0;
   std::from_chars(argv[1], argv[2], n);
