@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   PITTS::initialize(&argc, &argv);
 
   if( argc != 5 )
-    throw std::invalid_argument("Requires 4 arguments!");
+    throw std::invalid_argument("Requires 4 arguments (n d max_r nIter)!");
 
   std::size_t n = 0, d = 0, max_r = 0, nIter = 0;
   std::from_chars(argv[1], argv[2], n);
@@ -27,12 +27,12 @@ int main(int argc, char* argv[])
   // compress shape, s.t. first and last dimensions are bigger than max_r
   // first dimension is distributed over MPI processes
   std::vector<int> shape(d,n);
-  while( shape.size() > 2 && shape.front() < 1.7*max_r*nProcs )
+  while( shape.size() > 2 && shape.front() < 1.2*max_r*nProcs )
   {
     shape[1] *= shape[0];
     shape.erase(shape.begin());
   }
-  while( shape.size() > 2 && shape.back() < 1.7*max_r )
+  while( shape.size() > 2 && shape.back() < 1.2*max_r )
   {
     n = shape.size();
     shape[n-2] *= shape[n-1];

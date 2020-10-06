@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   PITTS::initialize(&argc, &argv);
 
   if( argc != 5 && argc != 7 )
-    throw std::invalid_argument("Requires 4 or 6 arguments!");
+    throw std::invalid_argument("Requires 4 or 6 arguments (n m k nIter n_ m_)!");
 
   long long n = 0, m = 0, k = 0, nIter = 0;
   std::from_chars(argv[1], argv[2], n);
