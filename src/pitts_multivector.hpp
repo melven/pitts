@@ -57,7 +57,7 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
 
       const auto newRowChunks = (rows-1)/chunkSize+1;
-      const auto newColStrideChunks = newRowChunks + (newRowChunks % 2 == 0);
+      const auto newColStrideChunks = padded(newRowChunks);
       if( newColStrideChunks*cols > reservedChunks_ )
       {
         data_.reset(new Chunk<T>[newColStrideChunks*cols]);
@@ -107,7 +107,7 @@ namespace PITTS
     inline auto colStrideChunks() const
     {
       // return uneven number to avoid cache thrashing
-      return rowChunks() + (rowChunks() % 2 == 0);
+      return padded(rowChunks());
     }
 
     //! total size of the data array including padding (e.g. for MPI communication)
@@ -132,6 +132,16 @@ namespace PITTS
 
     //! the actual data...
     std::unique_ptr<Chunk<T>[]> data_ = nullptr;
+
+    //! helper function to calculate desired padded length (in #chunks) to avoid cache thrashing (strides of 2^n)
+    static constexpr auto padded(long long n) noexcept
+    {
+      // pad to next number divisible by PD/2 but not by PD
+      constexpr auto PD = 8;
+      if( n < 2*PD )
+        return n;
+      return n + (PD + PD/2 - n % PD) % PD;
+    }
   };
 
 
