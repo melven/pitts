@@ -500,11 +500,13 @@ namespace PITTS
 
     // get the number of OpenMP threads
     int nMaxThreads = omp_get_max_threads();
+    // reduce #threads if there is not enough work to do...
+    int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
     std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nMaxThreads*m]);
     std::unique_ptr<Chunk<T>[]> presultBuff(new Chunk<T>[mChunks*m]);
 
-#pragma omp parallel
+#pragma omp parallel num_threads(nDesiredThreads)
     {
       const auto& [iThread,nThreads] = internal::parallel::ompThreadInfo();
 
