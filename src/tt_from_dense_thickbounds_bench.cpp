@@ -27,12 +27,13 @@ int main(int argc, char* argv[])
   // compress shape, s.t. first and last dimensions are bigger than max_r
   // first dimension is distributed over MPI processes
   std::vector<int> shape(d,n);
-  while( shape.size() > 2 && shape.front() < 1.2*max_r*nProcs )
+  const double nMin = std::max<double>(1.2*max_r, 10.);
+  while( shape.size() > 2 && shape.front() < nMin*nProcs )
   {
     shape[1] *= shape[0];
     shape.erase(shape.begin());
   }
-  while( shape.size() > 2 && shape.back() < 1.2*max_r )
+  while( shape.size() > 2 && shape.back() < nMin )
   {
     n = shape.size();
     shape[n-2] *= shape[n-1];
