@@ -1,0 +1,201 @@
+Warning: Sanitizing vector length to a multiple of the loop stride 32 and thread count 14 from 125000000 elements (1000000000 bytes) to 124999616 elements (999996928 bytes)
+Running without Marker API. Activate Marker API with -m on commandline.
+Allocate: Process running on core 0 (Domain S0) - Vector length 124999616/999996928 Offset 0 Alignment 512
+Initialization: First thread in domain initializes the whole stream
+--------------------------------------------------------------------------------
+LIKWID MICRO BENCHMARK
+Test: load_avx512
+--------------------------------------------------------------------------------
+Using 1 work groups
+Using 14 threads
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Group: 0 Thread 6 Global Thread 6 running on core 6 - Vector length 8928544 Offset 53571264
+Group: 0 Thread 7 Global Thread 7 running on core 7 - Vector length 8928544 Offset 62499808
+Group: 0 Thread 8 Global Thread 8 running on core 8 - Vector length 8928544 Offset 71428352
+Group: 0 Thread 9 Global Thread 9 running on core 9 - Vector length 8928544 Offset 80356896
+Group: 0 Thread 10 Global Thread 10 running on core 10 - Vector length 8928544 Offset 89285440
+Group: 0 Thread 11 Global Thread 11 running on core 11 - Vector length 8928544 Offset 98213984
+Group: 0 Thread 12 Global Thread 12 running on core 12 - Vector length 8928544 Offset 107142528
+Group: 0 Thread 0 Global Thread 0 running on core 0 - Vector length 8928544 Offset 0
+Group: 0 Thread 13 Global Thread 13 running on core 13 - Vector length 8928544 Offset 116071072
+Group: 0 Thread 5 Global Thread 5 running on core 5 - Vector length 8928544 Offset 44642720
+Group: 0 Thread 3 Global Thread 3 running on core 3 - Vector length 8928544 Offset 26785632
+Group: 0 Thread 4 Global Thread 4 running on core 4 - Vector length 8928544 Offset 35714176
+Group: 0 Thread 2 Global Thread 2 running on core 2 - Vector length 8928544 Offset 17857088
+Group: 0 Thread 1 Global Thread 1 running on core 1 - Vector length 8928544 Offset 8928544
+--------------------------------------------------------------------------------
+Cycles:			57319109450
+CPU Clock:		2593726401
+Cycle Clock:		2593726401
+Time:			2.209913e+01 sec
+Iterations:		28672
+Iterations per thread:	2048
+Inner loop executions:	279017
+Size (Byte):		999996928
+Size per thread:	71428352
+Number of Flops:	0
+MFlops/s:		0.00
+Data volume (Byte):	2047993708544
+MByte/s:		92673.03
+Cycles per update:	0.223903
+Cycles per cacheline:	1.791228
+Loads per update:	1
+Stores per update:	0
+Load bytes per element:	8
+Store bytes per elem.:	0
+Instructions:		55999827984
+UOPs:			47999852544
+--------------------------------------------------------------------------------
+Warning: Sanitizing vector length to a multiple of the loop stride 32 and thread count 14 from 62500000 elements (500000000 bytes) to 62499584 elements (499996672 bytes)
+Running without Marker API. Activate Marker API with -m on commandline.
+Allocate: Process running on core 0 (Domain S0) - Vector length 62499584/499996672 Offset 0 Alignment 512
+Allocate: Process running on core 0 (Domain S0) - Vector length 62499584/499996672 Offset 0 Alignment 512
+Initialization: First thread in domain initializes the whole stream
+--------------------------------------------------------------------------------
+LIKWID MICRO BENCHMARK
+Test: copy_mem_avx512
+--------------------------------------------------------------------------------
+Using 1 work groups
+Using 14 threads
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Group: 0 Thread 6 Global Thread 6 running on core 6 - Vector length 4464256 Offset 26785536
+Group: 0 Thread 7 Global Thread 7 running on core 7 - Vector length 4464256 Offset 31249792
+Group: 0 Thread 9 Global Thread 9 running on core 9 - Vector length 4464256 Offset 40178304
+Group: 0 Thread 8 Global Thread 8 running on core 8 - Vector length 4464256 Offset 35714048
+Group: 0 Thread 10 Global Thread 10 running on core 10 - Vector length 4464256 Offset 44642560
+Group: 0 Thread 11 Global Thread 11 running on core 11 - Vector length 4464256 Offset 49106816
+Group: 0 Thread 12 Global Thread 12 running on core 12 - Vector length 4464256 Offset 53571072
+Group: 0 Thread 13 Global Thread 13 running on core 13 - Vector length 4464256 Offset 58035328
+Group: 0 Thread 0 Global Thread 0 running on core 0 - Vector length 4464256 Offset 0
+Group: 0 Thread 4 Global Thread 4 running on core 4 - Vector length 4464256 Offset 17857024
+Group: 0 Thread 5 Global Thread 5 running on core 5 - Vector length 4464256 Offset 22321280
+Group: 0 Thread 3 Global Thread 3 running on core 3 - Vector length 4464256 Offset 13392768
+Group: 0 Thread 2 Global Thread 2 running on core 2 - Vector length 4464256 Offset 8928512
+Group: 0 Thread 1 Global Thread 1 running on core 1 - Vector length 4464256 Offset 4464256
+--------------------------------------------------------------------------------
+Cycles:			75859695568
+CPU Clock:		2593733177
+Cycle Clock:		2593733177
+Time:			2.924730e+01 sec
+Iterations:		28672
+Iterations per thread:	2048
+Inner loop executions:	139508
+Size (Byte):		999993344
+Size per thread:	71428096
+Number of Flops:	0
+MFlops/s:		0.00
+Data volume (Byte):	2047986368512
+MByte/s:		70023.09
+Cycles per update:	0.592658
+Cycles per cacheline:	4.741263
+Loads per update:	1
+Stores per update:	1
+Load bytes per element:	8
+Store bytes per elem.:	8
+Load/store ratio:	1.00
+Instructions:		43999707152
+UOPs:			55999627264
+--------------------------------------------------------------------------------
+Warning: Sanitizing vector length to a multiple of the loop stride 32 and thread count 14 from 41666666 elements (333333328 bytes) to 41666240 elements (333329920 bytes)
+Running without Marker API. Activate Marker API with -m on commandline.
+Allocate: Process running on core 0 (Domain S0) - Vector length 41666240/333329920 Offset 0 Alignment 512
+Allocate: Process running on core 0 (Domain S0) - Vector length 41666240/333329920 Offset 0 Alignment 512
+Allocate: Process running on core 0 (Domain S0) - Vector length 41666240/333329920 Offset 0 Alignment 512
+Initialization: First thread in domain initializes the whole stream
+--------------------------------------------------------------------------------
+LIKWID MICRO BENCHMARK
+Test: stream_mem_avx512
+--------------------------------------------------------------------------------
+Using 1 work groups
+Using 14 threads
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Group: 0 Thread 6 Global Thread 6 running on core 6 - Vector length 2976160 Offset 17856960
+Group: 0 Thread 7 Global Thread 7 running on core 7 - Vector length 2976160 Offset 20833120
+Group: 0 Thread 8 Global Thread 8 running on core 8 - Vector length 2976160 Offset 23809280
+Group: 0 Thread 10 Global Thread 10 running on core 10 - Vector length 2976160 Offset 29761600
+Group: 0 Thread 12 Global Thread 12 running on core 12 - Vector length 2976160 Offset 35713920
+Group: 0 Thread 13 Global Thread 13 running on core 13 - Vector length 2976160 Offset 38690080
+Group: 0 Thread 9 Global Thread 9 running on core 9 - Vector length 2976160 Offset 26785440
+Group: 0 Thread 11 Global Thread 11 running on core 11 - Vector length 2976160 Offset 32737760
+Group: 0 Thread 0 Global Thread 0 running on core 0 - Vector length 2976160 Offset 0
+Group: 0 Thread 5 Global Thread 5 running on core 5 - Vector length 2976160 Offset 14880800
+Group: 0 Thread 4 Global Thread 4 running on core 4 - Vector length 2976160 Offset 11904640
+Group: 0 Thread 3 Global Thread 3 running on core 3 - Vector length 2976160 Offset 8928480
+Group: 0 Thread 2 Global Thread 2 running on core 2 - Vector length 2976160 Offset 5952320
+Group: 0 Thread 1 Global Thread 1 running on core 1 - Vector length 2976160 Offset 2976160
+--------------------------------------------------------------------------------
+Cycles:			72321027640
+CPU Clock:		2593740965
+Cycle Clock:		2593740965
+Time:			2.788290e+01 sec
+Iterations:		28672
+Iterations per thread:	2048
+Inner loop executions:	93005
+Size (Byte):		999989760
+Size per thread:	71427840
+Number of Flops:	170664919040
+MFlops/s:		6120.77
+Data volume (Byte):	2047979028480
+MByte/s:		73449.28
+Cycles per update:	0.847521
+Cycles per cacheline:	6.780166
+Loads per update:	2
+Stores per update:	1
+Load bytes per element:	16
+Store bytes per elem.:	8
+Load/store ratio:	2.00
+Instructions:		50666147857
+UOPs:			69332623360
+--------------------------------------------------------------------------------
+Warning: Sanitizing vector length to a multiple of the loop stride 32 and thread count 14 from 125000000 elements (1000000000 bytes) to 124999616 elements (999996928 bytes)
+Running without Marker API. Activate Marker API with -m on commandline.
+Allocate: Process running on core 0 (Domain S0) - Vector length 124999616/999996928 Offset 0 Alignment 512
+Initialization: First thread in domain initializes the whole stream
+--------------------------------------------------------------------------------
+LIKWID MICRO BENCHMARK
+Test: store_mem_avx512
+--------------------------------------------------------------------------------
+Using 1 work groups
+Using 14 threads
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Group: 0 Thread 6 Global Thread 6 running on core 6 - Vector length 8928544 Offset 53571264
+Group: 0 Thread 7 Global Thread 7 running on core 7 - Vector length 8928544 Offset 62499808
+Group: 0 Thread 9 Global Thread 9 running on core 9 - Vector length 8928544 Offset 80356896
+Group: 0 Thread 8 Global Thread 8 running on core 8 - Vector length 8928544 Offset 71428352
+Group: 0 Thread 11 Global Thread 11 running on core 11 - Vector length 8928544 Offset 98213984
+Group: 0 Thread 10 Global Thread 10 running on core 10 - Vector length 8928544 Offset 89285440
+Group: 0 Thread 13 Global Thread 13 running on core 13 - Vector length 8928544 Offset 116071072
+Group: 0 Thread 0 Global Thread 0 running on core 0 - Vector length 8928544 Offset 0
+Group: 0 Thread 5 Global Thread 5 running on core 5 - Vector length 8928544 Offset 44642720
+Group: 0 Thread 12 Global Thread 12 running on core 12 - Vector length 8928544 Offset 107142528
+Group: 0 Thread 4 Global Thread 4 running on core 4 - Vector length 8928544 Offset 35714176
+Group: 0 Thread 3 Global Thread 3 running on core 3 - Vector length 8928544 Offset 26785632
+Group: 0 Thread 1 Global Thread 1 running on core 1 - Vector length 8928544 Offset 8928544
+Group: 0 Thread 2 Global Thread 2 running on core 2 - Vector length 8928544 Offset 17857088
+--------------------------------------------------------------------------------
+Cycles:			59099606690
+CPU Clock:		2593739783
+Cycle Clock:		2593739783
+Time:			2.278548e+01 sec
+Iterations:		14336
+Iterations per thread:	1024
+Inner loop executions:	279017
+Size (Byte):		999996928
+Size per thread:	71428352
+Number of Flops:	0
+MFlops/s:		0.00
+Data volume (Byte):	1023996854272
+MByte/s:		44940.76
+Cycles per update:	0.461717
+Cycles per cacheline:	3.693737
+Loads per update:	0
+Stores per update:	1
+Load bytes per element:	0
+Store bytes per elem.:	8
+Instructions:		27999914004
+UOPs:			39999877120
+--------------------------------------------------------------------------------
