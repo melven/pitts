@@ -65,12 +65,15 @@ def read_data(file_template, n_samples, n_features, padWithZero=False):
 
 
 @timer
-def copy_to_multivector(X, dims):
+def copy_to_multivector(X, dims, batchSize=1):
 
     n_total = np.prod(dims)
     Xm = pitts_py.MultiVector_float(n_total//dims[-1], dims[-1])
     work = pitts_py.MultiVector_float()
     Xm_view = np.array(Xm, copy=False)
+    # move dimension of batch samples to the right
+    X = X.reshape((X.shape[0]//batchSize, batchSize, *X.shape[1:]), order='C')
+    X = np.moveaxis(X, 1, -1)
     Xm_view[...] = X.reshape(Xm_view.shape, order='F')
 
     return Xm
@@ -89,7 +92,7 @@ def tensortrain_to_dict(Xtt):
 
 @timer
 def calculate_TT_SVD(Xm, work, dims):
-    Xtt = pitts_py.fromDense(Xm, work, dims, rankTolerance=0.002, maxRank=1000, mpiGlobal=True)
+    Xtt = pitts_py.fromDense(Xm, work, dims, rankTolerance=0.004, maxRank=1000, mpiGlobal=True)
     return Xtt
 
 
@@ -99,7 +102,7 @@ if __name__ == '__main__':
     from mpi4py import MPI
 
     X = read_data(file_template='/scratch/zoel_ml/ATEK_COPY/combustion{:06d}.jpg',
-                  n_samples=2**16,
+                  n_samples=2**15,
                   n_features=(192,1024,3),
                   padWithZero=True)
 
@@ -110,8 +113,8 @@ if __name__ == '__main__':
         raise 'nProcs must be a power of 2'
     log2_nProcs = round(np.log2(nProcs))
 
-    dims=[2,]*(16-log2_nProcs) + [2,]*6 + [3,] + [2,]*6 + [2*2*2*2] + [3,]
-    Xm = copy_to_multivector(X, dims)
+    dims=[2,]*(11-log2_nProcs) + [2,]*6 + [3,] + [2,]*10 + [3,] + [16,]
+    Xm = copy_to_multivector(X, dims, batchSize=1)
     del X
 
     work = pitts_py.MultiVector_float()

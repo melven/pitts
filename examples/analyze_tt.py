@@ -28,7 +28,7 @@ def multi_index(idx, sample_dims):
 
 
 def eval_sample(Xtt, idx, sample_dims, feature_dims):
-    ii = multi_index(idx, sample_dims)
+    ii = multi_index(idx//batchSize, sample_dims)
     tmp = np.ones(1, dtype=np.float32)
     d_samples = len(ii)
     d_features = len(Xtt.dimensions()) - d_samples
@@ -54,17 +54,18 @@ if __name__ == '__main__':
 
     pitts_py.initialize(True)
 
+    batchSize=1
     nProcs = 8
-    d_samples_global = 16
+    d_samples_global = 15
     log2_nProcs = round(np.log2(nProcs))
     d_samples_local = d_samples_global - log2_nProcs
     feature_dims = [192,1024,3]
 
     iLastFile = None
-    for iFrame in range(50000, 50011):
+    for iFrame in range(32000, 32011):
 
-        iFile = iFrame // 2**d_samples_local
-        ilocal = iFrame - iFile*2**d_samples_local
+        iFile = iFrame // (2**d_samples_local*batchSize)
+        ilocal = iFrame - iFile*2**d_samples_local*batchSize
 
         if iLastFile != iFile:
             tt_dict = np.load('Xtt%d.npz'%iFile, allow_pickle=True)
@@ -72,10 +73,15 @@ if __name__ == '__main__':
             iLastFile = iFile
 
         sample_dims = [2,]*d_samples_local
-        feature_dims = [192,1024,3]
 
-        sample_tt = eval_sample(Xtt, ilocal, sample_dims, feature_dims)
+        print('iFile', iFile)
+        print('ilocal//batchSize', ilocal//batchSize)
+        sample_tt = eval_sample(Xtt, ilocal//batchSize, sample_dims, feature_dims+[batchSize,])
         sample = pitts_py.toDense(sample_tt)
+        print('sample.shape', sample.shape)
+        sample = sample[...,ilocal%batchSize]
+        print('sample.shape', sample.shape)
+        sample = sample[...,ilocal%batchSize]
         sample = sample.reshape(feature_dims, order='F')
         print('min', sample.min(), 'max', sample.max())
         sample = np.maximum(sample, 0)
