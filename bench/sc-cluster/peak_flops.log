@@ -1,0 +1,49 @@
+Warning: Sanitizing vector length to a multiple of the loop stride 8 and thread count 14 from 26250 elements (210000 bytes) to 26208 elements (209664 bytes)
+Running without Marker API. Activate Marker API with -m on commandline.
+Allocate: Process running on core 0 (Domain S0) - Vector length 26208/209664 Offset 0 Alignment 512
+Initialization: First thread in domain initializes the whole stream
+--------------------------------------------------------------------------------
+LIKWID MICRO BENCHMARK
+Test: peakflops_avx512_fma
+--------------------------------------------------------------------------------
+Using 1 work groups
+Using 14 threads
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Group: 0 Thread 6 Global Thread 6 running on core 6 - Vector length 1872 Offset 11232
+Group: 0 Thread 7 Global Thread 7 running on core 7 - Vector length 1872 Offset 13104
+Group: 0 Thread 8 Global Thread 8 running on core 8 - Vector length 1872 Offset 14976
+Group: 0 Thread 10 Global Thread 10 running on core 10 - Vector length 1872 Offset 18720
+Group: 0 Thread 12 Global Thread 12 running on core 12 - Vector length 1872 Offset 22464
+Group: 0 Thread 9 Global Thread 9 running on core 9 - Vector length 1872 Offset 16848
+Group: 0 Thread 11 Global Thread 11 running on core 11 - Vector length 1872 Offset 20592
+Group: 0 Thread 13 Global Thread 13 running on core 13 - Vector length 1872 Offset 24336
+Group: 0 Thread 0 Global Thread 0 running on core 0 - Vector length 1872 Offset 0
+Group: 0 Thread 5 Global Thread 5 running on core 5 - Vector length 1872 Offset 9360
+Group: 0 Thread 3 Global Thread 3 running on core 3 - Vector length 1872 Offset 5616
+Group: 0 Thread 4 Global Thread 4 running on core 4 - Vector length 1872 Offset 7488
+Group: 0 Thread 2 Global Thread 2 running on core 2 - Vector length 1872 Offset 3744
+Group: 0 Thread 1 Global Thread 1 running on core 1 - Vector length 1872 Offset 1872
+--------------------------------------------------------------------------------
+Cycles:			67828320360
+CPU Clock:		2593777118
+Cycle Clock:		2593777118
+Time:			2.615040e+01 sec
+Iterations:		469762048
+Iterations per thread:	33554432
+Inner loop executions:	234
+Size (Byte):		209664
+Size per thread:	14976
+Number of Flops:	26381836615680
+MFlops/s:		1008850.05
+Data volume (Byte):	7035156430848
+MByte/s:		269026.68
+Cycles per update:	0.077131
+Cycles per cacheline:	0.617046
+Loads per update:	1
+Stores per update:	0
+Load bytes per element:	8
+Store bytes per elem.:	0
+Instructions:		2088562065440
+UOPs:			1978637746176
+--------------------------------------------------------------------------------

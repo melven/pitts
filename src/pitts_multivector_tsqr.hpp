@@ -470,9 +470,36 @@ namespace PITTS
   }
 
 
+  //! Calculate R from a QR decomposition of a multivector M
+  //!
+  //! MPI+OpenMP parallel TSQR implementation that calculates ony R. Q is built implicitly but never stored to reduce memory transfers.
+  //! It is based on Householder reflections, robust and rank-preserving (just returns rank-deficient R if M does not have full rank).
+  //!
+  //! @tparam T underlying data type
+  //!
+  //! @param M                input matrix, possibly distributed over multiple MPI processes
+  //! @param R                output matrix R of a QR decomposition of M (with the same singular values and right-singular vectors as M)
+  //! @param reductionFactor  (performance-tuning factor) defines the #chunks of the work-array in the TSQR reduction;
+  //!                         set to zero to let this function choose a suitable value automatically
+  //! @param mpiGlobal        perform a reduction of R over all MPI processes? (if false, each MPI process does its individual QR decomposition)
+  //!
   template<typename T>
-  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 20, bool mpiGlobal = true)
+  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 0, bool mpiGlobal = true)
   {
+    // automatically choose suitable reduction factor
+    if( reductionFactor == 0 )
+    {
+      // cache size per core (usually L2, L1 is already too small)
+      constexpr int cacheSize = 1*1024*1024;
+      // max. reductionFactor (for small number of columns)
+      // we could deduce this from L1 cache size but larger values don't seem to improve the performance...
+      constexpr int maxReductionFactor = 37;
+
+      // choose the reduction factor such that 1.5 blocks of (reductionFactor x M.cols()) fit into the cache
+      reductionFactor = std::min(maxReductionFactor, int(cacheSize / (1.5 * M.cols() * Chunk<T>::size * sizeof(T))) );
+      reductionFactor = std::max(1, reductionFactor);
+    }
+
     // calculate dimensions and block sizes
     const long long n = M.rows();
     const int m = M.cols();

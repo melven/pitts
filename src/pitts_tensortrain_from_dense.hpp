@@ -80,7 +80,7 @@ namespace PITTS
       if( root )
         std::cout << "iDim: " << iDim << ", matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
       // calculate QR decomposition
-      block_TSQR(X, tmpR, 20, mpiGlobal);
+      block_TSQR(X, tmpR, 0, mpiGlobal);
 //std::cout << "tmpR:\n" << ConstEigenMap(tmpR) << "\n";
 
       // calculate SVD of R
