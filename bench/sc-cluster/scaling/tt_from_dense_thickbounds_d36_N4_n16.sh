@@ -11,5 +11,5 @@
 export OMP_NUM_THREADS=14
 
 for ((i=1; i <= 50; i++)); do
-  srun -N 4 -n 16 --threads-per-core=1 --cpu-bind=core,verbose ../../../build/src/tt_from_dense_thickbounds_bench 2 35 $i 10
+  srun -N 4 -n 16 --threads-per-core=1 --cpu-bind=core,verbose ../../../build/src/tt_from_dense_thickbounds_bench 2 36 $i 10
 done
