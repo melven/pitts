@@ -1,0 +1,600 @@
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140373186918272 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140373178521600 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140373170124928 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140373087217920 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140373078821248 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140373070424576 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140373062027904 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140373053631232 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140373045234560 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140372790389760 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140372781993088 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140372773596416 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140372765199744 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 0.30013878195313737
+random wtime: 3.1400995794683695e-05
+random wtime: 0.15125822799745947
+gemm_numpy wtime: 1.5100299169425853
+gemm_numpy wtime: 0.5741184399812482
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139648535840640 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139648527443968 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139648445704320 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139648437307648 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139648428910976 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139648420514304 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139648412117632 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139648403720960 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139648395324288 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139647899311104 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139647890914432 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139647882517760 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139647874121088 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 0.49213400500593707
+random wtime: 4.551897291094065e-05
+random wtime: 0.22294337005587295
+gemm_numpy wtime: 1.8415263200295158
+gemm_numpy wtime: 0.8886196229723282
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140109452945280 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140109444548608 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140109436151936 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140109427755264 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140109349382528 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140109340985856 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140109332589184 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140109324192512 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140109315795840 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140109307399168 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140109299002496 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140109290605824 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140109282209152 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 0.8109427380259149
+random wtime: 4.370900569483638e-05
+random wtime: 0.35103402100503445
+gemm_numpy wtime: 2.246620122983586
+gemm_numpy wtime: 1.3000381830497645
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139798019958656 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139798011561984 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139798003165312 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139797994768640 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139797986371968 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139797977975296 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139797628709504 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139797620312832 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139797611916160 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139797603519488 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139797595122816 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139797586726144 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139797578329472 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 1.3113970499834977
+random wtime: 4.502199590206146e-05
+random wtime: 0.49248928000451997
+gemm_numpy wtime: 2.7247398950275965
+gemm_numpy wtime: 1.738415818021167
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139662812080000 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139662803683328 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139662795286656 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139662786889984 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139662778493312 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139662770096640 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139662761699968 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139662753303296 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139662270131072 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139662261734400 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139662253337728 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139662244941056 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139662236544384 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 1.6695607189903967
+random wtime: 4.70600207336247e-05
+random wtime: 0.6443479619920254
+gemm_numpy wtime: 3.17527936398983
+gemm_numpy wtime: 2.163292935001664
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139929713354624 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139929631844352 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139929623447680 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139929615051008 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139929606654336 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139929598257664 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139929589860992 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139929581464320 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139929363409792 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139929355013120 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139929346616448 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139929338219776 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139929329823104 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 1.9473364330478944
+random wtime: 4.6478991862386465e-05
+random wtime: 0.8101707629975863
+gemm_numpy wtime: 3.6186692569754086
+gemm_numpy wtime: 2.6199028019909747
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139677647378304 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139677570951168 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139677562554496 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139677554157824 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139677545761152 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139677537364480 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139677528967808 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139677520571136 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139677168298880 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139677159902208 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139677151505536 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139677143108864 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139677134712192 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 2.3436133509967476
+random wtime: 5.212402902543545e-05
+random wtime: 0.9903580179670826
+gemm_numpy wtime: 4.0418235959950835
+gemm_numpy wtime: 3.0402704289881513
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140010156025728 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140010147629056 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140010139232384 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140010130835712 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140010122439040 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140010114042368 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140010105645696 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140009625611008 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140009617214336 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140009608817664 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140009600420992 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140009592024320 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140009583627648 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 3.059190018044319
+random wtime: 4.203699063509703e-05
+random wtime: 1.1813952659722418
+gemm_numpy wtime: 4.4892337410128675
+gemm_numpy wtime: 3.4716368400258943
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139759180134272 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139759171737600 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139759163340928 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139759154944256 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139759146547584 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139759138150912 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139759129754240 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139759121357568 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139758638459776 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139758630063104 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139758621666432 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139758613269760 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139758604873088 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 3.25394199002767
+random wtime: 4.228594480082393e-05
+random wtime: 1.359762692998629
+gemm_numpy wtime: 4.931505120999645
+gemm_numpy wtime: 3.906400987005327
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139944342853504 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139944261576704 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139944253180032 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139944244783360 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139944236386688 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139944227990016 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139944219593344 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139944211196672 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139943724706688 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139943716310016 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139943707913344 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139943699516672 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139943691120000 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 3.7017509780125692
+random wtime: 5.166296614333987e-05
+random wtime: 1.5488609800231643
+gemm_numpy wtime: 5.403911366011016
+gemm_numpy wtime: 4.372793940012343
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140643372398464 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140643364001792 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140643355605120 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140643347208448 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140643133286784 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140643124890112 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140643116493440 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140643108096768 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140643099700096 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140643091303424 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140643082906752 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140642529307904 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140642520911232 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 4.133313480007928
+random wtime: 5.526002496480942e-05
+random wtime: 1.7431456559570506
+gemm_numpy wtime: 5.839678927033674
+gemm_numpy wtime: 4.815717176999897
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140519561316224 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140519552919552 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140519544522880 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140519536126208 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140519527729536 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140519183215104 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140519174818432 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140519166421760 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140519158025088 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140519149628416 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140519141231744 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140519132835072 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140518646345088 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 4.489660972030833
+random wtime: 4.869699478149414e-05
+random wtime: 1.9483530559809878
+gemm_numpy wtime: 6.245249702013098
+gemm_numpy wtime: 5.2189705619821325
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140037349566336 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140037341169664 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140037332772992 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140037324376320 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140037315979648 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140037307582976 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140037299186304 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140037290789632 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140036804701056 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140036796304384 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140036787907712 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140036779511040 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140036771114368 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 4.979220118955709
+random wtime: 4.815595457330346e-05
+random wtime: 2.135972489020787
+gemm_numpy wtime: 8.90513979701791
+gemm_numpy wtime: 7.801750387996435
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140551413110656 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140551404713984 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140551328360576 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140551319963904 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140551311567232 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140551303170560 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140551294773888 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140551286377216 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140551277980544 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140550724381696 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140550715985024 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140550707588352 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140550699191680 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 5.407656876021065
+random wtime: 5.0242000725120306e-05
+random wtime: 2.3423035540035926
+gemm_numpy wtime: 9.421931652992498
+gemm_numpy wtime: 8.39304205897497
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140560671225728 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140560589383680 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140560580987008 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140560572590336 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140560564193664 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140560555796992 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140560547400320 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140560539003648 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140560052513664 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140560044116992 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140560035720320 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140560027323648 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140560018926976 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 5.680816615989897
+random wtime: 5.1018025260418653e-05
+random wtime: 2.5349149329704233
+gemm_numpy wtime: 9.619773871032521
+gemm_numpy wtime: 8.57464428798994
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139963265791872 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139963186276352 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139963177879680 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139963169483008 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139963161086336 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139963152689664 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139963144292992 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139963135896320 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139962649406336 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139962641009664 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139962632612992 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139962624216320 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139962615819648 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 6.394129669992253
+random wtime: 5.040201358497143e-05
+random wtime: 2.927685798960738
+gemm_numpy wtime: 9.879772519983817
+gemm_numpy wtime: 8.83610602596309
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140221208119168 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140221199722496 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140221191325824 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140221182929152 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140221174532480 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140221166135808 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140220817205888 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140220808809216 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140220800412544 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140220792015872 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140220783619200 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140220775222528 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140220766825856 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 6.472888285003137
+random wtime: 5.138898268342018e-05
+random wtime: 2.9290929019916803
+gemm_numpy wtime: 10.610917850048281
+gemm_numpy wtime: 9.56234417000087
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140385189980032 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140385181583360 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140385099704448 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140385091307776 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140385082911104 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140385074514432 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140385066117760 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140385057721088 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140385049324416 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140384495725568 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140384487328896 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140384478932224 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140384470535552 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 6.86075572198024
+random wtime: 5.284795770421624e-05
+random wtime: 3.1443756539956667
+gemm_numpy wtime: 10.585882497020066
+gemm_numpy wtime: 9.520207623019814
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139742532437888 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139742524041216 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139742515644544 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139742507247872 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139742498851200 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139742490454528 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139742482057856 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139742473661184 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139741995461504 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139741987064832 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139741978668160 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139741970271488 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139741961874816 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 7.288671899004839
+random wtime: 5.6396995205432177e-05
+random wtime: 3.3680227490258403
+gemm_numpy wtime: 11.410702212015167
+gemm_numpy wtime: 10.369746722979471
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140224455718784 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140224373975040 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140224365578368 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140224357181696 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140224348785024 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140224340388352 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140224331991680 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140224323595008 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140223837105024 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140223828708352 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140223820311680 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140223811915008 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140223803518336 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 7.829658779955935
+random wtime: 5.38729946129024e-05
+random wtime: 3.57298841298325
+gemm_numpy wtime: 11.90912288299296
+gemm_numpy wtime: 10.815234890033025
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140580983056256 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140580974659584 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140580966262912 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140580957866240 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140580949469568 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140580941072896 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140580932676224 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140580453608192 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140580445211520 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140580436814848 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140580428418176 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140580420021504 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140580411624832 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 8.22879337600898
+random wtime: 5.499494727700949e-05
+random wtime: 3.8014981389860623
+gemm_numpy wtime: 13.541903779958375
+gemm_numpy wtime: 12.496270776027814
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139783228409728 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139783220013056 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139783211616384 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139782998976768 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139782990580096 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139782982183424 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139782973786752 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139782965390080 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139782956993408 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139782948596736 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139782462106752 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139782453710080 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139782445313408 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 8.408550009015016
+random wtime: 5.7908997405320406e-05
+random wtime: 4.015850206022151
+gemm_numpy wtime: 13.356984851008747
+gemm_numpy wtime: 12.268672959995456
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139737027102592 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139737018705920 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139737010309248 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139737001912576 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139736993515904 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139736985119232 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139736976722560 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139736492534528 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139736484137856 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139736475741184 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139736467344512 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139736458947840 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139736450551168 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 8.72477315098513
+random wtime: 5.95920137129724e-05
+random wtime: 4.223979319038335
+gemm_numpy wtime: 14.34502147702733
+gemm_numpy wtime: 13.258445081999525
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139792614676352 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139792606279680 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139792528435328 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139792520038656 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139792511641984 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139792503245312 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139792494848640 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139792486451968 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139792478055296 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139791924456448 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139791916059776 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139791907663104 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139791899266432 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 9.463390275021084
+random wtime: 5.983200389891863e-05
+random wtime: 4.48578633699799
+gemm_numpy wtime: 14.445821970002726
+gemm_numpy wtime: 13.365369090985041
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140180439508864 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140180431112192 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140180350560384 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140180342163712 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140180333767040 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140180325370368 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140180316973696 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140180308577024 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140180300180352 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140179746581504 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140179738184832 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140179729788160 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140179721391488 -> core 13 - OK[0m[1;34m
+[0mrandom wtime: 9.278316776966676
+random wtime: 6.172398570924997e-05
+random wtime: 4.625607980007771
+gemm_numpy wtime: 15.707590544014238
+gemm_numpy wtime: 14.62742897804128
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
