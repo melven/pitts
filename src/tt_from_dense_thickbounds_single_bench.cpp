@@ -13,27 +13,30 @@ int main(int argc, char* argv[])
 {
   PITTS::initialize(&argc, &argv);
 
-  if( argc != 5 )
-    throw std::invalid_argument("Requires 4 arguments (n d max_r nIter)!");
+  if( argc != 5 && argc != 6 )
+    throw std::invalid_argument("Requires 4 or 5 arguments (n d max_r nIter [f_bound])!");
 
   std::size_t n = 0, d = 0, max_r = 0, nIter = 0;
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], d);
   std::from_chars(argv[3], argv[4], max_r);
   std::from_chars(argv[4], argv[5], nIter);
+  std::size_t f_bound = 2;
+  if( argc == 6 )
+    std::from_chars(argv[5], argv[6], f_bound);
 
   const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
 
   // compress shape, s.t. first and last dimensions are bigger than max_r
   // first dimension is distributed over MPI processes
   std::vector<int> shape(d,n);
-  const double nMin = std::max<double>(1.2*max_r, 10.);
-  while( shape.size() > 2 && shape.front() < nMin*nProcs )
+  const double nMin = std::max<double>(f_bound*max_r, 10.);
+  while( shape.size() > 2 && shape.front() <= nMin*nProcs )
   {
     shape[1] *= shape[0];
     shape.erase(shape.begin());
   }
-  while( shape.size() > 2 && shape.back() < nMin )
+  while( shape.size() > 2 && shape.back() <= nMin )
   {
     n = shape.size();
     shape[n-2] *= shape[n-1];
