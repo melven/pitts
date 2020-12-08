@@ -23,7 +23,7 @@ def qr_numpy(X, nIter=1):
 
 @timer
 def random(shape):
-    return np.random.rand(*shape).astype(dtype=np.float64, order='F')
+    return np.random.rand(*shape).astype(dtype=np.float64, order='C')
 
 
 def main():
