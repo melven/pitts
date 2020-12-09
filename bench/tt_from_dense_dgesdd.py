@@ -2,7 +2,6 @@ import functools
 import timeit
 import argparse
 import numpy as np
-from scipy import linalg
 
 
 def timer(func):
@@ -19,19 +18,19 @@ def timer(func):
 @timer
 def tt_from_dense(X, n, d, max_r, nIter=1):
     for i in range(nIter):
-        tt_cores = tt_svd_scipy(X, n, d, max_r)
+        tt_cores = tt_svd_numpy(X, n, d, max_r)
     return tt_cores
 
 @timer
 def random(shape):
     return np.random.rand(*shape).astype(dtype=np.float64, order='F')
 
-def tt_svd_scipy(X, n, d, max_r, threshold=1.e-8):
+def tt_svd_numpy(X, n, d, max_r, threshold=1.e-8):
     cores = list()
     rank = 1
     for i in range(d-1):
         X = X.reshape((X.size//(rank*n), rank*n), order='F')
-        U, S, Vt = linalg.svd(X, full_matrices=False)
+        U, S, Vt = np.linalg.svd(X, full_matrices=False)
         print('S', S)
         new_rank = 1 + np.max(np.where(S / S[0] > threshold))
         new_rank = min(new_rank, max_r)
@@ -53,6 +52,7 @@ def main():
     args = parser.parse_args()
 
     X = random((args.n**args.d,))
+    tt_from_dense(X, args.n, args.d, max_r=args.max_r, nIter=args.nIter)
     tt_from_dense(X, args.n, args.d, max_r=args.max_r, nIter=args.nIter)
 
 
