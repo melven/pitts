@@ -42,6 +42,7 @@ def main():
 
     X = random(dims)
     tt_from_dense(X, max_r=args.max_r, nIter=args.nIter)
+    tt_from_dense(X, max_r=args.max_r, nIter=args.nIter)
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@
 #SBATCH -c 14
 #SBATCH -t 600
 #SBATCH --exclusive
+#SBATCH --output="%x-%j.out"
 
 # module load miniconda2
 # conda init bash
