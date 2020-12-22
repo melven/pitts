@@ -1,0 +1,1674 @@
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139781624760192 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139781616363520 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139781607966848 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139781599570176 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139781388364160 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139781379967488 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139781371570816 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139781363174144 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139781354777472 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139781346380800 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139781337984128 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139780784385280 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139780775988608 -> core 13 - OK[0m[1;34m
+[0m  FAILED   9.34e-14     1.9743     0.0152            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.7892     0.0380            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.8351     0.0359            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.8472     0.0354            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.7800     0.0385            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.7919     0.0379            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.8388     0.0358            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.7920     0.0379            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.7821     0.0384            f  10000000       1   256    64     0
+  FAILED   9.34e-14     0.7926     0.0378            f  10000000       1   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140034605471616 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140034522998784 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140034514602112 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140034506205440 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140034497808768 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140034489412096 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140034481015424 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140034472618752 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140033986128768 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140033977732096 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140033969335424 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140033960938752 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140033952542080 -> core 13 - OK[0m[1;34m
+[0m  FAILED   3.83e-14     1.9626     0.0510            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.8561     0.1168            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7862     0.1272            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.8555     0.1169            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7843     0.1275            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7955     0.1257            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7867     0.1271            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7968     0.1255            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7859     0.1272            f  10000000       2   256    64     0
+  FAILED   3.83e-14     0.7959     0.1256            f  10000000       2   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140404286846848 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140404278450176 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140404270053504 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140404261656832 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140404253260160 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140404244863488 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140404236466816 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140403755969280 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140403747572608 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140403739175936 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140403730779264 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140403722382592 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140403713985920 -> core 13 - OK[0m[1;34m
+[0m  FAILED   2.04e-14     2.0994     0.1000            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8763     0.2396            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8082     0.2599            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8193     0.2563            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8099     0.2593            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8175     0.2569            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8151     0.2576            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8183     0.2566            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8098     0.2593            f  10000000       3   256    64     0
+  FAILED   2.04e-14     0.8190     0.2564            f  10000000       3   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140508097099648 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140508088702976 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140508080306304 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140508071909632 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140508063512960 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140508055116288 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140507707599488 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140507699202816 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140507690806144 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140507682409472 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140507674012800 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140507665616128 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140507657219456 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.81e-14     2.0336     0.1770            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8898     0.4046            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8786     0.4097            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8303     0.4336            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8243     0.4367            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8325     0.4324            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8243     0.4367            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8286     0.4345            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8222     0.4379            f  10000000       4   256    64     0
+  FAILED   1.81e-14     0.8853     0.4066            f  10000000       4   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139932070041472 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139932061644800 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139931980654720 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139931972258048 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139931963861376 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139931955464704 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139931947068032 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139931938671360 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139931930274688 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139931376675840 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139931368279168 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139931359882496 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139931351485824 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.68e-14     2.1242     0.2589            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.9232     0.5957            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.9133     0.6022            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.8611     0.6387            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.8594     0.6400            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.8644     0.6363            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.9131     0.6024            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.9208     0.5973            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.8565     0.6421            f  10000000       5   256    64     0
+  FAILED   1.68e-14     0.8626     0.6376            f  10000000       5   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140335152568192 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140335144171520 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140335135774848 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140335127378176 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140335118981504 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140334768056832 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140334759660160 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140334751263488 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140334742866816 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140334734470144 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140334726073472 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140334717676800 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140334231186816 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.61e-14     2.1991     0.3547            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.9392     0.8305            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.9291     0.8395            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.9294     0.8392            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.9205     0.8474            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.8809     0.8854            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.8719     0.8946            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.9102     0.8569            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.9056     0.8613            f  10000000       6   256    64     0
+  FAILED   1.61e-14     0.8779     0.8884            f  10000000       6   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140443722708864 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140443714312192 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140443705915520 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140443697518848 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140443484416384 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140443476019712 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140443467623040 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140443459226368 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140443450829696 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140443442433024 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140443434036352 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140442880437504 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140442872040832 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.37e-14     2.2928     0.4580            f  10000000       7   256    64     0
+  FAILED   1.37e-14     1.0261     1.0233            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9627     1.0907            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9671     1.0857            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9048     1.1605            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9130     1.1501            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9045     1.1609            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9686     1.0840            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9047     1.1606            f  10000000       7   256    64     0
+  FAILED   1.37e-14     0.9683     1.0844            f  10000000       7   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140516464461696 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140516456065024 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140516447668352 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140516230424832 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140516222028160 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140516213631488 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140516205234816 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140516196838144 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140516188441472 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140516180044800 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140515693554816 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140515685158144 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140515676761472 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.44e-14     2.4491     0.5553            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9852     1.3804            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9746     1.3955            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9276     1.4661            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9767     1.3924            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9245     1.4711            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9153     1.4858            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9234     1.4729            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9796     1.3883            f  10000000       8   256    64     0
+  FAILED   1.44e-14     0.9234     1.4729            f  10000000       8   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139826972047232 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139826888173568 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139826879776896 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139826871380224 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139826862983552 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139826854586880 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139826846190208 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139826837793536 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139826351303552 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139826342906880 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139826334510208 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139826326113536 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139826317716864 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.22e-14     2.5773     0.6635            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0695     1.5989            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0583     1.6158            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0702     1.5978            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0179     1.6799            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0209     1.6750            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0501     1.6284            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0197     1.6770            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0201     1.6763            f  10000000       9   256    64     0
+  FAILED   1.22e-14     1.0129     1.6883            f  10000000       9   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139942909618048 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139942901221376 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139942892824704 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139942884428032 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139942876031360 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139942867634688 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139942516746880 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139942508350208 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139942499953536 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139942491556864 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139942483160192 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139942474763520 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139942466366848 -> core 13 - OK[0m[1;34m
+[0m  FAILED   1.13e-14     2.7034     0.7768            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1917     1.7622            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1249     1.8668            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1418     1.8392            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1241     1.8681            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1359     1.8488            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1229     1.8701            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1604     1.8097            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1194     1.8760            f  10000000      10   256    64     0
+  FAILED   1.13e-14     1.1842     1.7734            f  10000000      10   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140023878518656 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140023870121984 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140023861725312 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140023651363072 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140023642966400 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140023634569728 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140023626173056 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140023617776384 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140023609379712 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140023600983040 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140023114493056 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140023106096384 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140023097699712 -> core 13 - OK[0m[1;34m
+[0m  FAILED   8.90e-15     2.8502     0.8877            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.3459     1.8798            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2887     1.9633            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2549     2.0161            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2421     2.0370            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.3041     1.9400            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2430     2.0355            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2530     2.0191            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2423     2.0365            f  10000000      11   256    64     0
+  FAILED   8.90e-15     1.2525     2.0199            f  10000000      11   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139844534118272 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139844525721600 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139844517324928 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139844508928256 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139844500531584 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139844492134912 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139844483738240 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139844000934656 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139843992537984 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139843984141312 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139843975744640 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139843967347968 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139843958951296 -> core 13 - OK[0m[1;34m
+[0m  FAILED   8.28e-15     2.9998     1.0001            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.4112     2.1259            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.3543     2.2152            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.3768     2.1789            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.3579     2.2093            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.3705     2.1890            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.4033     2.1378            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.3873     2.1624            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.3550     2.2140            f  10000000      12   256    64     0
+  FAILED   8.28e-15     1.4242     2.1064            f  10000000      12   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140363685115776 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140363676719104 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140363668322432 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140363659925760 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140363651529088 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140363643132416 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140363634735744 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140363155106560 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140363146709888 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140363138313216 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140363129916544 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140363121519872 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140363113123200 -> core 13 - OK[0m[1;34m
+[0m  FAILED   7.16e-15     3.1957     1.0984            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.5400     2.2792            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.5317     2.2916            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.5054     2.3316            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.4761     2.3779            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.5469     2.2691            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.5132     2.3196            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.4951     2.3476            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.4761     2.3779            f  10000000      13   256    64     0
+  FAILED   7.16e-15     1.5328     2.2899            f  10000000      13   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140617775048576 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140617699026944 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140617690630272 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140617682233600 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140617673836928 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140617665440256 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140617657043584 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140617648646912 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140617162156928 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140617153760256 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140617145363584 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140617136966912 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140617128570240 -> core 13 - OK[0m[1;34m
+[0m  FAILED   6.57e-15     3.3517     1.2113            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6849     2.4096            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6178     2.5096            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6871     2.4064            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6133     2.5165            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6781     2.4194            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6578     2.4490            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6241     2.4998            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6595     2.4465            f  10000000      14   256    64     0
+  FAILED   6.57e-15     1.6274     2.4948            f  10000000      14   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140296208443264 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140296200046592 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140296191649920 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140295979133184 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140295970736512 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140295962339840 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140295953943168 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140295945546496 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140295937149824 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140295928753152 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140295442263168 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140295433866496 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140295425469824 -> core 13 - OK[0m[1;34m
+[0m  FAILED   6.61e-15     3.5791     1.2992            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.9439     2.3921            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8244     2.5488            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8879     2.4631            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8026     2.5797            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8753     2.4796            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8104     2.5685            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8674     2.4900            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8369     2.5314            f  10000000      15   256    64     0
+  FAILED   6.61e-15     1.8231     2.5506            f  10000000      15   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140417669875584 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140417661478912 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140417580394624 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140417571997952 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140417563601280 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140417555204608 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140417546807936 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140417538411264 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140417530014592 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140416976415744 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140416968019072 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140416959622400 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140416951225728 -> core 13 - OK[0m[1;34m
+[0m  FAILED   6.07e-15     3.8322     1.3778            f  10000000      16   256    64     0
+  FAILED   6.07e-15     1.9841     2.6611            f  10000000      16   256    64     0
+  FAILED   6.07e-15     2.0002     2.6397            f  10000000      16   256    64     0
+  FAILED   6.07e-15     1.9767     2.6711            f  10000000      16   256    64     0
+  FAILED   6.07e-15     1.9590     2.6953            f  10000000      16   256    64     0
+  FAILED   6.07e-15     1.9709     2.6789            f  10000000      16   256    64     0
+  FAILED   6.07e-15     2.0070     2.6308            f  10000000      16   256    64     0
+  FAILED   6.07e-15     1.9710     2.6788            f  10000000      16   256    64     0
+  FAILED   6.07e-15     2.0061     2.6320            f  10000000      16   256    64     0
+  FAILED   6.07e-15     1.9711     2.6787            f  10000000      16   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140403390642048 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140403382245376 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140403373848704 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140403365452032 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140403151989120 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140403143592448 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140403135195776 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140403126799104 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140403118402432 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140403110005760 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140403101609088 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140402548010240 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140402539613568 -> core 13 - OK[0m[1;34m
+[0m  FAILED   5.76e-15     4.1789     1.4238            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.4429     2.4356            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3106     2.5750            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3667     2.5141            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3222     2.5622            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3022     2.5845            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3423     2.5402            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3234     2.5609            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.2832     2.6060            f  10000000      17   256    64     0
+  FAILED   5.76e-15     2.3607     2.5205            f  10000000      17   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139926871943040 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139926863546368 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139926855149696 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139926846753024 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139926838356352 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139926829959680 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139926477728384 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139926469331712 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139926460935040 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139926452538368 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139926444141696 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139926435745024 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139926427348352 -> core 13 - OK[0m[1;34m
+[0m  FAILED   5.60e-15     4.5370     1.4679            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.5852     2.5762            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.5310     2.6314            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.5366     2.6256            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.5226     2.6402            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.4958     2.6685            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.4748     2.6911            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.5394     2.6227            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.4672     2.6995            f  10000000      18   256    64     0
+  FAILED   5.60e-15     2.5095     2.6539            f  10000000      18   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 10
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140579497604992 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140579489208320 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140579480811648 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140579472414976 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140579464018304 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140579455621632 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140579111430784 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140579103034112 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140579094637440 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140579086240768 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140579077844096 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140579069447424 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140579061050752 -> core 13 - OK[0m[1;34m
+[0m    pass   5.51e-15     4.7510     1.5597            f  10000000      19   256    64     0
+    pass   5.51e-15     2.7295     2.7148            f  10000000      19   256    64     0
+    pass   5.51e-15     2.6647     2.7808            f  10000000      19   256    64     0
+    pass   5.51e-15     2.6822     2.7627            f  10000000      19   256    64     0
+    pass   5.51e-15     2.6689     2.7764            f  10000000      19   256    64     0
+    pass   5.51e-15     2.6814     2.7634            f  10000000      19   256    64     0
+    pass   5.51e-15     2.6958     2.7487            f  10000000      19   256    64     0
+    pass   5.51e-15     2.6866     2.7581            f  10000000      19   256    64     0
+    pass   5.51e-15     2.7137     2.7306            f  10000000      19   256    64     0
+    pass   5.51e-15     2.7012     2.7433            f  10000000      19   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140025124321152 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140025115924480 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140025107527808 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140025099131136 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140025090734464 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140025082337792 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140025073941120 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140024590887680 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140024582491008 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140024574094336 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140024565697664 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140024557300992 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140024548904320 -> core 13 - OK[0m[1;34m
+[0m    pass   5.26e-15     4.9745     1.6484            f  10000000      20   256    64     0
+    pass   5.26e-15     3.0054     2.7285            f  10000000      20   256    64     0
+    pass   5.26e-15     2.9119     2.8161            f  10000000      20   256    64     0
+    pass   5.26e-15     2.9613     2.7691            f  10000000      20   256    64     0
+    pass   5.26e-15     2.9524     2.7774            f  10000000      20   256    64     0
+    pass   5.26e-15     2.8860     2.8413            f  10000000      20   256    64     0
+    pass   5.26e-15     2.9112     2.8167            f  10000000      20   256    64     0
+    pass   5.26e-15     2.8818     2.8455            f  10000000      20   256    64     0
+    pass   5.26e-15     2.8479     2.8793            f  10000000      20   256    64     0
+    pass   5.26e-15     2.8901     2.8373            f  10000000      20   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140115106965376 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140115098568704 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140115090172032 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140115081775360 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140115073378688 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140115064982016 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140114718091904 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140114709695232 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140114701298560 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140114692901888 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140114684505216 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140114676108544 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140114667711872 -> core 13 - OK[0m[1;34m
+[0m    pass   5.22e-15     5.2178     1.7306            f  10000000      21   256    64     0
+    pass   5.22e-15     3.1477     2.8687            f  10000000      21   256    64     0
+    pass   5.22e-15     3.1597     2.8578            f  10000000      21   256    64     0
+    pass   5.22e-15     3.0759     2.9357            f  10000000      21   256    64     0
+    pass   5.22e-15     3.0614     2.9496            f  10000000      21   256    64     0
+    pass   5.22e-15     3.0685     2.9429            f  10000000      21   256    64     0
+    pass   5.22e-15     3.0673     2.9439            f  10000000      21   256    64     0
+    pass   5.22e-15     3.1161     2.8978            f  10000000      21   256    64     0
+    pass   5.22e-15     3.0571     2.9538            f  10000000      21   256    64     0
+    pass   5.22e-15     3.1170     2.8970            f  10000000      21   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139948684720000 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139948676323328 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139948667926656 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139948659529984 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139948651133312 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139948642736640 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139948634339968 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139948153891584 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139948145494912 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139948137098240 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139948128701568 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139948120304896 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139948111908224 -> core 13 - OK[0m[1;34m
+[0m    pass   5.09e-15     5.4561     1.8145            f  10000000      22   256    64     0
+    pass   5.09e-15     3.3193     2.9826            f  10000000      22   256    64     0
+    pass   5.09e-15     3.3040     2.9963            f  10000000      22   256    64     0
+    pass   5.09e-15     3.3713     2.9365            f  10000000      22   256    64     0
+    pass   5.09e-15     3.2667     3.0305            f  10000000      22   256    64     0
+    pass   5.09e-15     3.2839     3.0147            f  10000000      22   256    64     0
+    pass   5.09e-15     3.3132     2.9880            f  10000000      22   256    64     0
+    pass   5.09e-15     3.3221     2.9801            f  10000000      22   256    64     0
+    pass   5.09e-15     3.2691     3.0283            f  10000000      22   256    64     0
+    pass   5.09e-15     3.3203     2.9817            f  10000000      22   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139811322410880 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139811314014208 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139811305617536 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139811297220864 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139811288824192 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139811280427520 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139811272030848 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139811263634176 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139810782047104 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139810773650432 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139810765253760 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139810756857088 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139810748460416 -> core 13 - OK[0m[1;34m
+[0m    pass   4.93e-15     6.1031     1.7712            f  10000000      23   256    64     0
+    pass   4.93e-15     3.5938     3.0080            f  10000000      23   256    64     0
+    pass   4.93e-15     3.4591     3.1251            f  10000000      23   256    64     0
+    pass   4.93e-15     3.5672     3.0304            f  10000000      23   256    64     0
+    pass   4.93e-15     3.5558     3.0401            f  10000000      23   256    64     0
+    pass   4.93e-15     3.4721     3.1134            f  10000000      23   256    64     0
+    pass   4.93e-15     3.4609     3.1234            f  10000000      23   256    64     0
+    pass   4.93e-15     3.4810     3.1054            f  10000000      23   256    64     0
+    pass   4.93e-15     3.4978     3.0905            f  10000000      23   256    64     0
+    pass   4.93e-15     3.5238     3.0677            f  10000000      23   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140508216412032 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140508208015360 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140508199618688 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140508191222016 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140507976034688 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140507967638016 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140507959241344 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140507950844672 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140507942448000 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140507934051328 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140507925654656 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140507372055808 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140507363659136 -> core 13 - OK[0m[1;34m
+[0m    pass   4.98e-15     5.9458     1.9779            f  10000000      24   256    64     0
+    pass   4.98e-15     3.7795     3.1115            f  10000000      24   256    64     0
+    pass   4.98e-15     3.6807     3.1950            f  10000000      24   256    64     0
+    pass   4.98e-15     3.7406     3.1439            f  10000000      24   256    64     0
+    pass   4.98e-15     3.6839     3.1922            f  10000000      24   256    64     0
+    pass   4.98e-15     3.7331     3.1502            f  10000000      24   256    64     0
+    pass   4.98e-15     3.7301     3.1527            f  10000000      24   256    64     0
+    pass   4.98e-15     3.6961     3.1817            f  10000000      24   256    64     0
+    pass   4.98e-15     3.6820     3.1939            f  10000000      24   256    64     0
+    pass   4.98e-15     3.7368     3.1471            f  10000000      24   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140139453302656 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140139444905984 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140139436509312 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140139428112640 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140139212827008 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140139204430336 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140139196033664 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140139187636992 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140139179240320 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140139170843648 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140139162446976 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140138608848128 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140138600451456 -> core 13 - OK[0m[1;34m
+[0m    pass   4.76e-15     6.2480     2.0406            f  10000000      25   256    64     0
+    pass   4.76e-15     4.1044     3.1064            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0598     3.1405            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0144     3.1761            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0130     3.1772            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0245     3.1681            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0495     3.1486            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0530     3.1458            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0381     3.1575            f  10000000      25   256    64     0
+    pass   4.76e-15     4.0246     3.1681            f  10000000      25   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140147489388416 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140147480991744 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140147400108160 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140147391711488 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140147383314816 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140147374918144 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140147366521472 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140147358124800 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140147349728128 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140146796129280 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140146787732608 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140146779335936 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140146770939264 -> core 13 - OK[0m[1;34m
+[0m    pass   4.64e-15     7.1362     1.9310            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2729     3.2250            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2513     3.2414            f  10000000      26   256    64     0
+    pass   4.64e-15     4.3067     3.1997            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2953     3.2082            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2243     3.2621            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2569     3.2371            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2556     3.2381            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2133     3.2706            f  10000000      26   256    64     0
+    pass   4.64e-15     4.2194     3.2658            f  10000000      26   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140307353782144 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140307345385472 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140307336988800 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140307119204608 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140307110807936 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140307102411264 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140307094014592 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140307085617920 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140307077221248 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140307068824576 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140306582334592 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140306573937920 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140306565541248 -> core 13 - OK[0m[1;34m
+[0m    pass   4.39e-15     7.1881     2.0659            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4702     3.3220            f  10000000      27   256    64     0
+    pass   4.39e-15     4.5614     3.2556            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4309     3.3515            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4642     3.3265            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4407     3.3441            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4615     3.3285            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4813     3.3138            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4588     3.3305            f  10000000      27   256    64     0
+    pass   4.39e-15     4.4685     3.3233            f  10000000      27   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139912437757824 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139912429361152 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139912420964480 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139912412567808 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139912404171136 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139912395774464 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139912049322624 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139912040925952 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139912032529280 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139912024132608 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139912015735936 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139912007339264 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139911998942592 -> core 13 - OK[0m[1;34m
+[0m    pass   4.32e-15     7.0621     2.2600            f  10000000      28   256    64     0
+    pass   4.32e-15     4.7250     3.3778            f  10000000      28   256    64     0
+    pass   4.32e-15     4.5922     3.4754            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6052     3.4657            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6244     3.4513            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6323     3.4454            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6350     3.4434            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6829     3.4081            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6076     3.4638            f  10000000      28   256    64     0
+    pass   4.32e-15     4.6367     3.4421            f  10000000      28   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140263517824896 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140263509428224 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140263431334016 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140263422937344 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140263414540672 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140263406144000 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140263397747328 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140263389350656 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140263380953984 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140262827355136 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140262818958464 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140262810561792 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140262802165120 -> core 13 - OK[0m[1;34m
+[0m    pass   4.31e-15     7.3827     2.3176            f  10000000      29   256    64     0
+    pass   4.31e-15     4.9616     3.4484            f  10000000      29   256    64     0
+    pass   4.31e-15     4.9119     3.4834            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8456     3.5310            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8413     3.5342            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8467     3.5302            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8526     3.5259            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8839     3.5033            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8735     3.5109            f  10000000      29   256    64     0
+    pass   4.31e-15     4.8446     3.5318            f  10000000      29   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140282798589824 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140282790193152 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140282781796480 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140282773399808 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140282557360512 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140282548963840 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140282540567168 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140282532170496 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140282523773824 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140282515377152 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140282506980480 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140281953381632 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140281944984960 -> core 13 - OK[0m[1;34m
+[0m    pass   4.15e-15     7.6556     2.3904            f  10000000      30   256    64     0
+    pass   4.15e-15     5.1570     3.5486            f  10000000      30   256    64     0
+    pass   4.15e-15     5.0626     3.6147            f  10000000      30   256    64     0
+    pass   4.15e-15     5.1159     3.5770            f  10000000      30   256    64     0
+    pass   4.15e-15     5.0641     3.6137            f  10000000      30   256    64     0
+    pass   4.15e-15     5.1060     3.5840            f  10000000      30   256    64     0
+    pass   4.15e-15     5.0964     3.5908            f  10000000      30   256    64     0
+    pass   4.15e-15     5.1027     3.5863            f  10000000      30   256    64     0
+    pass   4.15e-15     5.0668     3.6118            f  10000000      30   256    64     0
+    pass   4.15e-15     5.1041     3.5854            f  10000000      30   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140647109085056 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140647025600512 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140647017203840 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140647008807168 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140647000410496 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140646992013824 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140646983617152 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140646975220480 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140646488730496 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140646480333824 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140646471937152 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140646463540480 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140646455143808 -> core 13 - OK[0m[1;34m
+[0m    pass   4.22e-15     7.8650     2.4832            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3612     3.6428            f  10000000      31   256    64     0
+    pass   4.22e-15     5.4034     3.6144            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3810     3.6294            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3708     3.6363            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3301     3.6641            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3215     3.6700            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3355     3.6604            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3282     3.6654            f  10000000      31   256    64     0
+    pass   4.22e-15     5.3213     3.6701            f  10000000      31   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139790718678912 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139790710282240 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139790701885568 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139790693488896 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139790685092224 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139790676695552 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139790668298880 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139790659902208 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139790179625856 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139790171229184 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139790162832512 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139790154435840 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139790146039168 -> core 13 - OK[0m[1;34m
+[0m    pass   4.14e-15     8.8179     2.3588            f  10000000      32   256    64     0
+    pass   4.14e-15     5.6883     3.6566            f  10000000      32   256    64     0
+    pass   4.14e-15     5.6450     3.6847            f  10000000      32   256    64     0
+    pass   4.14e-15     5.6745     3.6655            f  10000000      32   256    64     0
+    pass   4.14e-15     5.6143     3.7048            f  10000000      32   256    64     0
+    pass   4.14e-15     5.5870     3.7230            f  10000000      32   256    64     0
+    pass   4.14e-15     5.5839     3.7250            f  10000000      32   256    64     0
+    pass   4.14e-15     5.5815     3.7266            f  10000000      32   256    64     0
+    pass   4.14e-15     5.5801     3.7275            f  10000000      32   256    64     0
+    pass   4.14e-15     5.5694     3.7347            f  10000000      32   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139984293885824 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139984285489152 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139984277092480 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139984268695808 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139984057133440 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139984048736768 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139984040340096 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139984031943424 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139984023546752 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139984015150080 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139984006753408 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139983453154560 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139983444757888 -> core 13 - OK[0m[1;34m
+[0m    pass   4.06e-15     8.5414     2.5886            f  10000000      33   256    64     0
+    pass   4.06e-15     5.9587     3.7105            f  10000000      33   256    64     0
+    pass   4.06e-15     5.8989     3.7481            f  10000000      33   256    64     0
+    pass   4.06e-15     5.9074     3.7428            f  10000000      33   256    64     0
+    pass   4.06e-15     5.8725     3.7650            f  10000000      33   256    64     0
+    pass   4.06e-15     5.8771     3.7621            f  10000000      33   256    64     0
+    pass   4.06e-15     5.8757     3.7630            f  10000000      33   256    64     0
+    pass   4.06e-15     5.9079     3.7425            f  10000000      33   256    64     0
+    pass   4.06e-15     5.8947     3.7508            f  10000000      33   256    64     0
+    pass   4.06e-15     5.8749     3.7635            f  10000000      33   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140512220473216 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140512136783872 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140512128387200 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140512119990528 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140512111593856 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140512103197184 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140512094800512 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140512086403840 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140511599913856 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140511591517184 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140511583120512 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140511574723840 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140511566327168 -> core 13 - OK[0m[1;34m
+[0mINFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 139
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140548011865984 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140548003469312 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140547995072640 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140547986675968 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140547771591040 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140547763194368 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140547754797696 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140547746401024 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140547738004352 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140547729607680 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140547721211008 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140547167612160 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140547159215488 -> core 13 - OK[0m[1;34m
+[0m    pass   3.99e-15     9.0997     2.7308            f  10000000      35   256    64     0
+    pass   3.99e-15     6.3997     3.8830            f  10000000      35   256    64     0
+    pass   3.99e-15     6.5062     3.8194            f  10000000      35   256    64     0
+    pass   3.99e-15     6.4066     3.8788            f  10000000      35   256    64     0
+    pass   3.99e-15     6.3680     3.9023            f  10000000      35   256    64     0
+    pass   3.99e-15     6.4054     3.8795            f  10000000      35   256    64     0
+    pass   3.99e-15     6.4076     3.8782            f  10000000      35   256    64     0
+    pass   3.99e-15     6.3748     3.8982            f  10000000      35   256    64     0
+    pass   3.99e-15     6.3928     3.8872            f  10000000      35   256    64     0
+    pass   3.99e-15     6.3790     3.8956            f  10000000      35   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140097300285312 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140097291888640 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140097283491968 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140097068460288 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140097060063616 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140097051666944 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140097043270272 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140097034873600 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140097026476928 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140097018080256 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140096531590272 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140096523193600 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140096514796928 -> core 13 - OK[0m[1;34m
+[0m    pass   3.86e-15     9.5262     2.7587            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6912     3.9275            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6895     3.9285            f  10000000      36   256    64     0
+    pass   3.86e-15     6.7594     3.8879            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6808     3.9337            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6280     3.9650            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6525     3.9504            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6293     3.9642            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6121     3.9745            f  10000000      36   256    64     0
+    pass   3.86e-15     6.6283     3.9648            f  10000000      36   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140100320139136 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140100311742464 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140100303345792 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140100088359168 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140100079962496 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140100071565824 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140100063169152 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140100054772480 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140100046375808 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140100037979136 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140099551489152 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140099543092480 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140099534695808 -> core 13 - OK[0m[1;34m
+[0mINFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 139
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139673259898752 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139673251502080 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139673243105408 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139673234708736 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139673226312064 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139673217915392 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139672873331328 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139672864934656 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139672856537984 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139672848141312 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139672839744640 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139672831347968 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139672822951296 -> core 13 - OK[0m[1;34m
+[0m    pass   3.68e-15    10.9132     2.6811            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2232     4.0508            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2705     4.0245            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2883     4.0147            f  10000000      38   256    64     0
+    pass   3.68e-15     7.1921     4.0683            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2022     4.0626            f  10000000      38   256    64     0
+    pass   3.68e-15     7.1891     4.0701            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2334     4.0451            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2015     4.0630            f  10000000      38   256    64     0
+    pass   3.68e-15     7.2008     4.0634            f  10000000      38   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140501518026624 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140501509629952 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140501501233280 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140501492836608 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140501484439936 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140501476043264 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140501130930816 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140501122534144 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140501114137472 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140501105740800 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140501097344128 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140501088947456 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140501080550784 -> core 13 - OK[0m[1;34m
+[0m    pass   3.55e-15    10.3843     2.9670            f  10000000      39   256    64     0
+    pass   3.55e-15     7.5290     4.0922            f  10000000      39   256    64     0
+    pass   3.55e-15     7.5257     4.0940            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4931     4.1118            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4406     4.1408            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4467     4.1374            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4386     4.1419            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4481     4.1366            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4387     4.1418            f  10000000      39   256    64     0
+    pass   3.55e-15     7.4540     4.1333            f  10000000      39   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139698228582272 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139698220185600 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139698211788928 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139698203392256 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139698194995584 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139698186598912 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139697837828736 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139697829432064 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139697821035392 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139697812638720 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139697804242048 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139697795845376 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139697787448704 -> core 13 - OK[0m[1;34m
+[0m    pass   3.57e-15    10.7634     3.0102            f  10000000      40   256    64     0
+    pass   3.57e-15     7.8679     4.1180            f  10000000      40   256    64     0
+    pass   3.57e-15     7.8671     4.1184            f  10000000      40   256    64     0
+    pass   3.57e-15     7.7835     4.1626            f  10000000      40   256    64     0
+    pass   3.57e-15     7.7741     4.1677            f  10000000      40   256    64     0
+    pass   3.57e-15     7.7928     4.1577            f  10000000      40   256    64     0
+    pass   3.57e-15     7.7870     4.1608            f  10000000      40   256    64     0
+    pass   3.57e-15     7.7728     4.1684            f  10000000      40   256    64     0
+    pass   3.57e-15     7.8601     4.1221            f  10000000      40   256    64     0
+    pass   3.57e-15     7.7762     4.1666            f  10000000      40   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140194158757760 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140194150361088 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140194141964416 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140194133567744 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140194125171072 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140194116774400 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140193772333696 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140193763937024 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140193755540352 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140193747143680 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140193738747008 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140193730350336 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140193721953664 -> core 13 - OK[0m[1;34m
+[0m    pass   3.53e-15    11.1975     3.0391            f  10000000      41   256    64     0
+    pass   3.53e-15     8.1432     4.1789            f  10000000      41   256    64     0
+    pass   3.53e-15     8.2048     4.1475            f  10000000      41   256    64     0
+    pass   3.53e-15     8.2107     4.1446            f  10000000      41   256    64     0
+    pass   3.53e-15     8.0984     4.2020            f  10000000      41   256    64     0
+    pass   3.53e-15     8.1175     4.1922            f  10000000      41   256    64     0
+    pass   3.53e-15     8.1378     4.1817            f  10000000      41   256    64     0
+    pass   3.53e-15     8.2171     4.1414            f  10000000      41   256    64     0
+    pass   3.53e-15     8.0977     4.2024            f  10000000      41   256    64     0
+    pass   3.53e-15     8.1186     4.1916            f  10000000      41   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140466326087552 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140466317690880 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140466234321024 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140466225924352 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140466217527680 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140466209131008 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140466200734336 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140466192337664 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140466183940992 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140465630342144 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140465621945472 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140465613548800 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140465605152128 -> core 13 - OK[0m[1;34m
+[0m    pass   3.43e-15    11.4868     3.1079            f  10000000      42   256    64     0
+    pass   3.43e-15     8.5215     4.1894            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4889     4.2055            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4845     4.2076            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4144     4.2427            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4200     4.2399            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4138     4.2430            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4365     4.2316            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4024     4.2488            f  10000000      42   256    64     0
+    pass   3.43e-15     8.4802     4.2098            f  10000000      42   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140388178241408 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140388169844736 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140388161448064 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140388153051392 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140388144654720 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140388136258048 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140387784059520 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140387775662848 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140387767266176 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140387758869504 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140387750472832 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140387742076160 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140387733679488 -> core 13 - OK[0m[1;34m
+[0mINFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 139
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139711609329536 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139711528036352 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139711519639680 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139711511243008 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139711502846336 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139711494449664 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139711486052992 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139711477656320 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139710991166336 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139710982769664 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139710974372992 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139710965976320 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139710957579648 -> core 13 - OK[0m[1;34m
+[0m    pass   3.24e-15    12.3111     3.1809            f  10000000      44   256    64     0
+    pass   3.24e-15     9.2259     4.2446            f  10000000      44   256    64     0
+    pass   3.24e-15     9.1929     4.2598            f  10000000      44   256    64     0
+    pass   3.24e-15     9.1532     4.2783            f  10000000      44   256    64     0
+    pass   3.24e-15     9.1116     4.2978            f  10000000      44   256    64     0
+    pass   3.24e-15     9.1211     4.2933            f  10000000      44   256    64     0
+    pass   3.24e-15     9.0884     4.3088            f  10000000      44   256    64     0
+    pass   3.24e-15     9.1976     4.2576            f  10000000      44   256    64     0
+    pass   3.24e-15     9.0859     4.3100            f  10000000      44   256    64     0
+    pass   3.24e-15     9.1142     4.2966            f  10000000      44   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140122308126592 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140122299729920 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140122291333248 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140122282936576 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140122274539904 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140122266143232 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140122257746560 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140122249349888 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140121764522880 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140121756126208 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140121747729536 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140121739332864 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140121730936192 -> core 13 - OK[0m[1;34m
+[0m    pass   3.25e-15    12.6309     3.2421            f  10000000      45   256    64     0
+    pass   3.25e-15     9.5167     4.3030            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4888     4.3156            f  10000000      45   256    64     0
+    pass   3.25e-15     9.5070     4.3074            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4835     4.3180            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4133     4.3502            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4060     4.3536            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4511     4.3328            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4076     4.3528            f  10000000      45   256    64     0
+    pass   3.25e-15     9.4126     4.3506            f  10000000      45   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140480329099136 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140480320702464 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140480312305792 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140480303909120 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140480295512448 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140480287115776 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140480278719104 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140480270322432 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140479790312320 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140479781915648 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140479773518976 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140479765122304 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140479756725632 -> core 13 - OK[0m[1;34m
+[0m    pass   3.27e-15    13.6239     3.1401            f  10000000      46   256    64     0
+    pass   3.27e-15     9.7272     4.3980            f  10000000      46   256    64     0
+    pass   3.27e-15     9.7318     4.3959            f  10000000      46   256    64     0
+    pass   3.27e-15     9.7718     4.3779            f  10000000      46   256    64     0
+    pass   3.27e-15     9.7565     4.3848            f  10000000      46   256    64     0
+    pass   3.27e-15     9.6782     4.4202            f  10000000      46   256    64     0
+    pass   3.27e-15     9.6728     4.4227            f  10000000      46   256    64     0
+    pass   3.27e-15     9.6768     4.4209            f  10000000      46   256    64     0
+    pass   3.27e-15     9.7585     4.3839            f  10000000      46   256    64     0
+    pass   3.27e-15     9.7038     4.4086            f  10000000      46   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140166250092416 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140166241695744 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140166233299072 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140166224902400 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140166216505728 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140166208109056 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140166199712384 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140165720828672 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140165712432000 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140165704035328 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140165695638656 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140165687241984 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140165678845312 -> core 13 - OK[0m[1;34m
+[0m    pass   3.23e-15    13.3312     3.3493            f  10000000      47   256    64     0
+    pass   3.23e-15    10.1191     4.4124            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0886     4.4258            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0945     4.4232            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0754     4.4316            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0034     4.4635            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0186     4.4567            f  10000000      47   256    64     0
+    pass   3.23e-15    10.1187     4.4126            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0869     4.4265            f  10000000      47   256    64     0
+    pass   3.23e-15    10.0290     4.4521            f  10000000      47   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139806733182848 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139806724786176 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139806716389504 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139806707992832 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139806699596160 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139806352861696 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139806344465024 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139806336068352 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139806327671680 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139806319275008 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139806310878336 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139806302481664 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139805815991680 -> core 13 - OK[0m[1;34m
+[0mINFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-cpu02: task 0: Exited with exit code 139
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140473182627712 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140473174231040 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140473165834368 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140473157437696 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140472945207680 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140472936811008 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140472928414336 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140472920017664 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140472911620992 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140472903224320 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140472894827648 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140472341228800 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140472332832128 -> core 13 - OK[0m[1;34m
+[0m    pass   3.08e-15    14.2024     3.4156            f  10000000      49   256    64     0
+    pass   3.08e-15    10.7922     4.4949            f  10000000      49   256    64     0
+    pass   3.08e-15    10.8791     4.4590            f  10000000      49   256    64     0
+    pass   3.08e-15    10.8607     4.4666            f  10000000      49   256    64     0
+    pass   3.08e-15    10.7981     4.4925            f  10000000      49   256    64     0
+    pass   3.08e-15    10.7815     4.4994            f  10000000      49   256    64     0
+    pass   3.08e-15    10.7640     4.5067            f  10000000      49   256    64     0
+    pass   3.08e-15    10.7733     4.5028            f  10000000      49   256    64     0
+    pass   3.08e-15    10.7681     4.5050            f  10000000      49   256    64     0
+    pass   3.08e-15    10.8534     4.4696            f  10000000      49   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+
+  Status      Error       Time    Gflop/s  House. mode       m       n    nb    ib  padA
+
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140417236477824 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140417228081152 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140417219684480 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140417211287808 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140417202891136 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140417194494464 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140416842197632 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140416833800960 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140416825404288 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140416817007616 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140416808610944 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140416800214272 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140416791817600 -> core 13 - OK[0m[1;34m
+[0m    pass   3.11e-15    14.5857     3.4623            f  10000000      50   256    64     0
+    pass   3.11e-15    11.2418     4.4921            f  10000000      50   256    64     0
+    pass   3.11e-15    11.2033     4.5076            f  10000000      50   256    64     0
+    pass   3.11e-15    11.2121     4.5041            f  10000000      50   256    64     0
+    pass   3.11e-15    11.1975     4.5099            f  10000000      50   256    64     0
+    pass   3.11e-15    11.1528     4.5280            f  10000000      50   256    64     0
+    pass   3.11e-15    11.1436     4.5317            f  10000000      50   256    64     0
+    pass   3.11e-15    11.1106     4.5452            f  10000000      50   256    64     0
+    pass   3.11e-15    11.1859     4.5146            f  10000000      50   256    64     0
+    pass   3.11e-15    11.1563     4.5266            f  10000000      50   256    64     0
+
+
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset

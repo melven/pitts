@@ -1,0 +1,400 @@
+2020-12-09 19:38:39.150435: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:38:39.306712: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:38:39.308228: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55649ea59570 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:38:39.308271: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6449003879970405
+tt_from_dense wtime: 12.376049573998898
+tt_from_dense wtime: 11.64215266899555
+2020-12-09 19:39:10.709655: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:39:10.746636: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:39:10.747533: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55d7f0170750 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:39:10.747565: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6926736000168603
+tt_from_dense wtime: 20.0065656999941
+tt_from_dense wtime: 19.915555829997174
+2020-12-09 19:39:58.101965: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:39:58.138621: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:39:58.140043: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5587d84813f0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:39:58.140086: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6993585040036123
+tt_from_dense wtime: 24.673941234999802
+tt_from_dense wtime: 24.42843564299983
+2020-12-09 19:40:54.735173: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:40:54.774486: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:40:54.775832: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55792673b6a0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:40:54.775878: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6724670780240558
+tt_from_dense wtime: 29.987039480009116
+tt_from_dense wtime: 29.825208377995295
+2020-12-09 19:42:01.894984: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:42:01.930679: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:42:01.931562: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x56004039d5f0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:42:01.931581: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.5652061990112998
+tt_from_dense wtime: 32.935270961985225
+tt_from_dense wtime: 32.902932377997786
+2020-12-09 19:43:15.195362: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:43:15.234489: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:43:15.235827: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5577da65a460 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:43:15.235872: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6889323059876915
+tt_from_dense wtime: 36.99978363799164
+tt_from_dense wtime: 36.56203617999563
+2020-12-09 19:44:36.172215: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:44:36.210688: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:44:36.211511: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55e87a9e8710 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:44:36.211532: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6948278979980387
+tt_from_dense wtime: 40.734577998984605
+tt_from_dense wtime: 40.302095663995715
+2020-12-09 19:46:04.661668: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:46:04.698589: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:46:04.699945: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55a61838d450 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:46:04.699999: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.702854927018052
+tt_from_dense wtime: 45.566562671010615
+tt_from_dense wtime: 45.44066797097912
+2020-12-09 19:47:43.048177: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:47:43.086580: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:47:43.088004: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5652f6130910 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:47:43.088047: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6869925830105785
+tt_from_dense wtime: 48.14732817900949
+tt_from_dense wtime: 47.77111252400209
+2020-12-09 19:49:26.478637: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:49:26.514575: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:49:26.516021: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5635d2cfe900 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:49:26.516062: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6629292170109693
+tt_from_dense wtime: 50.46682429499924
+tt_from_dense wtime: 50.02196779800579
+2020-12-09 19:51:14.434487: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:51:14.478551: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:51:14.479398: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x559b744c5720 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:51:14.479425: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.698185123008443
+tt_from_dense wtime: 54.85474901800626
+tt_from_dense wtime: 53.656450153008336
+2020-12-09 19:53:10.202154: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:53:10.238632: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:53:10.239596: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5580ed1f6490 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:53:10.239629: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6308283740072511
+tt_from_dense wtime: 57.97696888301289
+tt_from_dense wtime: 57.23676282301312
+2020-12-09 19:55:12.754114: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:55:12.790673: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:55:12.791479: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x556645397750 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:55:12.791503: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.521626150002703
+tt_from_dense wtime: 61.557350151007995
+tt_from_dense wtime: 61.459670821001055
+2020-12-09 19:57:23.261978: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:57:23.298687: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:57:23.299456: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x56117dbee720 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:57:23.299473: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6975636040151585
+tt_from_dense wtime: 65.4538120450161
+tt_from_dense wtime: 64.32415388300433
+2020-12-09 19:59:40.465902: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 19:59:40.502404: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 19:59:40.503740: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55ae687ea620 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 19:59:40.503781: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6564419079804793
+tt_from_dense wtime: 70.06530480101355
+tt_from_dense wtime: 69.20416013500653
+2020-12-09 20:02:07.294632: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:02:07.330668: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:02:07.331790: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x564d1adcd720 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:02:07.331835: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6894859239982907
+tt_from_dense wtime: 76.17751204100205
+tt_from_dense wtime: 75.22756393702002
+2020-12-09 20:04:46.665697: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:04:46.702586: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:04:46.703977: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x56473cdf37f0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:04:46.704033: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.652377260994399
+tt_from_dense wtime: 76.21895831701113
+tt_from_dense wtime: 76.81741208897438
+2020-12-09 20:07:27.769408: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:07:27.806639: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:07:27.808053: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5567c9c275c0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:07:27.808103: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6839346839988139
+tt_from_dense wtime: 77.18407794000814
+tt_from_dense wtime: 78.5832432419993
+2020-12-09 20:10:11.622168: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:10:11.658612: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:10:11.659981: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x562a3d3cd820 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:10:11.660026: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6838807199965231
+tt_from_dense wtime: 80.59982802800369
+tt_from_dense wtime: 80.06375429799664
+2020-12-09 20:13:00.236258: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:13:00.274477: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:13:00.275802: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55f3dda427d0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:13:00.275844: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6871185959898867
+tt_from_dense wtime: 85.00859298999421
+tt_from_dense wtime: 84.77319778699894
+2020-12-09 20:15:57.924391: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:15:57.962683: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:15:57.963561: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5578064e07c0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:15:57.963592: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6864296649873722
+tt_from_dense wtime: 87.36104022301151
+tt_from_dense wtime: 87.57038867499796
+2020-12-09 20:19:00.862202: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:19:00.898640: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:19:00.899996: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55bba79845f0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:19:00.900040: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6093142979952972
+tt_from_dense wtime: 91.05248536600266
+tt_from_dense wtime: 91.15336294300505
+2020-12-09 20:22:10.534965: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:22:10.574603: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:22:10.575998: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x561ea91ce5e0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:22:10.576041: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6914755030011293
+tt_from_dense wtime: 95.29211832600413
+tt_from_dense wtime: 95.58873888198286
+2020-12-09 20:25:29.417048: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:25:29.462630: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:25:29.464045: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55b86230c750 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:25:29.464090: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.652720872021746
+tt_from_dense wtime: 93.93038476002403
+tt_from_dense wtime: 93.7886731250037
+2020-12-09 20:28:45.277564: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:28:45.314634: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:28:45.316115: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55bd90030710 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:28:45.316168: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6940696040110197
+tt_from_dense wtime: 98.17074099500314
+tt_from_dense wtime: 96.11584973600111
+2020-12-09 20:32:07.461133: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:32:07.498629: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:32:07.500047: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55cbb88c94f0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:32:07.500093: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6904526419821195
+tt_from_dense wtime: 98.63040019400069
+tt_from_dense wtime: 98.839322713
+2020-12-09 20:35:32.903951: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:35:32.942627: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:35:32.944008: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55eb24d45890 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:35:32.944062: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.691215902013937
+tt_from_dense wtime: 100.53369894099887
+tt_from_dense wtime: 100.37737032200675
+2020-12-09 20:39:01.782940: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:39:01.818632: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:39:01.820060: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55eaa8e338a0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:39:01.820105: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6712088589847554
+tt_from_dense wtime: 103.54150886100251
+tt_from_dense wtime: 103.11952596800984
+2020-12-09 20:42:36.470969: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:42:36.506500: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:42:36.507864: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55cd2742e880 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:42:36.507906: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6885770079970825
+tt_from_dense wtime: 107.4687691279978
+tt_from_dense wtime: 105.949132713984
+2020-12-09 20:46:17.916006: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:46:17.954661: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:46:17.955463: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x56088555a750 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:46:17.955495: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.7026854869909585
+tt_from_dense wtime: 109.76627350598574
+tt_from_dense wtime: 109.89003624100587
+2020-12-09 20:50:05.486357: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:50:05.522614: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:50:05.523429: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55de9cd1f700 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:50:05.523451: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.695348428998841
+tt_from_dense wtime: 113.95362428799854
+tt_from_dense wtime: 113.6095734340197
+2020-12-09 20:54:01.137591: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:54:01.174515: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:54:01.175877: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5619c72ba610 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:54:01.175924: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.8041125510062557
+tt_from_dense wtime: 115.40757061098702
+tt_from_dense wtime: 115.52056749799522
+2020-12-09 20:57:59.894755: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 20:57:59.930671: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 20:57:59.931493: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55b6c6bf9720 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 20:57:59.931510: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.691118064976763
+tt_from_dense wtime: 117.4432823920215
+tt_from_dense wtime: 116.89410609198967
+2020-12-09 21:02:02.049482: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:02:02.086543: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:02:02.087957: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5599d3a8c740 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:02:02.087999: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6975787419942208
+tt_from_dense wtime: 117.48493809899082
+tt_from_dense wtime: 119.9187162379967
+2020-12-09 21:06:07.153517: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:06:07.190689: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:06:07.192099: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x556e472c1690 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:06:07.192151: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6279949829913676
+tt_from_dense wtime: 120.2264993780118
+tt_from_dense wtime: 119.60207605399773
+2020-12-09 21:10:14.879495: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:10:14.918637: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:10:14.919969: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x56263d24e440 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:10:14.920014: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.694082714006072
+tt_from_dense wtime: 119.81176041800063
+tt_from_dense wtime: 121.39120774099138
+2020-12-09 21:14:23.608867: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:14:23.646681: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:14:23.647525: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55d0d59e7680 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:14:23.647548: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.7009877839882392
+tt_from_dense wtime: 123.30343979300233
+tt_from_dense wtime: 122.8585049950052
+2020-12-09 21:18:37.804153: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:18:37.842588: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:18:37.843956: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55d697636400 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:18:37.843998: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6722344830050133
+tt_from_dense wtime: 122.27514106800663
+tt_from_dense wtime: 124.88257087999955
+2020-12-09 21:22:52.783473: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:22:52.818590: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:22:52.819658: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55972b99f730 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:22:52.819690: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6865914589725435
+tt_from_dense wtime: 126.03502863098402
+tt_from_dense wtime: 125.6527790830005
+2020-12-09 21:27:12.476953: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:27:12.514637: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:27:12.516068: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55720da53950 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:27:12.516112: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6638588269997854
+tt_from_dense wtime: 130.7209269470186
+tt_from_dense wtime: 129.57120629301062
+2020-12-09 21:31:40.616170: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:31:40.654623: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:31:40.656055: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55679a11c560 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:31:40.656111: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6293989580008201
+tt_from_dense wtime: 132.10974858500413
+tt_from_dense wtime: 132.2080129130045
+2020-12-09 21:36:12.755101: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:36:12.794524: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:36:12.795856: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55829b3c7600 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:36:12.795897: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6971483569941483
+tt_from_dense wtime: 135.4350035180105
+tt_from_dense wtime: 133.36715433199424
+2020-12-09 21:40:49.116783: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:40:49.154641: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:40:49.156099: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x564c2eb8a680 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:40:49.156145: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6945441880088765
+tt_from_dense wtime: 136.08657791500445
+tt_from_dense wtime: 135.25870414898964
+2020-12-09 21:45:28.185875: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:45:28.222714: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:45:28.223639: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55da89f1f650 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:45:28.223662: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.698841838981025
+tt_from_dense wtime: 137.882776309998
+tt_from_dense wtime: 137.00758531899191
+2020-12-09 21:50:10.899994: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:50:10.938625: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:50:10.939966: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5624ae364720 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:50:10.940011: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6890234040038195
+tt_from_dense wtime: 139.7925584820041
+tt_from_dense wtime: 138.50887946799048
+2020-12-09 21:54:56.828330: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:54:56.874680: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:54:56.875521: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x560df2724660 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:54:56.875541: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6749403249996249
+tt_from_dense wtime: 141.39549702397198
+tt_from_dense wtime: 141.3992053999973
+2020-12-09 21:59:47.645142: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 21:59:47.682663: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 21:59:47.683543: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5567888136b0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 21:59:47.683559: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6866856449923944
+tt_from_dense wtime: 143.5259514049976
+tt_from_dense wtime: 144.61944333001156
+2020-12-09 22:04:43.798592: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 22:04:43.834696: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 22:04:43.835623: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x560fe6fea5e0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 22:04:43.835654: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6850357750081457
+tt_from_dense wtime: 144.81573270101217
+tt_from_dense wtime: 142.682841707021
+2020-12-09 22:09:39.164122: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 22:09:39.202500: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 22:09:39.203793: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55d54e2f15d0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 22:09:39.203847: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.630923504999373
+tt_from_dense wtime: 148.3220890450175
+tt_from_dense wtime: 147.18355256400537
+2020-12-09 22:14:42.636747: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-12-09 22:14:42.674576: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2600000000 Hz
+2020-12-09 22:14:42.675907: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x557bfb7f7490 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-12-09 22:14:42.675952: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+random wtime: 1.6923019349924289
+tt_from_dense wtime: 148.6336766940076
+tt_from_dense wtime: 152.05166065698722

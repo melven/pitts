@@ -37,6 +37,7 @@ def main():
 
     X = random([args.n, args.m])
     qr_numpy(X, nIter=args.nIter)
+    qr_numpy(X, nIter=args.nIter)
 
 
 if __name__ == '__main__':

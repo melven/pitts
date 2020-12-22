@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
   }
 
   // compress shape, s.t. first and last dimensions are bigger than max_r
-  const double nMin = std::max<double>(1.2*max_r, 10.);
+  const double nMin = std::max<double>(2*max_r, 10.);
   while( shape.size() > 2 && shape.front() < nMin )
   {
     shape[1] *= shape[0];

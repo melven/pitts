@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -c 14
-#SBATCH -t 60
+#SBATCH -t 300
 #SBATCH --exclusive
 
 # module load PrgEnv/gcc10-openmpi-python
