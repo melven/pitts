@@ -16,6 +16,10 @@
 #include <iostream>
 #include "pitts_performance.hpp"
 
+#ifdef PITTS_USE_LIKWID_MARKER_API
+#include <likwid.h>
+#endif
+
 //#include <sched.h>
 
 
@@ -43,7 +47,6 @@ namespace PITTS
     {
       if( omp_get_thread_num() == 0 && verbose )
         std::cout << "PITTS: OpenMP #threads: " << omp_get_num_threads() << "\n";
-//      printf("OpenMP thread %d / %d on core %d\n", omp_get_thread_num(), omp_get_num_threads(), sched_getcpu());
     }
 
     if( MPI_Initialized(&common::mpiInitializedBefore) != 0 )
@@ -60,6 +63,14 @@ namespace PITTS
       throw std::runtime_error("MPI error");
     if( iProc == 0 && verbose )
       std::cout << "PITTS: MPI #procs: " << nProcs << "\n";
+
+#ifdef PITTS_USE_LIKWID_MARKER_API
+    LIKWID_MARKER_INIT;
+#pragma omp parallel
+    {
+      LIKWID_MARKER_THREADINIT;
+    }
+#endif
   }
 
 
@@ -69,6 +80,10 @@ namespace PITTS
   //!
   void finalize(bool verbose = true)
   {
+#ifdef PITTS_USE_LIKWID_MARKER_API
+    LIKWID_MARKER_CLOSE;
+#endif
+
     if( verbose )
       PITTS::performance::printStatistics();
 

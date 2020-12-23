@@ -22,6 +22,10 @@
 #include <vector>
 #include <string>
 
+#ifdef PITTS_USE_LIKWID_MARKER_API
+#include <likwid.h>
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -127,6 +131,37 @@ namespace PITTS
     }
 
 
+#ifdef PITTS_USE_LIKWID_MARKER_API
+    //! helper class for likwid regions...
+    class ScopedLikwidRegion final
+    {
+      public:
+        //! start the likwid region
+        explicit ScopedLikwidRegion(const char* name) :
+          name_(name)
+        {
+#pragma omp parallel
+          {
+            LIKWID_MARKER_START(name_);
+          }
+        }
+
+        //! stop the likwid region
+        ~ScopedLikwidRegion()
+        {
+#pragma omp parallel
+          {
+            LIKWID_MARKER_STOP(name_);
+          }
+        }
+
+      private:
+        //! region name
+        const char* name_;
+    };
+#endif
+
+
     //! helper type for a timing result with a name
     struct NamedTiming final
     {
@@ -175,7 +210,13 @@ namespace PITTS
     //! Measure the runtime of the curent function or scope
     inline auto createScopedTimer(internal::ScopeInfo scope = internal::ScopeInfo::current())
     {
+#ifndef PITTS_USE_LIKWID_MARKER_API
       return internal::ScopedTimer(globalTimingStatisticsMap[scope]);
+#else
+      return std::tuple<internal::ScopedTimer, internal::ScopedLikwidRegion>{
+          globalTimingStatisticsMap[scope],
+          scope.function_name()};
+#endif
     }
 
 
