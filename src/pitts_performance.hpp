@@ -147,7 +147,13 @@ namespace PITTS
     {
       const internal::ScopeWithArgumentInfo scopeArgs{scope, arguments, callsPerFunction};
       const auto [iter, didInsert] = globalPerformanceStatisticsMap.insert({scopeArgs, {internal::TimingStatistics(), kernel}});
+#ifndef PITTS_USE_LIKWID_MARKER_API
       return internal::ScopedTimer(iter->second.timings);
+#else
+      return std::tuple<internal::ScopedTimer, internal::ScopedLikwidRegion>{
+          iter->second.timings,
+          scope.function_name()};
+#endif
     }
 
 

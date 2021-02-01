@@ -15,7 +15,8 @@ set(CMAKE_CXX_STANDARD 20)
 ###
 ### Use our own cmake modules
 ###
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 
 ###
@@ -69,6 +70,15 @@ endif()
 # cereal for for data (de-)serialization
 find_package(cereal REQUIRED NO_MODULE)
 link_libraries(cereal)
+
+# likwid for performance measurements
+option(PITTS_USE_LIKWID_MARKER_API "Uses the likwid-perfctr marker api for performance measurements." False)
+if(PITTS_USE_LIKWID_MARKER_API)
+  find_package(LIKWID REQUIRED)
+  include_directories(${LIKWID_INCLUDE_DIRS})
+  link_libraries(${LIKWID_LIBRARIES})
+  add_definitions(-DPITTS_USE_LIKWID_MARKER_API -DLIKWID_PERFMON)
+endif()
 
 
 ###
