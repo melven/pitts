@@ -157,7 +157,7 @@ TEST(PITTS_TensorTrainOperator, setOnes)
   }
 }
 
-TEST(PITTS_TensorTrain, setEye)
+TEST(PITTS_TensorTrainOperator, setEye)
 {
   using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
 
@@ -180,7 +180,7 @@ TEST(PITTS_TensorTrain, setEye)
         }
         else
         {
-          ASSERT_EQ(1, subT(0,TT.index(iDim,i,j),0));
+          ASSERT_EQ(0, subT(0,TT.index(iDim,i,j),0));
         }
       }
   }
