@@ -28,6 +28,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_from_dense_classical.hpp
   pitts_tensortrain_from_dense_twosided.hpp
   pitts_tensortrain_to_dense.hpp
+  pitts_tensortrain_operator.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp
   pitts_fixed_tensor3_apply.hpp
