@@ -2,6 +2,7 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_laplace_operator.hpp"
 
 TEST(PITTS_TensorTrainOperator_apply, zero)
 {
@@ -75,3 +76,45 @@ TEST(PITTS_TensorTrainOperator_apply, eye_axpy_eye)
   const auto gamma = axpby(-4., TTx, 1., TTy);
   ASSERT_NEAR(0., gamma, eps);
 }
+
+TEST(PITTS_TensorTrainOperator_apply, laplace_operator)
+{
+  using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+  constexpr auto eps = 1.e-10;
+
+  TensorTrainOperator_double TTOpLaplace(4, 5, 5);
+  TTOpLaplace.setZero();
+  TensorTrainOperator_double TTOpDummy(4, 5, 5);
+  TTOpDummy.setEye();
+  Tensor3_double tridi(1,5*5,1);
+  for(int i = 0; i < 5; i++)
+    for(int j = 0; j < 5; j++)
+    {
+      if( i == j )
+        tridi(0,i*5+j,0) = -2. / (5+1);
+      else if( i == j+1 || i == j-1 )
+        tridi(0,i*5+j,0) = 1. / (5+1);
+      else
+        tridi(0,i*5+j,0) = 0;
+    }
+  for(int iDim = 0; iDim < 4; iDim++)
+  {
+    auto& subT = TTOpDummy.tensorTrain().editableSubTensors()[iDim];
+    std::swap(subT, tridi);
+    axpby(1., TTOpDummy, 1., TTOpLaplace);
+    std::swap(subT, tridi);
+  }
+
+
+  TensorTrain_double TTx(4, 5, 7), TTy(4, 5), TTy_ref(4, 5);
+  randomize(TTx);
+
+  apply(TTOpLaplace, TTx, TTy);
+  copy(TTx, TTy_ref);
+  const auto nrm_ref = laplaceOperator(TTy_ref);
+  const auto error = axpby(-nrm_ref, TTy_ref, 1., TTy);
+  EXPECT_NEAR(0., error, eps);
+}
+
