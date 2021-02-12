@@ -13,6 +13,7 @@
 // includes
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_random.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -185,9 +186,28 @@ namespace PITTS
   //! @return               norm of the the resulting tensor TTy
   //!
   template<typename T>
-  T axpby(T alpha, const TensorTrainOperator<T>& TTOpx, T beta, TensorTrainOperator<T>& TTOpy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  void axpby(T alpha, const TensorTrainOperator<T>& TTOpx, T beta, TensorTrainOperator<T>& TTOpy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
-    return axpby(alpha, TTOpx.tensorTrain(), TTOpy.tensorTrain(), rankTolerance);
+    const auto gamma = axpby(alpha, TTOpx.tensorTrain(), beta, TTOpy.tensorTrain(), rankTolerance);
+    if( TTOpy.tensorTrain().subTensors().size() > 0 )
+    {
+      auto& subT = TTOpy.tensorTrain().editableSubTensors().back();
+      for(int i = 0; i < subT.r1(); i++)
+        for(int j = 0; j < subT.n(); j++)
+          for(int k = 0; k < subT.r2(); k++)
+            subT(i,j,k) = subT(i,j,k) * gamma;
+    }
+  }
+
+
+  //! fill a tensor train operator with random values (keeping current TT-ranks)
+  //!
+  //! @tparam T  underlying data type (double, complex, ...)
+  //!
+  template<typename T>
+  void randomize(TensorTrainOperator<T>& TTOp)
+  {
+    randomize(TTOp.tensorTrain());
   }
 }
 
