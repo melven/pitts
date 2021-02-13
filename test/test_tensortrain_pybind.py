@@ -302,6 +302,20 @@ class TestTensorTrain(unittest.TestCase):
         np.testing.assert_array_almost_equal(t2_ref, tt.getSubTensor(1))
         np.testing.assert_array_almost_equal(t3_ref, tt.getSubTensor(2))
 
+    def test_setGetSubTensor_large(self):
+        tt = pitts_py.TensorTrain_double([50,100,20])
+        tt.setTTranks([2,3])
+        pitts_py.randomize(tt)
+        t1_ref = np.random.rand(1,50,2)
+        t2_ref = np.random.rand(2,100,3)
+        t3_ref = np.random.rand(3,20,1)
+        tt.setSubTensor(0, t1_ref)
+        tt.setSubTensor(1, t2_ref)
+        tt.setSubTensor(2, t3_ref)
+        np.testing.assert_array_almost_equal(t1_ref, tt.getSubTensor(0))
+        np.testing.assert_array_almost_equal(t2_ref, tt.getSubTensor(1))
+        np.testing.assert_array_almost_equal(t3_ref, tt.getSubTensor(2))
+
 
 if __name__ == '__main__':
     unittest.main()

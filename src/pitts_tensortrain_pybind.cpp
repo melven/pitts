@@ -58,12 +58,13 @@ namespace PITTS
       py::array_t<T> TensorTrain_getSubTensor(const TensorTrain<T>& TT, int d)
       {
         const auto& subT = TT.subTensors().at(d);
-        const std::array<int,3> shape = {subT.r1(), subT.n(), subT.r2()};
-        std::array<int,3> strides;
-        strides[0] = int(&subT(1,0,0)-&subT(0,0,0)) * int(sizeof(T));
-        strides[1] = int(&subT(0,1,0)-&subT(0,0,0)) * int(sizeof(T));
-        strides[2] = int(&subT(0,0,1)-&subT(0,0,0)) * int(sizeof(T));
-        return {shape, strides, &subT(0,0,0)};
+        py::array_t<T> array({subT.r1(), subT.n(), subT.r2()});
+
+        for(int i2 = 0; i2 < subT.r2(); i2++)
+          for(int j = 0; j < subT.n(); j++)
+            for(int i1 = 0; i1 < subT.r1(); i1++)
+              *array.mutable_data(i1,j,i2) = subT(i1,j,i2);
+        return array;
       }
 
       //! helper function to set a sub-tensor in a TensorTrain

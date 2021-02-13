@@ -50,15 +50,14 @@ namespace PITTS
       py::array_t<T> TensorTrainOperator_getSubTensor(const TensorTrainOperator<T>& TTOp, int d)
       {
         const auto& subT = TTOp.tensorTrain().subTensors().at(d);
-        const std::array<int,4> shape = {subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()};
-        std::array<int,4> strides;
-        const auto ii = TTOp.index(d, 1, 0);
-        const auto jj = TTOp.index(d, 0, 1);
-        strides[0] = int(&subT(1,0,0)-&subT(0,0,0)) * int(sizeof(T));
-        strides[1] = int(&subT(0,ii,0)-&subT(0,0,0)) * int(sizeof(T));
-        strides[2] = int(&subT(0,jj,0)-&subT(0,0,0)) * int(sizeof(T));
-        strides[3] = int(&subT(0,0,1)-&subT(0,0,0)) * int(sizeof(T));
-        return {shape, strides, &subT(0,0,0)};
+        py::array_t<T> array({subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()});
+
+        for(int i = 0; i < subT.r1(); i++)
+          for(int j = 0; j < TTOp.row_dimensions()[d]; j++)
+            for(int k = 0; k < TTOp.column_dimensions()[d]; k++)
+              for(int l = 0; l < subT.r2(); l++)
+                *array.mutable_data(i,j,k,l) = subT(i,TTOp.index(d, j, k), l);
+        return array;
       }
 
       //! helper function to set a sub-tensor in a TensorTrainOperator
