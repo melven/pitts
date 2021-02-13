@@ -188,6 +188,12 @@ namespace PITTS
   template<typename T>
   void axpby(T alpha, const TensorTrainOperator<T>& TTOpx, T beta, TensorTrainOperator<T>& TTOpy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
+    // check that dimensions match
+    if( TTOpx.row_dimensions() != TTOpy.row_dimensions() )
+      throw std::invalid_argument("TensorTrainOperator axpby row dimension mismatch!");
+    if( TTOpx.column_dimensions() != TTOpy.column_dimensions() )
+      throw std::invalid_argument("TensorTrainOperator axpby column dimension mismatch!");
+
     const auto gamma = axpby(alpha, TTOpx.tensorTrain(), beta, TTOpy.tensorTrain(), rankTolerance);
     if( TTOpy.tensorTrain().subTensors().size() > 0 )
     {

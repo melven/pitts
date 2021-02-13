@@ -252,6 +252,12 @@ class TestTensorTrain(unittest.TestCase):
 
         np.testing.assert_almost_equal(1.5*fullTensor1 - 0.75*fullTensor2, result)
 
+    def test_axpby_dimensionMismatch(self):
+        tt = pitts_py.TensorTrain_double([2,4,3])
+        tt2 = pitts_py.TensorTrain_double([2,4,2])
+        with self.assertRaises(ValueError):
+            nrm = pitts_py.axpby(1, tt, 2, tt2)
+
     def test_getSubTensor_zeros(self):
         tt = pitts_py.TensorTrain_double([3,2,5])
         tt.setZero()

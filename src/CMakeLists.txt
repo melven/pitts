@@ -81,6 +81,8 @@ if(pybind11_FOUND)
     pitts_qubit_simulator_pybind.cpp
     pitts_tensortrain_pybind.hpp
     pitts_tensortrain_pybind.cpp
+    pitts_tensortrain_operator_pybind.hpp
+    pitts_tensortrain_operator_pybind.cpp
     pitts_common_pybind.hpp
     pitts_common_pybind.cpp
     pitts_multivector_pybind.hpp

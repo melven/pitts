@@ -10,6 +10,7 @@
 #include <pybind11/pybind11.h>
 #include "pitts_qubit_simulator_pybind.hpp"
 #include "pitts_tensortrain_pybind.hpp"
+#include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_multivector_pybind.hpp"
 #include "pitts_common_pybind.hpp"
 
@@ -20,6 +21,7 @@ PYBIND11_MODULE(pitts_py, m)
 
   PITTS::pybind::init_QubitSimulator(m);
   PITTS::pybind::init_TensorTrain(m);
+  PITTS::pybind::init_TensorTrainOperator(m);
   PITTS::pybind::init_MultiVector(m);
   PITTS::pybind::init_common(m);
 }

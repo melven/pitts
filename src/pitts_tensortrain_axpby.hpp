@@ -45,6 +45,10 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
+    // check that dimensions match
+    if( TTx.dimensions() != TTy.dimensions() )
+      throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
+
     // handle corner cases
     if( std::abs(alpha) == 0 )
       return beta;
