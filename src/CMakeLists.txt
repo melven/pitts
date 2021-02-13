@@ -28,6 +28,8 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_from_dense_classical.hpp
   pitts_tensortrain_from_dense_twosided.hpp
   pitts_tensortrain_to_dense.hpp
+  pitts_tensortrain_operator.hpp
+  pitts_tensortrain_operator_apply.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp
   pitts_fixed_tensor3_apply.hpp
@@ -79,6 +81,8 @@ if(pybind11_FOUND)
     pitts_qubit_simulator_pybind.cpp
     pitts_tensortrain_pybind.hpp
     pitts_tensortrain_pybind.cpp
+    pitts_tensortrain_operator_pybind.hpp
+    pitts_tensortrain_operator_pybind.cpp
     pitts_common_pybind.hpp
     pitts_common_pybind.cpp
     pitts_multivector_pybind.hpp

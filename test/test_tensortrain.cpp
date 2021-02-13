@@ -173,59 +173,37 @@ TEST(PITTS_TensorTrain, setUnit)
   }
 }
 
-
-/*
-
-TEST(PITTS_Tensor2, resize)
+TEST(PITTS_TensorTrain, copy)
 {
-  using Tensor2_double = PITTS::Tensor2<double>;
-  Tensor2_double M(3,7);
+  using TensorTrain_double = PITTS::TensorTrain<double>;
 
-  M.resize(2,3);
+  TensorTrain_double TT1(3,4,5);
+  int dummyVal = 0;
+  for(auto& subT: TT1.editableSubTensors())
+  {
+    for(int i = 0; i < subT.r1(); i++)
+      for(int j = 0; j < subT.n(); j++)
+        for(int k = 0; k < subT.r2(); k++)
+          subT(i,j,k) = dummyVal++;
+  }
 
-  ASSERT_EQ(2, M.r1());
-  ASSERT_EQ(3, M.r2());
+  const TensorTrain_double& TT1_const(TT1);
+  TensorTrain_double TT2(3,4);
+  copy(TT1_const, TT2);
+
+  ASSERT_EQ(TT1.subTensors().size(), TT2.subTensors().size());
+  for(int iDim = 0; iDim < TT1.subTensors().size(); iDim++)
+  {
+    const auto& subT1 = TT1.subTensors()[iDim];
+    const auto& subT2 = TT2.subTensors()[iDim];
+    ASSERT_EQ(subT1.r1(), subT2.r1());
+    ASSERT_EQ(subT1.n(), subT2.n());
+    ASSERT_EQ(subT1.r2(), subT2.r2());
+    for(int i = 0; i < subT1.r1(); i++)
+      for(int j = 0; j < subT1.n(); j++)
+        for(int k = 0; k < subT1.r2(); k++)
+        {
+          ASSERT_EQ(subT1(i,j,k), subT2(i,j,k));
+        }
+  }
 }
-
-TEST(PITTS_Tensor2, operator_indexing)
-{
-  using Tensor2_double = PITTS::Tensor2<double>;
-  Tensor2_double M(3,7);
-
-  // Set to zero
-  for(int i = 0; i < 3; i++)
-    for(int j = 0; j < 7; j++)
-      M(i,j) = 0;
-
-  // check for zero
-  for(int i = 0; i < 3; i++)
-    for(int j = 0; j < 7; j++)
-    {
-      EXPECT_EQ(0, M(i,j));
-    }
-
-  // Set to constant
-  for(int i = 0; i < 3; i++)
-    for(int j = 0; j < 7; j++)
-      M(i,j) = 77;
-
-  // check
-  for(int i = 0; i < 3; i++)
-    for(int j = 0; j < 7; j++)
-    {
-      EXPECT_EQ(77, M(i,j));
-    }
-
-  // set to different values
-  for(int i = 0; i < 3; i++)
-    for(int j = 0; j < 7; j++)
-      M(i,j) = i*7+j;
-
-  // check
-  for(int i = 0; i < 3; i++)
-    for(int j = 0; j < 7; j++)
-    {
-      EXPECT_EQ(i*7+j, M(i,j));
-    }
-}
-*/
