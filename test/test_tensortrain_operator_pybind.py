@@ -188,6 +188,20 @@ class TestTensorTrainOperator(unittest.TestCase):
         np.testing.assert_array_almost_equal(t2_ref, ttOp.getSubTensor(1))
         np.testing.assert_array_almost_equal(t3_ref, ttOp.getSubTensor(2))
 
+    def test_setGetSubTensor_large(self):
+        ttOp = pitts_py.TensorTrainOperator_double([10,20,15],[10,15,10])
+        ttOp.setTTranks([2,3])
+        pitts_py.randomize(ttOp)
+        t1_ref = np.random.rand(1,10,10,2)
+        t2_ref = np.random.rand(2,20,15,3)
+        t3_ref = np.random.rand(3,15,10,1)
+        ttOp.setSubTensor(0, t1_ref)
+        ttOp.setSubTensor(1, t2_ref)
+        ttOp.setSubTensor(2, t3_ref)
+        np.testing.assert_array_almost_equal(t1_ref, ttOp.getSubTensor(0))
+        np.testing.assert_array_almost_equal(t2_ref, ttOp.getSubTensor(1))
+        np.testing.assert_array_almost_equal(t3_ref, ttOp.getSubTensor(2))
+
 
 if __name__ == '__main__':
     unittest.main()
