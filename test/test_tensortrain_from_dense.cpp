@@ -78,11 +78,20 @@ TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x1)
   ASSERT_EQ(1, TT.subTensors()[0].r1());
   ASSERT_EQ(1, TT.subTensors()[0].n());
   ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_NEAR(7., TT.subTensors()[0](0,0,0), eps);
   ASSERT_EQ(1, TT.subTensors()[1].r1());
   ASSERT_EQ(1, TT.subTensors()[1].n());
   ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(1., TT.subTensors()[1](0,0,0), eps);
+  if( TT.subTensors()[0](0,0,0) > 0 )
+  {
+    ASSERT_NEAR(7., TT.subTensors()[0](0,0,0), eps);
+    ASSERT_NEAR(1., TT.subTensors()[1](0,0,0), eps);
+  }
+  else
+  {
+    // sign flip is ok
+    ASSERT_NEAR(-7., TT.subTensors()[0](0,0,0), eps);
+    ASSERT_NEAR(-1., TT.subTensors()[1](0,0,0), eps);
+  }
 }
 
 TEST(PITTS_TensorTrain_fromDense, matrix_2d_1x5)
@@ -437,7 +446,8 @@ namespace
         for(int j = 0; j < subT.n(); j++)
           for(int k = 0; k < subT.r2(); k++)
           {
-            EXPECT_NEAR(subT_ref(i,j,k), subT(i,j,k), eps);
+            // only compare absolute values as the sign of singular vectors is not well defined
+            EXPECT_NEAR(std::abs(subT_ref(i,j,k)), std::abs(subT(i,j,k)), eps);
           }
     }
 
@@ -455,7 +465,8 @@ namespace
         for(int k = 0; k < subT.r2(); k++)
           for(int j = 0; j < subT.n(); j++)
           {
-            EXPECT_NEAR(subT_ref(i,iProc+j*nProcs,k), subT(i,j,k), eps);
+            // only compare absolute values as the sign of singular vectors is not well defined
+            EXPECT_NEAR(std::abs(subT_ref(i,iProc+j*nProcs,k)), std::abs(subT(i,j,k)), eps);
           }
     }
   }
