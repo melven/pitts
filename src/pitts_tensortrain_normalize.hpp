@@ -75,8 +75,10 @@ namespace PITTS
     // auxiliary tensor of rank-3
     Tensor3<T> t3_tmp;
 
-    for(auto& subT: TT.editableSubTensors())
+    const int nDims = TT.subTensors().size();
+    for(int iDim = 0; iDim < nDims; iDim++)
     {
+      auto& subT = TT.editableSubTensors()[iDim];
       const auto r1 = subT.r1();
       const auto r2 = subT.r2();
       const auto n = subT.n();
@@ -96,6 +98,28 @@ namespace PITTS
             t3_tmp(i,j,k) = tmp;
           }
 
+      // just calculate norm and scale if this is the last subtensor
+      if( iDim+1 == nDims )
+      {
+        T tmp{};
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            for(int k = 0; k < r2; k++)
+              tmp += t3_tmp(i,j,k)*t3_tmp(i,j,k);
+        t2_M.resize(1,1);
+        t2_M(0,0) = std::sqrt(tmp);
+        if( t2_M(0,0) != T(0) )
+          tmp = 1/t2_M(0,0);
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            for(int k = 0; k < r2; k++)
+              t3_tmp(i,j,k) *= tmp;
+
+        std::swap(subT, t3_tmp);
+
+        break;
+      }
+
       // now calculate SVD of t3_tmp(: : x :)
       t2_M.resize(r1_new*n, r2);
       for(int i = 0; i < r1_new; i++)
@@ -108,15 +132,31 @@ namespace PITTS
       svd.setThreshold(rankTolerance);
       const auto r2_new = svd.rank();
 
-      subT.resize(r1_new, n, r2_new);
-      for(int i = 0; i < r1_new; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2_new; k++)
-            subT(i,j,k) = svd.matrixU()(i+j*r1_new,k);
+      // we always need at least rank 1
+      if( r2_new == 0 )
+      {
+        subT.resize(r1_new, n, 1);
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            subT(i,j,0) = T(0);
 
-      t2_M.resize(r2_new,r2);
-      EigenMap(t2_M) = svd.singularValues().topRows(r2_new).asDiagonal() * svd.matrixV().leftCols(r2_new).adjoint();
+        t2_M.resize(1,r2);
+        for(int i = 0; i < r2; i++)
+          t2_M(0,i) = T(0);
+      }
+      else // r2_new > 0
+      {
+        subT.resize(r1_new, n, r2_new);
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            for(int k = 0; k < r2_new; k++)
+              subT(i,j,k) = svd.matrixU()(i+j*r1_new,k);
+
+        t2_M.resize(r2_new,r2);
+        EigenMap(t2_M) = svd.singularValues().topRows(r2_new).asDiagonal() * svd.matrixV().leftCols(r2_new).adjoint();
+      }
     }
+
     return t2_M(0,0);
   }
 
