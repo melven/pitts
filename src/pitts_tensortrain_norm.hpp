@@ -38,8 +38,7 @@ namespace PITTS
     // o--o--   --o--o
     //
     // where the top and the bottom are the same tensor.
-    // We assume that the dimensions of the "|" is much larger than the "--",
-    // so we contract "|" first and continue from the left to the right (like a zipper).
+    // Algorithm starts on the right and works like a zipper...
     //
     
     //double wtime = omp_get_wtime();
@@ -48,68 +47,42 @@ namespace PITTS
     // Auxiliary tensor of rank-2, currently contracted
     Tensor2<T> t2(1,1);
     t2(0,0) = T(1);
+    Tensor3<T> t3;
 
-    Tensor2<T> last_t2;
-    for(const auto& subT: TT.subTensors())
+    // iterate from left to right
+    const int nDim = TT.subTensors().size();
+    for(int iDim = nDim-1; iDim >= 0; iDim--)
     {
+      const auto& subT = TT.subTensors()[iDim];
       const auto r1 = subT.r1();
       const auto r2 = subT.r2();
       const auto n = subT.n();
-      const auto nChunks = subT.nChunks();
 
-      flops += 2.*r1*r1*(r2*(r2+1))/2.*(n+1.);
-
-      // loop unrolling parameter (but unrolling is done by hand below!)
-      constexpr auto unrollSize = 2;
-
-      // copy last result
-      const int r1_padded = unrollSize * (1 + (r1-1)/unrollSize);
-      last_t2.resize(r1_padded,r1_padded);
-      for(int j_ = 0; j_ < r1_padded; j_++)
-        for(int i_ = 0; i_ < r1_padded; i_++)
-          last_t2(i_,j_) = (i_ < r1 && j_ < r1) ? t2(i_,j_) : T(0);
-
-      // prepare new result tensor for adding up
-      t2.resize(r2,r2);
-      for(int j = 0; j < r2; j++)
-        for(int i = 0; i < r2; i++)
-          t2(i,j) = T(0);
-      T* t2data = &t2(0,0);
-      const auto t2size = r2*r2;
-
-#pragma omp parallel for schedule(static) reduction(+:t2data[:t2size])
-      for(int k = 0; k < nChunks; k++)
-      {
-        // only calculate upper triangular part
-        for(int j = 0; j < r2; j++)
-          for(int i = 0; i <= j; i++)
+      // first contraction: subT(:,:,*) * t2(:,*)
+      t3.resize(r1, n, r2);
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
           {
-            Chunk<T> tmp1{};
-            for(int jb_ = 0; jb_ < r1; jb_+=2)
-            {
-              // 2-way unrolling (unrollSize == 2)
-              Chunk<T> tmp20{};
-              Chunk<T> tmp21{};
-              for(int i_ = 0; i_ < r1; i_++)
-              {
-                fmadd(last_t2(i_,jb_+0),subT.chunk(i_,k,i),tmp20);
-                fmadd(last_t2(i_,jb_+1),subT.chunk(i_,k,i),tmp21);
-              }
-              fmadd(subT.chunk(jb_,k,j),tmp20,tmp1);
-              if( jb_+1 < r1 )
-                fmadd(subT.chunk(jb_+1,k,j),tmp21,tmp1);
-            }
-            // this directly works on a pointer for the data of t2 to allow an OpenMP array reduction
-            t2data[i+j*r2] += sum(tmp1);
+            T tmp{};
+            for(int l = 0; l < r2; l++)
+              tmp += subT(i,j,l) * t2(k,l);
+            t3(i,j,k) = tmp;
           }
-      }
-      // copy upper triangular part to lower triangular part (symmetric!)
-      for(int j = 0; j < r2; j++)
-        for(int i = j+1; i < r2; i++)
-          t2(i,j) = t2(j,i);
+
+      // second contraction: subT(:,*,*) * t3(:,*,*)
+      t2.resize(r1,r1);
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < r1; j++)
+        {
+          T tmp{};
+          for(int k = 0; k < n; k++)
+            for(int l = 0; l < r2; l++)
+              tmp += subT(i,k,l) * t3(j,k,l);
+          t2(i,j) = tmp;
+        }
     }
-    //wtime = omp_get_wtime()-wtime;
-    //std::cout << "GFlop/s: " << flops/wtime*1.e-9 << std::endl;
+
     return std::sqrt(t2(0,0));
   }
 
