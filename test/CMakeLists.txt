@@ -15,6 +15,16 @@ target_include_directories(pitts_tests PRIVATE ${GTEST_INCLUDE_PATH} ${CMAKE_SOU
 target_compile_definitions(pitts_tests PRIVATE "-DGTEST_HAS_MPI=1")
 
 
+#enable valgrind for memory checking of tests
+option(PITTS_TESTS_ENABLE_VALGRIND "Run tests through valgrind for memory checking..." Off)
+if(PITTS_TESTS_ENABLE_VALGRIND)
+  find_program(VALGRIND_EXECUTABLE valgrind)
+  set(MEMORYCHECK_COMMAND "${VALGRIND_EXECUTABLE}" "--error-exitcode=1")# "--suppressions=${PROJECT_SOURCE_DIR}/third-party/valgrind-python.supp")
+else()
+  set(MEMORYCHECK_COMMAND )
+endif()
+
+
 # allow to define the number of threads and processes used to run the tests
 set(PITTS_TEST_NTHREADS "4" CACHE STRING "Number of OpenMP threads used to run the tests")
 set(PITTS_TEST_NPROCS "1;3" CACHE STRING "Number of MPI processes used to run the tests")
@@ -39,7 +49,7 @@ endif()
 # add the unit tests
 foreach(NPROCS ${PITTS_TEST_NPROCS})
   set(TEST_NAME "unittests_np${NPROCS}")
-  set(TEST_COMMAND ${PITTS_TEST_MPIRUN_EXECUTABLE} ${PITTS_TEST_MPIRUN_PREFLAGS} ${PITTS_TEST_MPIRUN_NUMPROG_FLAG} ${NPROCS} $<TARGET_FILE:pitts_tests> ${PITTS_TEST_MPIRUN_POSTFLAGS} --gtest_output=xml:pitts_tests_np${NPROCS}.xml)
+  set(TEST_COMMAND ${PITTS_TEST_MPIRUN_EXECUTABLE} ${PITTS_TEST_MPIRUN_PREFLAGS} ${PITTS_TEST_MPIRUN_NUMPROG_FLAG} ${NPROCS} ${MEMORYCHECK_COMMAND} $<TARGET_FILE:pitts_tests> ${PITTS_TEST_MPIRUN_POSTFLAGS} --gtest_output=xml:pitts_tests_np${NPROCS}.xml)
   add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${TEST_COMMAND})
   set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=${PITTS_TEST_NTHREADS};OMPI_MCA_hwloc_base_binding_policy=none")
   set(TEST_NAME)
