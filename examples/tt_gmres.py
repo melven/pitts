@@ -12,10 +12,8 @@ import pitts_py
 
 
 
-def tt_gmres(TTOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
+def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
     """ Tensor-train GMRES algorithm without restart """
-
-    assert( TTOp.row_dimensions() == TTOp.col_dimensions() )
 
     # assumes b is normalized and nrm_b is the desired rhs norm
     # define initial subspace
@@ -30,8 +28,8 @@ def tt_gmres(TTOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
 
     for j in range(m):
         delta = eps / (curr_beta / beta)
-        w = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-        pitts_py.apply(TTOp, V[j], w)
+        w = pitts_py.TensorTrain_double(b.dimensions())
+        AOp(V[j], w)
         w_nrm = pitts_py.normalize(w, delta / m)
         for i in range(j+1):
             H[i,j] = w_nrm * pitts_py.dot(w, V[i])
@@ -51,7 +49,7 @@ def tt_gmres(TTOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
         if curr_beta / beta <= eps:
             break
 
-    x = pitts_py.TensorTrain_double(TTOp.row_dimensions())
+    x = pitts_py.TensorTrain_double(b.dimensions())
     x.setZero()
     nrm_x = 0
     for i in range(len(y)):
@@ -77,7 +75,10 @@ if __name__ == '__main__':
     pitts_py.apply(TTOp, xref, b)
     nrm_b = pitts_py.normalize(b)
 
-    x, nrm_x = tt_gmres(TTOp, b, nrm_b, maxIter=30, eps=1.e-4)
+    def AOp(x, y):
+        pitts_py.apply(TTOp, x, y)
+
+    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=30, eps=1.e-4)
     print("nrm_x %g" % nrm_x)
 
     r = pitts_py.TensorTrain_double(b.dimensions())
