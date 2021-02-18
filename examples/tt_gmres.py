@@ -29,8 +29,7 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
     for j in range(m):
         delta = eps / (curr_beta / beta)
         w = pitts_py.TensorTrain_double(b.dimensions())
-        AOp(V[j], w)
-        w_nrm = pitts_py.normalize(w, delta / m)
+        w_nrm = AOp(V[j], w, delta / m)
         for i in range(j+1):
             H[i,j] = w_nrm * pitts_py.dot(w, V[i])
             w_nrm = pitts_py.axpby(-H[i,j], V[i], w_nrm, w, delta / m)
@@ -75,8 +74,10 @@ if __name__ == '__main__':
     pitts_py.apply(TTOp, xref, b)
     nrm_b = pitts_py.normalize(b)
 
-    def AOp(x, y):
+    def AOp(x, y, eps):
         pitts_py.apply(TTOp, x, y)
+        y_nrm = pitts_py.normalize(y, eps)
+        return y_nrm
 
     x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=30, eps=1.e-4)
     print("nrm_x %g" % nrm_x)
