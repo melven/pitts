@@ -108,7 +108,7 @@ TEST(PITTS_TensorTrainOperator_apply, laplace_operator)
   }
 
 
-  TensorTrain_double TTx(4, 5, 7), TTy(4, 5), TTy_ref(4, 5);
+  TensorTrain_double TTx(4, 5, 3), TTy(4, 5), TTy_ref(4, 5);
   randomize(TTx);
 
   apply(TTOpLaplace, TTx, TTy);

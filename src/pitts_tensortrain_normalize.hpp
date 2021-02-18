@@ -17,7 +17,7 @@
 #include <limits>
 #include <algorithm>
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_qb_decomposition.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
@@ -36,7 +36,7 @@ namespace PITTS
   template<typename T>
   T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
   {
-    const auto norm = rightNormalize(TT, rankTolerance);
+    const auto norm = rightNormalize(TT, T(0));
     return norm * leftNormalize(TT, rankTolerance);
   }
 
@@ -68,123 +68,96 @@ namespace PITTS
     // Algorithm based on svqb...
     //
 
-    //double wtime = omp_get_wtime();
-    double flops = 0;
-
-    // Auxiliary tensor of rank-3, for adjusting the size of the subtensors!
-    Tensor3<T> t3_tmp;
-
-    // Auxiliary tensor of rank-2, currently contracted
+    // matrix from previous step
     Tensor2<T> t2_M(1,1);
     t2_M(0,0) = T(1);
-    Tensor2<T> t2_B(1,1);
-    t2_B(0,0) = T(1);
-    int new_r1 = 1;
 
-    Tensor2<T> last_t2_M;
-    Tensor2<T> last_t2_B, t2_Binv;
-    for(auto& subT: TT.editableSubTensors())
+    // auxiliary tensor of rank-3
+    Tensor3<T> t3_tmp;
+
+    const int nDims = TT.subTensors().size();
+    for(int iDim = 0; iDim < nDims; iDim++)
     {
+      auto& subT = TT.editableSubTensors()[iDim];
       const auto r1 = subT.r1();
       const auto r2 = subT.r2();
       const auto n = subT.n();
-      const auto nChunks = subT.nChunks();
 
-      flops += 2.*r1*r1*r2*r2*(n+1.);
+      const auto r1_new = t2_M.r1();
+      assert(r1 == t2_M.r2());
 
-      // loop unrolling parameter (but unrolling is done by hand below!)
-      constexpr auto unrollSize = 2;
+      // first multiply subT with t2_M
+      t3_tmp.resize(r1_new, n, r2);
+      for(int i = 0; i < r1_new; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+          {
+            T tmp{};
+            for(int l = 0; l < r1; l++)
+              tmp += t2_M(i,l) * subT(l,j,k);
+            t3_tmp(i,j,k) = tmp;
+          }
 
-      // copy last result
-      const int r1_padded = unrollSize * (1 + (r1-1)/unrollSize);
-      last_t2_M.resize(r1_padded,r1_padded);
-      for(int j_ = 0; j_ < r1_padded; j_++)
-        for(int i_ = 0; i_ < r1_padded; i_++)
-          last_t2_M(i_,j_) = (i_ < r1 && j_ < r1) ? t2_M(i_,j_) : T(0);
+      // just calculate norm and scale if this is the last subtensor
+      if( iDim+1 == nDims )
+      {
+        T tmp{};
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            for(int k = 0; k < r2; k++)
+              tmp += t3_tmp(i,j,k)*t3_tmp(i,j,k);
+        t2_M.resize(1,1);
+        t2_M(0,0) = std::sqrt(tmp);
+        if( t2_M(0,0) != T(0) )
+          tmp = 1/t2_M(0,0);
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            for(int k = 0; k < r2; k++)
+              t3_tmp(i,j,k) *= tmp;
 
-      // prepare new result tensor for adding up
-      t2_M.resize(r2,r2);
-      for(int j = 0; j < r2; j++)
+        std::swap(subT, t3_tmp);
+
+        break;
+      }
+
+      // now calculate SVD of t3_tmp(: : x :)
+      t2_M.resize(r1_new*n, r2);
+      for(int i = 0; i < r1_new; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+            t2_M(i+j*r1_new,k) = t3_tmp(i,j,k);
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      svd.setThreshold(rankTolerance);
+      const auto r2_new = svd.rank();
+
+      // we always need at least rank 1
+      if( r2_new == 0 )
+      {
+        subT.resize(r1_new, n, 1);
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            subT(i,j,0) = T(0);
+
+        t2_M.resize(1,r2);
         for(int i = 0; i < r2; i++)
-          t2_M(i,j) = T(0);
-      T* t2data = &t2_M(0,0);
-      const auto t2size = r2*r2;
-
-      // prepare sub-tensor for replacing with possibly smaller version
-      std::swap(subT,t3_tmp);
-      subT.resize(new_r1,n,r2);
-      // calculate
-      // subT = t2_B * subT
-      // t2_M = subT^T subT
-#pragma omp parallel for schedule(static) reduction(+:t2data[:t2size])
-      for(int k = 0; k < nChunks; k++)
-      {
-        for(int j = 0; j < r2; j++)
-        {
-          Chunk<T> row[r1];
-          for(int i = 0; i < r1; i++)
-            row[i] = t3_tmp.chunk(i,k,j);
-          for(int i = 0; i < new_r1; i++)
-            subT.chunk(i,k,j) = Chunk<T>{};
-          for(int i_ = 0; i_ < r1; i_++)
-          {
-            for(int i = 0; i < new_r1; i++)
-              fmadd(t2_B(i,i_),row[i_],subT.chunk(i,k,j));
-          }
-          // unly consider upper triangular part (exploit symmetry)
-          for(int i = 0; i <= j; i++)
-          {
-            Chunk<T> tmp{};
-            for(int i_ = 0; i_ < new_r1; i_++)
-              fmadd(subT.chunk(i_,k,i), subT.chunk(i_,k,j), tmp);
-            // this directly works on a pointer for the data of t2_M to allow an OpenMP array reduction
-            t2data[i+j*r2] += sum(tmp);
-          }
-        }
+          t2_M(0,i) = T(0);
       }
-
-      // copy upper triangular part to lower triangular part (symmetric!)
-      for(int j = 0; j < r2; j++)
-        for(int i = j+1; i < r2; i++)
-          t2_M(i,j) = t2_M(j,i);
-
-      // calculate t2_B with t2_B^T t2_B = t2_M
-      std::swap(last_t2_B, t2_B);
-      auto new_r2 = qb_decomposition(t2_M, t2_B, t2_Binv, rankTolerance);
-      // handle zero case
-      if( new_r2 == 0 )
+      else // r2_new > 0
       {
-        TT.setZero();
-        return T(0);
-      }
+        subT.resize(r1_new, n, r2_new);
+        for(int i = 0; i < r1_new; i++)
+          for(int j = 0; j < n; j++)
+            for(int k = 0; k < r2_new; k++)
+              subT(i,j,k) = svd.matrixU()(i+j*r1_new,k);
 
-      // prepare sub-tensor for replacing with possibly smaller version
-      std::swap(subT,t3_tmp);
-      subT.resize(new_r1,n,new_r2);
-      // calculate subT = subT * t2_Binv
-#pragma omp parallel for schedule(static)
-      for(int k = 0; k < nChunks; k++)
-      {
-        for(int i = 0; i < new_r1; i++)
-        {
-          Chunk<T> col[r2];
-          for(int j = 0; j < r2; j++)
-            col[j] = t3_tmp.chunk(i,k,j);
-          for(int j = 0; j < new_r2; j++)
-            subT.chunk(i,k,j) = Chunk<T>{};
-          for(int j_ = 0; j_ < r2; j_++)
-          {
-            for(int j = 0; j < new_r2; j++)
-              fmadd(t2_Binv(j_,j), col[j_], subT.chunk(i,k,j));
-          }
-        }
+        t2_M.resize(r2_new,r2);
+        EigenMap(t2_M) = svd.singularValues().topRows(r2_new).asDiagonal() * svd.matrixV().leftCols(r2_new).adjoint();
       }
-
-      new_r1 = new_r2;
     }
-    //wtime = omp_get_wtime()-wtime;
-    //std::cout << "GFlop/s: " << flops/wtime*1.e-9 << std::endl;
-    return t2_B(0,0);
+
+    return t2_M(0,0);
   }
 
 
