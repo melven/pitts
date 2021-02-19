@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
-""" Tensor-train GMRES algorithm to solve linear systems """
+"""
+Tensor-train GMRES algorithm to solve linear systems
+
+Motivated by
+Dolgov, S. V.: "TT-GMRES: solution to a linear system in the structured tensor format",
+Russian Journal of Numerical Analysis and Mathematical Modelling, Walter de Gruyter GmbH, 2013
+DOI: 10.1515/rnam-2013-0009
+"""
 
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>',
                'Rebekka-Sarah Hennig <Rebekka-Sarah.Hennig@dlr.de>']
