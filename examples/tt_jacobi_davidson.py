@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
-""" Tensor-train Jacobi-Davidson algorithm to calculate a few eigenvalues """
+"""
+Tensor-train Jacobi-Davidson algorithm to calculate a few eigenvalues
+
+Jacobi-Davidson method originally presented in
+Fokkema, D. R.; Sleijpen, G. L. G. & Van der Vorst, H. A.: "Jacobi--Davidson Style QR and QZ Algorithms for the Reduction of Matrix Pencils", SIAM Journal on Scientific Computing, 1998
+DOI: 10.1137/S1064827596300073
+"""
 
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>',
                'Rebekka-Sarah Hennig <Rebekka-Sarah.Hennig@dlr.de>']
