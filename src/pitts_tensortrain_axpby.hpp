@@ -38,10 +38,11 @@ namespace PITTS
   //! @param beta           scalar value, coefficient of TTy
   //! @param TTy            second tensor in tensor train format, must be leftNormalized, overwritten with the result on output (still normalized!)
   //! @param rankTolerance  Approximation accuracy, used to reduce the TTranks of the result
+  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
   //! @return               norm of the the resulting tensor TTy
   //!
   template<typename T>
-  T axpby(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  T axpby(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -169,7 +170,7 @@ namespace PITTS
       }
     }
 
-    return normalize(TTy, rankTolerance);
+    return normalize(TTy, rankTolerance, maxRank);
   }
 
 }

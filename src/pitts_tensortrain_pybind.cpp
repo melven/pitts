@@ -146,8 +146,8 @@ namespace PITTS
             "explicitly copy a TensorTrain object");
 
         m.def("axpby",
-            py::overload_cast< T, const TensorTrain<T>&, T, TensorTrain<T>&, T>(&axpby<T>),
-            py::arg("alpha"), py::arg("TTx"), py::arg("beta"), py::arg("TTy"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
+            py::overload_cast< T, const TensorTrain<T>&, T, TensorTrain<T>&, T, int>(&axpby<T>),
+            py::arg("alpha"), py::arg("TTx"), py::arg("beta"), py::arg("TTy"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
             "Scale and add one tensor train to another\n\nCalculate gamma*TTy <- alpha*TTx + beta*TTy\n\nBoth tensors must be leftNormalized, gamma is returned");
 
         m.def("dot",
@@ -161,18 +161,18 @@ namespace PITTS
             "calculate the 2-norm for a vector in tensor train format");
 
         m.def("normalize",
-            py::overload_cast< TensorTrain<T>&, T >(&normalize<T>),
-            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
+            py::overload_cast< TensorTrain<T>&, T, int >(&normalize<T>),
+            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
             "TT-rounting: truncate tensor train by two normalization sweeps (first right to left, then left to right)");
 
         m.def("leftNormalize",
-            py::overload_cast< TensorTrain<T>&, T >(&leftNormalize<T>),
-            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
+            py::overload_cast< TensorTrain<T>&, T, int >(&leftNormalize<T>),
+            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
             "Make all sub-tensors orthogonal sweeping left to right");
 
         m.def("rightNormalize",
-            py::overload_cast< TensorTrain<T>&, T >(&rightNormalize<T>),
-            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
+            py::overload_cast< TensorTrain<T>&, T, int >(&rightNormalize<T>),
+            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
             "Make all sub-tensors orthogonal sweeping right to left");
 
         m.def("randomize",
