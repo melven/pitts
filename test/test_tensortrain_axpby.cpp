@@ -203,3 +203,67 @@ TEST(PITTS_TensorTrain_axpby, even_larger_random_tensor)
 
   check_axpby(0.002, TTx, -0.0005, TTy);
 }
+
+TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
+{
+  TensorTrain_double TTx({20,30},1), TTy({20,30},1);
+  TTx.setTTranks({10});
+  TTy.setTTranks({10});
+
+  // construct some interesting subtensors that are orthogonal
+  for(int i = 0; i < 20; i++)
+    for(int j = 0; j < 10; j++)
+    {
+      TTx.editableSubTensors()[0](0,i,j) = i==j ? 1 : 0;
+      TTy.editableSubTensors()[0](0,i,j) = i==j+10 ? 1 : 0;
+    }
+  for(int i = 0; i < 10; i++)
+    for(int j = 0; j < 30; j++)
+    {
+      TTx.editableSubTensors()[1](i,j,0) = 2*i==j ? std::pow(0.5,i) : 0;
+      TTy.editableSubTensors()[1](i,j,0) = 2*i+1==j ? std::pow(0.5,i) : 0;
+    }
+
+  TensorTrain_double TTz({20,30},1);
+
+  // accurate addition
+  PITTS::copy(TTy, TTz);
+  double nrm = PITTS::axpby(1., TTx, 1., TTz);
+  EXPECT_EQ(std::vector<int>({20}), TTz.getTTranks());
+  nrm = PITTS::axpby(-1., TTy, nrm, TTz);
+  nrm = PITTS::axpby(-1., TTx, nrm, TTz);
+  EXPECT_NEAR(0, nrm, eps);
+
+  // less accurate addition
+  PITTS::copy(TTy, TTz);
+  nrm = PITTS::axpby(1., TTx, 1., TTz, 0.1);
+  EXPECT_GT(10, TTz.getTTranks()[0]);
+  nrm = PITTS::axpby(-1., TTy, nrm, TTz);
+  nrm = PITTS::axpby(-1., TTx, nrm, TTz);
+  EXPECT_NEAR(0.1, nrm, 0.05);
+
+  // somewhat more accurate addition
+  PITTS::copy(TTy, TTz);
+  nrm = PITTS::axpby(1., TTx, 1., TTz, 0.01);
+  EXPECT_LT(10, TTz.getTTranks()[0]);
+  EXPECT_GT(20, TTz.getTTranks()[0]);
+  nrm = PITTS::axpby(-1., TTy, nrm, TTz);
+  nrm = PITTS::axpby(-1., TTx, nrm, TTz);
+  EXPECT_NEAR(0.01, nrm, 0.005);
+
+  // force specific max. rank
+  PITTS::copy(TTy, TTz);
+  nrm = PITTS::axpby(1., TTx, 1., TTz, 0., 15);
+  EXPECT_EQ(15, TTz.getTTranks()[0]);
+  nrm = PITTS::axpby(-1., TTy, nrm, TTz);
+  nrm = PITTS::axpby(-1., TTx, nrm, TTz);
+  EXPECT_NEAR(0, nrm, 0.02);
+
+  // force smaller max. rank
+  PITTS::copy(TTy, TTz);
+  nrm = PITTS::axpby(1., TTx, 1., TTz, 0., 5);
+  EXPECT_EQ(5, TTz.getTTranks()[0]);
+  nrm = PITTS::axpby(-1., TTy, nrm, TTz);
+  nrm = PITTS::axpby(-1., TTx, nrm, TTz);
+  EXPECT_NEAR(0.3, nrm, 0.1);
+}

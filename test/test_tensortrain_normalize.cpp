@@ -78,6 +78,44 @@ namespace
       }
     }
   }
+
+  // helper function to generate random orthogonal matrix
+  Eigen::MatrixXd randomOrthoMatrix(int n, int m)
+  {
+    // Uses the formula X(X^TX)^(-1/2) with X_ij drawn from the normal distribution N(0,1)
+    // Source theorem 2.2.1 from
+    // Y. Chikuse: "Statistics on Special Manifolds", Springer, 2003
+    // DOI: 10.1007/978-0-387-21540-2
+    std::random_device randomSeed;
+    std::mt19937 randomGenerator(randomSeed());
+    std::normal_distribution<> distribution(0,1);
+
+    Eigen::MatrixXd X(n,m);
+    for(int i = 0; i < n; i++)
+      for(int j = 0; j < m; j++)
+        X(i,j) = distribution(randomGenerator);
+
+    // calculate the SVD X = U S V^T
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinV | Eigen::ComputeThinU);
+    // now we can robustly calculate X(X^TX)^(-1/2) = U S V^T ( V S U^T U S V^T )^(-1/2) = U S V^T ( V S^2 V^T )^(-1/2) = U S V^T ( V S^(-1) V^T ) = U V^T
+    return svd.matrixU() * svd.matrixV().transpose();
+  }
+
+  // helper function to determine the squared distance between two tensor trains: ||TTx - TTy||_2^2
+  double squaredDistance(const TensorTrain_double& TTx, const TensorTrain_double& TTy, double scaleY)
+  {
+    // avoid axpby as it depends on normalize!
+    // So use quadratic expansion ||x-y||_2^2 = <x,x> - 2<x,y> + <y,y>
+    using PITTS::dot;
+    return dot(TTx,TTx) - 2*scaleY*dot(TTx,TTy) + scaleY*scaleY*dot(TTy,TTy);
+  }
+
+  // helper function to return the maximal rank of a tensor train
+  int maxRank(const TensorTrain_double& TT)
+  {
+    const auto& r = TT.getTTranks();
+    return *std::max_element(std::begin(r), std::end(r));
+  }
 }
 
 TEST(PITTS_TensorTrain_normalize, unit_vector)
@@ -186,4 +224,145 @@ TEST(PITTS_TensorTrain_normalize, even_larger_random_tensor)
   TT.setTTranks({5,10});
   randomize(TT);
   check_normalize(TT);
+}
+
+TEST(PITTS_TensorTrain_normalize, approximation_error_d2)
+{
+  TensorTrain_double TT(2,50);
+  TT.setTTranks(50);
+
+  // calculate random orthogonal matrices
+  Eigen::MatrixXd Q1 = randomOrthoMatrix(50,50);
+  Eigen::MatrixXd Q2 = randomOrthoMatrix(50,50);
+
+  // desired singular value distribution
+  Eigen::VectorXd sigma_sqrt(50);
+  for(int i = 0; i < 50; i++)
+    sigma_sqrt(i) = std::sqrt(1./(i+1));
+  Eigen::MatrixXd t1 = Q1 * sigma_sqrt.asDiagonal();
+  Eigen::MatrixXd t2 = sigma_sqrt.asDiagonal() * Q2;
+
+  // Calculat the expected error when truncating at a specific singular value
+  std::vector<double> squaredTruncationError(51);
+  squaredTruncationError.back() = 0;
+  for(int i = 50-1; i >= 0; i--)
+    squaredTruncationError[i] = squaredTruncationError[i+1] + std::pow(sigma_sqrt(i),4);
+
+  // set Tensor-Train cores
+  for(int i = 0; i < 50; i++)
+    for(int j = 0; j < 50; j++)
+    {
+      TT.editableSubTensors()[0](0,i,j) = t1(i,j);
+      TT.editableSubTensors()[1](i,j,0) = t2(i,j);
+    }
+
+  // calculate the norm for checking relative errors
+  double nrm_ref = PITTS::norm2(TT);
+
+  // now try different truncations...
+  TensorTrain_double TTtruncated(2,50);
+
+  // full accuaracy
+  PITTS::copy(TT, TTtruncated);
+  double nrm = PITTS::normalize(TTtruncated);
+  double squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(0., squaredError, eps);
+  EXPECT_EQ(std::vector<int>({50}), TTtruncated.getTTranks());
+
+  // reduce required accuracy
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 1/25.5);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(squaredTruncationError[25], squaredError, eps);
+  EXPECT_EQ(std::vector<int>({25}), TTtruncated.getTTranks());
+
+  // further reduce required accuracy
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 1/10.5);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(squaredTruncationError[10], squaredError, eps);
+  EXPECT_EQ(std::vector<int>({10}), TTtruncated.getTTranks());
+
+
+  // other variant: enforce maximal tensor dimension
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 1.e-10, 30);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(squaredTruncationError[30], squaredError, eps);
+  EXPECT_EQ(std::vector<int>({30}), TTtruncated.getTTranks());
+
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 1.e-10, 5);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(squaredTruncationError[5], squaredError, eps);
+  EXPECT_EQ(std::vector<int>({5}), TTtruncated.getTTranks());
+}
+
+
+TEST(PITTS_TensorTrain_normalize, approximation_error_d20)
+{
+  TensorTrain_double TT(20,2);
+  // more difficult to make useful test case in higher dimensions, just make it random...
+  TT.setTTranks(50);
+  PITTS::randomize(TT);
+  // workaround to orthogonalize it wrt. the tt core in the middle
+  {
+    TensorTrain_double tmp(20,2);
+    PITTS::rightNormalize(TT);
+    PITTS::copy(TT, tmp);
+    PITTS::leftNormalize(tmp);
+    auto& subT = TT.editableSubTensors()[10];
+    for(int i = 0; i < subT.r1(); i++)
+      for(int j = 0; j < subT.n(); j++)
+        for(int k = 0; k < subT.r2(); k++)
+          subT(i,j,k) = subT(i,j,k) * std::pow(0.1, i);
+    ASSERT_EQ(tmp.subTensors()[9].r2(), TT.subTensors()[10].r1());
+    for(int iDim = 0; iDim < 10; iDim++)
+      std::swap(tmp.editableSubTensors()[iDim], TT.editableSubTensors()[iDim]);
+  }
+
+  // try different truncation accuracies...
+  TensorTrain_double TTtruncated(20,2);
+
+  // default accuracy
+  PITTS::copy(TT, TTtruncated);
+  double nrm = PITTS::normalize(TTtruncated);
+  double squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(0, squaredError, eps);
+
+  // less accuracy
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 0.1);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(0.05, std::sqrt(squaredError), 0.05);
+  //std::cout << "error: " << std::sqrt(squaredError) << "\n";
+  //std::cout << "TT-ranks:";
+  //for(auto r: TTtruncated.getTTranks())
+  //  std::cout << " " << r;
+  //std::cout << "\n";
+  EXPECT_LT(maxRank(TTtruncated), maxRank(TT));
+
+  // some more accuracy
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 0.01);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(0.005, std::sqrt(squaredError), 0.005);
+  //std::cout << "error: " << std::sqrt(squaredError) << "\n";
+  //std::cout << "TT-ranks:";
+  //for(auto r: TTtruncated.getTTranks())
+  //  std::cout << " " << r;
+  //std::cout << "\n";
+  EXPECT_LT(maxRank(TTtruncated), maxRank(TT));
+
+  // and some more accuracy
+  PITTS::copy(TT, TTtruncated);
+  nrm = PITTS::normalize(TTtruncated, 0.001);
+  squaredError = squaredDistance(TT, TTtruncated, nrm);
+  EXPECT_NEAR(0.0005, std::sqrt(squaredError), 0.0005);
+  //std::cout << "error: " << std::sqrt(squaredError) << "\n";
+  //std::cout << "TT-ranks:";
+  //for(auto r: TTtruncated.getTTranks())
+  //  std::cout << " " << r;
+  //std::cout << "\n";
+  EXPECT_LT(maxRank(TTtruncated), maxRank(TT));
 }

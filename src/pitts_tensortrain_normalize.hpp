@@ -31,13 +31,14 @@ namespace PITTS
   //!
   //! @param TT             tensor in tensor train format, left-normalized on output
   //! @param rankTolerance  approximation tolerance
+  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
   //! @return               norm of the tensor
   //!
   template<typename T>
-  T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
   {
     const auto norm = rightNormalize(TT, T(0));
-    return norm * leftNormalize(TT, rankTolerance);
+    return norm * leftNormalize(TT, rankTolerance, maxRank);
   }
 
   //! Make all sub-tensors orthogonal sweeping left to right
@@ -46,10 +47,11 @@ namespace PITTS
   //!
   //! @param TT             tensor in tensor train format
   //! @param rankTolerance  approximation tolerance
+  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
   //! @return               norm of the tensor
   //!
   template<typename T>
-  T leftNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  T leftNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -130,8 +132,9 @@ namespace PITTS
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       //Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
       Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      svd.setThreshold(rankTolerance);
-      const auto r2_new = svd.rank();
+      svd.setThreshold(rankTolerance / std::sqrt(T(nDims-1)));
+      //std::cout << "singularValues: " << svd.singularValues().transpose() << "\n";
+      const auto r2_new = std::min<int>(maxRank, svd.rank());
 
       // we always need at least rank 1
       if( r2_new == 0 )
@@ -168,10 +171,11 @@ namespace PITTS
   //!
   //! @param TT             tensor in tensor train format
   //! @param rankTolerance  approximation tolerance
+  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
   //! @return               norm of the tensor
   //!
   template<typename T>
-  T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
+  T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -193,7 +197,7 @@ namespace PITTS
           for(int i = 0; i < r1; i++)
             subT(i,k,j) = oldSubT(j,k,i);
     }
-    const auto norm = leftNormalize(tmpTT, rankTolerance);
+    const auto norm = leftNormalize(tmpTT, rankTolerance, maxRank);
     for(int iDim = 0; iDim < nDim; iDim++)
     {
       auto& subT = TT.editableSubTensors()[nDim-1-iDim];
