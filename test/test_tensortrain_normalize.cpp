@@ -299,30 +299,30 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d2)
 }
 
 
-TEST(PITTS_TensorTrain_normalize, approximation_error_d20)
+TEST(PITTS_TensorTrain_normalize, approximation_error_d10)
 {
-  TensorTrain_double TT(20,2);
+  TensorTrain_double TT(10,2);
   // more difficult to make useful test case in higher dimensions, just make it random...
-  TT.setTTranks(50);
+  TT.setTTranks(32);
   PITTS::randomize(TT);
   // workaround to orthogonalize it wrt. the tt core in the middle
   {
-    TensorTrain_double tmp(20,2);
+    TensorTrain_double tmp(10,2);
     PITTS::rightNormalize(TT);
     PITTS::copy(TT, tmp);
     PITTS::leftNormalize(tmp);
-    auto& subT = TT.editableSubTensors()[10];
+    auto& subT = TT.editableSubTensors()[5];
     for(int i = 0; i < subT.r1(); i++)
       for(int j = 0; j < subT.n(); j++)
         for(int k = 0; k < subT.r2(); k++)
           subT(i,j,k) = subT(i,j,k) * std::pow(0.1, i);
-    ASSERT_EQ(tmp.subTensors()[9].r2(), TT.subTensors()[10].r1());
-    for(int iDim = 0; iDim < 10; iDim++)
+    ASSERT_EQ(tmp.subTensors()[4].r2(), TT.subTensors()[5].r1());
+    for(int iDim = 0; iDim < 5; iDim++)
       std::swap(tmp.editableSubTensors()[iDim], TT.editableSubTensors()[iDim]);
   }
 
   // try different truncation accuracies...
-  TensorTrain_double TTtruncated(20,2);
+  TensorTrain_double TTtruncated(10,2);
 
   // default accuracy
   PITTS::copy(TT, TTtruncated);
