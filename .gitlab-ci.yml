@@ -1,0 +1,55 @@
+before_script:
+  - module load PrgEnv/gcc10-openmpi-python
+  - module load py-gcovr/py-gcovr-4.2/py-gcovr-4.2-gcc-7.5.0-python3-jyb5c7f
+  - export CCACHE_DIR="/var/tmp/$USER/ccache_PITTS/"
+  - export OMP_NUM_THREADS=5
+  - ulimit -s unlimited
+  - export OMP_STACKSIZE=20M
+  - export CXX="ccache g++"
+  - ccache -z
+
+after_script:
+  - CCACHE_DIR="/var/tmp/$USER/ccache_PITTS/" ccache -s
+
+build_release:
+  stage: build
+  needs: []
+  script:
+    - mkdir build_release && cd build_release
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake --build . -- -j 8
+    - cmake --build . --target check -j 8
+  artifacts:
+    reports:
+      junit: build_release/test/pitts_tests*.xml
+
+build_coverage:
+  stage: build
+  needs: []
+  script:
+    - mkdir build_coverage && cd build_coverage
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On
+    - cmake --build . -- -j 8
+    - cmake --build . --target check -j 8
+  coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
+  artifacts:
+    reports:
+      junit: build_coverage/test/pitts_tests*.xml
+      cobertura: build_coverage/test/coverage.xml
+    paths:
+      - build_coverage/test/coverage*.html
+
+pages:
+  stage: deploy
+  dependencies:
+    - build_coverage
+  script:
+    - mkdir -p public/coverage
+    - mv build_coverage/test/coverage.*.html public/coverage/
+    - mv build_coverage/test/coverage.html public/coverage/index.html
+  artifacts:
+    paths:
+      - public/
+    expire_in: 30 days
+  only:
+    - master
