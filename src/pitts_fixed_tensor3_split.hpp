@@ -12,7 +12,10 @@
 
 // includes
 #include <array>
+#pragma GCC push_options
+#pragma GCC optimize("no-unsafe-math-optimizations")
 #include <Eigen/Dense>
+#pragma GCC pop_options
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_timer.hpp"
 

@@ -8,7 +8,10 @@
 #include <exception>
 #include <charconv>
 #include <iostream>
+#pragma GCC push_options
+#pragma GCC optimize("no-unsafe-math-optimizations")
 #include <Eigen/Dense>
+#pragma GCC pop_options
 
 
 int main(int argc, char* argv[])

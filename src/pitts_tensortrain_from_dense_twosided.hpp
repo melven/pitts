@@ -13,7 +13,10 @@
 // includes
 #include <limits>
 #include <numeric>
+#pragma GCC push_options
+#pragma GCC optimize("no-unsafe-math-optimizations")
 #include <Eigen/Dense>
+#pragma GCC pop_options
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_tsqr.hpp"

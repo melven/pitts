@@ -16,7 +16,10 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_timer.hpp"
+#pragma GCC push_options
+#pragma GCC optimize("no-unsafe-math-optimizations")
 #include <Eigen/Dense>
+#pragma GCC pop_options
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
