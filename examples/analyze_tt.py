@@ -34,7 +34,7 @@ if __name__ == '__main__':
     X = X.reshape([X.shape[0],] + feature_dims, order='F')
 
     for i in range(X.shape[0]):
-        iFrame = i + 30000 + X.shape[0]*iFile
+        iFrame = i+1 + 30000 + X.shape[0]*iFile
         sample = X[i,:]
         #print('min', sample.min(), 'max', sample.max())
         sample = np.maximum(sample, 0)
