@@ -36,7 +36,7 @@ if __name__ == '__main__':
     for i in range(X.shape[0]):
         iFrame = i + 30000 + X.shape[0]*iFile
         sample = X[i,:]
-        print('min', sample.min(), 'max', sample.max())
+        #print('min', sample.min(), 'max', sample.max())
         sample = np.maximum(sample, 0)
         sample = np.minimum(sample, 1)
         img = np.zeros(feature_dims, dtype=np.float32)
@@ -51,6 +51,9 @@ if __name__ == '__main__':
         img[:,:,1] = diff[:,:,1]
         img[:,:,2] = diff[:,:,0]
         plt.imsave('diff%d.png' % iFrame, img)
+        img_error = np.linalg.norm(sample - img_ref)
+        real_error = np.linalg.norm(X[i,:] - img_ref)
+        print('error img/real:', img_error, real_error)
 
     pitts_py.finalize(True)
 
