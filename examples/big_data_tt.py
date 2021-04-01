@@ -11,6 +11,42 @@ import numpy as np
 import cv2
 import pitts_py
 import sklearn.cluster
+from matplotlib import pyplot as plt
+
+
+def hierarchicalOrdering(*dims):
+    print('dims', dims)
+    dims_flat = []
+    for dim in dims:
+        dims_flat = dims_flat + dim
+    n_total = np.prod(dims_flat)
+    print('dims_flat', dims_flat)
+
+    dims_idx = [list() for dim in dims]
+    j = 0
+    i = len(dims_flat)
+    while i > 0:
+        j = j - 1 if j > 0 else len(dims)-1
+        if len(dims_idx[j]) < len(dims[j]):
+            i = i - 1
+            dims_idx[j].insert(0,i)
+    print('dims_idx', dims_idx)
+
+    dims_idx_flat = []
+    for dim_idx in dims_idx:
+        dims_idx_flat = dims_idx_flat + dim_idx
+
+    print('dims_idx_flat', dims_idx_flat)
+
+    idx = np.arange(n_total).reshape(dims_flat, order='F')
+    #print('original', idx.reshape([np.prod(dim) for dim in dims], order='F'))
+    idx = np.moveaxis(idx, np.arange(len(dims_flat)), dims_idx_flat)
+    idx = idx.reshape(n_total, order='F')
+    #idx_reverse = idx
+    #idx_reverse[idx] = np.arange(n_total)
+    #print('reordered', idx.reshape([np.prod(dim) for dim in dims], order='F'))
+    #print('reversed', idx_reverse.reshape([np.prod(dim) for dim in dims], order='F'))
+    return idx
 
 
 def getCurrentMemoryUsage():
@@ -56,23 +92,35 @@ def distribute(nElems, mpiComm):
 
 
 @timer
-def read_data(file_template, n_samples, n_features, padWithZero=False):
+def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=None):
 
     first, last = distribute(n_samples, MPI.COMM_WORLD)
     nlocal_samples = last - first
     print('rank:', MPI.COMM_WORLD.Get_rank(), 'first:', first, 'last:', last)
 
-    X = np.zeros((nlocal_samples, *n_features), dtype=np.float)
+    if reorder is not None:
+        X = np.zeros((nlocal_samples, *reorder.shape), dtype=np.float)
+    else:
+        X = np.zeros((nlocal_samples, *n_features), dtype=np.float)
 
     for i in range(nlocal_samples):
-        file_name = file_template.format(30000+first+i+1)
+        iFrame = 30000+first+i+1
+        file_name = file_template.format(iFrame)
         img = cv2.imread(file_name)
         if img is None and padWithZero:
             X[i,...] = 0
             continue
         if img is None:
             raise FileNotFoundError('Could not find: ' + file_name)
-        X[i,...] = img / 255
+        if reorder is not None:
+            X[i,reorder] = img.reshape(reorder.shape, order='F') / 255
+        else:
+            X[i,...] = img / 255
+
+#    if img is not None:
+#        plt.imsave('original%d.png' % iFrame, img)
+#        sample = X[i,reorder].reshape(n_features, order='F')
+#        plt.imsave('sample%d.png' %iFrame, sample)
 
     return X
 
@@ -118,12 +166,13 @@ if __name__ == '__main__':
 
     # pad the number of samples so we get a multiple of 2^d*nProcs
     n_samples = (116487 - 30000) // 4
-    n_features = (192,1024,3)
     d = 0
     while 2**d*nProcs < n_samples:
         d = d+1
     sample_dims = [nProcs,] + [2**d,]
-    feature_dims = [2,]*6 + [3,] + [2,]*8 + [2*2*3,]
+    n_features = (192,1024,3)
+    reorder_features = hierarchicalOrdering([2**5,]+[2*3], [512,2], [3,])
+    feature_dims = [2,]*12 + [3*2**4*3]
     assert(np.prod(sample_dims) < n_samples*2)
     assert(np.prod(sample_dims) >= n_samples)
     assert(np.prod(feature_dims) == np.prod(n_features))
@@ -132,7 +181,8 @@ if __name__ == '__main__':
     X = read_data(file_template='/scratch/zoel_ml/ATEK_COPY/combustion{:06d}.jpg',
                   n_samples=n_samples_padded,
                   n_features=(192,1024,3),
-                  padWithZero=True)
+                  padWithZero=True,
+                  reorder=reorder_features)
 
     local_dims = sample_dims[1:] + feature_dims
     Xm = copy_to_multivector(X, local_dims, batchSize=1)
@@ -145,6 +195,7 @@ if __name__ == '__main__':
     Xtt = calculate_TT_SVD(Xm, work, local_dims)
     if MPI.COMM_WORLD.Get_rank() == 0:
         print(Xtt)
+        np.savez(file='Xtt_reorder.npz', reorder_features=reorder_features)
 
     xtt_dict = tensortrain_to_dict(Xtt)
     np.savez(file='Xtt%d.npz'%iProc, **xtt_dict)

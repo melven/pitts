@@ -29,13 +29,20 @@ if __name__ == '__main__':
     tt_dict = np.load('Xtt%d.npz'%iFile, allow_pickle=True)
     Xtt = dict_to_tensortrain(tt_dict)
     print(Xtt)
+    reorder = np.load('Xtt_reorder.npz')['reorder_features']
 
     X = pitts_py.toDense(Xtt)
-    X = X.reshape([X.shape[0],] + feature_dims, order='F')
+    if reorder is not None:
+        X = X.reshape([X.shape[0],] + [*reorder.shape], order='F')
+    else:
+        X = X.reshape([X.shape[0],] + feature_dims, order='F')
 
     for i in range(X.shape[0]):
         iFrame = i+1 + 30000 + X.shape[0]*iFile
-        sample = X[i,:]
+        if reorder is not None:
+            sample = X[i,reorder].reshape(feature_dims, order='F')
+        else:
+            sample = X[i,:]
         #print('min', sample.min(), 'max', sample.max())
         sample = np.maximum(sample, 0)
         sample = np.minimum(sample, 1)
@@ -52,7 +59,10 @@ if __name__ == '__main__':
         img[:,:,2] = diff[:,:,0]
         plt.imsave('diff%d.png' % iFrame, img)
         img_error = np.linalg.norm(sample - img_ref)
-        real_error = np.linalg.norm(X[i,:] - img_ref)
+        if reorder is not None:
+            real_error = np.linalg.norm(X[i,reorder] - img_ref.reshape(reorder.shape, order='F'))
+        else:
+            real_error = np.linalg.norm(X[i,...] - img_ref)
         print('error img/real:', img_error, real_error)
 
     pitts_py.finalize(True)
