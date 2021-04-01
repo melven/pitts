@@ -11,7 +11,6 @@ import numpy as np
 import cv2
 import pitts_py
 import sklearn.cluster
-from matplotlib import pyplot as plt
 
 
 def hierarchicalOrdering(*dims):
@@ -116,11 +115,6 @@ def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=N
             X[i,reorder] = img.reshape(reorder.shape, order='F') / 255
         else:
             X[i,...] = img / 255
-
-#    if img is not None:
-#        plt.imsave('original%d.png' % iFrame, img)
-#        sample = X[i,reorder].reshape(n_features, order='F')
-#        plt.imsave('sample%d.png' %iFrame, sample)
 
     return X
 

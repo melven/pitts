@@ -46,18 +46,11 @@ if __name__ == '__main__':
         #print('min', sample.min(), 'max', sample.max())
         sample = np.maximum(sample, 0)
         sample = np.minimum(sample, 1)
-        img = np.zeros(feature_dims, dtype=np.float32)
-        img[:,:,0] = sample[:,:,2]
-        img[:,:,1] = sample[:,:,1]
-        img[:,:,2] = sample[:,:,0]
-        plt.imsave('sample%d.png' % iFrame, img)
+        cv2.imwrite('sample%d.png' % iFrame, sample*255)
         img_ref = cv2.imread('/scratch/zoel_ml/ATEK_COPY/combustion{:06d}.jpg'.format(iFrame))
         img_ref = img_ref / 255
         diff = (1 + sample - img_ref)/2
-        img[:,:,0] = diff[:,:,2]
-        img[:,:,1] = diff[:,:,1]
-        img[:,:,2] = diff[:,:,0]
-        plt.imsave('diff%d.png' % iFrame, img)
+        cv2.imwrite('diff%d.png' % iFrame, diff*255)
         img_error = np.linalg.norm(sample - img_ref)
         if reorder is not None:
             real_error = np.linalg.norm(X[i,reorder] - img_ref.reshape(reorder.shape, order='F'))
