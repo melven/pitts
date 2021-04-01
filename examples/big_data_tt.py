@@ -91,7 +91,7 @@ def distribute(nElems, mpiComm):
 
 
 @timer
-def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=None):
+def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=None, discreteCosineTransform=False):
 
     first, last = distribute(n_samples, MPI.COMM_WORLD)
     nlocal_samples = last - first
@@ -105,16 +105,20 @@ def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=N
     for i in range(nlocal_samples):
         iFrame = 30000+first+i+1
         file_name = file_template.format(iFrame)
-        img = cv2.imread(file_name)
+        img = cv2.imread(file_name) / 255
+        if discreteCosineTransform:
+            img[:,:,0] = cv2.dct(img[:,:,0])
+            img[:,:,1] = cv2.dct(img[:,:,1])
+            img[:,:,2] = cv2.dct(img[:,:,2])
         if img is None and padWithZero:
             X[i,...] = 0
             continue
         if img is None:
             raise FileNotFoundError('Could not find: ' + file_name)
         if reorder is not None:
-            X[i,reorder] = img.reshape(reorder.shape, order='F') / 255
+            X[i,reorder] = img.reshape(reorder.shape, order='F')
         else:
-            X[i,...] = img / 255
+            X[i,...] = img
 
     return X
 
@@ -147,7 +151,7 @@ def tensortrain_to_dict(Xtt):
 
 @timer
 def calculate_TT_SVD(Xm, work, dims):
-    Xtt = pitts_py.fromDense(Xm, work, dims, rankTolerance=0.004, maxRank=1000, mpiGlobal=True)
+    Xtt = pitts_py.fromDense(Xm, work, dims, rankTolerance=0.001, maxRank=1000, mpiGlobal=True)
     return Xtt
 
 
@@ -165,7 +169,8 @@ if __name__ == '__main__':
         d = d+1
     sample_dims = [nProcs,] + [2**d,]
     n_features = (192,1024,3)
-    reorder_features = hierarchicalOrdering([2**5,]+[2*3], [512,2], [3,])
+    #reorder_features = hierarchicalOrdering([2,]*6+[3], [4,]*5, [3,])
+    reorder_features = hierarchicalOrdering([192,], [1024,], [3,])
     feature_dims = [2,]*12 + [3*2**4*3]
     assert(np.prod(sample_dims) < n_samples*2)
     assert(np.prod(sample_dims) >= n_samples)
@@ -176,7 +181,8 @@ if __name__ == '__main__':
                   n_samples=n_samples_padded,
                   n_features=(192,1024,3),
                   padWithZero=True,
-                  reorder=reorder_features)
+                  reorder=reorder_features,
+                  discreteCosineTransform=True)
 
     local_dims = sample_dims[1:] + feature_dims
     Xm = copy_to_multivector(X, local_dims, batchSize=1)
