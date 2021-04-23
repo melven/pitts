@@ -15,6 +15,8 @@ after_script:
 
 build_release:
   stage: build
+  variables:
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
   needs: []
   script:
     - mkdir build_release && cd build_release
@@ -27,6 +29,8 @@ build_release:
 
 build_coverage:
   stage: build
+  variables:
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
   needs: []
   script:
     - mkdir build_coverage && cd build_coverage
