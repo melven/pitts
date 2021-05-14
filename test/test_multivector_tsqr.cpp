@@ -281,7 +281,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
-  constexpr int n = 70;
+  constexpr int n = 16*Chunk::size - 7;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
@@ -330,7 +330,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
-  constexpr int n = 77;
+  constexpr int n = 16*Chunk::size - 7;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
@@ -403,7 +403,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformReducti
   constexpr int mChunks = (m-1) / Chunk::size + 1;
 
   // prepare work array
-  constexpr int ldaWork = mChunks+nChunks;
+  constexpr int ldaWork = mChunks+nChunks+1;
   constexpr int nWork = m*ldaWork + 2*nChunks;
   std::unique_ptr<Chunk[]> work(new Chunk[nWork]);
   int workOffset = 0;

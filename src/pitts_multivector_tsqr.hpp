@@ -237,8 +237,8 @@ namespace PITTS
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
-        // we need enough buffer space
-        if( ldaResult < mChunks+nChunks )
+        // we need enough buffer space because we store some additional vectors in it...
+        if( ldaResult < 1+mChunks+nChunks )
         {
           std::cout << "ERROR: buffer too small\n";
           exit(1);
@@ -424,10 +424,10 @@ namespace PITTS
         assert( mChunks == (m-1) / Chunk<T>::size + 1 );
         assert( mChunks*Chunk<T>::size*m == *len );
 
-        const auto nTotalChunks = 2*mChunks;
+        const auto ldaBuff = 2*mChunks+1;
 
         // get required buffer
-        std::unique_ptr<Chunk<T>[]> buff{new Chunk<T>[nTotalChunks*m]};
+        std::unique_ptr<Chunk<T>[]> buff{new Chunk<T>[ldaBuff*m]};
 
         // check alignement of buffers, we might be lucky often (because MPI allocated aligned buffers or we get our own buffers from the MPI_Allreduce call)
         const Chunk<T>* invecChunked = nullptr;
@@ -443,31 +443,31 @@ namespace PITTS
           // aligned variant
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              buff[i+j*nTotalChunks] = invecChunked[i+j*mChunks];
+              buff[i+j*ldaBuff] = invecChunked[i+j*mChunks];
         }
         else
         {
           // unaligned variant
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*nTotalChunks]);
+              unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*ldaBuff]);
         }
         if( inoutvecChunked )
         {
           // aligned variant
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              buff[mChunks+i+j*nTotalChunks] = inoutvecChunked[i+j*mChunks];
+              buff[mChunks+i+j*ldaBuff] = inoutvecChunked[i+j*mChunks];
         }
         else
         {
           // unaligned variant
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*nTotalChunks]);
+              unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
         }
 
-        transformBlock(mChunks, m, &buff[0], nTotalChunks, &buff[0], nTotalChunks);
+        transformBlock(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff);
 
         // copy back to inoutvec
         if( inoutvecChunked )
@@ -475,14 +475,14 @@ namespace PITTS
           // aligned variant
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              inoutvecChunked[i+j*mChunks] = buff[i+j*nTotalChunks];
+              inoutvecChunked[i+j*mChunks] = buff[i+j*ldaBuff];
         }
         else
         {
           // unaligned variant
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              unaligned_store(buff[i+j*nTotalChunks], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+              unaligned_store(buff[i+j*ldaBuff], inoutvec+(i+j*mChunks)*Chunk<T>::size);
         }
       }
 
@@ -531,7 +531,7 @@ namespace PITTS
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = reductionFactor;
-    const int ldaBuff = nChunks + mChunks;
+    const int ldaBuff = nChunks + mChunks+1;
     const int nBuffer = m*ldaBuff;
 //printf("nBuffer: %d\n", nBuffer);
     const long long nTotalChunks = M.rowChunks();
@@ -556,7 +556,7 @@ namespace PITTS
     // reduce #threads if there is not enough work to do...
     int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
-    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[mChunks*nMaxThreads*m]);
+    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[(mChunks*nMaxThreads+1)*m]);
     std::unique_ptr<Chunk<T>[]> presultBuff(new Chunk<T>[mChunks*m]);
 
 #pragma omp parallel num_threads(nDesiredThreads)
@@ -570,7 +570,7 @@ namespace PITTS
           plocalBuff[i] = Chunk<T>{};
 
       // index to the next free block in plocalBuff
-      int localBuffOffset = nChunks;
+      int localBuffOffset = nChunks+1;
 
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
@@ -584,32 +584,35 @@ namespace PITTS
         internal::HouseholderQR::copyBlockAndTransformReduction(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, nBuffer, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
 
-      int offset = iThread*mChunks;
-      for(int j = 0; j < m; j++)
-        for(int i = 0; i < mChunks; i++)
-          psharedBuff[offset + i + nThreads*mChunks*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
+      if( nThreads == 1 )
+      {
+        // compress result
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < mChunks; i++)
+            presultBuff[i+mChunks*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
+      }
+      else
+      {
+        const int offset = iThread*mChunks;
+        const int ldaSharedBuff = nThreads*mChunks+1;
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < mChunks; i++)
+            psharedBuff[offset + i + ldaSharedBuff*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
 
 #pragma omp barrier
 
 #pragma omp master
-      {
-        if( nThreads > 1 )
         {
           // reduce shared buffer
-          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], nThreads*mChunks, &psharedBuff[0], nThreads*mChunks);
+          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff);
 
           // compress result
           for(int j = 0; j < m; j++)
             for(int i = 0; i < mChunks; i++)
-              presultBuff[i+mChunks*j] = psharedBuff[i+nThreads*mChunks*j];
-        }
-        else
-        {
-          // psharedBuff is already as small as possible
-          std::swap(psharedBuff,presultBuff);
+              presultBuff[i+mChunks*j] = psharedBuff[i+ldaSharedBuff*j];
         }
       }
-    } // omp parallel
+    }
 
     if( mpiGlobal )
     {
