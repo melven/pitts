@@ -315,7 +315,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapX = ConstEigenMap(X);
   auto mapX_ref = ConstEigenMap(X_ref);
-  std::cout << "X:\n" << mapX << std::endl;
+  //std::cout << "X:\n" << mapX << std::endl;
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
@@ -382,7 +382,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapXresult = ConstEigenMap(Xresult);
-  std::cout << "X:\n" << mapXresult << std::endl;
+  //std::cout << "X:\n" << mapXresult << std::endl;
   auto mapX_ref = ConstEigenMap(X_ref);
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
