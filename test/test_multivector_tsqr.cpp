@@ -301,7 +301,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks());
 
   // check that the result is upper triangular
-  for(int i = 0; i < n; i++)
+  for(int i = 0; i < mChunks*Chunk::size; i++)
   {
     for(int j = 0; j < m; j++)
     {
@@ -315,7 +315,8 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapX = ConstEigenMap(X);
   auto mapX_ref = ConstEigenMap(X_ref);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX, Eigen::ComputeThinV);
+  std::cout << "X:\n" << mapX << std::endl;
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
@@ -336,7 +337,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
   constexpr int nChunks = nTotalChunks - mChunks;
 
-  MultiVector X(n,m), X_ref(n,m), Xresult(n,m);
+  MultiVector X(n,m), X_ref(n,m), Xresult(n+Chunk::size,m);
   randomize(X);
   randomize(Xresult);
   // make lower triangular part zero...
@@ -352,11 +353,11 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     for(int i = nChunks; i < nTotalChunks; i++)
       for(int j = 0; j < Chunk::size; j++)
       {
-        Xresult.chunk(i,col)[j] = X.chunk(i,col)[j];
+        Xresult.chunk(1+i,col)[j] = X.chunk(i,col)[j];
         X.chunk(i,col)[j] = 77;
       }
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks());
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(1,0), Xresult.colStrideChunks());
 
   // check that the result is upper triangular, copied to the bottom
   for(int i = 0; i < n; i++)
@@ -365,7 +366,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     {
       if( i > nChunks*Chunk::size + j )
       {
-        EXPECT_NEAR(0., Xresult(i,j), eps);
+        EXPECT_NEAR(0., Xresult(Chunk::size+i,j), eps);
       }
       // X shouldn't change
       if( i < nChunks*Chunk::size )
@@ -381,6 +382,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapXresult = ConstEigenMap(Xresult);
+  std::cout << "X:\n" << mapXresult << std::endl;
   auto mapX_ref = ConstEigenMap(X_ref);
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);

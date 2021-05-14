@@ -243,10 +243,8 @@ namespace PITTS
           std::cout << "ERROR: buffer too small\n";
           exit(1);
         }
-        Chunk<T> buff_v[nChunks+mChunks];
-        Chunk<T> buff_w[nChunks+mChunks];
-        Chunk<T>* v = buff_v;
-        Chunk<T>* w = buff_w;
+        Chunk<T>* v = nullptr;
+        Chunk<T>* w = nullptr;
         const Chunk<T>* pdata = pdataIn;
         long long lda = ldaIn;
         for(int col = 0; col < m; col++)
@@ -281,45 +279,71 @@ namespace PITTS
           //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
           alpha *= (pivot > 0 ? -1 : 1);
 
-          if( col+1 < m )
-          {
-            uTu_sum -= pivot*alpha;
-            pivot -= alpha;
-            index_bcast(pivotChunk, idx, pivot, pivotChunk);
-            T beta = 1/std::sqrt(uTu_sum);
-            mul(beta, pivotChunk, v[firstRow]);
-            {
-              int i = firstRow + 1;
-              for(; i < nChunks; i++)
-                mul(beta, pdata[i+lda*col], v[i]);
-              for(; i <= nChunks+firstRow; i++)
-                mul(beta, pdataResult[i+ldaResult*col], v[i]);
-            }
-          }
+          // calculate reflection vector
+          uTu_sum -= pivot*alpha;
+          pivot -= alpha;
+          index_bcast(pivotChunk, idx, pivot, pivotChunk);
+          T beta = 1/std::sqrt(uTu_sum);
 
-          // apply I - 2 v v^T     (the factor 2 is already included in v)
+          Chunk<T> alphaChunk;
+          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
 
-          // we already know column col
+          // we store the current reflection vector v in the result buffer where we have more space after the reflection...
           if( pdataIn == pdataResult )
           {
-            // in-place
-            Chunk<T> alphaChunk;
-            index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+            // data moves to top, use space below
+            v = &pdataResult[mChunks+ldaResult*col] - firstRow;
+
+            // ordering here is important because v overwrites parts of pdataResult
+            if( col == 0 )
+            {
+              mul(beta, pdataResult[nChunks+ldaResult*col], v[nChunks]);
+              for(int i = nChunks-1; i >= firstRow+1; i--)
+                mul(beta, pdata[i+lda*col], v[i]);
+            }
+            else
+            {
+              for(int i = nChunks+firstRow; i >= firstRow+1; i--)
+                mul(beta, pdataResult[i+ldaResult*col], v[i]);
+            }
+            mul(beta, pivotChunk, v[firstRow]);
+
+            // result for col is (alpha, 0, 0, ..., 0)
+            // in-place variant
             masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
-            for(int i = firstRow+1; i <= nChunks+firstRow; i++)
+            for(int i = firstRow+1; i < mChunks; i++)
               pdataResult[i+ldaResult*col] = Chunk<T>{};
           }
           else
           {
-            // out-of-place: copy result down to reuse buffer later
-            Chunk<T> alphaChunk;
-            index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
-            masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
-            for(int i = firstRow; i >= 0; i--)
+            // data moves to bottom, use space above
+            v = &pdataResult[0+ldaResult*col] - firstRow - 1;
+
+            // we need to rotate data around to reuse the space... use a small tmp buffer to make it simpler...
+            Chunk<T> tmp[firstRow+1];
+            for(int i = 0; i <= firstRow; i++)
+              tmp[i] = pdataResult[i+ldaResult*col];
+            masked_store_after(alphaChunk, idx, tmp[firstRow]);
+
+            mul(beta, pivotChunk, v[firstRow]);
+            if( col == 0 )
             {
-              pdataResult[nChunks+i+ldaResult*col] = pdataResult[i+ldaResult*col];
+              for(int i = firstRow+1; i < nChunks; i++)
+                mul(beta, pdata[i+lda*col], v[i]);
+              mul(beta, pdataResult[nChunks+ldaResult*col], v[nChunks]);
             }
+            else
+            {
+              for(int i = firstRow+1; i <= nChunks+firstRow; i++)
+                mul(beta, pdataResult[i+ldaResult*col], v[i]);
+            }
+
+            // out-of-place: copy result down to reuse buffer later
+            for(int i = 0; i <= firstRow; i++)
+              pdataResult[nChunks+i+ldaResult*col] = tmp[i];
           }
+
+          // apply I - 2 v v^T     (the factor 2 is already included in v)
 
           // outer loop unroll (v and previous v in w)
           if( col % 2 == 1 && col+1 < m)
