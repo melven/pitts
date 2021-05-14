@@ -690,29 +690,24 @@ namespace PITTS
   template<typename T>
   void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 0, bool mpiGlobal = true)
   {
+    // default size for column blocking
+    int colBlockingSize = 15;
     // automatically choose suitable reduction factor and column blocking
-    int colBlockingSize = 5;
     if( reductionFactor == 0 )
     {
       // L1 cache size per core (in chunks)
       constexpr int cacheSize_L1 = 32*1024 / (Chunk<T>::size * sizeof(T));
       // L2 cache size per core (in chunks)
       constexpr int cacheSize_L2 = 1*1024*1024 / (Chunk<T>::size * sizeof(T));
-      // max. reductionFactor (for small number of columns)
-      constexpr int maxReductionFactor = 37;
-      // min. size for column blocking
-      constexpr int minColBlockingSize = 10;
+      // max. reductionFactor (for small number of columns, ensure applyReflection2<T,3> fits into L1)
+      constexpr int maxReductionFactor = int(0.74 * cacheSize_L1 / (3+2));
 
       // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
-      reductionFactor = std::min(maxReductionFactor, int(0.7 * cacheSize_L2 / M.cols()) );
+      reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
       reductionFactor = std::max(1, reductionFactor);
 
-      // choose column blocking size such that 2x (reductionFactor+1)*blockingSize fit into the L1 cache
-      colBlockingSize = std::max(minColBlockingSize, int(0.7 * cacheSize_L1 / (reductionFactor+1)) );
-
-      // reduce reductionFactor if still too big for L1
-      reductionFactor = std::min(reductionFactor, int(0.7 * cacheSize_L1 / colBlockingSize) );
-      reductionFactor = std::max(1, reductionFactor);
+      // enlarge column blocking factor such that we fill L1 if reductionFactor is smaller due m and L2
+      colBlockingSize = std::max(colBlockingSize, int(0.74 * cacheSize_L1 / (reductionFactor+1)) );
     }
 
     // calculate dimensions and block sizes
