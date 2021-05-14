@@ -358,14 +358,14 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 
   PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks());
 
-  // check that the result is upper triangular
+  // check that the result is upper triangular, copied to the bottom
   for(int i = 0; i < n; i++)
   {
     for(int j = 0; j < m; j++)
     {
-      if( i > j )
+      if( i > nChunks*Chunk::size + j )
       {
-        ASSERT_NEAR(0., Xresult(i,j), eps);
+        EXPECT_NEAR(0., Xresult(i,j), eps);
       }
       // X shouldn't change
       if( i < nChunks*Chunk::size )
@@ -382,7 +382,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapXresult = ConstEigenMap(Xresult);
   auto mapX_ref = ConstEigenMap(X_ref);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);

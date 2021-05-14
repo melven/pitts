@@ -237,6 +237,12 @@ namespace PITTS
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
+        // we need enough buffer space
+        if( ldaResult < mChunks+nChunks )
+        {
+          std::cout << "ERROR: buffer too small\n";
+          exit(1);
+        }
         Chunk<T> buff_v[nChunks+mChunks];
         Chunk<T> buff_w[nChunks+mChunks];
         Chunk<T>* v = buff_v;
@@ -255,11 +261,15 @@ namespace PITTS
           T pivot = pdata[firstRow+lda*col][idx];
           Chunk<T> uTu{};
           fmadd(pivotChunk, pivotChunk, uTu);
+          if( col == 0 )
           {
-            int i = firstRow + 1;
-            for(; i < nChunks; i++)
+            for(int i = firstRow+1; i < nChunks; i++)
               fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
-            for(; i <= nChunks+firstRow; i++)
+            fmadd(pdataResult[nChunks+ldaResult*col], pdataResult[nChunks+ldaResult*col], uTu);
+          }
+          else
+          {
+            for(int i = firstRow+1; i <= nChunks+firstRow; i++)
               fmadd(pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col], uTu);
           }
 
@@ -288,12 +298,28 @@ namespace PITTS
           }
 
           // apply I - 2 v v^T     (the factor 2 is already included in v)
+
           // we already know column col
-          Chunk<T> alphaChunk;
-          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
-          masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
-          for(int i = firstRow+1; i <= nChunks+firstRow; i++)
-            pdataResult[i+ldaResult*col] = Chunk<T>{};
+          if( pdataIn == pdataResult )
+          {
+            // in-place
+            Chunk<T> alphaChunk;
+            index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+            masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
+            for(int i = firstRow+1; i <= nChunks+firstRow; i++)
+              pdataResult[i+ldaResult*col] = Chunk<T>{};
+          }
+          else
+          {
+            // out-of-place: copy result down to reuse buffer later
+            Chunk<T> alphaChunk;
+            index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+            masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
+            for(int i = firstRow; i >= 0; i--)
+            {
+              pdataResult[nChunks+i+ldaResult*col] = pdataResult[i+ldaResult*col];
+            }
+          }
 
           // outer loop unroll (v and previous v in w)
           if( col % 2 == 1 && col+1 < m)
@@ -370,8 +396,8 @@ namespace PITTS
           workOffset = newWorkOffset;
         }
 
-        workOffset -= nSrc;
-        transformBlock(nSrc, m, pdataSrc, ldaSrc, pdataWork+workOffset, ldaWork);
+        //workOffset -= nSrc;
+        transformBlock(nSrc, m, pdataSrc, ldaSrc, pdataWork+workOffset-nSrc, ldaWork);
       }
 
 
@@ -506,7 +532,7 @@ namespace PITTS
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = reductionFactor;
     const int ldaBuff = nChunks + mChunks;
-    const int nBuffer = m*ldaBuff + 10*nChunks;
+    const int nBuffer = m*ldaBuff + 15*nChunks;
 //printf("nBuffer: %d\n", nBuffer);
     const long long nTotalChunks = M.rowChunks();
     const long long nIter = nTotalChunks / nChunks;
