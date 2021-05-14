@@ -379,7 +379,7 @@ namespace PITTS
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
-        if( true || workOffset < nSrc )
+        if( workOffset < nSrc )
         {
           // copy down, so there is enough space above the R block
           int newWorkOffset = nWork - m*ldaWork;
@@ -532,7 +532,7 @@ namespace PITTS
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = reductionFactor;
     const int ldaBuff = nChunks + mChunks;
-    const int nBuffer = m*ldaBuff + 15*nChunks;
+    const int nBuffer = m*ldaBuff;
 //printf("nBuffer: %d\n", nBuffer);
     const long long nTotalChunks = M.rowChunks();
     const long long nIter = nTotalChunks / nChunks;
@@ -570,7 +570,7 @@ namespace PITTS
           plocalBuff[i] = Chunk<T>{};
 
       // index to the next free block in plocalBuff
-      int localBuffOffset = 0;
+      int localBuffOffset = nChunks;
 
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
