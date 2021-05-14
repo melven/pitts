@@ -67,6 +67,7 @@ namespace PITTS
       [[gnu::always_inline]]
       inline void applyReflection(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
+//std::cout << "apply " << col << "\n";
         if( pdata == pdataResult || firstRow >= nChunks )
         {
           // fast case: in-place operation
@@ -123,6 +124,9 @@ namespace PITTS
       [[gnu::always_inline]]
       inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
+//for(int j = 0; j < NC; j++)
+//  std::cout << "apply " << col+j << "\n";
+
         Chunk<T> wTx[NC]{};
         Chunk<T> vTx[NC]{};
         if( pdata == pdataResult || firstRow >= nChunks )
@@ -204,6 +208,15 @@ namespace PITTS
         }
       }
 
+      // forward declaration
+      template<typename T>
+      void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol);
+
+      // forward declaration
+      template<typename T>
+      void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol);
+
+
 
       //! Calculate the upper triangular part R from a QR-decomposition of a small rectangular block where the bottom left triangle is already zero
       //!
@@ -239,9 +252,77 @@ namespace PITTS
       //!                     On input, the bottom part must be upper triangular, the first nChunk chunks of rows are ignored.
       //! @param ldaResult    offset of columns in pdataResult
       //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+1 for out-of-place calculation and nChunks for in-place calculation
+      //! @param blockSize    tuning parameter for better cache access if m is large
       //!
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int blockSize = 10)
+      {
+        // this is an approach for hierarchical blocking of
+        // for(int i = 0; i < m; i++)
+        //   calc i
+        //   for(int j = i+1; j < m; j++)
+        //     apply i to j
+
+        const int splitSize = int(blockSize*1.51);
+
+        // try to use steps that are multiple of three
+        const auto pad3 = [](int n)
+        {
+          if( n % 3 == 1 )
+            n--;
+          if( n % 3 == 2 )
+            n++;
+          return n;
+        };
+
+        const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
+        {
+          int nCol = endCol - beginCol;
+          int nApplyCol = applyEndCol - applyBeginCol;
+
+          if( nCol < splitSize && nApplyCol < splitSize )
+          {
+            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
+          }
+          else
+          {
+            if( nCol > nApplyCol )
+            {
+              int middle = pad3(beginCol + nCol/2);
+              tree_apply(beginCol, middle, applyBeginCol, applyEndCol);
+              tree_apply(middle, endCol, applyBeginCol, applyEndCol);
+            }
+            else
+            {
+              int middle = pad3(applyBeginCol + nApplyCol/2);
+              tree_apply(beginCol, endCol, applyBeginCol, middle);
+              tree_apply(beginCol, endCol, middle, applyEndCol);
+            }
+          }
+        };
+
+        const std::function<void(int,int)> tree_calc = [&](int beginCol, int endCol)
+        {
+          int nCol = endCol - beginCol;
+          if( nCol < splitSize )
+          {
+            transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol);
+          }
+          else
+          {
+            int middle = pad3(beginCol + nCol/2);
+            tree_calc(beginCol, middle);
+            tree_apply(beginCol, middle, middle, endCol);
+            tree_calc(middle, endCol);
+          }
+        };
+
+        tree_calc(0, m);
+      }
+
+      //! internal helper function for transformBlock
+      template<typename T>
+      void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
@@ -259,12 +340,20 @@ namespace PITTS
           pdataResult = pdataResult + resultOffset - nChunks;
         }
 
-        Chunk<T>* v = nullptr;
-        Chunk<T>* w = nullptr;
-        const Chunk<T>* pdata = pdataIn;
-        long long lda = ldaIn;
-        for(int col = 0; col < m; col++)
+        for(int col = beginCol; col < endCol; col++)
         {
+          const Chunk<T>* pdata = nullptr;
+          long long lda = 0;
+          if( col == 0 )
+          {
+            pdata = pdataIn;
+            lda = ldaIn;
+          }
+          else
+          {
+            pdata = pdataResult;
+            lda = ldaResult;
+          }
           int firstRow = col / Chunk<T>::size;
           int idx = col % Chunk<T>::size;
           Chunk<T> pivotChunk;
@@ -305,10 +394,14 @@ namespace PITTS
           index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
 
           // we store the current reflection vector v in the result buffer where we have more space after the reflection...
+          Chunk<T>* v = nullptr;
+          Chunk<T>* w = nullptr;
           if( pdataIn == pdataResult )
           {
             // data moves to top, use space below
             v = &pdataResult[mChunks+ldaResult*col] - firstRow;
+            if( col % 2 == 1 )
+              w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
 
             // ordering here is important because v overwrites parts of pdataResult
             if( col == 0 )
@@ -334,6 +427,8 @@ namespace PITTS
           {
             // data moves to bottom, use space above
             v = &pdataResult[0+ldaResult*col] - firstRow - 1;
+            if( col % 2 == 1 )
+              w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
 
             // we need to rotate data around to reuse the space... use a small tmp buffer to make it simpler...
             Chunk<T> tmp[firstRow+1];
@@ -360,15 +455,15 @@ namespace PITTS
           }
 
           // apply I - 2 v v^T     (the factor 2 is already included in v)
-
           // outer loop unroll (v and previous v in w)
-          if( col % 2 == 1 && col+1 < m)
+          if( col % 2 == 1 && col+1 < endCol)
           {
             if( col == 1 )
             {
               pdata = pdataIn;
               lda = ldaIn;
             }
+//std::cout << "cols " << col-1 << " " << col << "\n";
 
             // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
             Chunk<T> vTw{};
@@ -377,21 +472,109 @@ namespace PITTS
             bcast_sum(vTw);
 
             int j = col+1;
-            for(; j+2 < m; j+=3)
+            for(; j+2 < endCol; j+=3)
               applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            if( j+1 < m )
+            if( j+1 < endCol )
               applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            else if( j < m )
+            else if( j < endCol )
               applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
           }
-          else if( col+1 < m )
+          else if( col+1 < endCol )
           {
+//std::cout << "col " << col << "\n";
             applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
           }
+        }
+      }
 
-          pdata = pdataResult;
-          lda = ldaResult;
-          std::swap(v,w);
+      //! internal helper function for transformBlock
+      template<typename T>
+      void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
+                                Chunk<T>* pdataResult, int ldaResult, int resultOffset,
+                                int beginCol, int endCol, int applyBeginCol, int applyEndCol)
+      {
+        const int mChunks = (m-1) / Chunk<T>::size + 1;
+        // we need enough buffer space because we store some additional vectors in it...
+        if( pdataIn == pdataResult )
+        {
+          // in-place
+          assert(resultOffset == nChunks);
+          assert(ldaResult >= mChunks + nChunks + 1);
+        }
+        else
+        {
+          // out-of-place
+          assert(resultOffset > nChunks);
+          assert(ldaResult >= mChunks + resultOffset);
+          pdataResult = pdataResult + resultOffset - nChunks;
+        }
+
+        for(int col = beginCol; col < endCol; col++)
+        {
+          const Chunk<T>* pdata = nullptr;
+          long long lda = 0;
+          if( col == 0 )
+          {
+            pdata = pdataIn;
+            lda = ldaIn;
+          }
+          else
+          {
+            pdata = pdataResult;
+            lda = ldaResult;
+          }
+          int firstRow = col / Chunk<T>::size;
+          int idx = col % Chunk<T>::size;
+
+          // we store the current reflection vector v in the result buffer where we have more space after the reflection...
+          Chunk<T>* v = nullptr;
+          Chunk<T>* w = nullptr;
+          if( pdataIn == pdataResult )
+          {
+            // data moves to top, use space below
+            v = &pdataResult[mChunks+ldaResult*col] - firstRow;
+            if( col % 2 == 1 )
+              w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
+          }
+          else
+          {
+            // data moves to bottom, use space above
+            v = &pdataResult[0+ldaResult*col] - firstRow - 1;
+            if( col % 2 == 1 )
+              w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
+          }
+
+          // apply I - 2 v v^T     (the factor 2 is already included in v)
+
+          // outer loop unroll (v and previous v in w)
+          if( col % 2 == 1 )
+          {
+            if( col == 1 )
+            {
+              pdata = pdataIn;
+              lda = ldaIn;
+            }
+//std::cout << "cols " << col-1 << " " << col << "\n";
+
+            // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
+            Chunk<T> vTw{};
+            for(int i = firstRow; i <= nChunks+firstRow; i++)
+              fmadd(v[i], w[i], vTw);
+            bcast_sum(vTw);
+
+            int j = applyBeginCol;
+            for(; j+2 < applyEndCol; j+=3)
+              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+            if( j+1 < applyEndCol )
+              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+            else if( j < applyEndCol )
+              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+          }
+          else if( col+1 >= applyBeginCol && col+1 < applyEndCol )
+          {
+//std::cout << "col " << col << "\n";
+            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
+          }
         }
       }
 
@@ -507,17 +690,28 @@ namespace PITTS
   template<typename T>
   void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 0, bool mpiGlobal = true)
   {
-    // automatically choose suitable reduction factor
+    // automatically choose suitable reduction factor and column blocking
+    int colBlockingSize = 5;
     if( reductionFactor == 0 )
     {
-      // cache size per core (usually L2, L1 is already too small)
-      constexpr int cacheSize = 1*1024*1024;
+      // L1 cache size per core (in chunks)
+      constexpr int cacheSize_L1 = 32*1024 / (Chunk<T>::size * sizeof(T));
+      // L2 cache size per core (in chunks)
+      constexpr int cacheSize_L2 = 1*1024*1024 / (Chunk<T>::size * sizeof(T));
       // max. reductionFactor (for small number of columns)
-      // we could deduce this from L1 cache size but larger values don't seem to improve the performance...
       constexpr int maxReductionFactor = 37;
+      // min. size for column blocking
+      constexpr int minColBlockingSize = 10;
 
-      // choose the reduction factor such that 1.5 blocks of (reductionFactor x M.cols()) fit into the cache
-      reductionFactor = std::min(maxReductionFactor, int(cacheSize / (1.5 * M.cols() * Chunk<T>::size * sizeof(T))) );
+      // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
+      reductionFactor = std::min(maxReductionFactor, int(0.7 * cacheSize_L2 / M.cols()) );
+      reductionFactor = std::max(1, reductionFactor);
+
+      // choose column blocking size such that 2x (reductionFactor+1)*blockingSize fit into the L1 cache
+      colBlockingSize = std::max(minColBlockingSize, int(0.7 * cacheSize_L1 / (reductionFactor+1)) );
+
+      // reduce reductionFactor if still too big for L1
+      reductionFactor = std::min(reductionFactor, int(0.7 * cacheSize_L1 / colBlockingSize) );
       reductionFactor = std::max(1, reductionFactor);
     }
 
@@ -534,7 +728,7 @@ namespace PITTS
     const long long lda = M.colStrideChunks();
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
-        {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
+        {{"rows", "cols", "reductionFactor", "colBlockingSize"},{n, m, reductionFactor, colBlockingSize}}, // arguments
         {{(1.+1./reductionFactor)*(n*(m + m*(m-1.)))*kernel_info::FMA<T>()}, // flops - roughly estimated
          {(n*m)*kernel_info::Load<T>() + (m*m)*kernel_info::Store<T>()}} // data transfers
         );
@@ -570,13 +764,13 @@ namespace PITTS
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
       {
-        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
+        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
       if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
         const int nLastChunks = nTotalChunks-nIter*nChunks;
-        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
+        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
       }
 
       if( nThreads == 1 )
@@ -599,7 +793,7 @@ namespace PITTS
 #pragma omp master
         {
           // reduce shared buffer
-          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks);
+          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks, colBlockingSize);
 
           // compress result
           for(int j = 0; j < m; j++)
