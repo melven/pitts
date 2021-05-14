@@ -255,7 +255,7 @@ namespace PITTS
       //! @param blockSize    tuning parameter for better cache access if m is large
       //!
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int blockSize = 10)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset)
       {
         // this is an approach for hierarchical blocking of
         // for(int i = 0; i < m; i++)
@@ -263,24 +263,14 @@ namespace PITTS
         //   for(int j = i+1; j < m; j++)
         //     apply i to j
 
-        const int splitSize = int(blockSize*1.51);
-
-        // try to use steps that are multiple of three
-        const auto pad3 = [](int n)
-        {
-          if( n % 3 == 1 )
-            n--;
-          if( n % 3 == 2 )
-            n++;
-          return n;
-        };
+        constexpr int bs = 12;
 
         const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
         {
           int nCol = endCol - beginCol;
           int nApplyCol = applyEndCol - applyBeginCol;
 
-          if( nCol < splitSize && nApplyCol < splitSize )
+          if( nCol < 2*bs && nApplyCol < 2*bs )
           {
             transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
           }
@@ -288,13 +278,13 @@ namespace PITTS
           {
             if( nCol > nApplyCol )
             {
-              int middle = pad3(beginCol + nCol/2);
+              int middle = beginCol + (nCol/2/bs)*bs;
               tree_apply(beginCol, middle, applyBeginCol, applyEndCol);
               tree_apply(middle, endCol, applyBeginCol, applyEndCol);
             }
             else
             {
-              int middle = pad3(applyBeginCol + nApplyCol/2);
+              int middle = applyBeginCol + (nApplyCol/2/bs)*bs;
               tree_apply(beginCol, endCol, applyBeginCol, middle);
               tree_apply(beginCol, endCol, middle, applyEndCol);
             }
@@ -304,13 +294,13 @@ namespace PITTS
         const std::function<void(int,int)> tree_calc = [&](int beginCol, int endCol)
         {
           int nCol = endCol - beginCol;
-          if( nCol < splitSize )
+          if( nCol < 2*bs )
           {
             transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol);
           }
           else
           {
-            int middle = pad3(beginCol + nCol/2);
+            int middle = beginCol + (nCol/2/bs)*bs;
             tree_calc(beginCol, middle);
             tree_apply(beginCol, middle, middle, endCol);
             tree_calc(middle, endCol);
@@ -474,9 +464,7 @@ namespace PITTS
             int j = col+1;
             for(; j+2 < endCol; j+=3)
               applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            if( j+1 < endCol )
-              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            else if( j < endCol )
+            for(; j < endCol; j++)
               applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
           }
           else if( col+1 < endCol )
@@ -565,9 +553,7 @@ namespace PITTS
             int j = applyBeginCol;
             for(; j+2 < applyEndCol; j+=3)
               applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            if( j+1 < applyEndCol )
-              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            else if( j < applyEndCol )
+            for(; j < applyEndCol; j++)
               applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
           }
           else if( col+1 >= applyBeginCol && col+1 < applyEndCol )
@@ -690,9 +676,7 @@ namespace PITTS
   template<typename T>
   void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 0, bool mpiGlobal = true)
   {
-    // default size for column blocking
-    int colBlockingSize = 15;
-    // automatically choose suitable reduction factor and column blocking
+    // automatically choose suitable reduction factor
     if( reductionFactor == 0 )
     {
       // L1 cache size per core (in chunks)
@@ -705,9 +689,6 @@ namespace PITTS
       // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
       reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
       reductionFactor = std::max(1, reductionFactor);
-
-      // enlarge column blocking factor such that we fill L1 if reductionFactor is smaller due m and L2
-      colBlockingSize = std::max(colBlockingSize, int(0.74 * cacheSize_L1 / (reductionFactor+1)) );
     }
 
     // calculate dimensions and block sizes
@@ -723,7 +704,7 @@ namespace PITTS
     const long long lda = M.colStrideChunks();
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
-        {{"rows", "cols", "reductionFactor", "colBlockingSize"},{n, m, reductionFactor, colBlockingSize}}, // arguments
+        {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
         {{(1.+1./reductionFactor)*(n*(m + m*(m-1.)))*kernel_info::FMA<T>()}, // flops - roughly estimated
          {(n*m)*kernel_info::Load<T>() + (m*m)*kernel_info::Store<T>()}} // data transfers
         );
@@ -759,13 +740,13 @@ namespace PITTS
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
       {
-        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
       if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
         const int nLastChunks = nTotalChunks-nIter*nChunks;
-        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
 
       if( nThreads == 1 )
@@ -788,7 +769,7 @@ namespace PITTS
 #pragma omp master
         {
           // reduce shared buffer
-          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks, colBlockingSize);
+          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks);
 
           // compress result
           for(int j = 0; j < m; j++)
