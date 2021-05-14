@@ -223,6 +223,12 @@ namespace PITTS
       //!                     0 0 0 0 0 x                             0 0 0 0 0 0
       //! @endverbatim
       //!
+      //! @warning For out-of-place (pdataIn != pdataResult) calculation, the triangular result is copied back to the bottom of the buffer.
+      //!          For in-place (pdataIn == pdataResult) calculation, the triangular result is at the top of the buffer.
+      //!
+      //! @warning This assumes additional available memory around pdataResult for one additional chunk row
+      //           in front of (out-of-place: pdataResult != pdataIn), respectively behind (in-place: pdataResult == pdataIn) the current block.
+      //!
       //! @tparam T           underlying data type
       //!
       //! @param nChunks      number of new rows in pdataIn divided by the Chunk size
@@ -232,17 +238,27 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*m; contains the upper triangular R on exit; the lower triangular part is set to zero.
       //!                     On input, the bottom part must be upper triangular, the first nChunk chunks of rows are ignored.
       //! @param ldaResult    offset of columns in pdataResult
+      //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+1 for out-of-place calculation and nChunks for in-place calculation
       //!
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
-        if( ldaResult < 1+mChunks+nChunks )
+        if( pdataIn == pdataResult )
         {
-          std::cout << "ERROR: buffer too small\n";
-          exit(1);
+          // in-place
+          assert(resultOffset == nChunks);
+          assert(ldaResult >= mChunks + nChunks + 1);
         }
+        else
+        {
+          // out-of-place
+          assert(resultOffset > nChunks);
+          assert(ldaResult >= mChunks + resultOffset);
+          pdataResult = pdataResult + resultOffset - nChunks;
+        }
+
         Chunk<T>* v = nullptr;
         Chunk<T>* w = nullptr;
         const Chunk<T>* pdata = pdataIn;
@@ -380,51 +396,6 @@ namespace PITTS
       }
 
 
-      //! Helper function for combining a new block of of rows with a previously calculated upper triangular matrix
-      //! 
-      //! Mostly takes care of managing a ring buffer required for calling transformBlock.
-      //!
-      //! With each call, a few rows are added at the top of the current data in the work buffer (and transformed to upper triangular form again).
-      //! So, the data is slightly moved up in the work buffer. When the data is already at the top, it is copied to the end of the buffer first.
-      //!
-      //! @tparam T           underlying data type
-      //!
-      //! @param nSrc         number of chunks of rows of the new block
-      //! @param m            number of columns
-      //! @param pdataSrc     new block with dimension nSrc*m
-      //! @param ldaSrc       offset of columns in pdataSrc
-      //! @param nWork        total size of the work array, must be at least ldaWork*m + nSrc
-      //! @param pdataWork    work matrix with dimension nWork, current part is stored at [workOffset:workOffset+m*ldaWork]
-      //! @param ldaWork      offset of columns in pdataWork
-      //! @param workOffset   current offset in pdataWork, adjusted on output
-      //!
-      template<typename T>
-      void copyBlockAndTransformReduction(int nSrc, int m, const Chunk<T>* pdataSrc, long long ldaSrc, int nWork, Chunk<T>* pdataWork, int ldaWork, int& workOffset)
-      {
-        const int mChunks = (m-1) / Chunk<T>::size + 1;
-
-        if( workOffset < nSrc )
-        {
-          // copy down, so there is enough space above the R block
-          int newWorkOffset = nWork - m*ldaWork;
-          assert( newWorkOffset >= nSrc );
-          // copy from end to start to avoid overwriting data before it is copied!
-          for(int j = m-1; j >= 0; j--)
-          {
-            for(int i = ldaWork-1; i >= mChunks; i--)
-              pdataWork[newWorkOffset + i + ldaWork*j] = Chunk<T>{};
-            for(int i = mChunks-1; i >= 0; i--)
-              pdataWork[newWorkOffset + i + ldaWork*j] = pdataWork[workOffset + i + ldaWork*j];
-          }
-
-          workOffset = newWorkOffset;
-        }
-
-        //workOffset -= nSrc;
-        transformBlock(nSrc, m, pdataSrc, ldaSrc, pdataWork+workOffset-nSrc, ldaWork);
-      }
-
-
       //! Helper function for combining two upper triangular factors in an MPI_Reduce operation
       //!
       //! @param invec      upper triangular part of this process (memory layout + padding see implementation)
@@ -491,7 +462,7 @@ namespace PITTS
               unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
         }
 
-        transformBlock(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff);
+        transformBlock(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks);
 
         // copy back to inoutvec
         if( inoutvecChunked )
@@ -599,13 +570,13 @@ namespace PITTS
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
       {
-        internal::HouseholderQR::copyBlockAndTransformReduction(nChunks, m, &M.chunk(nChunks*iter,0), lda, nBuffer, &plocalBuff[0], ldaBuff, localBuffOffset);
+        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
       if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
         const int nLastChunks = nTotalChunks-nIter*nChunks;
-        internal::HouseholderQR::copyBlockAndTransformReduction(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, nBuffer, &plocalBuff[0], ldaBuff, localBuffOffset);
+        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
       }
 
       if( nThreads == 1 )
@@ -628,7 +599,7 @@ namespace PITTS
 #pragma omp master
         {
           // reduce shared buffer
-          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff);
+          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks);
 
           // compress result
           for(int j = 0; j < m; j++)
