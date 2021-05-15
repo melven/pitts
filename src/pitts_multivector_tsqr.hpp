@@ -216,7 +216,7 @@ namespace PITTS
       // forward declaration
       template<typename T>
       [[gnu::always_inline]]
-      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, int applyBeginCol, int applyEndCol);
+      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol);
 
 
 
@@ -281,17 +281,20 @@ namespace PITTS
         //   for(int j = i+1; j < m; j++)
         //     apply i to j
 
-        constexpr int bs = 3;
+        constexpr int bs = 15;
 
         const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
         {
+          // we know beginCol >= 2 (compiler hopefully uses for better code optimization!)
+          if( beginCol < 2 )
+            return;
+
           int nCol = endCol - beginCol;
           int nApplyCol = applyEndCol - applyBeginCol;
 
           if( nCol < 2*bs && nApplyCol < 2*bs )
           {
-            for(int col = beginCol; col < endCol; col++)
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, applyBeginCol, applyEndCol);
+            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
           }
           else
           {
@@ -312,13 +315,17 @@ namespace PITTS
 
         const std::function<void(int,int)> tree_calc = [&](int beginCol, int endCol)
         {
+          // we know beginCol >= 2 (compiler hopefully uses for better code optimization!)
+          if( beginCol < 2 )
+            return;
+
           int nCol = endCol - beginCol;
           if( nCol < 2*bs )
           {
             for(int col = beginCol; col < endCol; col++)
             {
               transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, endCol);
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol);
             }
           }
           else
@@ -330,7 +337,15 @@ namespace PITTS
           }
         };
 
-        tree_calc(0, m);
+        // first two iterations are special for out-of-place case... so call them explicitly...
+        transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 0);
+        if( m > 1 )
+        {
+          transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 0, 1, 1, 2);
+          transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 1);
+          transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 1, 2, 2, m);
+        }
+        tree_calc(2, m);
       }
 
       //! internal helper function for transformBlock
@@ -379,6 +394,7 @@ namespace PITTS
         //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
         alpha *= (pivot > 0 ? -1 : 1);
 
+
         // calculate reflection vector
         Chunk<T> vtmp[nChunks+1];
         if( col+1 < m )
@@ -412,31 +428,34 @@ namespace PITTS
             pdataResult[nChunks+i+ldaResult*col] = pdataResult[i+ldaResult*col];
         }
 
-        // store the current reflection vector in the result buffer (location above/below depending on in-place vs. out-of-place)
-        Chunk<T>* v = nullptr;
-        if( pdataIn == pdataResult )
-          v = &pdataResult[mChunks+ldaResult*col] - firstRow;
-        else
-          v = &pdataResult[0+ldaResult*col] - firstRow - 2;
-
-        for(int i = firstRow; i <= nChunks+firstRow; i++)
-          v[i] = vtmp[i-firstRow];
-
-
-        // calculate vTw if needed later
-        if( col % 2 == 1 && col + 1 < m )
+        if( col + 1 < m )
         {
-          Chunk<T>* w = nullptr;
+          // store the current reflection vector in the result buffer (location above/below depending on in-place vs. out-of-place)
+          Chunk<T>* v = nullptr;
           if( pdataIn == pdataResult )
-            w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
+            v = &pdataResult[mChunks+ldaResult*col] - firstRow;
           else
-            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 2;
+            v = &pdataResult[0+ldaResult*col] - firstRow - 2;
 
-          Chunk<T> vTw{};
           for(int i = firstRow; i <= nChunks+firstRow; i++)
-            fmadd(v[i], w[i], vTw);
-          bcast_sum(vTw);
-          w[nChunks+firstRow+1] = vTw;
+            v[i] = vtmp[i-firstRow];
+
+
+          // calculate vTw if needed later
+          if( col % 2 == 1 )
+          {
+            Chunk<T>* w = nullptr;
+            if( pdataIn == pdataResult )
+              w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
+            else
+              w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 2;
+
+            Chunk<T> vTw{};
+            for(int i = firstRow; i <= nChunks+firstRow; i++)
+              fmadd(v[i], w[i], vTw);
+            bcast_sum(vTw);
+            w[nChunks+firstRow+1] = vTw;
+          }
         }
       }
 
@@ -445,60 +464,94 @@ namespace PITTS
       [[gnu::always_inline]]
       inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
                                 Chunk<T>* pdataResult, int ldaResult, int resultOffset,
-                                int col, int applyBeginCol, int applyEndCol)
+                                int beginCol, int endCol, int applyBeginCol, int applyEndCol)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
+        if( endCol <= beginCol )
+          return;
+
+        const Chunk<T> *v0 = nullptr;
+        if( pdataIn == pdataResult )
+          v0 = &pdataResult[mChunks];
+        else
+          v0 = &pdataResult[0] - 2;
+
         const Chunk<T>* pdata = nullptr;
         long long lda = 0;
-        if( col == 0 || col == 1 )
-        {
-          pdata = pdataIn;
-          lda = ldaIn;
-        }
-        else
-        {
-          pdata = pdataResult;
-          lda = ldaResult;
-        }
-        int firstRow = col / Chunk<T>::size;
 
-        // we store the current reflection vector v in the result buffer where we have more space after the reflection...
-        Chunk<T>* v = nullptr;
-        Chunk<T>* w = nullptr;
-        if( pdataIn == pdataResult )
+        // reverse ordering (write avoiding)
+        int j = applyBeginCol;
+        for(; j+2 < applyEndCol; j+=3)
         {
-          // data moves to top, use space below
-          v = &pdataResult[mChunks+ldaResult*col] - firstRow;
-          if( col % 2 == 1 )
-            w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
+          for(int col = beginCol; col < endCol; col++)
+          {
+            if( col == 0 || col == 1 )
+            {
+              pdata = pdataIn;
+              lda = ldaIn;
+            }
+            else
+            {
+              pdata = pdataResult;
+              lda = ldaResult;
+            }
+            int firstRow = col / Chunk<T>::size;
+            const Chunk<T>* v = v0 + ldaResult*col - firstRow;
+            if( col % 2 == 1 )
+            {
+              const Chunk<T>* w = v - ldaResult;
+              const Chunk<T> vTw = w[nChunks+firstRow+1];
+              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+            }
+          }
         }
-        else
+        for(; j < applyEndCol; j++)
         {
-          // data moves to bottom, use space above
-          v = &pdataResult[0+ldaResult*col] - firstRow - 2;
-          if( col % 2 == 1 )
-            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 2;
+          for(int col = beginCol; col < endCol; col++)
+          {
+            if( col == 0 || col == 1 )
+            {
+              pdata = pdataIn;
+              lda = ldaIn;
+            }
+            else
+            {
+              pdata = pdataResult;
+              lda = ldaResult;
+            }
+            int firstRow = col / Chunk<T>::size;
+            const Chunk<T>* v = v0 + ldaResult*col - firstRow;
+            if( col % 2 == 1 )
+            {
+              const Chunk<T>* w = v - ldaResult;
+              const Chunk<T> vTw = w[nChunks+firstRow+1];
+              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+            }
+          }
         }
 
-        // apply I - 2 v v^T     (the factor 2 is already included in v)
-
-        // outer loop unroll (v and previous v in w)
-        if( col % 2 == 1 )
+        // special handling for last column
         {
-          // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-          Chunk<T> vTw = w[nChunks+firstRow+1];
+          int col = endCol - 1;
+          if( col == 0 || col == 1 )
+          {
+            pdata = pdataIn;
+            lda = ldaIn;
+          }
+          else
+          {
+            pdata = pdataResult;
+            lda = ldaResult;
+          }
+          int firstRow = col / Chunk<T>::size;
+          const Chunk<T>* v = v0 + ldaResult*col - firstRow;
 
-          int j = applyBeginCol;
-          for(; j+2 < applyEndCol; j+=3)
-            applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-          for(; j < applyEndCol; j++)
-            applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-        }
-        else if( col+1 >= applyBeginCol && col+1 < applyEndCol )
-        {
-          //std::cout << "col " << col << "\n";
-          applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
+          if( col % 2 == 0 && col+1 >= applyBeginCol && col+1 < applyEndCol )
+          {
+            //std::cout << "col " << col << "\n";
+            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
+          }
         }
       }
 
