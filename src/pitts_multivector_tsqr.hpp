@@ -210,11 +210,13 @@ namespace PITTS
 
       // forward declaration
       template<typename T>
-      void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol);
+      [[gnu::always_inline]]
+      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, Chunk<T>* vTwBuff);
 
       // forward declaration
       template<typename T>
-      void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol);
+      [[gnu::always_inline]]
+      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, int applyBeginCol, int applyEndCol, const Chunk<T>* vTwBuff);
 
 
 
@@ -257,13 +259,32 @@ namespace PITTS
       template<typename T>
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset)
       {
+        const int mChunks = (m-1) / Chunk<T>::size + 1;
+        // we need enough buffer space because we store some additional vectors in it...
+        if( pdataIn == pdataResult )
+        {
+          // in-place
+          assert(resultOffset == nChunks);
+          assert(ldaResult >= mChunks + nChunks + 1);
+        }
+        else
+        {
+          // out-of-place
+          assert(resultOffset > nChunks);
+          assert(ldaResult >= mChunks + resultOffset);
+          pdataResult = pdataResult + resultOffset - nChunks;
+        }
+
+        // helper array for vTw
+        Chunk<T> vTwBuff[m/2];
+
         // this is an approach for hierarchical blocking of
         // for(int i = 0; i < m; i++)
         //   calc i
         //   for(int j = i+1; j < m; j++)
         //     apply i to j
 
-        constexpr int bs = 12;
+        constexpr int bs = 3;
 
         const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
         {
@@ -272,7 +293,8 @@ namespace PITTS
 
           if( nCol < 2*bs && nApplyCol < 2*bs )
           {
-            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
+            for(int col = beginCol; col < endCol; col++)
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, applyBeginCol, applyEndCol, vTwBuff);
           }
           else
           {
@@ -296,7 +318,11 @@ namespace PITTS
           int nCol = endCol - beginCol;
           if( nCol < 2*bs )
           {
-            transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol);
+            for(int col = beginCol; col < endCol; col++)
+            {
+              transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, vTwBuff);
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, endCol, vTwBuff);
+            }
           }
           else
           {
@@ -312,255 +338,171 @@ namespace PITTS
 
       //! internal helper function for transformBlock
       template<typename T>
-      void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol)
+      [[gnu::always_inline]]
+      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, Chunk<T>* vTwBuff)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
-        // we need enough buffer space because we store some additional vectors in it...
-        if( pdataIn == pdataResult )
+
+        const Chunk<T>* pdata = nullptr;
+        long long lda = 0;
+        if( col == 0 )
         {
-          // in-place
-          assert(resultOffset == nChunks);
-          assert(ldaResult >= mChunks + nChunks + 1);
+          pdata = pdataIn;
+          lda = ldaIn;
         }
         else
         {
-          // out-of-place
-          assert(resultOffset > nChunks);
-          assert(ldaResult >= mChunks + resultOffset);
-          pdataResult = pdataResult + resultOffset - nChunks;
+          pdata = pdataResult;
+          lda = ldaResult;
         }
 
-        for(int col = beginCol; col < endCol; col++)
+        int firstRow = col / Chunk<T>::size;
+        int idx = col % Chunk<T>::size;
+        Chunk<T> pivotChunk;
+        masked_load_after(pdata[firstRow+lda*col], idx, pivotChunk);
+        // Householder projection P = I - 2 v v^T
+        // u = x - alpha e_1 with alpha = +- ||x||
+        // v = u / ||u||
+        T pivot = pdata[firstRow+lda*col][idx];
+        Chunk<T> uTu{};
+        fmadd(pivotChunk, pivotChunk, uTu);
         {
-          const Chunk<T>* pdata = nullptr;
-          long long lda = 0;
-          if( col == 0 )
-          {
-            pdata = pdataIn;
-            lda = ldaIn;
-          }
-          else
-          {
-            pdata = pdataResult;
-            lda = ldaResult;
-          }
-          int firstRow = col / Chunk<T>::size;
-          int idx = col % Chunk<T>::size;
-          Chunk<T> pivotChunk;
-          masked_load_after(pdata[firstRow+lda*col], idx, pivotChunk);
-          // Householder projection P = I - 2 v v^T
-          // u = x - alpha e_1 with alpha = +- ||x||
-          // v = u / ||u||
-          T pivot = pdata[firstRow+lda*col][idx];
-          Chunk<T> uTu{};
-          fmadd(pivotChunk, pivotChunk, uTu);
-          if( col == 0 )
-          {
-            for(int i = firstRow+1; i < nChunks; i++)
-              fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
-            fmadd(pdataResult[nChunks+ldaResult*col], pdataResult[nChunks+ldaResult*col], uTu);
-          }
-          else
-          {
-            for(int i = firstRow+1; i <= nChunks+firstRow; i++)
-              fmadd(pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col], uTu);
-          }
+          int i = firstRow+1;
+          for(; i < nChunks; i++)
+            fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
+          for(; i <= nChunks+firstRow; i++)
+            fmadd(pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col], uTu);
+        }
 
-          T uTu_sum = sum(uTu) + std::numeric_limits<T>::min();
+        T uTu_sum = sum(uTu) + std::numeric_limits<T>::min();
 
-          // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
-          // (falls back to I - 2 e1 e1^T in that case)
-          T alpha = std::sqrt(uTu_sum + std::numeric_limits<T>::min());
-          //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
-          alpha *= (pivot > 0 ? -1 : 1);
+        // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
+        // (falls back to I - 2 e1 e1^T in that case)
+        T alpha = std::sqrt(uTu_sum + std::numeric_limits<T>::min());
+        //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
+        alpha *= (pivot > 0 ? -1 : 1);
 
-          // calculate reflection vector
+        // calculate reflection vector
+        Chunk<T> vtmp[nChunks+1];
+        if( col+1 < m )
+        {
           uTu_sum -= pivot*alpha;
           pivot -= alpha;
           index_bcast(pivotChunk, idx, pivot, pivotChunk);
           T beta = 1/std::sqrt(uTu_sum);
+          mul(beta, pivotChunk, vtmp[0]);
+          int i = firstRow+1;
+          for(; i < nChunks; i++)
+            mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
+          for(; i <= nChunks+firstRow; i++)
+            mul(beta, pdataResult[i+ldaResult*col], vtmp[i-firstRow]);
+        }
 
-          Chunk<T> alphaChunk;
-          index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+        // set (known) current column to (*,*,*,alpha,0,0,...)
+        Chunk<T> alphaChunk;
+        index_bcast(Chunk<T>{}, idx, alpha, alphaChunk);
+        masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
+        if( pdataIn == pdataResult )
+        {
+          // in-place calculation: result stays at top, only need to set zeros below...
+          for(int i = firstRow+1; i < mChunks; i++)
+            pdataResult[i+ldaResult*col] = Chunk<T>{};
+        }
+        else
+        {
+          // out-of-place calculation: move result to the bottom...
+          for(int i = firstRow; i >= 0; i--)
+            pdataResult[nChunks+i+ldaResult*col] = pdataResult[i+ldaResult*col];
+        }
 
-          // we store the current reflection vector v in the result buffer where we have more space after the reflection...
-          Chunk<T>* v = nullptr;
+        // store the current reflection vector in the result buffer (location above/below depending on in-place vs. out-of-place)
+        Chunk<T>* v= nullptr;
+        if( pdataIn == pdataResult )
+          v= &pdataResult[mChunks+ldaResult*col] - firstRow;
+        else
+          v= &pdataResult[0+ldaResult*col] - firstRow - 1;
+
+        for(int i = firstRow; i <= nChunks+firstRow; i++)
+          v[i] = vtmp[i-firstRow];
+
+
+        // calculate vTw if needed later
+        if( col % 2 == 1 && col + 1 < m )
+        {
           Chunk<T>* w = nullptr;
           if( pdataIn == pdataResult )
-          {
-            // data moves to top, use space below
-            v = &pdataResult[mChunks+ldaResult*col] - firstRow;
-            if( col % 2 == 1 )
-              w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
-
-            // ordering here is important because v overwrites parts of pdataResult
-            if( col == 0 )
-            {
-              mul(beta, pdataResult[nChunks+ldaResult*col], v[nChunks]);
-              for(int i = nChunks-1; i >= firstRow+1; i--)
-                mul(beta, pdata[i+lda*col], v[i]);
-            }
-            else
-            {
-              for(int i = nChunks+firstRow; i >= firstRow+1; i--)
-                mul(beta, pdataResult[i+ldaResult*col], v[i]);
-            }
-            mul(beta, pivotChunk, v[firstRow]);
-
-            // result for col is (alpha, 0, 0, ..., 0)
-            // in-place variant
-            masked_store_after(alphaChunk, idx, pdataResult[firstRow+ldaResult*col]);
-            for(int i = firstRow+1; i < mChunks; i++)
-              pdataResult[i+ldaResult*col] = Chunk<T>{};
-          }
+            w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
           else
-          {
-            // data moves to bottom, use space above
-            v = &pdataResult[0+ldaResult*col] - firstRow - 1;
-            if( col % 2 == 1 )
-              w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
+            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
 
-            // we need to rotate data around to reuse the space... use a small tmp buffer to make it simpler...
-            Chunk<T> tmp[firstRow+1];
-            for(int i = 0; i <= firstRow; i++)
-              tmp[i] = pdataResult[i+ldaResult*col];
-            masked_store_after(alphaChunk, idx, tmp[firstRow]);
-
-            mul(beta, pivotChunk, v[firstRow]);
-            if( col == 0 )
-            {
-              for(int i = firstRow+1; i < nChunks; i++)
-                mul(beta, pdata[i+lda*col], v[i]);
-              mul(beta, pdataResult[nChunks+ldaResult*col], v[nChunks]);
-            }
-            else
-            {
-              for(int i = firstRow+1; i <= nChunks+firstRow; i++)
-                mul(beta, pdataResult[i+ldaResult*col], v[i]);
-            }
-
-            // out-of-place: copy result down to reuse buffer later
-            for(int i = 0; i <= firstRow; i++)
-              pdataResult[nChunks+i+ldaResult*col] = tmp[i];
-          }
-
-          // apply I - 2 v v^T     (the factor 2 is already included in v)
-          // outer loop unroll (v and previous v in w)
-          if( col % 2 == 1 && col+1 < endCol)
-          {
-            if( col == 1 )
-            {
-              pdata = pdataIn;
-              lda = ldaIn;
-            }
-//std::cout << "cols " << col-1 << " " << col << "\n";
-
-            // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-            Chunk<T> vTw{};
-            for(int i = firstRow; i <= nChunks+firstRow; i++)
-              fmadd(v[i], w[i], vTw);
-            bcast_sum(vTw);
-
-            int j = col+1;
-            for(; j+2 < endCol; j+=3)
-              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            for(; j < endCol; j++)
-              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-          }
-          else if( col+1 < endCol )
-          {
-//std::cout << "col " << col << "\n";
-            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
-          }
+          Chunk<T> vTw{};
+          for(int i = firstRow; i <= nChunks+firstRow; i++)
+            fmadd(v[i], w[i], vTw);
+          bcast_sum(vTw);
+          vTwBuff[col/2] = vTw;
         }
       }
 
       //! internal helper function for transformBlock
       template<typename T>
-      void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
+      [[gnu::always_inline]]
+      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
                                 Chunk<T>* pdataResult, int ldaResult, int resultOffset,
-                                int beginCol, int endCol, int applyBeginCol, int applyEndCol)
+                                int col, int applyBeginCol, int applyEndCol,
+                                const Chunk<T>* vTwBuff)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
-        // we need enough buffer space because we store some additional vectors in it...
-        if( pdataIn == pdataResult )
+
+        const Chunk<T>* pdata = nullptr;
+        long long lda = 0;
+        if( col == 0 || col == 1 )
         {
-          // in-place
-          assert(resultOffset == nChunks);
-          assert(ldaResult >= mChunks + nChunks + 1);
+          pdata = pdataIn;
+          lda = ldaIn;
         }
         else
         {
-          // out-of-place
-          assert(resultOffset > nChunks);
-          assert(ldaResult >= mChunks + resultOffset);
-          pdataResult = pdataResult + resultOffset - nChunks;
+          pdata = pdataResult;
+          lda = ldaResult;
+        }
+        int firstRow = col / Chunk<T>::size;
+
+        // we store the current reflection vector v in the result buffer where we have more space after the reflection...
+        Chunk<T>* v = nullptr;
+        Chunk<T>* w = nullptr;
+        if( pdataIn == pdataResult )
+        {
+          // data moves to top, use space below
+          v = &pdataResult[mChunks+ldaResult*col] - firstRow;
+          if( col % 2 == 1 )
+            w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
+        }
+        else
+        {
+          // data moves to bottom, use space above
+          v = &pdataResult[0+ldaResult*col] - firstRow - 1;
+          if( col % 2 == 1 )
+            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
         }
 
-        for(int col = beginCol; col < endCol; col++)
+        // apply I - 2 v v^T     (the factor 2 is already included in v)
+
+        // outer loop unroll (v and previous v in w)
+        if( col % 2 == 1 )
         {
-          const Chunk<T>* pdata = nullptr;
-          long long lda = 0;
-          if( col == 0 )
-          {
-            pdata = pdataIn;
-            lda = ldaIn;
-          }
-          else
-          {
-            pdata = pdataResult;
-            lda = ldaResult;
-          }
-          int firstRow = col / Chunk<T>::size;
-          int idx = col % Chunk<T>::size;
+          // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
+          Chunk<T> vTw = vTwBuff[col/2];
 
-          // we store the current reflection vector v in the result buffer where we have more space after the reflection...
-          Chunk<T>* v = nullptr;
-          Chunk<T>* w = nullptr;
-          if( pdataIn == pdataResult )
-          {
-            // data moves to top, use space below
-            v = &pdataResult[mChunks+ldaResult*col] - firstRow;
-            if( col % 2 == 1 )
-              w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
-          }
-          else
-          {
-            // data moves to bottom, use space above
-            v = &pdataResult[0+ldaResult*col] - firstRow - 1;
-            if( col % 2 == 1 )
-              w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
-          }
-
-          // apply I - 2 v v^T     (the factor 2 is already included in v)
-
-          // outer loop unroll (v and previous v in w)
-          if( col % 2 == 1 )
-          {
-            if( col == 1 )
-            {
-              pdata = pdataIn;
-              lda = ldaIn;
-            }
-//std::cout << "cols " << col-1 << " " << col << "\n";
-
-            // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-            Chunk<T> vTw{};
-            for(int i = firstRow; i <= nChunks+firstRow; i++)
-              fmadd(v[i], w[i], vTw);
-            bcast_sum(vTw);
-
-            int j = applyBeginCol;
-            for(; j+2 < applyEndCol; j+=3)
-              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            for(; j < applyEndCol; j++)
-              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-          }
-          else if( col+1 >= applyBeginCol && col+1 < applyEndCol )
-          {
-//std::cout << "col " << col << "\n";
-            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
-          }
+          int j = applyBeginCol;
+          for(; j+2 < applyEndCol; j+=3)
+            applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+          for(; j < applyEndCol; j++)
+            applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+        }
+        else if( col+1 >= applyBeginCol && col+1 < applyEndCol )
+        {
+          //std::cout << "col " << col << "\n";
+          applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
         }
       }
 
