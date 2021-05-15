@@ -337,7 +337,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
   constexpr int nChunks = nTotalChunks - mChunks;
 
-  MultiVector X(n,m), X_ref(n,m), Xresult(n+Chunk::size,m);
+  MultiVector X(n,m), X_ref(n,m), Xresult(n+2*Chunk::size,m);
   randomize(X);
   randomize(Xresult);
   // make lower triangular part zero...
@@ -353,11 +353,11 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     for(int i = nChunks; i < nTotalChunks; i++)
       for(int j = 0; j < Chunk::size; j++)
       {
-        Xresult.chunk(1+i,col)[j] = X.chunk(i,col)[j];
+        Xresult.chunk(2+i,col)[j] = X.chunk(i,col)[j];
         X.chunk(i,col)[j] = 77;
       }
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks(), 1+nChunks);
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks(), 2+nChunks);
 
   // check that the result is upper triangular, copied to the bottom
   for(int i = 0; i < n; i++)
@@ -366,7 +366,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     {
       if( i > nChunks*Chunk::size + j )
       {
-        EXPECT_NEAR(0., Xresult(Chunk::size+i,j), eps);
+        EXPECT_NEAR(0., Xresult(2*Chunk::size+i,j), eps);
       }
       // X shouldn't change
       if( i < nChunks*Chunk::size )

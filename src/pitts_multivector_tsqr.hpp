@@ -211,12 +211,12 @@ namespace PITTS
       // forward declaration
       template<typename T>
       [[gnu::always_inline]]
-      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, Chunk<T>* vTwBuff);
+      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col);
 
       // forward declaration
       template<typename T>
       [[gnu::always_inline]]
-      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, int applyBeginCol, int applyEndCol, const Chunk<T>* vTwBuff);
+      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, int applyBeginCol, int applyEndCol);
 
 
 
@@ -253,7 +253,7 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*m; contains the upper triangular R on exit; the lower triangular part is set to zero.
       //!                     On input, the bottom part must be upper triangular, the first nChunk chunks of rows are ignored.
       //! @param ldaResult    offset of columns in pdataResult
-      //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+1 for out-of-place calculation and nChunks for in-place calculation
+      //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+2 for out-of-place calculation and nChunks for in-place calculation
       //! @param blockSize    tuning parameter for better cache access if m is large
       //!
       template<typename T>
@@ -265,18 +265,15 @@ namespace PITTS
         {
           // in-place
           assert(resultOffset == nChunks);
-          assert(ldaResult >= mChunks + nChunks + 1);
+          assert(ldaResult >= mChunks + nChunks + 2);
         }
         else
         {
           // out-of-place
-          assert(resultOffset > nChunks);
+          assert(resultOffset >= nChunks + 2);
           assert(ldaResult >= mChunks + resultOffset);
           pdataResult = pdataResult + resultOffset - nChunks;
         }
-
-        // helper array for vTw
-        Chunk<T> vTwBuff[m/2];
 
         // this is an approach for hierarchical blocking of
         // for(int i = 0; i < m; i++)
@@ -294,7 +291,7 @@ namespace PITTS
           if( nCol < 2*bs && nApplyCol < 2*bs )
           {
             for(int col = beginCol; col < endCol; col++)
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, applyBeginCol, applyEndCol, vTwBuff);
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, applyBeginCol, applyEndCol);
           }
           else
           {
@@ -320,8 +317,8 @@ namespace PITTS
           {
             for(int col = beginCol; col < endCol; col++)
             {
-              transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, vTwBuff);
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, endCol, vTwBuff);
+              transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, endCol);
             }
           }
           else
@@ -339,7 +336,7 @@ namespace PITTS
       //! internal helper function for transformBlock
       template<typename T>
       [[gnu::always_inline]]
-      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col, Chunk<T>* vTwBuff)
+      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -416,11 +413,11 @@ namespace PITTS
         }
 
         // store the current reflection vector in the result buffer (location above/below depending on in-place vs. out-of-place)
-        Chunk<T>* v= nullptr;
+        Chunk<T>* v = nullptr;
         if( pdataIn == pdataResult )
-          v= &pdataResult[mChunks+ldaResult*col] - firstRow;
+          v = &pdataResult[mChunks+ldaResult*col] - firstRow;
         else
-          v= &pdataResult[0+ldaResult*col] - firstRow - 1;
+          v = &pdataResult[0+ldaResult*col] - firstRow - 2;
 
         for(int i = firstRow; i <= nChunks+firstRow; i++)
           v[i] = vtmp[i-firstRow];
@@ -433,13 +430,13 @@ namespace PITTS
           if( pdataIn == pdataResult )
             w = &pdataResult[mChunks+ldaResult*(col-1)] - firstRow;
           else
-            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
+            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 2;
 
           Chunk<T> vTw{};
           for(int i = firstRow; i <= nChunks+firstRow; i++)
             fmadd(v[i], w[i], vTw);
           bcast_sum(vTw);
-          vTwBuff[col/2] = vTw;
+          w[nChunks+firstRow+1] = vTw;
         }
       }
 
@@ -448,8 +445,7 @@ namespace PITTS
       [[gnu::always_inline]]
       inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
                                 Chunk<T>* pdataResult, int ldaResult, int resultOffset,
-                                int col, int applyBeginCol, int applyEndCol,
-                                const Chunk<T>* vTwBuff)
+                                int col, int applyBeginCol, int applyEndCol)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -480,9 +476,9 @@ namespace PITTS
         else
         {
           // data moves to bottom, use space above
-          v = &pdataResult[0+ldaResult*col] - firstRow - 1;
+          v = &pdataResult[0+ldaResult*col] - firstRow - 2;
           if( col % 2 == 1 )
-            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 1;
+            w = &pdataResult[0+ldaResult*(col-1)] - firstRow - 2;
         }
 
         // apply I - 2 v v^T     (the factor 2 is already included in v)
@@ -491,7 +487,7 @@ namespace PITTS
         if( col % 2 == 1 )
         {
           // (I-vv^T)(I-ww^T) = I - vv^T - ww^T + v (vTw) w^T = I - v (v^T - vTw w^T) - w w^T
-          Chunk<T> vTw = vTwBuff[col/2];
+          Chunk<T> vTw = w[nChunks+firstRow+1];
 
           int j = applyBeginCol;
           for(; j+2 < applyEndCol; j+=3)
@@ -530,7 +526,7 @@ namespace PITTS
         assert( mChunks == (m-1) / Chunk<T>::size + 1 );
         assert( mChunks*Chunk<T>::size*m == *len );
 
-        const auto ldaBuff = 2*mChunks+1;
+        const auto ldaBuff = 2*mChunks+2;
 
         // get required buffer
         std::unique_ptr<Chunk<T>[]> buff{new Chunk<T>[ldaBuff*m]};
@@ -638,7 +634,7 @@ namespace PITTS
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = reductionFactor;
-    const int ldaBuff = nChunks + mChunks+1;
+    const int ldaBuff = nChunks + mChunks+2;
     const int nBuffer = m*ldaBuff;
 //printf("nBuffer: %d\n", nBuffer);
     const long long nTotalChunks = M.rowChunks();
@@ -663,7 +659,7 @@ namespace PITTS
     // reduce #threads if there is not enough work to do...
     int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
-    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[(mChunks*nMaxThreads+1)*m]);
+    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[(mChunks*nMaxThreads+2)*m]);
     std::unique_ptr<Chunk<T>[]> presultBuff(new Chunk<T>[mChunks*m]);
 
 #pragma omp parallel num_threads(nDesiredThreads)
@@ -677,7 +673,7 @@ namespace PITTS
           plocalBuff[i] = Chunk<T>{};
 
       // index to the next free block in plocalBuff
-      int localBuffOffset = nChunks+1;
+      int localBuffOffset = nChunks+2;
 
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
@@ -701,7 +697,7 @@ namespace PITTS
       else
       {
         const int offset = iThread*mChunks;
-        const int ldaSharedBuff = nThreads*mChunks+1;
+        const int ldaSharedBuff = nThreads*mChunks+2;
         for(int j = 0; j < m; j++)
           for(int i = 0; i < mChunks; i++)
             psharedBuff[offset + i + ldaSharedBuff*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
