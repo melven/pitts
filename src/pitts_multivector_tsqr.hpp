@@ -285,40 +285,24 @@ namespace PITTS
 
         const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
         {
-          // we know beginCol >= 2 (compiler hopefully uses for better code optimization!)
-          if( beginCol < 2 )
-            return;
-
           int nCol = endCol - beginCol;
-          int nApplyCol = applyEndCol - applyBeginCol;
+          // could also split by nApplyCol but doesn't seem to be help
+          //int nApplyCol = applyEndCol - applyBeginCol;
 
-          if( nCol < 2*bs && nApplyCol < 2*bs )
+          if( nCol < 2*bs )
           {
             transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
           }
           else
           {
-            if( nCol > nApplyCol )
-            {
-              int middle = beginCol + (nCol/2/bs)*bs;
-              tree_apply(beginCol, middle, applyBeginCol, applyEndCol);
-              tree_apply(middle, endCol, applyBeginCol, applyEndCol);
-            }
-            else
-            {
-              int middle = applyBeginCol + (nApplyCol/2/bs)*bs;
-              tree_apply(beginCol, endCol, applyBeginCol, middle);
-              tree_apply(beginCol, endCol, middle, applyEndCol);
-            }
+            int middle = beginCol + (nCol/2/bs)*bs;
+            tree_apply(beginCol, middle, applyBeginCol, applyEndCol);
+            tree_apply(middle, endCol, applyBeginCol, applyEndCol);
           }
         };
 
         const std::function<void(int,int)> tree_calc = [&](int beginCol, int endCol)
         {
-          // we know beginCol >= 2 (compiler hopefully uses for better code optimization!)
-          if( beginCol < 2 )
-            return;
-
           int nCol = endCol - beginCol;
           if( nCol < 2*bs )
           {
@@ -337,15 +321,7 @@ namespace PITTS
           }
         };
 
-        // first two iterations are special for out-of-place case... so call them explicitly...
-        transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 0);
-        if( m > 1 )
-        {
-          transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 0, 1, 1, 2);
-          transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 1);
-          transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, 1, 2, 2, m);
-        }
-        tree_calc(2, m);
+        tree_calc(0,m);
       }
 
       //! internal helper function for transformBlock
@@ -506,28 +482,28 @@ namespace PITTS
             }
           }
         }
-        for(; j < applyEndCol; j++)
+        for(int col = beginCol; col < endCol; col++)
         {
-          for(int col = beginCol; col < endCol; col++)
+          if( col == 0 || col == 1 )
           {
-            if( col == 0 || col == 1 )
-            {
-              pdata = pdataIn;
-              lda = ldaIn;
-            }
-            else
-            {
-              pdata = pdataResult;
-              lda = ldaResult;
-            }
-            int firstRow = col / Chunk<T>::size;
-            const Chunk<T>* v = v0 + ldaResult*col - firstRow;
-            if( col % 2 == 1 )
-            {
-              const Chunk<T>* w = v - ldaResult;
-              const Chunk<T> vTw = w[nChunks+firstRow+1];
+            pdata = pdataIn;
+            lda = ldaIn;
+          }
+          else
+          {
+            pdata = pdataResult;
+            lda = ldaResult;
+          }
+          int firstRow = col / Chunk<T>::size;
+          const Chunk<T>* v = v0 + ldaResult*col - firstRow;
+          if( col % 2 == 1 )
+          {
+            const Chunk<T>* w = v - ldaResult;
+            const Chunk<T> vTw = w[nChunks+firstRow+1];
+            if( j+1 < applyEndCol )
+              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+            else if( j < applyEndCol )
               applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
-            }
           }
         }
 
@@ -695,11 +671,8 @@ namespace PITTS
       // automaticall choose suitable colBlockingSize
       if( colBlockingSize == 0 )
       {
-        // minimal block size and step size due to internal unrolling
-        //constexpr int bs = 3;
-
-        //colBlockingSize = int(0.74 * cacheSize_L1 / (reductionFactor+mChunks+2));
-        //colBlockingSize = bs + (colBlockingSize/bs)*bs;
+        // not sure how to choose this best, should be a multiple of 3 (3-way unrolling with applyReflection2<T,3>)
+        // 15 seems to work fine...
         colBlockingSize = 12;
       }
     }
