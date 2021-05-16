@@ -21,15 +21,18 @@ int main(int argc, char* argv[])
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
   using Chunk = PITTS::Chunk<double>;
 
-  if( argc != 5 )
-    throw std::invalid_argument("Requires 4 arguments (n m reductionFactor nIter)!");
+  if( argc != 5 && argc != 6 )
+    throw std::invalid_argument("Requires 4 arguments (n m reductionFactor nIter [colBlockingSize] )!");
 
   long long n = 0, m = 0;
   int reductionFactor = 20, nIter = 0;
+  int colBlockingSize = 0;
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], m);
   std::from_chars(argv[3], argv[4], reductionFactor);
   std::from_chars(argv[4], argv[5], nIter);
+  if( argc == 6 )
+    std::from_chars(argv[5], argv[6], colBlockingSize);
 
   const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
   {
@@ -45,7 +48,7 @@ int main(int argc, char* argv[])
 double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
   {
-    block_TSQR(M, R, reductionFactor);
+    block_TSQR(M, R, reductionFactor, true, colBlockingSize);
   }
 wtime = omp_get_wtime() - wtime;
   if( iProc == 0 )

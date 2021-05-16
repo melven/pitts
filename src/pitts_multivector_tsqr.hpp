@@ -254,10 +254,10 @@ namespace PITTS
       //!                     On input, the bottom part must be upper triangular, the first nChunk chunks of rows are ignored.
       //! @param ldaResult    offset of columns in pdataResult
       //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+2 for out-of-place calculation and nChunks for in-place calculation
-      //! @param blockSize    tuning parameter for better cache access if m is large
+      //! @param colBlockSize tuning parameter for better cache access if m is large, should be a multiple of 3 (because of some internal 3-way unrolling)
       //!
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
@@ -281,7 +281,7 @@ namespace PITTS
         //   for(int j = i+1; j < m; j++)
         //     apply i to j
 
-        constexpr int bs = 15;
+        const int bs = colBlockSize;
 
         const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
         {
@@ -660,32 +660,51 @@ namespace PITTS
   //!
   //! @param M                input matrix, possibly distributed over multiple MPI processes
   //! @param R                output matrix R of a QR decomposition of M (with the same singular values and right-singular vectors as M)
-  //! @param reductionFactor  (performance-tuning factor) defines the #chunks of the work-array in the TSQR reduction;
+  //! @param reductionFactor  (performance-tuning parameter) defines the #chunks of the work-array in the TSQR reduction;
   //!                         set to zero to let this function choose a suitable value automatically
   //! @param mpiGlobal        perform a reduction of R over all MPI processes? (if false, each MPI process does its individual QR decomposition)
+  //! @param colBlockingSize  (performance-tuning parameter) used for improving data accesses when m is large
+  //!                         set to zero to let this function choose a suitable value automatically
   //!
   template<typename T>
-  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 0, bool mpiGlobal = true)
+  void block_TSQR(const MultiVector<T>& M, Tensor2<T>& R, int reductionFactor = 0, bool mpiGlobal = true, int colBlockingSize = 0)
   {
-    // automatically choose suitable reduction factor
-    if( reductionFactor == 0 )
+    // input dimensions
+    const long long n = M.rows();
+    const int m = M.cols();
+    const int mChunks = (m-1) / Chunk<T>::size + 1;
+
+    // calculate performance tuning parameters
     {
       // L1 cache size per core (in chunks)
       constexpr int cacheSize_L1 = 32*1024 / (Chunk<T>::size * sizeof(T));
       // L2 cache size per core (in chunks)
       constexpr int cacheSize_L2 = 1*1024*1024 / (Chunk<T>::size * sizeof(T));
-      // max. reductionFactor (for small number of columns, ensure applyReflection2<T,3> fits into L1)
-      constexpr int maxReductionFactor = int(0.74 * cacheSize_L1 / (3+2));
 
-      // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
-      reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
-      reductionFactor = std::max(1, reductionFactor);
+      // automatically choose suitable reduction factor
+      if( reductionFactor == 0 )
+      {
+        // max. reductionFactor (for small number of columns, ensure applyReflection2<T,3> fits into L1)
+        constexpr int maxReductionFactor = int(0.74 * cacheSize_L1 / (3+2));
+
+        // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
+        reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
+        reductionFactor = std::max(1, reductionFactor);
+      }
+
+      // automaticall choose suitable colBlockingSize
+      if( colBlockingSize == 0 )
+      {
+        // minimal block size and step size due to internal unrolling
+        //constexpr int bs = 3;
+
+        //colBlockingSize = int(0.74 * cacheSize_L1 / (reductionFactor+mChunks+2));
+        //colBlockingSize = bs + (colBlockingSize/bs)*bs;
+        colBlockingSize = 12;
+      }
     }
 
     // calculate dimensions and block sizes
-    const long long n = M.rows();
-    const int m = M.cols();
-    const int mChunks = (m-1) / Chunk<T>::size + 1;
     const int nChunks = reductionFactor;
     const int ldaBuff = nChunks + mChunks+2;
     const int nBuffer = m*ldaBuff;
@@ -695,7 +714,7 @@ namespace PITTS
     const long long lda = M.colStrideChunks();
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
-        {{"rows", "cols", "reductionFactor"},{n, m, reductionFactor}}, // arguments
+        {{"rows", "cols", "reductionFactor", "colBlockingSize"},{n, m, reductionFactor, colBlockingSize}}, // arguments
         {{(1.+1./reductionFactor)*(n*(m + m*(m-1.)))*kernel_info::FMA<T>()}, // flops - roughly estimated
          {(n*m)*kernel_info::Load<T>() + (m*m)*kernel_info::Store<T>()}} // data transfers
         );
@@ -731,13 +750,13 @@ namespace PITTS
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
       {
-        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
+        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
       }
       // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
       if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
       {
         const int nLastChunks = nTotalChunks-nIter*nChunks;
-        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset);
+        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
       }
 
       if( nThreads == 1 )
@@ -760,7 +779,7 @@ namespace PITTS
 #pragma omp master
         {
           // reduce shared buffer
-          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks);
+          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks, colBlockingSize);
 
           // compress result
           for(int j = 0; j < m; j++)
