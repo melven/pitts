@@ -4,8 +4,11 @@
 #SBATCH -c 14
 #SBATCH -t 120
 #SBATCH --exclusive
+#SBATCH --output="%x-%j.out"
 
 # module load PrgEnv/gcc10-openmpi-python
+# # to avoid some delay through the intel omp library
+# module unload intel-mkl
 
 for ((i=1; i <= 50; i++)); do
   srun likwid-pin -c 0-13 ../../build/src/tt_from_dense_thickbounds_bench 2 27 $i 50
