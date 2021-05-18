@@ -9,6 +9,6 @@
 
 # module load PrgEnv/gcc10-openmpi-python
 
-for ((i=1; i <= 50; i++)); do
-  srun --cpu-bind=core ../trilinos/build/tsqr 10000000 $i 10
+for ((i=1; i <= 100; i++)); do
+  srun --cpu-bind=core ../trilinos/build/tsqr 25000000 $i 10
 done
