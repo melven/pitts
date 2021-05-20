@@ -6,9 +6,9 @@ Also provides a numpy-compatible python interface based on pybind11.
 Currently, algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
 
 ## Getting Started
-You can get a copy of the repository from [https://gitlab.dlr.de/zoel_ml/pitts.git]:
+You can get a copy of the repository from [https://github.com/melven/pitts]:
 
-    > git clone https://gitlab.dlr.de/zoel_ml/pitts.git
+    > git clone https://github.com/melven/pitts.git
 
 ### Prerequisites
 * [CMake](https://cmake.org) >= 3.14 (tested with 3.18.1)
