@@ -281,7 +281,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
-  constexpr int n = 70;
+  constexpr int n = 16*Chunk::size - 7;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
@@ -298,10 +298,10 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks());
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks(), nChunks);
 
   // check that the result is upper triangular
-  for(int i = 0; i < n; i++)
+  for(int i = 0; i < mChunks*Chunk::size; i++)
   {
     for(int j = 0; j < m; j++)
     {
@@ -315,7 +315,8 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapX = ConstEigenMap(X);
   auto mapX_ref = ConstEigenMap(X_ref);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX, Eigen::ComputeThinV);
+  //std::cout << "X:\n" << mapX << std::endl;
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
@@ -330,13 +331,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   using Chunk = PITTS::Chunk<double>;
   using MultiVector = PITTS::MultiVector<double>;
 
-  constexpr int n = 77;
+  constexpr int n = 16*Chunk::size - 7;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
   constexpr int nChunks = nTotalChunks - mChunks;
 
-  MultiVector X(n,m), X_ref(n,m), Xresult(n,m);
+  MultiVector X(n,m), X_ref(n,m), Xresult(n+2*Chunk::size,m);
   randomize(X);
   randomize(Xresult);
   // make lower triangular part zero...
@@ -352,20 +353,20 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     for(int i = nChunks; i < nTotalChunks; i++)
       for(int j = 0; j < Chunk::size; j++)
       {
-        Xresult.chunk(i,col)[j] = X.chunk(i,col)[j];
+        Xresult.chunk(2+i,col)[j] = X.chunk(i,col)[j];
         X.chunk(i,col)[j] = 77;
       }
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks());
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks(), 2+nChunks);
 
-  // check that the result is upper triangular
+  // check that the result is upper triangular, copied to the bottom
   for(int i = 0; i < n; i++)
   {
     for(int j = 0; j < m; j++)
     {
-      if( i > j )
+      if( i > nChunks*Chunk::size + j )
       {
-        ASSERT_NEAR(0., Xresult(i,j), eps);
+        EXPECT_NEAR(0., Xresult(2*Chunk::size+i,j), eps);
       }
       // X shouldn't change
       if( i < nChunks*Chunk::size )
@@ -381,76 +382,14 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 
   // use Eigen to check that the singular values and the right singular vectors are identical
   auto mapXresult = ConstEigenMap(Xresult);
+  //std::cout << "X:\n" << mapXresult << std::endl;
   auto mapX_ref = ConstEigenMap(X_ref);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
   ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
-}
-
-
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_copyBlockAndTransformReduction)
-{
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-
-  constexpr int nChunks = 5;
-  constexpr int n = nChunks * Chunk::size;
-  constexpr int m = 20;
-  constexpr int mChunks = (m-1) / Chunk::size + 1;
-
-  // prepare work array
-  constexpr int ldaWork = mChunks+nChunks;
-  constexpr int nWork = m*ldaWork + 2*nChunks;
-  std::unique_ptr<Chunk[]> work(new Chunk[nWork]);
-  int workOffset = 0;
-  for(int i = 0; i < nWork; i++)
-    work[i] = Chunk{};
-
-  MultiVector src(nChunks*Chunk::size, m);
-  randomize(src);
-
-  Eigen::MatrixXd work_ref(0,m);
-  auto mapSrc = ConstEigenMap(src);
-
-  for(int iter = 0; iter < 10; iter++)
-  {
-    const int nSrc = (iter*2) % 5 + 1;
-
-    PITTS::internal::HouseholderQR::copyBlockAndTransformReduction(nSrc, m, &src.chunk(0,0), src.colStrideChunks(), nWork, &work[0], ldaWork, workOffset);
-
-    // check that the lower triangular part of the result is zero (stored at workOffset)
-    for(int j = 0; j < m; j++)
-    {
-      for(int i = j+1; i < mChunks*Chunk::size; i++)
-      {
-        int idx = (workOffset + j*ldaWork)*Chunk::size + i;
-        ASSERT_LT(idx, nWork*Chunk::size);
-        ASSERT_NEAR(0., work[idx/Chunk::size][idx%Chunk::size], eps);
-      }
-    }
-
-    // calculate reference result using Eigen
-    const int nn = nSrc*Chunk::size;
-    work_ref.conservativeResize(work_ref.rows()+nn, Eigen::NoChange);
-    work_ref.bottomRows(nn) = mapSrc.topRows(nn);
-
-    std::cout << "iter: " << iter << "\n";
-
-    // singular values and right singular vectors should match
-    Eigen::Map<const Eigen::MatrixXd> mapWork(&work[workOffset][0], ldaWork*Chunk::size, m);
-    const int mm = std::min(m, (int)work_ref.rows());
-    Eigen::BDCSVD<Eigen::MatrixXd> svd(mapWork.topRows(mm), Eigen::ComputeThinV);
-    Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(work_ref, Eigen::ComputeThinV);
-
-    ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
-    // V can differ by sign, only consider absolute part
-    ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
-
-  }
 }
 
 

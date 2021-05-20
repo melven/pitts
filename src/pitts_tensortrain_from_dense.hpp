@@ -77,7 +77,7 @@ namespace PITTS
     // actually convert to tensor train format
     Tensor2<T> tmpR;
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    //Eigen::BDCSVD<EigenMatrix> svd;
+    Eigen::BDCSVD<EigenMatrix> svd;
     for(int iDim = nDims-1; iDim > 0; iDim--)
     {
       if( root )
@@ -87,8 +87,8 @@ namespace PITTS
 //std::cout << "tmpR:\n" << ConstEigenMap(tmpR) << "\n";
 
       // calculate SVD of R
-      //svd.compute(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      svd.compute(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      //Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
       svd.setThreshold(rankTolerance);
       if( root )
         std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
