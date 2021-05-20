@@ -1,6 +1,6 @@
 # PITTS - Parallel Iterative Tensor-Train Solvers
 
-Small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [1](README.md#References) and [2](README.md#References)).
+Small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](README.md#References) and [3](README.md#References)).
 
 Also provides a numpy-compatible python interface based on pybind11.
 Currently, algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
