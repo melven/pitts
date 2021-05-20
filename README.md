@@ -16,7 +16,7 @@ You can get a copy of the repository from [https://github.com/melven/pitts]:
   * [OpenMP](https://www.openmp.org) (usually included in the compiler)
 * [MPI](https://www.mpi-forum.org) (tested with [OpenMPI](https://open-mpi.org) 4.0)
 * [LAPACK](http://www.netlib.org/lapack) (tested with [Intel MKL](https://software.intel.com/en-us/intel-mkl) 2020)
-* [Eigen](https://eigen.tuxfamily.org) > 3.3.8 (3.3.8 has a C++20 bug, tested with eigen master branch(internal version 3.3.90))
+* [Eigen](https://eigen.tuxfamily.org) > 3.3.9 (3.3.8 has a C++20 bug!)
 * [cereal](https://uscilab.github.io/cereal) (tested with 1.3.0)
 * [pybind11](https://github.com/pybind/pybind11) (tested with 2.5.0)
 * [Python](https://www.python.org) >= 3.6 (tested with 3.8.3)
