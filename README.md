@@ -53,7 +53,9 @@ To use PITTS in your python code, simply import `pitts_py`
 
 ## References
 
-[1] Oseledets, I. V.: "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2011, https://doi.org/10.1137/090752286
+[1] Roehrig-Zoellner, M., Thies, J. and Basermann, A.: "Performance of low-rank approximations in tensor train format (TT-SVD) for large dense tensors", submitted to SISC, 2021, https://arxiv.org/abs/2102.00104
 
-[2] Grasedyck, L., Kressner, D. and Tobler, C.: "A literature survey of low-rank tensor approximation techniques", GAMM-Mitteilungen, 2013, https://doi.org/10.1002/gamm.201310004
+[2] Oseledets, I. V.: "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2011, https://doi.org/10.1137/090752286
+
+[3] Grasedyck, L., Kressner, D. and Tobler, C.: "A literature survey of low-rank tensor approximation techniques", GAMM-Mitteilungen, 2013, https://doi.org/10.1002/gamm.201310004
 
