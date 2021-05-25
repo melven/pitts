@@ -41,15 +41,12 @@ namespace PITTS
     // Algorithm starts on the right and works like a zipper...
     //
     
-    //double wtime = omp_get_wtime();
-    double flops = 0;
-
     // Auxiliary tensor of rank-2, currently contracted
     Tensor2<T> t2(1,1);
     t2(0,0) = T(1);
     Tensor3<T> t3;
 
-    // iterate from left to right
+    // iterate from right to left
     const int nDim = TT.subTensors().size();
     for(int iDim = nDim-1; iDim >= 0; iDim--)
     {
