@@ -41,7 +41,7 @@ namespace PITTS
          {(r1*nChunks*r2+r2*r2)*kernel_info::Load<Chunk<T>>() + (r1*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for collapse(2) schedule(static)
       for(int jChunk = 0; jChunk < nChunks; jChunk++)
       {
         for(int i = 0; i < r1; i++)
