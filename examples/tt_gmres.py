@@ -15,8 +15,7 @@ __date__ = '2021-02-13'
 
 import numpy as np
 import pitts_py
-
-
+from tt_laplace_operator import LaplaceOperator
 
 
 def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
@@ -37,6 +36,8 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
         delta = eps / (curr_beta / beta)
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta / m)
+        if verbose:
+            print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
         for i in range(j+1):
             H[i,j] = w_nrm * pitts_py.dot(w, V[i])
             w_nrm = pitts_py.axpby(-H[i,j], V[i], w_nrm, w, delta / m)
@@ -68,12 +69,14 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
 if __name__ == '__main__':
     pitts_py.initialize()
 
-    TTOp = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
-    TTOp.setTTranks(1)
-    pitts_py.randomize(TTOp)
-    TTOpEye = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
-    TTOpEye.setEye()
-    pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
+    #TTOp = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
+    #TTOp.setTTranks(1)
+    #pitts_py.randomize(TTOp)
+    #TTOpEye = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
+    #TTOpEye.setEye()
+    #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
+
+    TTOp = LaplaceOperator([20,]*5)
 
     xref = pitts_py.TensorTrain_double(TTOp.row_dimensions())
     xref.setOnes()
@@ -86,7 +89,7 @@ if __name__ == '__main__':
         y_nrm = pitts_py.normalize(y, eps)
         return y_nrm
 
-    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=30, eps=1.e-4)
+    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=100, eps=1.e-8)
     print("nrm_x %g" % nrm_x)
 
     r = pitts_py.TensorTrain_double(b.dimensions())
@@ -98,3 +101,4 @@ if __name__ == '__main__':
 
 
     pitts_py.finalize()
+
