@@ -14,6 +14,7 @@
 //#include <omp.h>
 //#include <iostream>
 #include <cmath>
+#include <cassert>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
@@ -32,7 +33,9 @@ namespace PITTS
       const auto r1 = A.r1();
       const auto n = A.n();
       const auto nChunks = A.nChunks();
-      const auto r2 = A.r2(); // == B.r1() == B.r2()
+      const auto r2 = A.r2();
+      assert(A.r2() == B.r1());
+      assert(B.r2() == B.r1());
       C.resize(r1, n, r2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
@@ -64,9 +67,11 @@ namespace PITTS
     void norm2_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
     {
       const auto r1 = A.r1();
+      assert(A.r1() == B.r1());
       const auto n = A.n();
       const auto nChunks = A.nChunks();
-      const auto r2 = A.r2(); // == B.r1() == B.r2()
+      const auto r2 = A.r2();
+      assert(A.r2() == B.r2());
       C.resize(r1,r1);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
@@ -86,7 +91,7 @@ namespace PITTS
         for(int i = j; i < r1; i++)
         {
           Chunk<T> tmp{};
-#pragma omp for schedule(static) nowait
+#pragma omp for collapse(2) schedule(static) nowait
           for(int kChunk = 0; kChunk < nChunks; kChunk++)
             for(int l = 0; l < r2; l++)
               fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmp);
@@ -129,9 +134,6 @@ namespace PITTS
     for(int iDim = nDim-1; iDim >= 0; iDim--)
     {
       const auto& subT = TT.subTensors()[iDim];
-      const auto r1 = subT.r1();
-      const auto r2 = subT.r2();
-      const auto n = subT.n();
 
       // first contraction: subT(:,:,*) * t2(:,*)
       internal::norm2_contract1(subT, t2, t3);
