@@ -31,12 +31,14 @@ namespace PITTS
   {
     //! contract block Tensor3 and Tensor2: (X 0; 0 Y)(:,:,*) * B(*,:)
     template<typename T>
-    void axpby_contract1(const Tensor3<T>& X, const Tensor3<T>& Y, const Tensor2<T>& B, Tensor3<T>& C)
+    void axpby_contract1(const Tensor3<T>& X, const Tensor3<T>& Y, const Tensor2<T>& B, Tensor3<T>& C, bool first)
     {
       const auto r1x = X.r1();
       const auto r1y = Y.r1();
-      const auto r1sum = r1x + r1y;
+      // special case, for first==true, we calculate (X Y)(:,:,*) * B(*,:)
+      const auto r1sum = first ? 1 : r1x + r1y;
       const auto n = X.n();
+      const auto nChunks = X.nChunks();
       assert(X.n() == Y.n());
       const auto r2x = X.r2();
       const auto r2y = Y.r2();
@@ -46,31 +48,52 @@ namespace PITTS
       C.resize(r1sum, n, r2new);
 
 
-      //const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-      //  {{"r1", "nChunks", "r2", "r2_"},{r1, nChunks, r2, r2_}}, // arguments
-      //  {{r1*nChunks*r2*r2_*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-      //   {(r1*nChunks*r2+r2*r2_)*kernel_info::Load<Chunk<T>>() + (r1*nChunks*r2_)*kernel_info::Store<Chunk<T>>()}} // data transfers
-      //  );
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1sum", "nChunks", "r2new"},{r1sum, nChunks, r2new}}, // arguments
+        {{(r1x*nChunks*r2x*r2new + r1y*nChunks*r2y*r2new)*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1x*nChunks*r2x + r1y*nChunks*r2y + r2sum*r2new)*kernel_info::Load<Chunk<T>>() + (r1sum*nChunks*r2new)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
 
 
+#pragma omp parallel
+{
+#pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1x; i++)
-        for(int j = 0; j < n; j++)
+        for(int jChunk = 0; jChunk < nChunks; jChunk++)
           for(int k = 0; k < r2new; k++)
           {
-            T tmp{};
+            Chunk<T> tmp{};
             for(int l = 0; l < r2x; l++)
-              tmp += X(i,j,l) * B(l,k);
-            C(i,j,k) = tmp;
+              fmadd(B(l,k), X.chunk(i,jChunk,l), tmp);
+            C.chunk(i,jChunk,k) = tmp;
           }
+if( !first )
+{
+#pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1y; i++)
-        for(int j = 0; j < n; j++)
+        for(int jChunk = 0; jChunk < nChunks; jChunk++)
           for(int k = 0; k < r2new; k++)
           {
-            T tmp{};
+            Chunk<T> tmp{};
             for(int l = 0; l < r2y; l++)
-              tmp += Y(i,j,l) * B(r2x+l,k);
-            C(r1x+i,j,k) = tmp;
+              fmadd(B(r2x+l,k), Y.chunk(i,jChunk,l), tmp);
+            C.chunk(r1x+i,jChunk,k) = tmp;
           }
+}
+else
+{
+#pragma omp for collapse(3) schedule(static) nowait
+      for(int i = 0; i < r1y; i++)
+        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+          for(int k = 0; k < r2new; k++)
+          {
+            Chunk<T> tmp = C.chunk(i,jChunk,k);
+            for(int l = 0; l < r2y; l++)
+              fmadd(B(r2x+l,k), Y.chunk(i,jChunk,l), tmp);
+            C.chunk(i,jChunk,k) = tmp;
+          }
+}
+}
 
     }
 
@@ -144,21 +167,18 @@ namespace PITTS
       const auto& subTx = TTx.subTensors()[iDim];
       auto& subTy = TTy.editableSubTensors()[iDim];
 
-      internal::axpby_contract1(subTx, subTy, t2_M, t3_tmp);
+      internal::axpby_contract1(subTx, subTy, t2_M, t3_tmp, iDim == 0);
 
       const auto r1 = t3_tmp.r1();
       const auto n = t3_tmp.n();
+      const auto nChunks = t3_tmp.nChunks();
       const auto r2 = t3_tmp.r2();
 
       if( iDim == 0 )
       {
         // no need for any further steps, we do a normalize afterwards anyway!
-        assert(r1 == 2);
-        // combine result (first subTensor is (TTx TTy) instead of (TTx 0; 0 TTy)
-        subTy.resize(1, n, r2);
-        for(int i = 0; i < n; i++)
-          for(int j = 0; j < r2; j++)
-            subTy(0, i, j) = t3_tmp(0, i, j) + t3_tmp(1, i, j);
+        assert(r1 == 1);
+        copy(t3_tmp, subTy);
         break;
       }
 
