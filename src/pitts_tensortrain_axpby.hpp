@@ -185,14 +185,14 @@ else
 
       // now calculate SVD of t3_tmp(: x : :)
       t2_M.resize(r1, n*r2);
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            t2_M(i, j*r2+k) = t3_tmp(i,j,k);
+      for(int k = 0; k < r2; k++)
+        for(int i = 0; i < r1; i++)
+          for(int j = 0; j < n; j++)
+            t2_M(i, j+k*n) = t3_tmp(i,j,k);
 
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      svd.setThreshold(rankTolerance);
+      //using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      //Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      const auto svd = internal::normalize_svd(t2_M, rankTolerance);
       const auto r1new = svd.rank();
 
       // we always need at least rank 1
@@ -208,10 +208,10 @@ else
       else // r1new > 0
       {
         subTy.resize(r1new, n, r2);
-        for(int i = 0; i < r1new; i++)
-          for(int j = 0; j < n; j++)
-            for(int k = 0; k < r2; k++)
-              subTy(i,j,k) = svd.matrixV().leftCols(r1new).adjoint()(i,j*r2+k);
+        for(int k = 0; k < r2; k++)
+          for(int i = 0; i < r1new; i++)
+            for(int j = 0; j < n; j++)
+              subTy(i,j,k) = svd.matrixV()(j+k*n,i);
 
         t2_M.resize(r1,r1new);
         EigenMap(t2_M) = svd.matrixU().leftCols(r1new) * svd.singularValues().topRows(r1new).asDiagonal();

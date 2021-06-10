@@ -29,6 +29,19 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+    //! wrapper for svd, allows to show timings
+    template<typename T>
+    auto normalize_svd(const Tensor2<T>& M, T rankTolerance)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      svd.setThreshold(rankTolerance);
+
+      return svd;
+    }
+
     //! contract Tensor2 and Tensor3 : A(:,*) * B(*,:,:)
     template<typename T>
     void normalize_contract1(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
@@ -158,11 +171,7 @@ namespace PITTS
           for(int k = 0; k < r2; k++)
             t2_M(i+j*r1_new,k) = t3_tmp(i,j,k);
 
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      //Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      svd.setThreshold(rankTolerance / std::sqrt(T(nDims-1)));
-      //std::cout << "singularValues: " << svd.singularValues().transpose() << "\n";
+      const auto svd = internal::normalize_svd(t2_M, rankTolerance / std::sqrt(T(nDims-1)));
       const auto r2_new = std::min<int>(maxRank, svd.rank());
 
       // we always need at least rank 1
