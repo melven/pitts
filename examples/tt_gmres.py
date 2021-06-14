@@ -18,7 +18,7 @@ import pitts_py
 from tt_laplace_operator import LaplaceOperator
 
 
-def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
+def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False):
     """ Tensor-train GMRES algorithm without restart """
 
     # assumes b is normalized and nrm_b is the desired rhs norm
@@ -34,11 +34,14 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
 
     for j in range(m):
         delta = eps / (curr_beta / beta)
+        delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta / m)
         if verbose:
             print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
         for i in range(j+1):
+            if symmetric and i < j-2:
+                continue
             H[i,j] = w_nrm * pitts_py.dot(w, V[i])
             w_nrm = pitts_py.axpby(-H[i,j], V[i], w_nrm, w, delta / m)
         if verbose:
@@ -76,28 +79,26 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([20,]*5)
+    TTOp = LaplaceOperator([20,]*8)
 
-    xref = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-    xref.setOnes()
     b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-    pitts_py.apply(TTOp, xref, b)
+    b.setTTranks(2);
+    pitts_py.randomize(b)
     nrm_b = pitts_py.normalize(b)
+    nrm_b = 1.
 
     def AOp(x, y, eps):
         pitts_py.apply(TTOp, x, y)
         y_nrm = pitts_py.normalize(y, eps)
         return y_nrm
 
-    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=100, eps=1.e-8)
+    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=50, eps=1.e-8, verbose=True, symmetric=True)
     print("nrm_x %g" % nrm_x)
 
     r = pitts_py.TensorTrain_double(b.dimensions())
     pitts_py.apply(TTOp, x, r)
     r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
     print("Residual norm: %g" % (r_nrm / nrm_b) )
-    err = pitts_py.axpby(-1, xref, nrm_x, x)
-    print("Error: %g" % (err / nrm_x) )
 
 
     pitts_py.finalize()
