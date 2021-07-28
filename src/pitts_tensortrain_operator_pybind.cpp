@@ -130,6 +130,11 @@ namespace PITTS
             py::arg("TT"),
             "fill a tensor train operator format with random values (keeping current TT-ranks)");
 
+        m.def("normalize",
+            py::overload_cast< TensorTrainOperator<T>&, T, int >(&normalize<T>),
+            py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            "TT-rounting: truncate tensor train by two normalization sweeps (first right to left, then left to right)");
+
         m.def("apply",
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrain<T>&, TensorTrain<T>& >(&apply<T>),
             py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),

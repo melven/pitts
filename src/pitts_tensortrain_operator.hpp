@@ -14,6 +14,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -214,6 +215,17 @@ namespace PITTS
   void randomize(TensorTrainOperator<T>& TTOp)
   {
     randomize(TTOp.tensorTrain());
+  }
+
+
+  //! normalize a tensor train operator (reducing its' ranks if possible)
+  //!
+  //! @tparam T underlying data type (double, complex, ...)
+  //!
+  template<typename T>
+  T normalize(TensorTrainOperator<T>& TTOp, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+  {
+    return normalize(TTOp.tensorTrain(), rankTolerance, maxRank);
   }
 }
 
