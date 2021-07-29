@@ -16,6 +16,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <cassert>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain.hpp"
@@ -25,6 +26,56 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! namespace for helper functionality
+  namespace internal
+  {
+    //! wrapper for svd, allows to show timings
+    template<typename T>
+    auto normalize_svd(const Tensor2<T>& M, T rankTolerance)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      svd.setThreshold(rankTolerance);
+
+      return svd;
+    }
+
+    //! contract Tensor2 and Tensor3 : A(:,*) * B(*,:,:)
+    template<typename T>
+    void normalize_contract1(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
+    {
+      const auto r1 = B.r1();
+      const auto n = B.n();
+      const auto nChunks = B.nChunks();
+      const auto r2 = B.r2();
+      const auto r1_ = A.r1();
+      assert(A.r2() == B.r1());
+      C.resize(r1_, n, r2);
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "r1_", "nChunks", "r2"},{r1, r1_, nChunks, r2}}, // arguments
+        {{r1_*r1*nChunks*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1*nChunks*r2+r1_*r1)*kernel_info::Load<Chunk<T>>() + (r1_*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+#pragma omp parallel for collapse(2) schedule(static)
+      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      {
+        for(int i = 0; i < r2; i++)
+        {
+          Chunk<T> tmp[r1_]{};
+          for(int l = 0; l < r1; l++)
+            for(int k = 0; k < r1_; k++)
+              fmadd(A(k,l), B.chunk(l,jChunk,i), tmp[k]);
+          for(int k = 0; k < r1_; k++)
+            C.chunk(k,jChunk,i) = tmp[k];
+        }
+      }
+    }
+  }
+
   //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right)
   //!
   //! @tparam T  underlying data type (double, complex, ...)
@@ -88,17 +139,8 @@ namespace PITTS
       const auto r1_new = t2_M.r1();
       assert(r1 == t2_M.r2());
 
-      // first multiply subT with t2_M
-      t3_tmp.resize(r1_new, n, r2);
-      for(int i = 0; i < r1_new; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-          {
-            T tmp{};
-            for(int l = 0; l < r1; l++)
-              tmp += t2_M(i,l) * subT(l,j,k);
-            t3_tmp(i,j,k) = tmp;
-          }
+      // first contract t2_M(:,*) * subT(*,:,:)
+      internal::normalize_contract1(t2_M, subT, t3_tmp);
 
       // just calculate norm and scale if this is the last subtensor
       if( iDim+1 == nDims )
@@ -129,11 +171,7 @@ namespace PITTS
           for(int k = 0; k < r2; k++)
             t2_M(i+j*r1_new,k) = t3_tmp(i,j,k);
 
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      //Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(t2_M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      svd.setThreshold(rankTolerance / std::sqrt(T(nDims-1)));
-      //std::cout << "singularValues: " << svd.singularValues().transpose() << "\n";
+      const auto svd = internal::normalize_svd(t2_M, rankTolerance / std::sqrt(T(nDims-1)));
       const auto r2_new = std::min<int>(maxRank, svd.rank());
 
       // we always need at least rank 1
