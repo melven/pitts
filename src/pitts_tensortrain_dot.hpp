@@ -13,7 +13,7 @@
 // includes
 //#include <omp.h>
 //#include <iostream>
-#include <cmath>
+#include <cassert>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
@@ -22,6 +22,85 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! namespace for helper functionality
+  namespace internal
+  {
+    //! contract Tensor3 and Tensor2 along last dimensions: A(:,:,*) * B(:,*)
+    template<typename T>
+    void dot_contract1(const Tensor3<T>& A, const Tensor2<T>& B, Tensor3<T>& C)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto nChunks = A.nChunks();
+      const auto r2 = A.r2();
+      assert(A.r2() == B.r2());
+      const auto r2_ = B.r1();
+      C.resize(r1, n, r2_);
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "nChunks", "r2", "r2_"},{r1, nChunks, r2, r2_}}, // arguments
+        {{r1*nChunks*r2*r2_*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1*nChunks*r2+r2*r2_)*kernel_info::Load<Chunk<T>>() + (r1*nChunks*r2_)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+#pragma omp parallel for collapse(2) schedule(static)
+      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      {
+        for(int i = 0; i < r1; i++)
+        {
+          Chunk<T> tmp[r2_]{};
+          for(int l = 0; l < r2; l++)
+            for(int k = 0; k < r2_; k++)
+              fmadd(B(k,l), A.chunk(i,jChunk,l), tmp[k]);
+          for(int k = 0; k < r2_; k++)
+            C.chunk(i,jChunk,k) = tmp[k];
+        }
+      }
+    }
+
+    //! contract Tensor3 and Tensor3 along the last two dimensions: A(:,*,*) * B(:,*,*)
+    template<typename T>
+    void dot_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto nChunks = A.nChunks();
+      const auto r2 = A.r2();
+      assert(A.r2() == B.r2());
+      const auto r1_ = B.r1();
+      C.resize(r1,r1_);
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "r1_", "nChunks", "r2"},{r1, r1_, nChunks, r2}}, // arguments
+        {{r1*r1_*nChunks*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1*nChunks*r2+r1_*nChunks*r2)*kernel_info::Load<Chunk<T>>() + (r1_*r1)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+      double tmpC[r1*r1_];
+      for(int j = 0; j < r1_; j++)
+        for(int i = 0; i < r1; i++)
+          tmpC[i+j*r1] = 0;
+
+#pragma omp parallel reduction(+:tmpC)
+{
+      for(int j = 0; j < r1_; j++)
+        for(int i = 0; i < r1; i++)
+        {
+          Chunk<T> tmp{};
+#pragma omp for collapse(2) schedule(static) nowait
+          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+            for(int l = 0; l < r2; l++)
+              fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmp);
+          tmpC[i+j*r1] = sum(tmp);
+        }
+}
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < r1_; j++)
+          C(i,j) = tmpC[i+j*r1];
+
+    }
+  }
+
   //! calculate the inner product for two vectors in tensor train format
   //!
   //! @tparam T  underlying data type (double, complex, ...)
@@ -43,9 +122,6 @@ namespace PITTS
     // Algorithm starts on the right and works like a zipper...
     //
     
-    //double wtime = omp_get_wtime();
-    double flops = 0;
-
     // Auxiliary tensor of rank-2, currently contracted
     Tensor2<T> t2(1,1);
     t2(0,0) = T(1);
@@ -57,35 +133,12 @@ namespace PITTS
     {
       const auto& subT1 = TT1.subTensors()[iDim];
       const auto& subT2 = TT2.subTensors()[iDim];
-      const auto r11 = subT1.r1();
-      const auto r12 = subT1.r2();
-      const auto r21 = subT2.r1();
-      const auto r22 = subT2.r2();
-      const auto n = subT1.n();
 
-      // first contraction: subT2(:,:,*) * t2(:,*)
-      t3.resize(r21, n, r12);
-      for(int i = 0; i < r21; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r12; k++)
-          {
-            T tmp{};
-            for(int l = 0; l < r22; l++)
-              tmp += subT2(i,j,l) * t2(k,l);
-            t3(i,j,k) = tmp;
-          }
+      // first contraction: subT1(:,:,*) * t2(:,*)
+      internal::dot_contract1(subT1, t2, t3);
 
-      // second contraction: subT1(:,*,*) * t3(:,*,*)
-      t2.resize(r11,r21);
-      for(int i = 0; i < r11; i++)
-        for(int j = 0; j < r21; j++)
-        {
-          T tmp{};
-          for(int k = 0; k < n; k++)
-            for(int l = 0; l < r12; l++)
-              tmp += subT1(i,k,l) * t3(j,k,l);
-          t2(i,j) = tmp;
-        }
+      // second contraction: subT2(:,*,*) * t3(:,*,*)
+      internal::dot_contract2(subT2, t3, t2);
     }
     return t2(0,0);
   }
