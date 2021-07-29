@@ -14,6 +14,7 @@ __date__ = '2021-02-18'
 
 import numpy as np
 import pitts_py
+from tt_laplace_operator import LaplaceOperator
 from tt_gmres import tt_gmres
 
 
@@ -121,28 +122,6 @@ def tt_jacobi_davidson(A, x0, symmetric, eps=1.e-6, maxIter=20, arnoldiIter=5, g
 
 if __name__ == '__main__':
     pitts_py.initialize()
-
-    def LaplaceOperator(dims):
-        TTOp = pitts_py.TensorTrainOperator_double(dims, dims)
-        TTOp.setZero()
-        TTOp_dummy = pitts_py.TensorTrainOperator_double(dims, dims)
-        TTOp_dummy.setEye()
-        for iDim in range(len(dims)):
-            n_i = dims[iDim]
-            eye_i = TTOp_dummy.getSubTensor(iDim)
-            tridi_i = np.zeros((n_i,n_i))
-            for i in range(n_i):
-                for j in range(n_i):
-                    if i == j:
-                        tridi_i[i,j] = 2. / (n_i+1)
-                    elif i+1 == j or i-1 == j:
-                        tridi_i[i,j] = -1. / (n_i+1)
-                    else:
-                        tridi_i[i,j] = 0
-            TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
-            pitts_py.axpby(1, TTOp_dummy, 1, TTOp)
-            TTOp_dummy.setSubTensor(iDim, eye_i)
-        return TTOp
 
     TTOp = LaplaceOperator([10,]*5)
 
