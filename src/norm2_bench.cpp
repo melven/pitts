@@ -11,12 +11,12 @@ int main(int argc, char* argv[])
   PITTS::initialize(&argc, &argv);
 
   using Type = double;
-  PITTS::TensorTrain<Type> TT1(10,100);
+  PITTS::TensorTrain<Type> TT1(10,10000);
   const int r = 20;
   TT1.setTTranks({r,r,r,r,r,r,r,r,r});
   randomize(TT1);
   Type tmp = 0;
-  for(int iter = 0; iter < 1000; iter++)
+  for(int iter = 0; iter < 100; iter++)
   {
     tmp += norm2(TT1);
   }
