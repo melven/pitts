@@ -20,7 +20,7 @@ from tt_convection_operator import ConvectionOperator
 from tt_pivmgs import tt_pivmgs
 
 
-def tt_gmres_leftprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, preconOp=None):
+def tt_gmres_leftprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, preconOp=None, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
 
     # assumes b is normalized and nrm_b is the desired rhs norm
@@ -48,8 +48,10 @@ def tt_gmres_leftprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pre
             print("TT-GMRES:   un-preconditioned RHS max. rank: %d" % np.max(orig_b.getTTranks()))
 
     for j in range(m):
-        delta = eps / (curr_beta / beta) / 1.2
-        #delta = eps / 100
+        if adaptiveTolerance:
+            delta = eps / (curr_beta / beta) / 1.2
+        else:
+            delta = eps / 100
         w = pitts_py.TensorTrain_double(b.dimensions())
 
         if preconOp is not None:

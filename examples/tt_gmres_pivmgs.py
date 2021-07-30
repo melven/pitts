@@ -19,7 +19,7 @@ from tt_convection_operator import ConvectionOperator
 from tt_pivmgs import tt_pivmgs
 
 
-def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
+def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
 
     # assumes b is normalized and nrm_b is the desired rhs norm
@@ -34,8 +34,10 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
         print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
 
     for j in range(m):
-        delta = eps / (curr_beta / beta) / 1.2
-        #delta = eps / 100
+        if adaptiveTolerance:
+            delta = eps / (curr_beta / beta) / 1.2
+        else:
+            delta = eps / 100
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
 
