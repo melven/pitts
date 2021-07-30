@@ -37,7 +37,8 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
         delta = eps / (curr_beta / beta) / 1.2
         #delta = eps / 100
         w = pitts_py.TensorTrain_double(b.dimensions())
-        w_nrm = AOp(V[j], w, delta / m)
+        w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
+
         if verbose:
             print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
         for i in range(j+1):
@@ -49,6 +50,7 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
             print("TT-GMRES: iteration %d, new Krylov vector max. rank: %d" %(j, np.max(w.getTTranks())))
         H[j+1,j] = w_nrm
         V = V + [w]
+
         Hj = H[:j+2,:j+1]
         betae = np.zeros(j+2)
         betae[0] = beta
@@ -56,7 +58,7 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
         y, curr_beta, rank, s = np.linalg.lstsq(Hj, betae, rcond=None)
         curr_beta = np.sqrt(curr_beta[0]) if curr_beta.size > 0 else 0
         if verbose:
-            print("TT-GMRES:               LSTSQ resirual norm: %g " % (curr_beta / beta) )
+            print("TT-GMRES:   LSTSQ resirual norm: %g " % (curr_beta / beta) )
         if curr_beta / beta <= eps:
             break
 
@@ -74,8 +76,9 @@ if __name__ == '__main__':
     pitts_py.initialize()
 
     #TTOp = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
-    #TTOp.setTTranks(1)
+    #TTOp.setTTranks(2)
     #pitts_py.randomize(TTOp)
+    #pitts_py.normalize(TTOp)
     #TTOpEye = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
@@ -88,9 +91,9 @@ if __name__ == '__main__':
     pitts_py.randomize(b)
     nrm_b = pitts_py.normalize(b)
 
-    def AOp(x, y, eps):
+    def AOp(x, y, rankTolerance, maxRank):
         pitts_py.apply(TTOp, x, y)
-        y_nrm = pitts_py.normalize(y, eps)
+        y_nrm = pitts_py.normalize(y, rankTolerance, maxRank)
         return y_nrm
 
     x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=100, eps=1.e-4, verbose=True, symmetric=False)
