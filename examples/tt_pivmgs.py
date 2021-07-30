@@ -44,7 +44,7 @@ def tt_pivmgs(V, w, rankTolerance, maxRank, verbose=True):
             break
 
     V += [w]
-    return h + [w_nrm,]
+    return np.array(h + [w_nrm,])
 
 
 if __name__ == '__main__':
