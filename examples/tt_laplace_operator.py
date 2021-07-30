@@ -24,9 +24,9 @@ def LaplaceOperator(dims):
         for i in range(n_i):
             for j in range(n_i):
                 if i == j:
-                    tridi_i[i,j] = 2. / (n_i+1)
+                    tridi_i[i,j] = 2. / (n_i+1)**2
                 elif i+1 == j or i-1 == j:
-                    tridi_i[i,j] = -1. / (n_i+1)
+                    tridi_i[i,j] = -1. / (n_i+1)**2
                 else:
                     tridi_i[i,j] = 0
         TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
