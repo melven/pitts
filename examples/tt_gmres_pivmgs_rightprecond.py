@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Tensor-train GMRES algorithm to solve linear systems
+Tensor-train GMRES algorithm to solve linear systems with pivoted iterated modified Gram-Schmidt
 
 Motivated by
 Dolgov, S. V.: "TT-GMRES: solution to a linear system in the structured tensor format",
@@ -9,17 +9,18 @@ Russian Journal of Numerical Analysis and Mathematical Modelling, Walter de Gruy
 DOI: 10.1515/rnam-2013-0009
 """
 
-__authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>',
-               'Rebekka-Sarah Hennig <Rebekka-Sarah.Hennig@dlr.de>']
-__date__ = '2021-02-13'
+__authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
+__date__ = '2021-06-17'
 
 import numpy as np
 import pitts_py
+from tt_ssor_preconditioner import SSOR_preconditioner
 from tt_laplace_operator import LaplaceOperator
 from tt_convection_operator import ConvectionOperator
+from tt_pivmgs import tt_pivmgs
 
 
-def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False):
+def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, preconOp=None):
     """ Tensor-train GMRES algorithm without restart """
 
     # assumes b is normalized and nrm_b is the desired rhs norm
@@ -28,7 +29,10 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
     curr_beta = beta
     V = [b]
     m = maxIter
-    H = np.mat(np.zeros((m + 1, m), order='F'))
+    H = np.zeros((m + 1, m), order='F')
+
+    if preconOp is not None:
+        z = pitts_py.TensorTrain_double(b.dimensions())
 
     if verbose:
         print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
@@ -37,19 +41,23 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
         delta = eps / (curr_beta / beta) / 1.2
         #delta = eps / 100
         w = pitts_py.TensorTrain_double(b.dimensions())
-        w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
+
+        if preconOp is not None:
+            z_nrm = preconOp.apply(V[j], z, delta / m, 9999)
+        else:
+            z = V[j]
+            z_nrm = 1
+        w_nrm = z_nrm * AOp(z, w, delta / m, maxRank=999)# maxRank=(j+2)*rank_b)
 
         if verbose:
             print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
-        for i in range(j+1):
-            if symmetric and i < j-2:
-                continue
-            H[i,j] = w_nrm * pitts_py.dot(w, V[i])
-            w_nrm = pitts_py.axpby(-H[i,j], V[i], w_nrm, w, delta / m)
+            if preconOp is not None:
+                print("TT-GMRES:   precon direction max. rank: %d" % np.max(z.getTTranks()))
+
+        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta / m, maxRank=9999)
+
         if verbose:
             print("TT-GMRES: iteration %d, new Krylov vector max. rank: %d" %(j, np.max(w.getTTranks())))
-        H[j+1,j] = w_nrm
-        V = V + [w]
 
         Hj = H[:j+2,:j+1]
         betae = np.zeros(j+2)
@@ -67,6 +75,10 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
     nrm_x = 0
     for i in range(len(y)):
         nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / m)
+    if preconOp is not None:
+        nrm_z = nrm_x * preconOp.apply(x, z, eps / m, 9999)
+        x = z
+        nrm_x = nrm_z
     if verbose:
         print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
     return x, nrm_x
@@ -83,11 +95,13 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([40,]*8)
-    pitts_py.axpby(0.01, ConvectionOperator([40,]*8), 1, TTOp)
+    TTOp = LaplaceOperator([40,]*4)
+    pitts_py.axpby(0.1, ConvectionOperator([40,]*4), 1, TTOp)
+
+    preconOp = SSOR_preconditioner(TTOp, 1.3, 3)
 
     b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-    b.setTTranks(3)
+    b.setTTranks(1)
     pitts_py.randomize(b)
     nrm_b = pitts_py.normalize(b)
 
@@ -96,7 +110,8 @@ if __name__ == '__main__':
         y_nrm = pitts_py.normalize(y, rankTolerance, maxRank)
         return y_nrm
 
-    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=100, eps=1.e-4, verbose=True, symmetric=False)
+    #x, nrm_x = tt_gmres_rightprecond(AOp, b, nrm_b, maxIter=10, eps=1.e-8, preconOp=None)
+    x, nrm_x = tt_gmres_rightprecond(AOp, b, nrm_b, maxIter=10, eps=1.e-8, preconOp=preconOp)
     print("nrm_x %g" % nrm_x)
 
     r = pitts_py.TensorTrain_double(b.dimensions())
@@ -106,4 +121,3 @@ if __name__ == '__main__':
 
 
     pitts_py.finalize()
-
