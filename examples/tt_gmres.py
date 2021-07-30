@@ -16,6 +16,7 @@ __date__ = '2021-02-13'
 import numpy as np
 import pitts_py
 from tt_laplace_operator import LaplaceOperator
+from tt_convection_operator import ConvectionOperator
 
 
 def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False):
@@ -33,8 +34,8 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
         print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
 
     for j in range(m):
-        delta = eps / (curr_beta / beta)
-        delta = eps
+        delta = eps / (curr_beta / beta) / 1.2
+        #delta = eps / 100
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta / m)
         if verbose:
@@ -79,20 +80,20 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([20,]*8)
+    TTOp = LaplaceOperator([40,]*8)
+    pitts_py.axpby(0.01, ConvectionOperator([40,]*8), 1, TTOp)
 
     b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-    b.setTTranks(2);
+    b.setTTranks(3)
     pitts_py.randomize(b)
     nrm_b = pitts_py.normalize(b)
-    nrm_b = 1.
 
     def AOp(x, y, eps):
         pitts_py.apply(TTOp, x, y)
         y_nrm = pitts_py.normalize(y, eps)
         return y_nrm
 
-    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=50, eps=1.e-8, verbose=True, symmetric=True)
+    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=100, eps=1.e-4, verbose=True, symmetric=False)
     print("nrm_x %g" % nrm_x)
 
     r = pitts_py.TensorTrain_double(b.dimensions())
