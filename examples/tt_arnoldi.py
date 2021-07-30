@@ -11,19 +11,22 @@ __date__ = '2021-06-04'
 import numpy as np
 import pitts_py
 from tt_laplace_operator import LaplaceOperator
+from tt_convection_operator import ConvectionOperator
 
 
 if __name__ == '__main__':
     pitts_py.initialize()
 
-    #TTOp = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
-    #TTOp.setTTranks(5)
+    #TTOp = pitts_py.TensorTrainOperator_double([50,]*5, [50,]*5)
+    #TTOp.setTTranks(2)
     #pitts_py.randomize(TTOp)
-    #TTOpEye = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
+    #pitts_py.normalize(TTOp)
+    #TTOpEye = pitts_py.TensorTrainOperator_double([50,]*5, [50,]*5)
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
     TTOp = LaplaceOperator([50,]*5)
+    pitts_py.axpby(0.1, ConvectionOperator([50,]*5), 1, TTOp)
     print("Operator max. rank: %d" %(np.max(TTOp.getTTranks())))
 
     x = pitts_py.TensorTrain_double(TTOp.row_dimensions())
@@ -31,7 +34,7 @@ if __name__ == '__main__':
     pitts_py.randomize(x)
     d = len(TTOp.row_dimensions())
 
-    eps = 1.e-12
+    eps = 1.e-8
     V = list()
     pitts_py.normalize(x, eps)
     V += [x,]
@@ -40,9 +43,11 @@ if __name__ == '__main__':
     for j in range(30):
         w = pitts_py.TensorTrain_double(TTOp.row_dimensions())
         pitts_py.apply(TTOp, V[-1], w)
-        for vi in V:
-            hij = pitts_py.dot(vi, w)
-            pitts_py.axpby(-hij, vi, 1, w, eps)
+        for ortho in range(3):
+            for vi in V:
+                hij = pitts_py.dot(vi, w)
+                if np.abs(hij) > eps:
+                    pitts_py.axpby(-hij, vi, 1, w, eps/100)
         pitts_py.normalize(w, eps)
         V += [w,]
         r_w = np.max(w.getTTranks())
