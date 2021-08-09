@@ -22,6 +22,21 @@ from tt_pivmgs import tt_pivmgs
 def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
 
+    def calc_solution(verbose):
+        x = pitts_py.TensorTrain_double(b.dimensions())
+        x.setZero()
+        nrm_x = 0
+        for i in range(len(y)):
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / m)
+        if verbose:
+            print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
+            # calculate real residual
+            r = pitts_py.TensorTrain_double(b.dimensions())
+            r_nrm = nrm_x * AOp(x, r, eps / m, maxRank=9999)
+            r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / m, maxRank=9999)
+            print("TT-GMRES: real residual norm %g" % (r_nrm/nrm_b) )
+        return x, nrm_x
+
     # assumes b is normalized and nrm_b is the desired rhs norm
     # define initial subspace
     beta = nrm_b
@@ -37,7 +52,7 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
         if adaptiveTolerance:
             delta = eps / (curr_beta / beta) / 1.2
         else:
-            delta = eps / 100
+            delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
 
@@ -56,18 +71,12 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
         y, curr_beta, rank, s = np.linalg.lstsq(Hj, betae, rcond=None)
         curr_beta = np.sqrt(curr_beta[0]) if curr_beta.size > 0 else 0
         if verbose:
-            print("TT-GMRES:   LSTSQ resirual norm: %g " % (curr_beta / beta) )
+            print("TT-GMRES:   LSTSQ residual norm: %g " % (curr_beta / beta) )
+            calc_solution(verbose=True)
         if curr_beta / beta <= eps:
             break
 
-    x = pitts_py.TensorTrain_double(b.dimensions())
-    x.setZero()
-    nrm_x = 0
-    for i in range(len(y)):
-        nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / m)
-    if verbose:
-        print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
-    return x, nrm_x
+    return calc_solution(verbose=False)
 
 
 if __name__ == '__main__':
@@ -94,14 +103,14 @@ if __name__ == '__main__':
         y_nrm = pitts_py.normalize(y, rankTolerance, maxRank)
         return y_nrm
 
-    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=100, eps=1.e-4)
-    print("nrm_x %g" % nrm_x)
+    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=100, eps=1.e-3, verbose=True, adaptiveTolerance=False)
 
+    print("nrm_x %g" % nrm_x)
     r = pitts_py.TensorTrain_double(b.dimensions())
     pitts_py.apply(TTOp, x, r)
     r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
     print("Residual norm: %g" % (r_nrm / nrm_b) )
 
 
-    pitts_py.finalize()
+    pitts_py.finalize(verbose=False)
 
