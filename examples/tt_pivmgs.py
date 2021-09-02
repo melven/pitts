@@ -32,14 +32,14 @@ def tt_pivmgs(V, w, rankTolerance, maxRank, verbose=True):
             tmp = pitts_py.dot(V[pivot], w)
             h[pivot] += w_nrm*tmp
             if verbose:
-                print('TT-PIVMGS:    ortho', ortho, 'pivot', pivot, 'dot', tmp)
+                print('# TT-PIVMGS:    ortho', ortho, 'pivot', pivot, 'dot', tmp)
             w_nrm = w_nrm * pitts_py.axpby(-tmp, V[pivot], 1, w, rankTolerance, maxRank)
             Vtw[pivot] = 0
 
         Vtw = [pitts_py.dot(v,w) for v in V]
         maxErr = np.max(np.abs(Vtw))
         if verbose:
-            print('TT-PIVMGS:    ortho max err', maxErr)
+            print('# TT-PIVMGS:    ortho max err', maxErr)
         if maxErr < rankTolerance:
             break
 

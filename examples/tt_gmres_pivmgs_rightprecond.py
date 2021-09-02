@@ -23,24 +23,30 @@ from tt_pivmgs import tt_pivmgs
 def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, preconOp=None, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
 
-    def calc_solution(verbose):
+    def calc_solution():
         x = pitts_py.TensorTrain_double(b.dimensions())
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / m)
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
         if preconOp is not None:
-            nrm_z = nrm_x * preconOp.apply(x, z, eps / m, 9999)
+            nrm_z = nrm_x * preconOp.apply(x, z, eps / len(V), 9999)
             x = z
             nrm_x = nrm_z
-        if verbose:
-            print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
-            # calculate real residual
-            r = pitts_py.TensorTrain_double(b.dimensions())
-            r_nrm = nrm_x * AOp(x, r, eps / m, maxRank=9999)
-            r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / m, maxRank=9999)
-            print("TT-GMRES: real residual norm %g" % (r_nrm/nrm_b) )
         return x, nrm_x
+
+    def residual_error(x, nrm_x):
+        # calculate real residual
+        r = pitts_py.TensorTrain_double(b.dimensions())
+        r_nrm = nrm_x * AOp(x, r, eps / len(V), maxRank=9999)
+        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / len(V), maxRank=9999)
+        return r_nrm
+
+    if verbose:
+        if preconOp is None:
+            print('# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"     "new Krylov vector rank"    "solution rank"')
+        else:
+            print('# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"      "precond direction rank"    "new Krylov vector rank"    "solution rank"')
 
     # assumes b is normalized and nrm_b is the desired rhs norm
     # define initial subspace
@@ -54,13 +60,17 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
         z = pitts_py.TensorTrain_double(b.dimensions())
 
     if verbose:
-        print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
+        #print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
+        if preconOp is None:
+            print(0, 1, 1, np.max(b.getTTranks()), np.max(b.getTTranks()), 0)
+        else:
+            print(0, 1, 1, np.max(b.getTTranks()), np.max(b.getTTranks()), np.max(b.getTTranks()), 0)
 
     for j in range(m):
         if adaptiveTolerance:
             delta = eps / (curr_beta / beta) / 1.2
         else:
-            delta = eps / 100
+            delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
 
         if preconOp is not None:
@@ -68,17 +78,15 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
         else:
             z = V[j]
             z_nrm = 1
-        w_nrm = z_nrm * AOp(z, w, delta / m, maxRank=999)# maxRank=(j+2)*rank_b)
+        w_nrm = z_nrm * AOp(z, w, delta / m, maxRank=9999)# maxRank=(j+2)*rank_b)
 
-        if verbose:
-            print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
-            if preconOp is not None:
-                print("TT-GMRES:   precon direction max. rank: %d" % np.max(z.getTTranks()))
+        if preconOp is not None:
+            rank_z = np.max(z.getTTranks())
+        rank_w = np.max(w.getTTranks())
 
         H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta / m, maxRank=9999)
 
-        if verbose:
-            print("TT-GMRES: iteration %d, new Krylov vector max. rank: %d" %(j, np.max(w.getTTranks())))
+        rank_vj = np.max(w.getTTranks())
 
         Hj = H[:j+2,:j+1]
         betae = np.zeros(j+2)
@@ -87,12 +95,20 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
         y, curr_beta, rank, s = np.linalg.lstsq(Hj, betae, rcond=None)
         curr_beta = np.sqrt(curr_beta[0]) if curr_beta.size > 0 else 0
         if verbose:
-            print("TT-GMRES:   LSTSQ residual norm: %g " % (curr_beta / beta) )
-            calc_solution(verbose=True)
+            #print("TT-GMRES:   LSTSQ residual norm: %g " % (curr_beta / beta) )
+            x, nrm_x = calc_solution()
+            r_nrm = residual_error(x, nrm_x)
+            rank_x = np.max(x.getTTranks())
+            if preconOp is None:
+                print(j+1, curr_beta/beta, r_nrm / nrm_b, rank_w, rank_vj, rank_x)
+            else:
+                print(j+1, curr_beta/beta, r_nrm / nrm_b, rank_w, rank_z, rank_vj, rank_x)
         if curr_beta / beta <= eps:
             break
 
-    return calc_solution(verbose=False)
+    if not verbose:
+        x, nrm_x = calc_solution()
+    return x, nrm_x
 
 
 if __name__ == '__main__':

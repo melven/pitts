@@ -22,20 +22,25 @@ from tt_convection_operator import ConvectionOperator
 def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
 
-    def calc_solution(verbose):
+    def calc_solution():
         x = pitts_py.TensorTrain_double(b.dimensions())
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / m)
-        if verbose:
-            print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
-            # calculate real residual
-            r = pitts_py.TensorTrain_double(b.dimensions())
-            r_nrm = nrm_x * AOp(x, r, eps / m, maxRank=9999)
-            r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / m, maxRank=9999)
-            print("TT-GMRES: real residual norm %g" % (r_nrm/nrm_b) )
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
         return x, nrm_x
+
+    def residual_error(x, nrm_x):
+        #print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
+        # calculate real residual
+        r = pitts_py.TensorTrain_double(b.dimensions())
+        r_nrm = nrm_x * AOp(x, r, eps / len(V), maxRank=9999)
+        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / len(V), maxRank=9999)
+        #print("TT-GMRES: real residual norm %g" % (r_nrm/nrm_b) )
+        return r_nrm
+
+    if verbose:
+        print('# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"     "new Krylov vector rank"    "solution rank"')
 
     # assumes b is normalized and nrm_b is the desired rhs norm
     # define initial subspace
@@ -46,7 +51,8 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
     H = np.mat(np.zeros((m + 1, m), order='F'))
 
     if verbose:
-        print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
+        print(0, 1, 1, np.max(b.getTTranks()), np.max(b.getTTranks()), 0)
+        #print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
 
     for j in range(m):
         if adaptiveTolerance:
@@ -55,16 +61,17 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
             delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
+        
+        rank_w = np.max(w.getTTranks())
 
-        if verbose:
-            print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
         for i in range(j+1):
             if symmetric and i < j-2:
                 continue
             H[i,j] = w_nrm * pitts_py.dot(w, V[i])
             w_nrm = pitts_py.axpby(-H[i,j], V[i], w_nrm, w, delta / m)
-        if verbose:
-            print("TT-GMRES: iteration %d, new Krylov vector max. rank: %d" %(j, np.max(w.getTTranks())))
+
+        rank_vj = np.max(w.getTTranks())
+
         H[j+1,j] = w_nrm
         V = V + [w]
 
@@ -75,12 +82,17 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
         y, curr_beta, rank, s = np.linalg.lstsq(Hj, betae, rcond=None)
         curr_beta = np.sqrt(curr_beta[0]) if curr_beta.size > 0 else 0
         if verbose:
-            print("TT-GMRES:   LSTSQ residual norm: %g " % (curr_beta / beta) )
-            calc_solution(verbose=True)
+            #print("TT-GMRES:   LSTSQ residual norm: %g " % (curr_beta / beta) )
+            x, nrm_x = calc_solution()
+            r_nrm = residual_error(x, nrm_x)
+            rank_x = np.max(x.getTTranks())
+            print(j+1, curr_beta/beta, r_nrm / nrm_b, rank_w, rank_vj, rank_x)
         if curr_beta / beta <= eps:
             break
 
-    return calc_solution(verbose=False)
+    if not verbose:
+        x, nrm_x = calc_solution()
+    return x, nrm_x
 
 
 if __name__ == '__main__':

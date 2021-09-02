@@ -19,14 +19,15 @@ def ConvectionOperator(dims):
     TTOp_dummy.setEye()
     for iDim in range(len(dims)):
         n_i = dims[iDim]
+        h = 1 / (n_i+1)
         eye_i = TTOp_dummy.getSubTensor(iDim)
         tridi_i = np.zeros((n_i,n_i))
         for i in range(n_i):
             for j in range(n_i):
                 if i == j:
-                    tridi_i[i,j] = 1. / (n_i+1)
-                elif i+1 == j:
-                    tridi_i[i,j] = -1. / (n_i+1)
+                    tridi_i[i,j] = 1. / h
+                elif i == j+1:
+                    tridi_i[i,j] = -1. / h
                 else:
                     tridi_i[i,j] = 0
         TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
