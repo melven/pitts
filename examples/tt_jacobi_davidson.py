@@ -41,7 +41,7 @@ def tt_jacobi_davidson(A, x0, symmetric, eps=1.e-6, maxIter=20, arnoldiIter=5, g
             v = r
         else:
             # calculate new search direction
-            def JDop(x, y, eps):
+            def JDop(x, y, eps, maxRank):
                 # Jacobi-Davidson operator with projections
                 # y = (I - q q^T) (A - sigma I) (I - q q^T) x
                 # we only do
