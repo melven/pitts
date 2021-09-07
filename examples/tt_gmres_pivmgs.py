@@ -27,15 +27,15 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps)
         return x, nrm_x
 
     def residual_error(x, nrm_x):
         #print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
         # calculate real residual
         r = pitts_py.TensorTrain_double(b.dimensions())
-        r_nrm = nrm_x * AOp(x, r, eps / len(V), maxRank=9999)
-        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / len(V), maxRank=9999)
+        r_nrm = nrm_x * AOp(x, r, eps/10, maxRank=9999)
+        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps/10, maxRank=9999)
         #print("TT-GMRES: real residual norm %g" % (r_nrm/nrm_b) )
         return r_nrm
 
@@ -56,16 +56,16 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
 
     for j in range(m):
         if adaptiveTolerance:
-            delta = eps / (curr_beta / beta) / 1.2
+            delta = eps / (curr_beta / beta) / (1.2 * m)
         else:
             delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
-        w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
+        w_nrm = AOp(V[j], w, delta, maxRank=9999) # maxRank=(j+2)*rank_b)
         
         rank_w = np.max(w.getTTranks())
 
 
-        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta / m, maxRank=9999)
+        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta, maxRank=9999)
 
         rank_vj = np.max(w.getTTranks())
 

@@ -28,9 +28,9 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps)
         if preconOp is not None:
-            nrm_z = nrm_x * preconOp.apply(x, z, eps / len(V), 9999)
+            nrm_z = nrm_x * preconOp.apply(x, z, eps, 9999)
             x = z
             nrm_x = nrm_z
         return x, nrm_x
@@ -38,8 +38,8 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
     def residual_error(x, nrm_x):
         # calculate real residual
         r = pitts_py.TensorTrain_double(b.dimensions())
-        r_nrm = nrm_x * AOp(x, r, eps / len(V), maxRank=9999)
-        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps / len(V), maxRank=9999)
+        r_nrm = nrm_x * AOp(x, r, eps/10, maxRank=9999)
+        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps/10, maxRank=9999)
         return r_nrm
 
     if verbose:
@@ -68,23 +68,23 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
 
     for j in range(m):
         if adaptiveTolerance:
-            delta = eps / (curr_beta / beta) / 1.2
+            delta = eps / (curr_beta / beta) / (1.2 * m)
         else:
             delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
 
         if preconOp is not None:
-            z_nrm = preconOp.apply(V[j], z, delta / m, 9999)
+            z_nrm = preconOp.apply(V[j], z, delta, 9999)
         else:
             z = V[j]
             z_nrm = 1
-        w_nrm = z_nrm * AOp(z, w, delta / m, maxRank=9999)# maxRank=(j+2)*rank_b)
+        w_nrm = z_nrm * AOp(z, w, delta, maxRank=9999)# maxRank=(j+2)*rank_b)
 
         if preconOp is not None:
             rank_z = np.max(z.getTTranks())
         rank_w = np.max(w.getTTranks())
 
-        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta / m, maxRank=9999)
+        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta, maxRank=9999)
 
         rank_vj = np.max(w.getTTranks())
 
