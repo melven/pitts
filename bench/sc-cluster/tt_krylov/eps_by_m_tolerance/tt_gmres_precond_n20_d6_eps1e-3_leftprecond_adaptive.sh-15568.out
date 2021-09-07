@@ -1,0 +1,750 @@
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 28
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->29  [0m[1;34m1->30  [0m[1;34m2->31  [0m[1;34m3->32  [0m[1;34m4->33  [0m[1;34m5->34  [0m[1;34m6->84  [0m[1;34m7->85  [0m[1;34m8->86  [0m[1;34m9->87  [0m[1;34m10->88  [0m[1;34m11->89  [0m[1;34m12->90  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 23099208947584 -> core 29 - OK[0m[1;34m
+[0m[1;34m	threadid 23099204745216 -> core 30 - OK[0m[1;34m
+[0m[1;34m	threadid 23099200542848 -> core 31 - OK[0m[1;34m
+[0m[1;34m	threadid 23099196340480 -> core 32 - OK[0m[1;34m
+[0m[1;34m	threadid 23099192138112 -> core 33 - OK[0m[1;34m
+[0m[1;34m	threadid 23099187935744 -> core 34 - OK[0m[1;34m
+[0m[1;34m	threadid 23099183733376 -> core 84 - OK[0m[1;34m
+[0m[1;34m	threadid 23099179531008 -> core 85 - OK[0m[1;34m
+[0m[1;34m	threadid 23099175328640 -> core 86 - OK[0m[1;34m
+[0m[1;34m	threadid 23099171126272 -> core 87 - OK[0m[1;34m
+[0m[1;34m	threadid 23099166923904 -> core 88 - OK[0m[1;34m
+[0m[1;34m	threadid 23099162721536 -> core 89 - OK[0m[1;34m
+[0m[1;34m	threadid 23099158519168 -> core 90 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 23099154319104 -> core 28 - OK[0m[1;34m
+[0m[1;34m	threadid 23098265929472 -> core 29 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+# Arguments: Namespace(C=0.1, I=0.0, L=1.0, Rc=0.0, Rr=2, SSOR_jacobiIter=3, SSOR_omega=1.3, adaptive=True, d=6, eps=0.001, maxIter=20, n=20, random_rank=2, rhs_type='rhs_random', variant='left_precond')
+
+###### left preconditioning ######
+# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"      "precond direction rank"    "new Krylov vector rank"    "solution rank"
+0 1 1 2 12 12 0
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.9945756220906791
+# TT-PIVMGS:    ortho max err 1.562395701656022e-10
+1 0.10401601768231586 0.08186154558025983 16 16 20 12
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.9639179748991875
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.47154332025497186
+# TT-PIVMGS:    ortho max err 5.8529003208254715e-08
+2 0.025060551757095442 0.016825446758348205 21 21 25 12
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.9127582679894887
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.646832006251402
+# TT-PIVMGS:    ortho max err 2.3249121277697446e-05
+3 0.008876160674612466 0.005493906936722724 23 23 24 15
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.8851033400346295
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.6878350081416266
+# TT-PIVMGS:    ortho max err 6.45765368699858e-05
+4 0.0037801476582760276 0.002199058410582037 23 23 24 15
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.8698057741079174
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.6972757406810168
+# TT-PIVMGS:    ortho max err 0.00019416958087526554
+5 0.001806679521975185 0.0010044491036480308 24 24 26 14
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.8638436992630704
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.7055188105894479
+# TT-PIVMGS:    ortho max err 0.0005530041127005912
+6 0.0009179686537040296 0.0004937350714941026 24 24 26 14
+# Checked resulting residual norm: 0.000522129
+
+Performance statistics:
+function                                                                                       	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 72, nChunks: 2, r2new: 72)       	 0.00253033	 16        	 83.9165   	 0         	 17.2495   	 4.86486   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 69, r1_: 23, nChunks: 2, r2: 66)	 0.00237626	 8         	 22.5682   	 0         	 5.91708   	 3.81407   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 72, r1_: 24, nChunks: 2, r2: 72)	 0.00144716	 16        	 88.0356   	 0         	 22.0089   	 4         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 69, nChunks: 2, r2new: 69)       	 0.00140438	 7         	 58.2196   	 0         	 12.4877   	 4.66216   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 72, nChunks: 2, r2new: 48)       	 0.00106219	 8         	 66.6349   	 0         	 15.5481   	 4.28571   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 24, nChunks: 2, r2: 50)	 0.000946529	 1         	 3.89465   	 0         	 1.12945   	 3.44828   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 1)        	 0.00085463	 30        	 0.0876169 	 0         	 0.709921  	 0.123418  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 69, nChunks: 2, r2new: 66)       	 0.000764948	 8         	 111.764   	 0         	 24.7972   	 4.50713   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 69)       	 0.000730997	 7         	 68.0828   	 0         	 16.8868   	 4.03172   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 69, r1_: 23, nChunks: 2, r2: 69)	 0.000615053	 7         	 79.7612   	 0         	 20.8073   	 3.83333   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 24, nChunks: 2, r2: 24)      	 0.000609248	 9         	 13.0696   	 0         	 5.44566   	 2.4       
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 72, nChunks: 2, r2new: 20)       	 0.000608466	 12        	 39.3803   	 0         	 17.1153   	 2.30088   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 66, nChunks: 2, r2new: 20)       	 0.000539905	 12        	 40.6827   	 0         	 17.8663   	 2.27707   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 2, nChunks: 25, r2new: 1)        	 0.000504048	 40        	 0.126972  	 0         	 1.03609   	 0.122549  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 13, r1_: 14, nChunks: 2, r2: 1)       	 0.000472921	 20        	 0.492598  	 0         	 1.27751   	 0.385593  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 48)       	 0.000464529	 9         	 76.1835   	 0         	 23.4899   	 3.24324   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 14, nChunks: 2, r2: 1)       	 0.000462559	 19        	 0.515255  	 0         	 1.32494   	 0.388889  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 63, nChunks: 2, r2new: 63)       	 0.00045469	 4         	 78.2121   	 0         	 18.3736   	 4.25676   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 72)       	 0.000436663	 4         	 70.9145   	 0         	 17.1095   	 4.14474   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 15, nChunks: 2, r2: 23)      	 0.000415953	 10        	 7.43161   	 0         	 4.75131   	 1.56412   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 24, nChunks: 2, r2: 48)	 0.000413016	 8         	 68.5483   	 0         	 19.9933   	 3.42857   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 8, r1_: 6, nChunks: 2, r2: 8)   	 0.000388367	 4         	 0.253121  	 0         	 0.358589  	 0.705882  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 45, nChunks: 2, r2new: 72)       	 0.000381739	 4         	 86.9117   	 0         	 20.4725   	 4.24528   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 16, nChunks: 2, r2: 48)	 0.000353338	 8         	 53.4173   	 0         	 20.0315   	 2.66667   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 25, nChunks: 2, r2: 24)      	 0.00035052	 5         	 13.1462   	 0         	 5.38993   	 2.43902   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 69, nChunks: 2, r2new: 44)       	 0.000334444	 4         	 85.2098   	 0         	 21.4877   	 3.96552   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 14, nChunks: 2, r2: 69)	 0.000321514	 7         	 56.5333   	 0         	 23.1752   	 2.43939   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 72, r1_: 24, nChunks: 2, r2: 20)	 0.00032058	 8         	 55.196    	 0         	 17.7854   	 3.10345   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 22, nChunks: 2, r2: 20)	 0.00031953	 6         	 23.2662   	 0         	 8.67194   	 2.68293   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 63)       	 0.000305519	 4         	 72.0568   	 0         	 19.4615   	 3.70253   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 66, r1_: 22, nChunks: 2, r2: 20)	 0.000297325	 8         	 50.0075   	 0         	 17.1238   	 2.92035   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 10)                                  	 0.000297052	 7         	 0         	 0         	 0.0754077 	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 63, r1_: 21, nChunks: 2, r2: 63)	 0.000294914	 4         	 72.3511   	 0         	 20.6717   	 3.5       
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 22, nChunks: 2, r2: 13)      	 0.000292173	 5         	 7.51774   	 0         	 3.77639   	 1.99072   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 24)	 0.000288474	 22        	 67.473    	 0         	 28.1137   	 2.4       
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 15, nChunks: 2, r2: 24)      	 0.000278778	 9         	 11.1573   	 0         	 6.88031   	 1.62162   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 60, nChunks: 2, r2new: 20)       	 0.000278773	 6         	 35.8141   	 0         	 15.9235   	 2.24913   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 63, nChunks: 2, r2new: 40)       	 0.000274033	 2         	 39.2362   	 0         	 10.874    	 3.60825   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 25, nChunks: 2, r2: 23)      	 0.000263827	 3         	 9.62449   	 0         	 4.05065   	 2.37603   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 42)  	 0.00026273	 12        	 0.122772  	 0         	 0.988026  	 0.12426   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 25, nChunks: 2, r2: 22)      	 0.000260341	 3         	 9.3293    	 0         	 3.96329   	 2.35393   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 24, nChunks: 2, r2: 26)      	 0.000258395	 3         	 12.0552   	 0         	 4.79118   	 2.51613   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 63, r1_: 21, nChunks: 2, r2: 60)	 0.000256493	 4         	 79.2274   	 0         	 22.7622   	 3.48066   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 24, nChunks: 2, r2: 24)      	 0.000248189	 3         	 11.5855   	 0         	 4.67876   	 2.47619   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 24, nChunks: 2, r2: 13)      	 0.000248018	 4         	 7.72899   	 0         	 3.7654    	 2.05263   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 63, nChunks: 2, r2new: 60)       	 0.000246079	 4         	 131.08    	 0         	 31.9585   	 4.10156   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 69, nChunks: 2, r2new: 46)       	 0.000233799	 4         	 133.223   	 0         	 32.437    	 4.10714   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 23, nChunks: 2, r2: 44)	 0.000233588	 4         	 51.0185   	 0         	 15.6282   	 3.26452   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 22, r2_: 24)      	 0.000227805	 8         	 28.4808   	 0         	 12.2985   	 2.31579   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 1, r1_: 1, nChunks: 2, r2: 15)        	 0.000224808	 28        	 0.119569  	 0         	 0.972492  	 0.122951  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 13, nChunks: 2, r2: 1) 	 0.000224803	 35        	 2.59071   	 0         	 6.49671   	 0.398773  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 44, nChunks: 2, r2: 48)	 0.000220999	 2         	 53.8228   	 0         	 12.0286   	 4.47458   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 24, nChunks: 2, r2: 13)      	 0.000219685	 3         	 5.99899   	 0         	 3.01348   	 1.99072   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 20)       	 0.000215662	 8         	 45.5824   	 0         	 21.6517   	 2.10526   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 25, nChunks: 2, r2: 22)      	 0.000212004	 3         	 11.9545   	 0         	 4.99191   	 2.39478   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 46)       	 0.000204729	 4         	 92.6071   	 0         	 25.6539   	 3.60987   
+<PITTS::Tensor3<double> >::copy<double>(r1: 10, n: 20, r2: 12)                                 	 0.000201136	 6         	 0         	 0         	 1.14549   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 14, nChunks: 2, r2: 72)	 0.000198435	 4         	 54.6175   	 0         	 22.3238   	 2.4466    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 45, r1_: 15, nChunks: 2, r2: 72)	 0.000197454	 4         	 63.0101   	 0         	 24.1539   	 2.6087    
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 22, nChunks: 2, r2: 14)      	 0.00019627	 3         	 7.83378   	 0         	 3.74863   	 2.08977   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 1, r1_: 1, nChunks: 2, r2: 14)        	 0.000195964	 20        	 0.0914454 	 0         	 0.744627  	 0.122807  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 23, nChunks: 2, r2: 24)      	 0.000195015	 3         	 13.0432   	 0         	 5.52917   	 2.35897   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 22, nChunks: 2, r2: 14)      	 0.000194788	 3         	 7.2862    	 0         	 3.58002   	 2.03524   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 24, nChunks: 2, r2: 20)	 0.000190593	 5         	 38.6835   	 0         	 13.5392   	 2.85714   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 12, nChunks: 2, r2: 24)      	 0.000185614	 5         	 11.9163   	 0         	 6.9512    	 1.71429   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 24, nChunks: 2, r2: 14)      	 0.000183468	 3         	 7.73576   	 0         	 3.8009    	 2.03524   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 15, nChunks: 2, r2: 25)      	 0.000182991	 6         	 11.8039   	 0         	 7.2397    	 1.63043   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 50)       	 0.000182452	 3         	 63.1399   	 0         	 20.4152   	 3.09278   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 67, nChunks: 2, r2new: 69)       	 0.000178902	 1         	 63.018    	 0         	 13.6749   	 4.6083    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 24, nChunks: 2, r2: 20)	 0.000177107	 3         	 23.9367   	 0         	 8.46458   	 2.82787   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 32)       	 0.000175652	 4         	 59.6962   	 0         	 20.8937   	 2.85714   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 14, nChunks: 2, r2: 1, r2_: 1)        	 0.000175578	 39        	 0.199023  	 0         	 1.62061   	 0.122807  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 46)       	 0.000171461	 2         	 37.9802   	 0         	 13.0552   	 2.90919   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 19, nChunks: 2, r2: 23)      	 0.000166549	 2         	 7.72462   	 0         	 3.64135   	 2.12136   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 26, nChunks: 2, r2: 46)	 0.000164049	 2         	 44.7929   	 0         	 12.5715   	 3.56306   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 19, nChunks: 2, r2: 24)      	 0.000163221	 3         	 12.8736   	 0         	 5.92865   	 2.17143   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 39, r1_: 13, nChunks: 2, r2: 63)	 0.000161277	 4         	 50.7009   	 0         	 22.4099   	 2.26243   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 19, nChunks: 2, r2: 14)      	 0.000157849	 3         	 7.76519   	 0         	 4.03829   	 1.92289   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 23, nChunks: 2, r2: 46)	 0.000156509	 3         	 59.7043   	 0         	 18.1709   	 3.28571   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 24, nChunks: 2, r2: 23)      	 0.000153027	 2         	 10.6196   	 0         	 4.54027   	 2.33898   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 24, nChunks: 2, r2: 26)      	 0.000152581	 2         	 12.5633   	 0         	 5.15419   	 2.4375    
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 24, r2_: 24)      	 0.000151303	 6         	 21.9279   	 0         	 10.233    	 2.14286   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 25)        	 0.00014929	 13        	 3.48315   	 0         	 8.08092   	 0.431034  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 23, nChunks: 2, r2: 26)      	 0.000149089	 2         	 12.8353   	 0         	 5.2732    	 2.43406   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 26, nChunks: 2, r2: 24)      	 0.000148362	 2         	 12.9206   	 0         	 5.21794   	 2.47619   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 22, nChunks: 2, r2: 14, r2_: 14)      	 0.000145682	 7         	 13.2602   	 0         	 8.78275   	 1.5098    
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 24, nChunks: 2, r2: 26)      	 0.000144645	 2         	 13.8048   	 0         	 5.57149   	 2.47776   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 24, nChunks: 2, r2: 22)      	 0.000143946	 2         	 10.7987   	 0         	 4.65953   	 2.31756   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 23, r1_: 23, nChunks: 2, r2: 23)	 0.000142976	 8         	 43.5703   	 0         	 18.9436   	 2.3       
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 15, nChunks: 2, r2: 24)      	 0.000140578	 5         	 11.4726   	 0         	 7.29332   	 1.57303   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 12, nChunks: 2, r2: 14)      	 0.000140436	 3         	 5.51243   	 0         	 3.54371   	 1.55556   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 12, nChunks: 2, r2: 22)      	 0.000139681	 2         	 5.56422   	 0         	 3.32827   	 1.67181   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 22, nChunks: 2, r2: 13)      	 0.000139002	 2         	 5.79399   	 0         	 2.99829   	 1.93243   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 31, nChunks: 2, r2new: 32)       	 0.000137309	 5         	 39.078    	 0         	 18.9051   	 2.06706   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 10, nChunks: 2, r2: 1)       	 0.000137049	 7         	 0.457647  	 0         	 1.22911   	 0.37234   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 25, nChunks: 2, r2: 24)      	 0.000135582	 2         	 13.0283   	 0         	 5.436     	 2.39667   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 14, nChunks: 2, r2: 48)	 0.00013529	 3         	 28.6105   	 0         	 13.1813   	 2.17054   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 60, r1_: 20, nChunks: 2, r2: 20)	 0.000132715	 4         	 46.2947   	 0         	 16.9747   	 2.72727   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 24, nChunks: 2, r2: 14)      	 0.000132502	 2         	 8.43918   	 0         	 3.91046   	 2.1581    
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 20, nChunks: 2, r2: 22)      	 0.000130791	 2         	 9.90405   	 0         	 4.60362   	 2.15136   
+<PITTS::Tensor3<double> >::copy<double>(r1: 12, n: 20, r2: 12)                                 	 0.000129794	 12        	 0         	 0         	 4.26029   	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 63, nChunks: 2, r2new: 42)       	 0.000129119	 2         	 91.8074   	 0         	 24.482    	 3.75      
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 25, r2: 1)  	 0.000128878	 38        	 0.235882  	 0         	 1.9248    	 0.122549  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 28)        	 0.000128113	 8         	 3.13323   	 0         	 7.16168   	 0.4375    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 14, nChunks: 2, r2: 46)	 0.000127442	 4         	 36.2219   	 0         	 17.0985   	 2.11842   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 48)       	 0.000126079	 2         	 81.8687   	 0         	 22.0266   	 3.71681   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 32, r1_: 16, nChunks: 2, r2: 32)	 0.000125314	 4         	 33.4704   	 0         	 14.6433   	 2.28571   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 20, nChunks: 2, r2: 24)      	 0.000124731	 2         	 12.8071   	 0         	 5.59899   	 2.28739   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 36, nChunks: 2, r2new: 48)       	 0.000123384	 3         	 71.7059   	 0         	 23.902    	 3         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 25, nChunks: 2, r2: 50)	 0.000120668	 2         	 63.6457   	 0         	 18.0329   	 3.52941   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 24, r2_: 26)      	 0.000119424	 3         	 24.0772   	 0         	 9.72347   	 2.47619   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 25, r2_: 24)      	 0.00011789	 4         	 19.5436   	 0         	 8.99008   	 2.17391   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 30, nChunks: 2, r2: 28)	 0.000115986	 3         	 41.7154   	 0         	 14.1038   	 2.95775   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 19, nChunks: 2, r2: 26)      	 0.000115606	 2         	 13.674    	 0         	 6.11844   	 2.23489   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 50, r1_: 50, nChunks: 2, r2: 50)	 0.000115176	 1         	 69.4589   	 0         	 13.8918   	 5         
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 20, nChunks: 2, r2: 24)      	 0.000115022	 2         	 12.8198   	 0         	 5.76891   	 2.22222   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 20, nChunks: 2, r2: 22)      	 0.000112547	 2         	 12.0099   	 0         	 5.49545   	 2.18543   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 40, nChunks: 2, r2new: 42)       	 0.000112375	 1         	 20.6668   	 0         	 7.80473   	 2.64799   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 20, r1_: 19, nChunks: 2, r2: 13)      	 0.000111217	 2         	 5.68546   	 0         	 3.20872   	 1.77188   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 40)       	 0.000110879	 2         	 39.3423   	 0         	 15.386    	 2.55702   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 25, nChunks: 2, r2: 24, r2_: 24)      	 0.000110876	 3         	 24.936    	 0         	 10.3069   	 2.41935   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 67)       	 0.000109488	 1         	 60.861    	 0         	 15.4611   	 3.93641   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 48, nChunks: 2, r2: 30)	 0.000109196	 2         	 81.0227   	 0         	 18.9053   	 4.28571   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 42)                                  	 0.000108898	 12        	 0         	 0         	 1.48102   	 0         
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 21, r1_: 19, nChunks: 2, r2: 21)      	 0.00010861	 2         	 9.87489   	 0         	 4.90032   	 2.01515   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 10, nChunks: 2, r2: 31)	 0.00010806	 5         	 22.9502   	 0         	 14.3328   	 1.60124   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 50, r1_: 26, nChunks: 2, r2: 46)	 0.000106887	 1         	 35.806    	 0         	 9.92989   	 3.60589   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 29, r1_: 15, nChunks: 2, r2: 48)	 0.00010609	 3         	 37.7883   	 0         	 16.8636   	 2.24082   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 14, nChunks: 2, r2: 23, r2_: 24)      	 0.000105996	 4         	 18.6646   	 0         	 9.02313   	 2.06852   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 16)	 0.000105487	 10        	 24.8508   	 0         	 15.5318   	 1.6       
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 25, nChunks: 2, r2: 25, r2_: 26)      	 0.000104728	 2         	 19.861    	 0         	 7.82217   	 2.53906   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 16, r1_: 12, nChunks: 2, r2: 16)      	 0.00010359	 4         	 7.59178   	 0         	 5.37751   	 1.41176   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 25, nChunks: 2, r2: 24, r2_: 22)      	 0.000102262	 6         	 49.5668   	 0         	 21.2386   	 2.3338    
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 23, nChunks: 2, r2: 24, r2_: 26)      	 0.00010214	 3         	 26.9785   	 0         	 10.9929   	 2.45417   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 3, nChunks: 25, r2new: 2)        	 0.000102103	 20        	 0.940227  	 0         	 5.74165   	 0.163755  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 24)      	 0.000101545	 9         	 19.6037   	 0         	 13.0691   	 1.5       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 50, r1_: 26, nChunks: 2, r2: 48)	 0.000101397	 2         	 78.7716   	 0         	 21.7026   	 3.6296    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 15, nChunks: 2, r2: 48)	 0.000101137	 3         	 41.0058   	 0         	 18.1109   	 2.26415   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 10, nChunks: 2, r2: 23)      	 0.000101079	 3         	 6.1164    	 0         	 4.72597   	 1.29421   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 21, nChunks: 2, r2: 40)	 0.000100238	 2         	 45.0512   	 0         	 15.1243   	 2.97872   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 29, nChunks: 2, r2new: 47)       	 9.9845e-05	 2         	 41.0928   	 0         	 16.1505   	 2.54437   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 19, nChunks: 2, r2: 13)      	 9.9813e-05	 2         	 7.60206   	 0         	 4.03699   	 1.8831    
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 19, r2_: 24)      	 9.98e-05  	 4         	 17.5455   	 0         	 8.95743   	 1.95876   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 25, nChunks: 2, r2new: 31)       	 9.9757e-05	 5         	 40.2739   	 0         	 21.3062   	 1.89024   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 3, r1_: 2, nChunks: 25, r2: 3)  	 9.9694e-05	 16        	 2.31107   	 0         	 7.82683   	 0.295276  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 52, r1_: 52, nChunks: 2, r2: 48)	 9.9596e-05	 1         	 83.4038   	 0         	 16.3065   	 5.11475   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 21, r1_: 20, nChunks: 2, r2: 20)      	 9.95e-05  	 2         	 10.806    	 0         	 5.3001    	 2.03883   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 14, r2_: 14)      	 9.8885e-05	 6         	 18.267    	 0         	 11.9606   	 1.52727   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 20, nChunks: 2, r2: 40)	 9.8065e-05	 2         	 43.8566   	 0         	 15.141    	 2.89655   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 13, nChunks: 2, r2: 42)	 9.6339e-05	 3         	 28.2921   	 0         	 14.4051   	 1.96403   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 20, nChunks: 2, r2: 19, r2_: 24)      	 9.6288e-05	 5         	 30.3091   	 0         	 14.4633   	 2.09559   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 26)        	 9.5665e-05	 6         	 2.71347   	 0         	 6.26185   	 0.433333  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 19, nChunks: 2, r2: 13)      	 9.5616e-05	 2         	 7.27443   	 0         	 3.97323   	 1.83086   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 27, nChunks: 2, r2new: 1)        	 9.5011e-05	 5         	 0.0909368 	 0         	 0.740967  	 0.122727  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 38)       	 9.4591e-05	 2         	 40.9314   	 0         	 16.2383   	 2.52067   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 45, nChunks: 2, r2new: 48)       	 9.3804e-05	 2         	 117.897   	 0         	 31.0462   	 3.79747   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 28)  	 9.2828e-05	 14        	 0.270263  	 0         	 2.18141   	 0.123894  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 39)       	 9.2452e-05	 2         	 44.3304   	 0         	 17.1817   	 2.5801    
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 13, r1_: 10, nChunks: 2, r2: 1)       	 9.2164e-05	 5         	 0.451369  	 0         	 1.22217   	 0.369318  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 21, nChunks: 2, r2: 42)	 9.0974e-05	 2         	 52.1207   	 0         	 17.3736   	 3         
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 19, nChunks: 2, r2: 14)      	 9.082e-05 	 2         	 8.2477    	 0         	 4.41418   	 1.86845   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 16, nChunks: 2, r2: 20)	 8.8504e-05	 4         	 44.4292   	 0         	 19.2526   	 2.30769   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 20, nChunks: 2, r2: 24)	 8.7807e-05	 2         	 13.9943   	 0         	 6.76393   	 2.06897   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 42)        	 8.7423e-05	 12        	 15.4965   	 0         	 33.9448   	 0.456522  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 67, r1_: 23, nChunks: 2, r2: 69)	 8.6033e-05	 1         	 79.0982   	 0         	 20.7712   	 3.80807   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 14, r1_: 14, nChunks: 2, r2: 23)	 8.5822e-05	 4         	 13.447    	 0         	 8.8533    	 1.51887   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 13)  	 8.5525e-05	 14        	 0.136194  	 0         	 1.11051   	 0.122642  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 14, nChunks: 2, r2: 24)      	 8.4829e-05	 3         	 11.4074   	 0         	 7.25186   	 1.57303   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 49, r1_: 24, nChunks: 2, r2: 46)	 8.4466e-05	 1         	 40.9886   	 0         	 11.9596   	 3.42727   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 12, nChunks: 2, r2: 24)      	 8.3618e-05	 2         	 11.4624   	 0         	 6.53945   	 1.75281   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 25)                                  	 8.3594e-05	 13        	 0         	 0         	 1.24411   	 0         
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 20, r2_: 26)      	 8.3566e-05	 3         	 22.7001   	 0         	 10.4218   	 2.17813   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 12, nChunks: 2, r2: 14)      	 8.2777e-05	 2         	 5.71521   	 0         	 3.76066   	 1.51974   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 12, nChunks: 2, r2: 26)      	 8.2739e-05	 2         	 12.5495   	 0         	 7.07923   	 1.77273   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 42)       	 8.2464e-05	 2         	 88.9872   	 0         	 26.8591   	 3.31311   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 10, nChunks: 2, r2: 24)      	 8.0806e-05	 3         	 8.55382   	 0         	 6.41537   	 1.33333   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 25, nChunks: 2, r2: 26)      	 8.0792e-05	 1         	 13.3875   	 0         	 5.23141   	 2.55906   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 26, nChunks: 2, r2: 26)      	 8.0679e-05	 1         	 13.9425   	 0         	 5.36249   	 2.6       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 39, r1_: 18, nChunks: 2, r2: 38)	 8.0027e-05	 2         	 42.6672   	 0         	 16.1034   	 2.64958   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 31, r1_: 14, nChunks: 2, r2: 20)	 7.9025e-05	 2         	 14.0593   	 0         	 7.237     	 1.9427    
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 10, r2_: 14)      	 7.8688e-05	 7         	 9.56486   	 0         	 8.15291   	 1.17318   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 3, nChunks: 25, r2new: 3)        	 7.8675e-05	 12        	 1.83031   	 0         	 7.00888   	 0.261142  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 24, nChunks: 2, r2: 52)	 7.8047e-05	 1         	 49.1224   	 0         	 14.1699   	 3.46667   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 25, nChunks: 2, r2: 24)      	 7.7555e-05	 1         	 12.8734   	 0         	 5.11307   	 2.51775   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 13, r1_: 15, nChunks: 2, r2: 21)      	 7.7335e-05	 2         	 6.77778   	 0         	 4.53838   	 1.49344   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 21, nChunks: 2, r2: 40)	 7.7067e-05	 1         	 26.5078   	 0         	 9.1648    	 2.89235   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 14, r2_: 14)      	 7.6564e-05	 6         	 18.6774   	 0         	 12.6388   	 1.47778   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 32, r1_: 14, nChunks: 2, r2: 31)	 7.6047e-05	 3         	 35.0638   	 0         	 16.6634   	 2.10424   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 14, nChunks: 2, r2: 48)	 7.5382e-05	 2         	 31.9499   	 0         	 15.0241   	 2.12658   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 25, nChunks: 2, r2: 26)      	 7.5143e-05	 1         	 13.8403   	 0         	 5.49353   	 2.51938   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 47, r1_: 23, nChunks: 2, r2: 47)	 7.3576e-05	 1         	 44.1944   	 0         	 13.3278   	 3.31595   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 25, nChunks: 2, r2new: 39)       	 7.2991e-05	 2         	 35.2219   	 0         	 15.7863   	 2.23117   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 28, nChunks: 2, r2: 20)	 7.2988e-05	 3         	 41.2473   	 0         	 15.9097   	 2.59259   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 12, nChunks: 2, r2: 22)      	 7.2696e-05	 2         	 11.1562   	 0         	 6.59227   	 1.69231   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 25, nChunks: 2, r2: 26)      	 7.1961e-05	 1         	 13.8742   	 0         	 5.59948   	 2.47776   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 12, nChunks: 2, r2: 1) 	 7.1511e-05	 4         	 0.515501  	 0         	 1.37467   	 0.375     
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 28)                                  	 7.132e-05 	 8         	 0         	 0         	 1.00505   	 0         
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 23, nChunks: 2, r2: 26)      	 7.1211e-05	 1         	 12.8987   	 0         	 5.38524   	 2.39519   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 12, nChunks: 2, r2: 13)      	 7.0586e-05	 2         	 6.22356   	 0         	 4.16355   	 1.49477   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 30)  	 7.0412e-05	 9         	 0.245413  	 0         	 1.97966   	 0.123967  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 30)        	 6.996e-05 	 5         	 4.11664   	 0         	 9.33105   	 0.441176  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 20, nChunks: 2, r2: 48)	 6.9917e-05	 2         	 49.2103   	 0         	 18.9226   	 2.60062   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 12, nChunks: 2, r2: 23)      	 6.9668e-05	 2         	 11.6631   	 0         	 6.93024   	 1.68293   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 29)        	 6.9508e-05	 5         	 3.87178   	 0         	 8.81165   	 0.439394  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 30, nChunks: 2, r2new: 48)       	 6.9414e-05	 2         	 63.7289   	 0         	 24.4294   	 2.6087    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 22, nChunks: 2, r2: 41)	 6.8999e-05	 1         	 36.8126   	 0         	 11.8355   	 3.11034   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 12, nChunks: 2, r2: 13)      	 6.7818e-05	 2         	 7.06644   	 0         	 4.62037   	 1.52941   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 24, nChunks: 2, r2: 22)      	 6.7035e-05	 1         	 12.0983   	 0         	 5.1326    	 2.35714   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 14, nChunks: 2, r2: 1) 	 6.6648e-05	 11        	 2.95763   	 0         	 7.35182   	 0.402299  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 46, nChunks: 2, r2: 28)	 6.6602e-05	 1         	 56.9333   	 0         	 13.9681   	 4.07595   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 21, r1_: 21, nChunks: 2, r2: 21)	 6.6528e-05	 4         	 35.6364   	 0         	 16.9697   	 2.1       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 22, r1_: 22, nChunks: 2, r2: 23)	 6.6362e-05	 4         	 42.9431   	 0         	 19.3499   	 2.2193    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 12, nChunks: 2, r2: 12)	 6.6081e-05	 9         	 15.0622   	 0         	 12.5519   	 1.2       
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 25, nChunks: 2, r2: 25, r2_: 24)      	 6.5823e-05	 5         	 72.9228   	 0         	 29.6553   	 2.45902   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 36, r1_: 12, nChunks: 2, r2: 48)	 6.5552e-05	 2         	 40.4901   	 0         	 19.6827   	 2.05714   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 1, r2_: 1)        	 6.5342e-05	 14        	 0.137125  	 0         	 1.12442   	 0.121951  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 29, r1_: 15, nChunks: 2, r2: 47)	 6.5303e-05	 2         	 40.0741   	 0         	 17.9192   	 2.23638   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 44)       	 6.512e-05 	 1         	 46.0108   	 0         	 16.2909   	 2.82432   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 49, nChunks: 2, r2new: 46)       	 6.5001e-05	 1         	 51.0889   	 0         	 17.4865   	 2.92162   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 50, nChunks: 2, r2new: 48)       	 6.4768e-05	 2         	 113.834   	 0         	 37.5652   	 3.0303    
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 14, r2_: 13)      	 6.4708e-05	 6         	 20.521    	 0         	 14.3374   	 1.43129   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 46, nChunks: 2, r2new: 43)       	 6.445e-05 	 1         	 42.8706   	 0         	 15.5169   	 2.76283   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 24, nChunks: 2, r2: 24)      	 6.426e-05 	 1         	 13.1944   	 0         	 5.59328   	 2.35897   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 38, nChunks: 2, r2: 40)	 6.3828e-05	 1         	 57.9156   	 0         	 15.0886   	 3.83838   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 20, nChunks: 2, r2: 26)      	 6.3814e-05	 1         	 13.5594   	 0         	 5.84098   	 2.32143   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 20, nChunks: 2, r2: 19, r2_: 22)      	 6.2839e-05	 4         	 34.0578   	 0         	 16.7682   	 2.0311    
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 24, nChunks: 2, r2: 14)      	 6.2397e-05	 1         	 8.27117   	 0         	 3.93865   	 2.1       
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 26)      	 6.2156e-05	 4         	 15.4203   	 0         	 10.0825   	 1.52941   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 25, nChunks: 2, r2new: 38)       	 6.2107e-05	 3         	 59.9121   	 0         	 26.9821   	 2.22044   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 15, r2_: 14)       	 6.2087e-05	 15        	 3.24706   	 0         	 8.28773   	 0.391791  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 1) 	 6.1991e-05	 14        	 2.44268   	 0         	 6.38854   	 0.382353  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 24, nChunks: 2, r2: 43)	 6.199e-05 	 1         	 49.0113   	 0         	 14.71     	 3.33184   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 15, r2_: 15)       	 6.1925e-05	 16        	 3.72063   	 0         	 9.4256    	 0.394737  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 26, nChunks: 2, r2: 20)	 6.1716e-05	 2         	 51.7675   	 0         	 17.4549   	 2.96578   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 38, nChunks: 2, r2new: 36)       	 6.1629e-05	 2         	 57.4234   	 0         	 23.1289   	 2.48276   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 47, r1_: 24, nChunks: 2, r2: 48)	 6.0995e-05	 1         	 56.8115   	 0         	 16.6707   	 3.40785   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 10, r2_: 13)      	 6.0608e-05	 5         	 8.23654   	 0         	 7.20169   	 1.1437    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 24, nChunks: 2, r2: 48)	 6.0495e-05	 1         	 56.0623   	 0         	 16.5546   	 3.3865    
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 19, nChunks: 2, r2: 25)      	 6.0423e-05	 1         	 12.578    	 0         	 5.66672   	 2.21963   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 20, nChunks: 2, r2: 24)      	 6.0407e-05	 1         	 12.7138   	 0         	 5.63643   	 2.25564   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 14, r2_: 13)      	 5.9776e-05	 7         	 32.7366   	 0         	 22.1542   	 1.47767   
+<PITTS::Tensor3<double> >::copy<double>(r1: 12, n: 20, r2: 10)                                 	 5.9551e-05	 6         	 0         	 0         	 3.86895   	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 25, nChunks: 2, r2new: 41)       	 5.9521e-05	 2         	 46.7304   	 0         	 20.6061   	 2.26779   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 32, nChunks: 2, r2new: 31)       	 5.9336e-05	 5         	 87.6042   	 0         	 43.0686   	 2.03406   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 38, nChunks: 2, r2new: 38)       	 5.9009e-05	 2         	 67.591    	 0         	 25.9085   	 2.60884   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 20, nChunks: 2, r2: 20)	 5.8718e-05	 2         	 34.8786   	 0         	 13.9514   	 2.5       
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 26, nChunks: 2, r2new: 42)       	 5.8563e-05	 2         	 51.2236   	 0         	 22.1366   	 2.31398   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 29, nChunks: 2, r2new: 48)       	 5.8235e-05	 3         	 110.304   	 0         	 42.7421   	 2.58068   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 28, nChunks: 2, r2new: 1)        	 5.7855e-05	 4         	 0.123896  	 0         	 1.00887   	 0.122807  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 14, nChunks: 2, r2: 25)      	 5.7786e-05	 2         	 11.6291   	 0         	 7.35403   	 1.58133   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 47, r1_: 24, nChunks: 2, r2: 44)	 5.7552e-05	 1         	 55.1927   	 0         	 16.4048   	 3.36443   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 48, nChunks: 2, r2: 52)	 5.7238e-05	 1         	 133.962   	 0         	 27.4794   	 4.875     
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 25, nChunks: 2, r2: 36)	 5.7164e-05	 1         	 38.2898   	 0         	 12.2841   	 3.11703   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 23, nChunks: 2, r2: 44)	 5.7098e-05	 1         	 54.4479   	 0         	 16.4814   	 3.30359   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 12, nChunks: 2, r2: 32)	 5.6991e-05	 2         	 20.6988   	 0         	 11.6431   	 1.77778   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 24)      	 5.5846e-05	 4         	 13.202    	 0         	 9.24141   	 1.42857   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 50, nChunks: 2, r2new: 46)       	 5.5559e-05	 1         	 61.043    	 0         	 20.7808   	 2.93747   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 23, nChunks: 2, r2: 48)	 5.5446e-05	 1         	 61.1674   	 0         	 18.2837   	 3.34545   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 25, nChunks: 2, r2: 25, r2_: 23)      	 5.5314e-05	 3         	 49.897    	 0         	 20.653    	 2.41597   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 19, nChunks: 2, r2: 26)      	 5.5249e-05	 1         	 13.7339   	 0         	 6.23678   	 2.20208   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 19, nChunks: 2, r2: 14)      	 5.5208e-05	 1         	 8.01739   	 0         	 4.06666   	 1.97149   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 29)  	 5.5159e-05	 5         	 0.168241  	 0         	 1.35753   	 0.123932  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 50, r1_: 23, nChunks: 2, r2: 50)	 5.5109e-05	 1         	 66.7768   	 0         	 19.6266   	 3.40237   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 39, r1_: 24, nChunks: 2, r2: 20)	 5.5009e-05	 1         	 21.7797   	 0         	 8.04174   	 2.70833   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 30, nChunks: 2, r2: 1) 	 5.4923e-05	 4         	 4.19496   	 0         	 9.50858   	 0.441176  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 24, nChunks: 2, r2: 44)	 5.4902e-05	 1         	 59.0877   	 0         	 17.4577   	 3.38462   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 2, r1_: 2, nChunks: 25, r2: 2)  	 5.477e-05 	 12        	 1.40223   	 0         	 5.72109   	 0.245098  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 25)  	 5.4618e-05	 13        	 0.380827  	 0         	 3.07708   	 0.123762  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 25, r2_: 23)      	 5.3718e-05	 5         	 51.3794   	 0         	 24.0069   	 2.1402    
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 36, nChunks: 2, r2new: 32)       	 5.3559e-05	 2         	 73.4174   	 0         	 27.5315   	 2.66667   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 41, r1_: 26, nChunks: 2, r2: 39)	 5.3537e-05	 1         	 49.699    	 0         	 15.0434   	 3.30372   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 40, nChunks: 2, r2new: 41)       	 5.3478e-05	 1         	 40.2839   	 0         	 15.8043   	 2.54892   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 24)	 5.3086e-05	 4         	 19.5595   	 0         	 13.6666   	 1.43119   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 19, nChunks: 2, r2: 24)      	 5.306e-05 	 1         	 12.6504   	 0         	 5.91753   	 2.13779   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 41, nChunks: 2, r2new: 42)       	 5.3032e-05	 1         	 44.7054   	 0         	 16.8279   	 2.65663   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 22, r1_: 22, nChunks: 2, r2: 14)      	 5.2811e-05	 1         	 8.21162   	 0         	 4.15913   	 1.97436   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 47, nChunks: 2, r2new: 44)       	 5.2136e-05	 1         	 55.849    	 0         	 19.9847   	 2.79459   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 48, nChunks: 2, r2new: 49)       	 5.1631e-05	 1         	 71.4895   	 0         	 23.4501   	 3.04858   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 23, r1_: 12, nChunks: 2, r2: 24)      	 5.1583e-05	 1         	 8.21852   	 0         	 4.85369   	 1.69325   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 24, nChunks: 2, r2: 46)	 5.1456e-05	 1         	 60.4179   	 0         	 18.1891   	 3.32166   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 25, nChunks: 2, r2: 38)	 5.1164e-05	 1         	 45.1568   	 0         	 14.3551   	 3.1457    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 50, r1_: 23, nChunks: 2, r2: 48)	 5.1151e-05	 1         	 69.0661   	 0         	 20.4145   	 3.38318   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 16, r1_: 12, nChunks: 2, r2: 12)      	 5.0936e-05	 2         	 5.78985   	 0         	 4.34239   	 1.33333   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 19, nChunks: 2, r2: 44)	 5.082e-05 	 1         	 44.2182   	 0         	 15.5303   	 2.84723   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 52, r1_: 24, nChunks: 2, r2: 48)	 5.0748e-05	 1         	 75.5469   	 0         	 21.5502   	 3.50562   
+<PITTS::Tensor3<double> >::copy<double>(r1: 2, n: 400, r2: 2)                                  	 5.0324e-05	 12        	 0         	 0         	 6.10444   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 22, nChunks: 2, r2: 46)	 4.988e-05 	 1         	 59.7299   	 0         	 18.6508   	 3.20253   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 26, nChunks: 2, r2: 41)	 4.9734e-05	 1         	 54.8711   	 0         	 16.6055   	 3.3044    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 48, nChunks: 2, r2: 50)	 4.9407e-05	 1         	 149.226   	 0         	 30.84     	 4.83871   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 44, nChunks: 2, r2new: 40)       	 4.9305e-05	 1         	 46.1065   	 0         	 17.9026   	 2.57541   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 41, nChunks: 2, r2new: 39)       	 4.8856e-05	 1         	 40.8711   	 0         	 16.5554   	 2.46875   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 46, r1_: 22, nChunks: 2, r2: 20)	 4.8785e-05	 1         	 26.5524   	 0         	 9.79186   	 2.71168   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 22, nChunks: 2, r2: 14, r2_: 13)      	 4.8608e-05	 7         	 36.9032   	 0         	 25.2535   	 1.46131   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 2, r1_: 2, nChunks: 25, r2: 1)  	 4.85e-05  	 13        	 0.857732  	 0         	 3.56816   	 0.240385  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 41, r1_: 18, nChunks: 2, r2: 42)	 4.8305e-05	 1         	 41.0671   	 0         	 15.0881   	 2.72181   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 25, nChunks: 2, r2: 48)	 4.8269e-05	 1         	 76.372    	 0         	 21.766    	 3.50877   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 39, r1_: 17, nChunks: 2, r2: 39)	 4.8144e-05	 1         	 34.3729   	 0         	 13.3759   	 2.56977   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 21, nChunks: 2, r2: 38)	 4.7995e-05	 1         	 42.5644   	 0         	 14.6042   	 2.91454   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 44, nChunks: 2, r2new: 41)       	 4.7948e-05	 1         	 49.6912   	 0         	 18.9672   	 2.61985   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 41, r1_: 13, nChunks: 2, r2: 44)	 4.7688e-05	 1         	 31.4739   	 0         	 14.1855   	 2.21873   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 10, nChunks: 2, r2: 25)      	 4.7668e-05	 2         	 10.0696   	 0         	 7.51867   	 1.33929   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 23, nChunks: 2, r2: 49)	 4.7435e-05	 1         	 72.9871   	 0         	 21.7547   	 3.355     
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 39, r1_: 18, nChunks: 2, r2: 39)	 4.7331e-05	 1         	 37.02     	 0         	 13.922    	 2.65909   
+<PITTS::Tensor3<double> >::setConstant(r1: 1, n: 400, r2: 1)                                   	 4.7294e-05	 30        	 0         	 0         	 2.02986   	 0         
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 29)                                  	 4.6494e-05	 5         	 0         	 0         	 0.997978  	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 43, nChunks: 2, r2new: 48)       	 4.6371e-05	 1         	 69.0307   	 0         	 23.5071   	 2.93659   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 1, r1_: 1, nChunks: 2, r2: 13)        	 4.5554e-05	 5         	 0.0913202 	 0         	 0.744611  	 0.122642  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 26, r1_: 12, nChunks: 2, r2: 14)      	 4.5451e-05	 1         	 6.15062   	 0         	 3.87512   	 1.58721   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 36)        	 4.4929e-05	 3         	 5.53834   	 0         	 12.3074   	 0.45      
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 31, r1_: 12, nChunks: 2, r2: 20)	 4.4579e-05	 2         	 21.3625   	 0         	 12.0135   	 1.7782    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 14, nChunks: 2, r2: 67)	 4.4534e-05	 1         	 56.6162   	 0         	 23.2581   	 2.43426   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 22)	 4.4509e-05	 4         	 21.3846   	 0         	 15.1038   	 1.41584   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 22, r2_: 26)      	 4.406e-05 	 3         	 59.8224   	 0         	 25.0655   	 2.38665   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 23, r1_: 23, nChunks: 2, r2: 22)	 4.3948e-05	 4         	 67.7921   	 0         	 29.7428   	 2.27928   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 50, r1_: 50, nChunks: 2, r2: 30)	 4.3878e-05	 1         	 109.394   	 0         	 24.796    	 4.41176   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 46, nChunks: 2, r2new: 20)       	 4.3598e-05	 4         	 73.0456   	 0         	 42.559    	 1.71634   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 30, nChunks: 2, r2new: 44)       	 4.3396e-05	 1         	 42.8279   	 0         	 17.3907   	 2.46269   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 47, nChunks: 2, r2new: 47)       	 4.3201e-05	 1         	 76.939    	 0         	 26.1831   	 2.9385    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 20, nChunks: 2, r2: 1) 	 4.2966e-05	 7         	 4.17074   	 0         	 10.0098   	 0.416667  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 28, nChunks: 2, r2new: 28)       	 4.2941e-05	 3         	 50.078    	 0         	 28.1868   	 1.77665   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 44, nChunks: 2, r2new: 46)       	 4.2494e-05	 1         	 71.3588   	 0         	 24.7723   	 2.88059   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 40, nChunks: 2, r2new: 20)       	 4.2444e-05	 3         	 45.7789   	 0         	 28.1549   	 1.62596   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 20, nChunks: 2, r2: 44)	 4.1917e-05	 2         	 75.242    	 0         	 29.2174   	 2.57525   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 400, r2: 3)                                  	 4.1842e-05	 9         	 0         	 0         	 4.12982   	 0         
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 13, r1_: 10, nChunks: 2, r2: 16)      	 4.1219e-05	 2         	 6.45916   	 0         	 5.37849   	 1.20092   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 43, r1_: 14, nChunks: 2, r2: 48)	 4.114e-05 	 1         	 44.9525   	 0         	 18.8982   	 2.37866   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 48, nChunks: 2, r2: 48)	 4.098e-05 	 1         	 172.716   	 0         	 35.9824   	 4.8       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 48, nChunks: 2, r2: 46)	 4.0963e-05	 1         	 165.588   	 0         	 34.7975   	 4.75862   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 39)                                  	 4.0245e-05	 4         	 0         	 0         	 1.2404    	 0         
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 30)                                  	 3.9778e-05	 5         	 0         	 0         	 1.2067    	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 3, r1_: 2, nChunks: 25, r2: 2)  	 3.9775e-05	 8         	 1.93086   	 0         	 6.59067   	 0.292969  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 10, nChunks: 2, r2: 38)	 3.9749e-05	 2         	 30.592    	 0         	 18.7416   	 1.6323    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 14, nChunks: 2, r2: 28)	 3.9416e-05	 1         	 19.0948   	 0         	 9.36554   	 2.03883   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 400, r2: 1)                                  	 3.9399e-05	 8         	 0         	 0         	 1.29953   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 19, nChunks: 2, r2: 42)	 3.9399e-05	 1         	 54.4436   	 0         	 19.2395   	 2.82979   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 24, r2_: 24)      	 3.9263e-05	 3         	 67.6007   	 0         	 28.167    	 2.4       
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 12, nChunks: 2, r2: 25)      	 3.8914e-05	 1         	 12.3349   	 0         	 7.072     	 1.74419   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 12, r1_: 10, nChunks: 2, r2: 1)       	 3.8772e-05	 2         	 0.396162  	 0         	 1.08284   	 0.365854  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 15, r1_: 15, nChunks: 2, r2: 24)	 3.8596e-05	 2         	 17.9086   	 0         	 11.0436   	 1.62162   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 12, nChunks: 2, r2: 30)	 3.8482e-05	 1         	 17.9616   	 0         	 9.57954   	 1.875     
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 25, r2new: 3)        	 3.8465e-05	 9         	 1.68465   	 0         	 4.76194   	 0.353774  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 15, nChunks: 2, r2: 46)	 3.8437e-05	 1         	 32.169    	 0         	 14.5726   	 2.2075    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 39, r1_: 18, nChunks: 2, r2: 37)	 3.8321e-05	 1         	 43.3792   	 0         	 16.4338   	 2.63963   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 20, r2_: 24)      	 3.8309e-05	 4         	 60.9444   	 0         	 28.7615   	 2.11896   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 38)       	 3.8228e-05	 1         	 51.9125   	 0         	 20.9873   	 2.47352   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 12, nChunks: 2, r2: 26)      	 3.8224e-05	 1         	 13.0599   	 0         	 7.44747   	 1.7536    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 13, nChunks: 2, r2: 44)	 3.8223e-05	 1         	 45.9719   	 0         	 20.0658   	 2.29105   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 31, nChunks: 2, r2new: 20)       	 3.8201e-05	 5         	 64.6685   	 0         	 41.7497   	 1.54896   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 26)                                  	 3.8154e-05	 6         	 0         	 0         	 1.30838   	 0         
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 21, r1_: 12, nChunks: 2, r2: 20)      	 3.8052e-05	 1         	 8.47682   	 0         	 5.28792   	 1.60305   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 28, nChunks: 2, r2new: 43)       	 3.7936e-05	 1         	 44.0337   	 0         	 18.4597   	 2.3854    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 32, r1_: 16, nChunks: 2, r2: 20)	 3.7881e-05	 2         	 34.601    	 0         	 16.4355   	 2.10526   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 28, nChunks: 2, r2new: 40)       	 3.7751e-05	 1         	 37.8395   	 0         	 16.804    	 2.25182   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 37)       	 3.7749e-05	 1         	 49.055    	 0         	 19.7312   	 2.48617   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 20)  	 3.7622e-05	 9         	 0.306204  	 0         	 2.48025   	 0.123457  
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 24, r1_: 12, nChunks: 2, r2: 26)      	 3.7492e-05	 1         	 12.7822   	 0         	 7.37437   	 1.73333   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 25, r1_: 12, nChunks: 2, r2: 24)      	 3.7437e-05	 1         	 12.3087   	 0         	 7.098     	 1.7341    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 21, r1_: 21, nChunks: 2, r2: 13)	 3.7382e-05	 2         	 19.6304   	 0         	 10.4983   	 1.86986   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 36, r1_: 13, nChunks: 2, r2: 48)	 3.7213e-05	 1         	 38.6342   	 0         	 17.7899   	 2.17169   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 24)        	 3.7006e-05	 2         	 2.98849   	 0         	 6.80711   	 0.439024  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 14, nChunks: 2, r2: 40)	 3.6819e-05	 1         	 42.8301   	 0         	 18.2723   	 2.34399   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 16, nChunks: 2, r2: 39)	 3.6545e-05	 1         	 41.526    	 0         	 16.8822   	 2.45975   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 15, nChunks: 2, r2: 44)	 3.6495e-05	 1         	 34.7226   	 0         	 15.4673   	 2.2449    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 40, nChunks: 2, r2: 38)	 3.6379e-05	 1         	 106.963   	 0         	 27.0222   	 3.95833   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 22, r2_: 22)      	 3.6134e-05	 3         	 61.7223   	 0         	 27.588    	 2.23729   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 23, nChunks: 2, r2: 24, r2_: 24)      	 3.6128e-05	 3         	 70.4057   	 0         	 29.5908   	 2.37931   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 19, r1_: 12, nChunks: 2, r2: 14)      	 3.606e-05 	 1         	 5.66522   	 0         	 3.8904    	 1.4562    
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 24, nChunks: 2, r2new: 1)        	 3.5978e-05	 11        	 0.46962   	 0         	 3.83523   	 0.122449  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 45)        	 3.5976e-05	 4         	 14.4096   	 0         	 31.3809   	 0.459184  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 31, r1_: 14, nChunks: 2, r2: 32)	 3.5938e-05	 2         	 49.4647   	 0         	 23.6069   	 2.09535   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 14, nChunks: 2, r2: 42)	 3.5871e-05	 1         	 41.9637   	 0         	 18.1843   	 2.30769   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 45)                                  	 3.5752e-05	 4         	 0         	 0         	 1.6111    	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 31, r1_: 13, nChunks: 2, r2: 32)	 3.5626e-05	 2         	 46.3338   	 0         	 23.131    	 2.00311   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 10, nChunks: 2, r2: 39)	 3.5583e-05	 1         	 17.5365   	 0         	 10.7197   	 1.63591   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 14, nChunks: 2, r2new: 8)        	 3.5399e-05	 4         	 8.5625    	 0         	 9.14105   	 0.936709  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 14, nChunks: 2, r2: 18)	 3.5319e-05	 1         	 12.7859   	 0         	 6.90031   	 1.85294   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 14, nChunks: 2, r2: 50)	 3.5302e-05	 1         	 38.0715   	 0         	 17.4766   	 2.17842   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 11, nChunks: 2, r2: 39)	 3.4894e-05	 1         	 19.671    	 0         	 11.3092   	 1.73938   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 13, nChunks: 2, r2: 48)	 3.4789e-05	 1         	 43.6221   	 0         	 19.8316   	 2.19963   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 23, r1_: 23, nChunks: 2, r2: 14)	 3.4181e-05	 4         	 55.4675   	 0         	 27.217    	 2.03797   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 12)        	 3.4139e-05	 6         	 2.4296    	 0         	 6.20897   	 0.391304  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 28, nChunks: 2, r2: 26)	 3.3982e-05	 1         	 38.3902   	 0         	 13.9217   	 2.75758   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 38, nChunks: 2, r2new: 39)       	 3.3907e-05	 1         	 59.4058   	 0         	 23.0239   	 2.58018   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 21, r1_: 12, nChunks: 2, r2: 21)      	 3.3613e-05	 1         	 10.0761   	 0         	 6.23759   	 1.61538   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 11, nChunks: 2, r2: 41)	 3.3456e-05	 1         	 21.5686   	 0         	 12.3462   	 1.74698   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 18, nChunks: 2, r2: 20)	 3.3449e-05	 2         	 52.3495   	 0         	 22.3787   	 2.33926   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 45)  	 3.3411e-05	 4         	 0.344797  	 0         	 2.7737    	 0.124309  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 13, nChunks: 2, r2: 30)	 3.3391e-05	 1         	 20.9302   	 0         	 10.8254   	 1.93343   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 36)                                  	 3.3334e-05	 3         	 0         	 0         	 1.03678   	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 42)       	 3.3066e-05	 1         	 73.1628   	 0         	 27.4535   	 2.66497   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 22)      	 3.2983e-05	 4         	 24.5887   	 0         	 16.765    	 1.46667   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 47, nChunks: 2, r2new: 48)       	 3.2872e-05	 1         	 105.415   	 0         	 35.3254   	 2.98413   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 24, r2_: 23)      	 3.2549e-05	 3         	 48.8421   	 0         	 23.1469   	 2.11009   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 400, r2: 2)                                  	 3.2419e-05	 8         	 0         	 0         	 3.15864   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 24, nChunks: 2, r2: 20)	 3.2205e-05	 1         	 41.9711   	 0         	 15.0079   	 2.79661   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 19, r2_: 23)      	 3.2033e-05	 3         	 39.2895   	 0         	 20.343    	 1.93135   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 28, nChunks: 2, r2: 28)	 3.1903e-05	 1         	 44.0375   	 0         	 15.7277   	 2.8       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 14, r1_: 14, nChunks: 2, r2: 1) 	 3.1883e-05	 6         	 2.36063   	 0         	 6.07019   	 0.388889  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 13)	 3.1819e-05	 4         	 60.2448   	 0         	 29.35     	 2.05263   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 19, r2_: 25)      	 3.1782e-05	 3         	 43.0432   	 0         	 21.6877   	 1.98468   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 38, nChunks: 2, r2new: 20)       	 3.1538e-05	 3         	 58.9308   	 0         	 36.3813   	 1.61981   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 36, nChunks: 2, r2new: 1)        	 3.1464e-05	 6         	 0.439359  	 0         	 3.56369   	 0.123288  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 16)      	 3.129e-05 	 4         	 18.8502   	 0         	 14.1377   	 1.33333   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 20, r1_: 12, nChunks: 2, r2: 13)      	 3.1264e-05	 1         	 6.3869    	 0         	 4.38895   	 1.45522   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 26, nChunks: 2, r2new: 26)       	 3.1236e-05	 2         	 46.4531   	 0         	 23.7674   	 1.95448   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 38, nChunks: 2, r2: 30)	 3.1234e-05	 1         	 88.7648   	 0         	 24.605    	 3.60759   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 10, nChunks: 2, r2: 26)      	 3.123e-05 	 1         	 7.99232   	 0         	 5.943     	 1.34483   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 41, r1_: 20, nChunks: 2, r2: 20)	 3.1162e-05	 1         	 33.682    	 0         	 13.3907   	 2.51534   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 25, r2: 3)  	 3.0908e-05	 9         	 0.698848  	 0         	 5.62806   	 0.124172  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 14, r1_: 14, nChunks: 2, r2: 24)	 3.0762e-05	 2         	 19.5732   	 0         	 12.8158   	 1.52727   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 20, nChunks: 2, r2: 20)	 3.0757e-05	 1         	 31.6286   	 0         	 12.8179   	 2.46753   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 20, r1_: 12, nChunks: 2, r2: 19)      	 3.0526e-05	 1         	 9.56037   	 0         	 6.10522   	 1.56593   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 15, nChunks: 2, r2: 23)      	 3.0204e-05	 1         	 10.9654   	 0         	 6.80175   	 1.61215   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 13, nChunks: 2, r2: 38)	 3.0072e-05	 1         	 31.5403   	 0         	 15.5701   	 2.0257    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 10, nChunks: 2, r2: 1) 	 3.0054e-05	 8         	 3.4072    	 0         	 8.85872   	 0.384615  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 28, nChunks: 2, r2new: 30)       	 2.9984e-05	 1         	 36.1153   	 0         	 15.8292   	 2.28155   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 36, r1_: 24, nChunks: 2, r2: 20)	 2.9687e-05	 1         	 37.2527   	 0         	 14.0732   	 2.64706   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 43, r1_: 22, nChunks: 2, r2: 20)	 2.949e-05 	 1         	 41.0607   	 0         	 15.3913   	 2.66779   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 23, r1_: 15, nChunks: 2, r2: 28)	 2.9245e-05	 1         	 21.14     	 0         	 10.8239   	 1.95309   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 22, r1_: 22, nChunks: 2, r2: 13)	 2.9141e-05	 4         	 55.2744   	 0         	 28.6035   	 1.93243   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 28, nChunks: 2, r2: 30)	 2.8869e-05	 2         	 104.283   	 0         	 36.7475   	 2.83784   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 21)	 2.8818e-05	 2         	 15.7635   	 0         	 11.2019   	 1.40722   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 19, r1_: 12, nChunks: 2, r2: 20)      	 2.865e-05 	 1         	 10.1864   	 0         	 6.5586    	 1.55313   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 30, nChunks: 2, r2new: 28)       	 2.8541e-05	 1         	 45.96     	 0         	 17.6162   	 2.60896   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 10, nChunks: 2, r2: 28)	 2.8535e-05	 2         	 25.12     	 0         	 16.8663   	 1.48936   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 12, nChunks: 2, r2: 15)	 2.8492e-05	 3         	 14.5557   	 0         	 11.6445   	 1.25      
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 12, nChunks: 2, r2: 10)	 2.841e-05 	 4         	 12.9757   	 0         	 11.2456   	 1.15385   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 41, nChunks: 2, r2new: 44)       	 2.8278e-05	 1         	 90.8194   	 0         	 33.3512   	 2.72313   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 19, nChunks: 2, r2: 20)	 2.811e-05 	 1         	 34.6069   	 0         	 14.207    	 2.4359    
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 26, nChunks: 2, r2new: 28)       	 2.7667e-05	 1         	 30.8307   	 0         	 14.7676   	 2.08772   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 10, nChunks: 2, r2: 24)	 2.7663e-05	 2         	 22.2102   	 0         	 15.177    	 1.46341   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 4, nChunks: 25, r2new: 3)        	 2.7395e-05	 4         	 2.80343   	 0         	 9.56905   	 0.292969  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 15, nChunks: 2, r2: 40)	 2.6967e-05	 1         	 39.871    	 0         	 18.3217   	 2.17617   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 23)      	 2.6906e-05	 3         	 19.6952   	 0         	 13.9294   	 1.41393   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 10, r1_: 10, nChunks: 2, r2: 12)	 2.676e-05 	 4         	 11.4798   	 0         	 11.0972   	 1.03448   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 25, r2new: 2)        	 2.6743e-05	 5         	 0.598287  	 0         	 2.48888   	 0.240385  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 20)	 2.6598e-05	 3         	 83.1581   	 0         	 36.0352   	 2.30769   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 14, nChunks: 2, r2: 24)      	 2.6432e-05	 1         	 11.3898   	 0         	 7.45763   	 1.52727   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 20)      	 2.6427e-05	 2         	 13.9494   	 0         	 9.76456   	 1.42857   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 12, nChunks: 2, r2: 1) 	 2.6301e-05	 7         	 4.08806   	 0         	 10.3564   	 0.394737  
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 12)                                  	 2.6153e-05	 6         	 0         	 0         	 0.88097   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 18, nChunks: 2, r2: 20)	 2.6089e-05	 1         	 35.3252   	 0         	 14.9151   	 2.36842   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 12, nChunks: 2, r2: 16)	 2.6058e-05	 3         	 16.9763   	 0         	 13.4396   	 1.26316   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 42, nChunks: 2, r2new: 44)       	 2.5913e-05	 1         	 101.282   	 0         	 37.0273   	 2.73533   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 12, nChunks: 2, r2: 43)	 2.5906e-05	 1         	 35.6934   	 0         	 18.657    	 1.91314   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 15, r1_: 15, nChunks: 2, r2: 12)	 2.5775e-05	 2         	 13.4083   	 0         	 9.38584   	 1.42857   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 39)        	 2.5682e-05	 4         	 15.1614   	 0         	 33.4329   	 0.453488  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 38, nChunks: 2, r2new: 48)       	 2.5638e-05	 1         	 122.698   	 0         	 39.9407   	 3.072     
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 16, nChunks: 2, r2: 24)	 2.5572e-05	 2         	 46.1305   	 0         	 23.0652   	 2         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 12)  	 2.5537e-05	 8         	 0.240592  	 0         	 1.96484   	 0.122449  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 12)	 2.5505e-05	 3         	 23.1258   	 0         	 15.4172   	 1.5       
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 18, nChunks: 2, r2new: 12)       	 2.5354e-05	 3         	 16.3572   	 0         	 15.2667   	 1.07143   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 26)  	 2.5313e-05	 6         	 0.394422  	 0         	 3.18571   	 0.12381   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 25, nChunks: 2, r2new: 1)        	 2.5127e-05	 5         	 0.318383  	 0         	 2.598     	 0.122549  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 22, nChunks: 2, r2new: 1)        	 2.4955e-05	 2         	 0.112843  	 0         	 0.923262  	 0.122222  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 12, nChunks: 2, r2: 42)	 2.4743e-05	 1         	 33.8947   	 0         	 18.1268   	 1.86986   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 26, nChunks: 2, r2new: 30)       	 2.472e-05 	 1         	 52.5049   	 0         	 19.7385   	 2.66002   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 24, r2_: 25)      	 2.4646e-05	 2         	 46.7419   	 0         	 21.5013   	 2.17391   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 10, r2_: 15)       	 2.4605e-05	 7         	 2.73115   	 0         	 7.28307   	 0.375     
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 26, r2_: 24)      	 2.441e-05 	 2         	 78.5304   	 0         	 31.7142   	 2.47619   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 11, nChunks: 2, r2: 24)	 2.4295e-05	 2         	 33.3817   	 0         	 20.4842   	 1.62963   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 20, nChunks: 2, r2: 21)	 2.4109e-05	 2         	 44.5975   	 0         	 22.0864   	 2.01923   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 15, nChunks: 2, r2: 38)	 2.3907e-05	 1         	 38.1478   	 0         	 18.2842   	 2.08638   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 15, nChunks: 2, r2new: 12)       	 2.3889e-05	 2         	 8.61585   	 0         	 8.27293   	 1.04145   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 26, nChunks: 2, r2: 24, r2_: 24)      	 2.38e-05  	 2         	 80.5432   	 0         	 33.0434   	 2.4375    
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 16, nChunks: 2, r2new: 16)       	 2.3612e-05	 2         	 17.3471   	 0         	 12.6634   	 1.36986   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 24, r2_: 23)      	 2.3572e-05	 2         	 71.9389   	 0         	 30.4958   	 2.35897   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 10, nChunks: 2, r2: 26)	 2.3189e-05	 1         	 14.3516   	 0         	 9.71495   	 1.47727   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 30, nChunks: 2, r2new: 30)       	 2.3178e-05	 1         	 50.6963   	 0         	 21.6702   	 2.33945   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 20, r2_: 21)      	 2.3094e-05	 2         	 44.2297   	 0         	 21.9264   	 2.01719   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 10, nChunks: 2, r2: 41)	 2.3083e-05	 1         	 28.4192   	 0         	 17.301    	 1.64263   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 15, r1_: 10, nChunks: 2, r2: 19)      	 2.2962e-05	 1         	 7.94356   	 0         	 6.13187   	 1.29545   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 28, nChunks: 2, r2: 24)	 2.2918e-05	 1         	 52.5449   	 0         	 19.3916   	 2.70968   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 11, nChunks: 2, r2: 1) 	 2.2868e-05	 5         	 3.07854   	 0         	 7.89225   	 0.390071  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 42, r1_: 15, nChunks: 2, r2: 38)	 2.2478e-05	 1         	 68.1626   	 0         	 28.2559   	 2.41233   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 44, nChunks: 2, r2new: 20)       	 2.2355e-05	 2         	 68.0224   	 0         	 39.9431   	 1.70298   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 20, nChunks: 2, r2: 28)	 2.2183e-05	 1         	 45.2382   	 0         	 18.7416   	 2.41379   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 14, nChunks: 2, r2: 38)	 2.218e-05 	 1         	 58.3329   	 0         	 25.877    	 2.25424   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 21)      	 2.2073e-05	 1         	 7.30666   	 0         	 5.28863   	 1.38158   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 14, r1_: 10, nChunks: 2, r2: 24)      	 2.2006e-05	 1         	 9.77188   	 0         	 7.51504   	 1.30031   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 24)  	 2.1937e-05	 3         	 0.210056  	 0         	 1.69795   	 0.123711  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 48, r1_: 22, nChunks: 2, r2: 20)	 2.1796e-05	 1         	 62.015    	 0         	 22.6449   	 2.73859   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 15, r1_: 15, nChunks: 2, r2: 17)	 2.1396e-05	 2         	 22.8828   	 0         	 14.8962   	 1.53614   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 17, nChunks: 2, r2new: 16)       	 2.1392e-05	 2         	 20.4877   	 0         	 14.6956   	 1.39414   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 12, nChunks: 2, r2new: 15)       	 2.1294e-05	 3         	 18.1234   	 0         	 15.3824   	 1.17819   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 15, nChunks: 2, r2: 36)	 2.1031e-05	 1         	 62.445    	 0         	 26.6943   	 2.33926   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 25, nChunks: 2, r2new: 40)       	 2.1e-05   	 1         	 63.3905   	 0         	 28.2819   	 2.24138   
+<PITTS::TensorTrain<double> >::dot_contract2<double>(r1: 13, r1_: 10, nChunks: 2, r2: 21)      	 2.0891e-05	 1         	 8.36341   	 0         	 6.71524   	 1.24544   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 14, nChunks: 2, r2: 23, r2_: 25)      	 2.0839e-05	 2         	 49.4458   	 0         	 23.5743   	 2.09745   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 21)      	 2.0784e-05	 1         	 9.31178   	 0         	 6.42956   	 1.44828   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 20)	 2.0763e-05	 2         	 20.8371   	 0         	 14.9065   	 1.39785   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 19, nChunks: 2, r2: 28)	 2.0738e-05	 1         	 45.9709   	 0         	 19.529    	 2.35398   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 17, r1_: 17, nChunks: 2, r2: 16)	 2.0335e-05	 2         	 29.1061   	 0         	 17.3352   	 1.67901   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 32, r1_: 13, nChunks: 2, r2: 31)	 2.0323e-05	 1         	 40.6113   	 0         	 20.1923   	 2.01123   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 20, nChunks: 2, r2: 30)	 2.0026e-05	 1         	 49.8552   	 0         	 20.9647   	 2.37805   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 28, nChunks: 2, r2new: 20)       	 1.9916e-05	 2         	 40.1044   	 0         	 28.0731   	 1.42857   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 20, r2_: 23)      	 1.9259e-05	 2         	 58.0882   	 0         	 27.8345   	 2.08691   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 20, nChunks: 2, r2: 38)	 1.9251e-05	 1         	 70.7454   	 0         	 27.979    	 2.52852   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 14)  	 1.9109e-05	 6         	 0.281333  	 0         	 2.29086   	 0.122807  
+<PITTS::Tensor3<double> >::copy<double>(r1: 10, n: 20, r2: 1)                                  	 1.9012e-05	 6         	 0         	 0         	 1.00989   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 16)	 1.8967e-05	 2         	 18.2481   	 0         	 13.5106   	 1.35065   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 15, nChunks: 2, r2new: 17)       	 1.8921e-05	 2         	 22.8859   	 0         	 16.1953   	 1.41312   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 21, r1_: 21, nChunks: 2, r2: 20)	 1.8887e-05	 2         	 59.7744   	 0         	 28.7487   	 2.07921   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 4, r1_: 4, nChunks: 2, r2: 4)   	 1.8776e-05	 4         	 0.872603  	 0         	 2.18151   	 0.4       
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 14, r2_: 15)       	 1.8762e-05	 5         	 3.58171   	 0         	 9.14188   	 0.391791  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 25, r2: 2)  	 1.8739e-05	 6         	 0.512301  	 0         	 4.13939   	 0.123762  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 10, nChunks: 2, r2new: 6)        	 1.8715e-05	 4         	 5.58098   	 0         	 8.64504   	 0.64557   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 10, nChunks: 2, r2: 28)	 1.8354e-05	 1         	 25.3852   	 0         	 15.8727   	 1.5993    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 25, r1_: 10, nChunks: 2, r2: 40)	 1.7925e-05	 1         	 35.7043   	 0         	 21.7796   	 1.63934   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 15, r1_: 15, nChunks: 2, r2: 16)	 1.767e-05 	 1         	 13.039    	 0         	 8.58404   	 1.51899   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 10, r1_: 10, nChunks: 2, r2: 1) 	 1.7484e-05	 5         	 1.83024   	 0         	 5.12469   	 0.357143  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 19, r2_: 21)      	 1.7462e-05	 2         	 43.8713   	 0         	 23.442    	 1.87148   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 23)      	 1.7447e-05	 2         	 24.2985   	 0         	 16.3751   	 1.48387   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 36, nChunks: 2, r2new: 20)       	 1.7348e-05	 2         	 67.2908   	 0         	 41.7911   	 1.61017   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 2, r1_: 2, nChunks: 2, r2: 2)   	 1.7161e-05	 8         	 0.238681  	 0         	 1.1934    	 0.2       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 15)	 1.7072e-05	 2         	 64.7798   	 0         	 30.2306   	 2.14286   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 20, nChunks: 2, r2: 19, r2_: 20)      	 1.6775e-05	 2         	 57.9911   	 0         	 29.606    	 1.95876   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 13)	 1.6735e-05	 2         	 25.4547   	 0         	 16.6434   	 1.52941   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 15, nChunks: 2, r2: 28)	 1.6622e-05	 1         	 48.514    	 0         	 22.8709   	 2.12121   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 25)      	 1.6446e-05	 2         	 23.3491   	 0         	 16.1887   	 1.44231   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 22, r1_: 10, nChunks: 2, r2: 26)	 1.6111e-05	 1         	 22.7224   	 0         	 14.9682   	 1.51805   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 25, nChunks: 2, r2: 24, r2_: 26)      	 1.5973e-05	 1         	 62.5055   	 0         	 25.0342   	 2.4968    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 19, nChunks: 2, r2: 20)	 1.5931e-05	 1         	 42.7443   	 0         	 19.3796   	 2.20564   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 8, nChunks: 2, r2: 28) 	 1.5763e-05	 1         	 21.8273   	 0         	 16.1106   	 1.35484   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 44, r1_: 13, nChunks: 2, r2: 20)	 1.5617e-05	 1         	 46.8822   	 0         	 23.3756   	 2.00561   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 6, r1_: 6, nChunks: 2, r2: 6)   	 1.5593e-05	 4         	 3.54621   	 0         	 5.91034   	 0.6       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 14)	 1.5407e-05	 2         	 66.995    	 0         	 31.9024   	 2.1       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 32, r1_: 12, nChunks: 2, r2: 31)	 1.5398e-05	 1         	 49.4776   	 0         	 25.8693   	 1.9126    
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 26, nChunks: 2, r2: 24, r2_: 26)      	 1.5029e-05	 1         	 69.0888   	 0         	 27.4584   	 2.51613   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 20, nChunks: 2, r2: 13)	 1.4896e-05	 2         	 44.6831   	 0         	 24.7476   	 1.80556   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 31, r1_: 12, nChunks: 2, r2: 32)	 1.483e-05 	 1         	 51.3726   	 0         	 26.9637   	 1.90525   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 24, nChunks: 2, r2: 26, r2_: 26)      	 1.4785e-05	 1         	 70.229    	 0         	 27.4613   	 2.55738   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 12, nChunks: 2, r2: 24)	 1.473e-05 	 1         	 25.0265   	 0         	 15.433    	 1.62162   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 37, r1_: 16, nChunks: 2, r2: 20)	 1.4396e-05	 1         	 52.6368   	 0         	 24.1134   	 2.18289   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 10)  	 1.4347e-05	 5         	 0.223043  	 0         	 1.82895   	 0.121951  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 14, nChunks: 2, r2: 30)	 1.4267e-05	 1         	 52.7539   	 0         	 26.1257   	 2.01923   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 28, nChunks: 2, r2: 1) 	 1.4256e-05	 1         	 3.51964   	 0         	 8.04489   	 0.4375    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 15, nChunks: 2, r2: 24)	 1.4183e-05	 1         	 45.4854   	 0         	 22.4178   	 2.02899   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 18)  	 1.4125e-05	 3         	 0.244673  	 0         	 1.98457   	 0.123288  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 38, r1_: 14, nChunks: 2, r2: 20)	 1.4066e-05	 1         	 48.4118   	 0         	 23.7691   	 2.03675   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 11, nChunks: 2, r2: 26)	 1.3935e-05	 1         	 36.7788   	 0         	 21.4573   	 1.71404   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 2, r1_: 1, nChunks: 25, r2: 2)  	 1.367e-05 	 4         	 0.936357  	 0         	 5.69305   	 0.164474  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 10, r2_: 14)       	 1.3632e-05	 4         	 2.62911   	 0         	 7.06103   	 0.37234   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 10, nChunks: 2, r2: 12)	 1.3474e-05	 2         	 13.6797   	 0         	 12.3117   	 1.11111   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 36, r1_: 14, nChunks: 2, r2: 20)	 1.337e-05 	 1         	 48.2513   	 0         	 23.9725   	 2.01278   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 13, nChunks: 2, r2: 24)	 1.3291e-05	 1         	 36.0569   	 0         	 20.1086   	 1.7931    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 40, r1_: 12, nChunks: 2, r2: 20)	 1.3269e-05	 1         	 46.3034   	 0         	 24.6952   	 1.875     
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 30, nChunks: 2, r2new: 17)       	 1.2848e-05	 1         	 43.6961   	 0         	 24.8468   	 1.75862   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 38)        	 1.2804e-05	 1         	 7.21774   	 0         	 15.955    	 0.452381  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 28)	 1.2783e-05	 1         	 80.7472   	 0         	 32.6834   	 2.47059   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 13, nChunks: 2, r2: 28)	 1.2638e-05	 1         	 47.9266   	 0         	 25.5433   	 1.87629   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 39)  	 1.2634e-05	 4         	 0.790249  	 0         	 6.36251   	 0.124204  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 26, nChunks: 2, r2: 26)	 1.2552e-05	 1         	 89.6163   	 0         	 34.4678   	 2.6       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 8, r1_: 6, nChunks: 2, r2: 1)   	 1.2483e-05	 1         	 0.246095  	 0         	 0.7793    	 0.315789  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 16)      	 1.2459e-05	 2         	 19.7255   	 0         	 15.4516   	 1.2766    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 14, nChunks: 2, r2: 24)	 1.2185e-05	 1         	 42.355    	 0         	 22.6902   	 1.86667   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 15, nChunks: 2, r2: 25, r2_: 25)      	 1.188e-05 	 1         	 50.5051   	 0         	 22.8956   	 2.20588   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 41, nChunks: 2, r2new: 20)       	 1.1829e-05	 1         	 55.9439   	 0         	 34.3454   	 1.62886   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 31, r1_: 13, nChunks: 2, r2: 20)	 1.1811e-05	 1         	 43.6745   	 0         	 23.4412   	 1.86315   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 6)         	 1.1809e-05	 1         	 0.325176  	 0         	 0.997206  	 0.326087  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 12, nChunks: 2, r2: 30)	 1.1786e-05	 1         	 54.7361   	 0         	 29.7139   	 1.84211   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 20, nChunks: 2, r2: 28)	 1.1764e-05	 1         	 60.9317   	 0         	 28.7249   	 2.12121   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 11, nChunks: 2, r2: 26)	 1.1659e-05	 1         	 40.8186   	 0         	 24.2628   	 1.68235   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 6, nChunks: 2, r2new: 4)         	 1.1632e-05	 4         	 1.76066   	 0         	 4.92985   	 0.357143  
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 24)                                  	 1.149e-05 	 2         	 0         	 0         	 1.33681   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 24)	 1.1452e-05	 1         	 34.336    	 0         	 20.0293   	 1.71429   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 18, r1_: 18, nChunks: 2, r2: 26)	 1.1347e-05	 1         	 47.5135   	 0         	 24.772    	 1.91803   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 18, r1_: 18, nChunks: 2, r2: 24)	 1.1317e-05	 1         	 43.9749   	 0         	 23.209    	 1.89474   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 30, r1_: 12, nChunks: 2, r2: 17)	 1.1239e-05	 1         	 34.8501   	 0         	 20.3634   	 1.71141   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 22, nChunks: 2, r2new: 26)       	 1.1005e-05	 1         	 53.8286   	 0         	 29.4499   	 1.8278    
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 18, r1_: 18, nChunks: 2, r2: 28)	 1.0803e-05	 1         	 53.7451   	 0         	 27.7256   	 1.93846   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 38)  	 1.0802e-05	 1         	 0.225143  	 0         	 1.813     	 0.124183  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 13, nChunks: 2, r2: 26)	 1.0755e-05	 1         	 52.2949   	 0         	 28.1588   	 1.85714   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 9, nChunks: 2, r2: 1)  	 1.0704e-05	 3         	 3.2287    	 0         	 8.53812   	 0.378151  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 10, r2_: 12)      	 1.0656e-05	 2         	 17.2973   	 0         	 15.5676   	 1.11111   
+<PITTS::Tensor3<double> >::copy<double>(r1: 2, n: 400, r2: 1)                                  	 1.0479e-05	 3         	 0         	 0         	 3.66447   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 26, nChunks: 2, r2: 20)	 1.021e-05 	 1         	 84.7483   	 0         	 34.5512   	 2.45283   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 20, nChunks: 2, r2: 19, r2_: 26)      	 1.0206e-05	 1         	 61.9557   	 0         	 28.7705   	 2.15344   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 3, nChunks: 25, r2new: 1)        	 1.0159e-05	 3         	 0.708731  	 0         	 5.74545   	 0.123355  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 16, nChunks: 2, r2new: 15)       	 1.0079e-05	 1         	 17.716    	 0         	 13.6775   	 1.29526   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 12, nChunks: 2, r2: 26)	 1.0049e-05	 1         	 51.6636   	 0         	 29.1436   	 1.77273   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 12, nChunks: 2, r2new: 1)        	 1.0042e-05	 3         	 0.229436  	 0         	 1.91197   	 0.12      
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 10, r2_: 13)       	 9.84e-06  	 3         	 2.53659   	 0         	 6.86829   	 0.369318  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 26, nChunks: 2, r2: 28)	 9.789e-06 	 1         	 123.75    	 0         	 46.9163   	 2.63768   
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 38)                                  	 9.612e-06 	 1         	 0         	 0         	 1.26509   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 36)  	 9.479e-06 	 3         	 0.729191  	 0         	 5.87404   	 0.124138  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 26, nChunks: 2, r2new: 14)       	 9.376e-06 	 1         	 34.0205   	 0         	 23.8635   	 1.42563   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 16, nChunks: 2, r2: 20)	 9.352e-06 	 1         	 52.5577   	 0         	 27.1548   	 1.93548   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 23, nChunks: 2, r2new: 28)       	 9.341e-06 	 1         	 62.9243   	 0         	 37.3819   	 1.68328   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 37, nChunks: 2, r2new: 20)       	 9.267e-06 	 1         	 64.366    	 0         	 39.9456   	 1.61134   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 15)	 9.104e-06 	 1         	 26.9947   	 0         	 17.0967   	 1.57895   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 15)	 9.028e-06 	 1         	 17.9708   	 0         	 13.455    	 1.33562   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 43, nChunks: 2, r2new: 20)       	 8.997e-06 	 1         	 85.6463   	 0         	 49.5667   	 1.7279    
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 16, nChunks: 2, r2new: 12)       	 8.909e-06 	 1         	 12.4135   	 0         	 11.7239   	 1.05882   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 28, r1_: 14, nChunks: 2, r2: 20)	 8.888e-06 	 1         	 56.4536   	 0         	 29.8398   	 1.89189   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 15, nChunks: 2, r2new: 16)       	 8.737e-06 	 1         	 21.7997   	 0         	 16.2326   	 1.34296   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 39, nChunks: 2, r2new: 20)       	 8.653e-06 	 1         	 77.8089   	 0         	 46.6261   	 1.66878   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 25)      	 8.394e-06 	 1         	 27.4482   	 0         	 18.1158   	 1.51515   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 13, nChunks: 2, r2: 18)	 8.383e-06 	 1         	 42.8753   	 0         	 25.1022   	 1.70803   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 11)	 8.323e-06 	 1         	 21.6537   	 0         	 14.7639   	 1.46667   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 10, nChunks: 2, r2: 20)	 8.225e-06 	 1         	 37.3495   	 0         	 24.8997   	 1.5       
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 13, nChunks: 2, r2new: 12)       	 8.217e-06 	 1         	 10.655    	 0         	 10.655    	 1         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 13)	 8.199e-06 	 1         	 17.1494   	 0         	 13.1919   	 1.3       
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 16, nChunks: 2, r2new: 11)       	 8.191e-06 	 1         	 11.1732   	 0         	 11.4545   	 0.975443  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 19, nChunks: 2, r2: 20, r2_: 25)      	 8.134e-06 	 1         	 74.748    	 0         	 34.7775   	 2.14932   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 13, nChunks: 2, r2new: 13)       	 8.056e-06 	 1         	 12.9096   	 0         	 12.0278   	 1.07332   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 16, nChunks: 2, r2new: 10)       	 7.968e-06 	 1         	 9.31727   	 0         	 10.4739   	 0.889571  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 13, nChunks: 2, r2new: 15)       	 7.899e-06 	 1         	 17.8656   	 0         	 14.73     	 1.21287   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 10, nChunks: 2, r2: 18)	 7.873e-06 	 1         	 38.0439   	 0         	 25.2976   	 1.50386   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 26)      	 7.838e-06 	 1         	 25.4759   	 0         	 17.5065   	 1.45522   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 18, nChunks: 2, r2new: 11)       	 7.721e-06 	 1         	 16.4124   	 0         	 15.8156   	 1.03774   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 13, r1_: 13, nChunks: 2, r2: 12)	 7.668e-06 	 1         	 16.9264   	 0         	 13.2374   	 1.27869   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 12, nChunks: 2, r2new: 12)       	 7.566e-06 	 1         	 10.5567   	 0         	 10.8274   	 0.975     
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 12, nChunks: 2, r2new: 16)       	 7.49e-06  	 1         	 19.687    	 0         	 15.859    	 1.24138   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 15, r1_: 15, nChunks: 2, r2: 1) 	 7.42e-06  	 2         	 3.8814    	 0         	 9.83288   	 0.394737  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 16, nChunks: 2, r2: 10)	 7.302e-06 	 1         	 22.4377   	 0         	 15.7064   	 1.42857   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 11, nChunks: 2, r2: 13)	 7.248e-06 	 1         	 15.1523   	 0         	 12.8918   	 1.17534   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 10, r1_: 10, nChunks: 2, r2: 13)	 7.162e-06 	 1         	 11.6169   	 0         	 11.0807   	 1.04839   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 12, nChunks: 2, r2new: 13)       	 7.127e-06 	 1         	 13.3083   	 0         	 12.7335   	 1.04513   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 14, nChunks: 2, r2: 16)	 7.123e-06 	 1         	 48.3032   	 0         	 27.8894   	 1.73196   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 12, nChunks: 2, r2: 12, r2_: 19)      	 7.104e-06 	 1         	 24.6486   	 0         	 17.5135   	 1.40741   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 25, r2new: 1)        	 6.984e-06 	 2         	 0.45819   	 0         	 2.82245   	 0.162338  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 10, nChunks: 2, r2: 11)	 6.94e-06  	 1         	 12.1729   	 0         	 11.1401   	 1.09272   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 8, nChunks: 2, r2: 12) 	 6.863e-06 	 1         	 10.7428   	 0         	 10.7428   	 1         
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 23)                                  	 6.61e-06  	 1         	 0         	 0         	 1.11346   	 0         
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 15, r2_: 13)       	 6.536e-06 	 2         	 3.81885   	 0         	 9.83109   	 0.388446  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 15)  	 6.525e-06 	 2         	 0.294253  	 0         	 2.39326   	 0.122951  
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 10, nChunks: 2, r2: 12, r2_: 19)      	 6.402e-06 	 1         	 22.7929   	 0         	 16.9547   	 1.34434   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 26, r1_: 12, nChunks: 2, r2: 14)	 6.382e-06 	 1         	 43.8032   	 0         	 27.5976   	 1.58721   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 10, nChunks: 2, r2new: 13)       	 6.378e-06 	 1         	 12.0013   	 0         	 12.3023   	 0.97553   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 12, nChunks: 2, r2: 8) 	 6.297e-06 	 1         	 11.7084   	 0         	 10.7327   	 1.09091   
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 12, nChunks: 2, r2new: 8)        	 5.965e-06 	 1         	 5.49338   	 0         	 8.24007   	 0.666667  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 10, nChunks: 2, r2new: 1)        	 5.857e-06 	 2         	 0.218542  	 0         	 1.83575   	 0.119048  
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 22)                                  	 5.179e-06 	 1         	 0         	 0         	 1.35934   	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 24, r1_: 24, nChunks: 2, r2: 1) 	 5.173e-06 	 1         	 7.12623   	 0         	 16.6279   	 0.428571  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 20, nChunks: 2, r2new: 1)        	 5.068e-06 	 1         	 0.252565  	 0         	 2.07103   	 0.121951  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 2)   	 4.971e-06 	 2         	 0.0514987 	 0         	 0.463488  	 0.111111  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 6, nChunks: 2, r2new: 1)         	 4.963e-06 	 1         	 0.0773726 	 0         	 0.670562  	 0.115385  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 23)        	 4.672e-06 	 1         	 7.24658   	 0         	 17.0137   	 0.425926  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 16)  	 4.583e-06 	 1         	 0.223434  	 0         	 1.8154    	 0.123077  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 22)        	 4.423e-06 	 1         	 7.00339   	 0         	 16.5535   	 0.423077  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 2, r1_: 2, nChunks: 2, r2: 1)   	 4.372e-06 	 2         	 0.117109  	 0         	 0.702653  	 0.166667  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 8, nChunks: 2, r2new: 1)         	 4.278e-06 	 1         	 0.119682  	 0         	 1.0173    	 0.117647  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 26, nChunks: 2, r2new: 1)        	 4.204e-06 	 1         	 0.395814  	 0         	 3.2274    	 0.122642  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 4, nChunks: 25, r2new: 1)        	 4.048e-06 	 1         	 0.790514  	 0         	 6.38735   	 0.123762  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 18, r1_: 6, nChunks: 2, r2: 1)  	 3.649e-06 	 1         	 1.89422   	 0         	 5.47218   	 0.346154  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 18, r1_: 9, nChunks: 2, r2: 1)  	 3.579e-06 	 1         	 2.8969    	 0         	 7.72506   	 0.375     
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 20, r1_: 8, nChunks: 2, r2: 1)  	 3.544e-06 	 1         	 2.88939   	 0         	 7.80135   	 0.37037   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 23)  	 3.54e-06  	 1         	 0.415819  	 0         	 3.36271   	 0.123656  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 14, r1_: 10, nChunks: 2, r2: 1) 	 3.539e-06 	 1         	 2.53179   	 0         	 6.79966   	 0.37234   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 11, r1_: 11, nChunks: 2, r2: 1) 	 3.504e-06 	 1         	 2.21005   	 0         	 6.0274    	 0.366667  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 18, r1_: 10, nChunks: 2, r2: 1) 	 3.481e-06 	 1         	 3.30939   	 0         	 8.67797   	 0.381356  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 12, r1_: 11, nChunks: 2, r2: 1) 	 3.432e-06 	 1         	 2.46154   	 0         	 6.63869   	 0.370787  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 3, r1_: 2, nChunks: 25, r2: 1)  	 3.415e-06 	 1         	 1.40556   	 0         	 4.9101    	 0.28626   
+<PITTS::TensorTrain<double> >::dot_contract1<double>(r1: 1, nChunks: 2, r2: 14, r2_: 14)       	 3.384e-06 	 1         	 3.70686   	 0         	 9.53191   	 0.388889  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 11, r1_: 8, nChunks: 2, r2: 1)  	 3.375e-06 	 1         	 1.66874   	 0         	 4.77867   	 0.349206  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 17, r1_: 10, nChunks: 2, r2: 1) 	 3.364e-06 	 1         	 3.23424   	 0         	 8.52319   	 0.379464  
+<PITTS::Tensor3<double> >::setConstant(r1: 1, n: 20, r2: 1)                                    	 3.32e-06  	 36        	 0         	 0         	 1.73494   	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 18, nChunks: 2, r2new: 1)        	 3.301e-06 	 1         	 0.348985  	 0         	 2.86943   	 0.121622  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 10)        	 3.281e-06 	 1         	 1.95062   	 0         	 5.46175   	 0.357143  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 8, r1_: 8, nChunks: 2, r2: 1)   	 3.244e-06 	 1         	 1.26264   	 0         	 3.78792   	 0.333333  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 11, nChunks: 2, r2new: 1)        	 3.168e-06 	 1         	 0.222222  	 0         	 1.85859   	 0.119565  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 2, r1_: 1, nChunks: 25, r2: 1)  	 3.15e-06  	 1         	 0.507937  	 0         	 3.12889   	 0.162338  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 16, r1_: 8, nChunks: 2, r2: 1)  	 3.122e-06 	 1         	 2.62396   	 0         	 7.21589   	 0.363636  
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 8)         	 3.121e-06 	 1         	 2.2967    	 0         	 6.39795   	 0.358974  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 6, r1_: 6, nChunks: 2, r2: 1)   	 3.071e-06 	 1         	 0.750244  	 0         	 2.50081   	 0.3       
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 22)  	 3.051e-06 	 1         	 0.461488  	 0         	 3.73386   	 0.123596  
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 4)                                   	 2.857e-06 	 1         	 0         	 0         	 0.448022  	 0         
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 4, r1_: 4, nChunks: 2, r2: 1)   	 2.804e-06 	 1         	 0.365193  	 0         	 1.46077   	 0.25      
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 8)                                   	 2.659e-06 	 1         	 0         	 0         	 0.962768  	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 1, nChunks: 2, r2new: 4)         	 2.628e-06 	 1         	 0.584475  	 0         	 2.14307   	 0.272727  
+<PITTS::Tensor3<double> >::copy<double>(r1: 1, n: 20, r2: 6)                                   	 2.616e-06 	 1         	 0         	 0         	 0.733945  	 0         
+<PITTS::TensorTrain<double> >::axpby_contract1<double>(r1sum: 14, nChunks: 2, r2new: 1)        	 2.485e-06 	 1         	 0.360563  	 0         	 2.98753   	 0.12069   
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 8)   	 2.466e-06 	 1         	 0.207624  	 0         	 1.7129    	 0.121212  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 4)   	 2.465e-06 	 1         	 0.103854  	 0         	 0.882759  	 0.117647  
+<PITTS::TensorTrain<double> >::normalize_contract1<double>(r1: 1, r1_: 1, nChunks: 2, r2: 6)   	 2.383e-06 	 1         	 0.161141  	 0         	 1.34285   	 0.12      
+Timing statistics:
+function                                                  	 time [s]  	 #calls    
+<PITTS::TensorTrain<double> >::axpby<double>              	 1.7118    	 97        
+<PITTS::TensorTrain<double> >::leftNormalize<double>      	 0.922603  	 147       
+<PITTS::TensorTrain<double> >::normalize_qb<double>       	 0.8754    	 595       
+<PITTS::TensorTrain<double> >::normalize_svd<double>      	 0.767799  	 595       
+<PITTS::TensorTrainOperator<double> >::apply<double>      	 0.653271  	 118       
+<PITTS::TensorTrain<double> >::rightNormalize<double>     	 0.0992116 	 28        
+<PITTS::Tensor3<double> >::resize                         	 0.0483979 	 3608      
+<PITTS::TensorTrain<double> >::normalize_contract1<double>	 0.0214127 	 882       
+<PITTS::TensorTrain<double> >::dot<double>                	 0.0196228 	 53        
+<PITTS::TensorTrain<double> >::axpby_contract1<double>    	 0.0190083 	 546       
+<PITTS::TensorTrain<double> >::dot_contract2<double>      	 0.0127045 	 318       
+<PITTS::TensorTrain<double> >::dot_contract1<double>      	 0.00376186	 318       
+<PITTS::Tensor2<double> >::resize                         	 0.00163794	 3090      
+<PITTS::Tensor3<double> >::copy<double>                   	 0.00144575	 151       
+<PITTS::Tensor3<double> >::setConstant                    	 5.0614e-05	 66        
+<PITTS::Tensor3<double> >::randomize<double>              	 2.7781e-05	 6         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset

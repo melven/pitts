@@ -9,6 +9,7 @@ __date__ = '2021-08-09'
 
 import argparse
 import pitts_py
+import numpy as np
 from tt_ssor_preconditioner import SSOR_preconditioner
 from tt_laplace_operator import LaplaceOperator
 from tt_convection_operator import ConvectionOperator
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('-Rc', type=float, help='Coefficient of the random part of the operator', default=0.0)
     parser.add_argument('-Rr', type=int, help='TT-ranks of the random part of the operator', default=2)
     parser.add_argument('-L', type=float, help='Coefficient of the Laplace/diffusion part of the operator', default=1.0)
-    parser.add_argument('-C', type=float, help='Coefficient of the convection part of the operator', default=0.1)
+    parser.add_argument('-C', type=float, help='Coefficient of the convection part of the operator, gets scaled by 1/sqrt(d) to obtain a dimension-independent constant convection velocity', default=0.1)
 
     # preconditioner setup
     parser.add_argument('--SSOR_omega', type=float, help='SSOR parameter omega', default=1.3)
@@ -44,10 +45,11 @@ if __name__ == '__main__':
     parser.add_argument('--eps', type=float, help='desired residual tolerance', required=True)
     parser.add_argument('--maxIter', type=int, help='Max. number of GMRES iterations', required=True)
     parser.add_argument('--adaptive', action='store_true', help='Use adaptive tolerance in the GMRES algorithm')
+    parser.add_argument('--variant', type=str, help='(un)preconditioned GMRES variant', choices=['all', 'vanilla', 'no_precond', 'left_precond', 'right_precond'], default='all')
 
 
     args = parser.parse_args()
-    print('Arguments:', args)
+    print('# Arguments:', args)
 
     dims = [args.n]*args.d
 
@@ -67,7 +69,7 @@ if __name__ == '__main__':
         pitts_py.axpby(args.L, TTOpLaplace, 1, TTOp)
     if args.C != 0.0:
         TTOpConvection = ConvectionOperator(dims)
-        pitts_py.axpby(args.C, TTOpConvection, 1, TTOp)
+        pitts_py.axpby(args.C/np.sqrt(args.d), TTOpConvection, 1, TTOp)
 
     preconOp = SSOR_preconditioner(TTOp, args.SSOR_omega, args.SSOR_jacobiIter)
 
@@ -100,41 +102,33 @@ if __name__ == '__main__':
 
     r = pitts_py.TensorTrain_double(b.dimensions())
 
-    print('###### no preconditioning ######')
-    x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, adaptiveTolerance=args.adaptive)
-    pitts_py.apply(TTOp, x, r)
-    r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
-    print("Checked resulting residual norm: %g" % (r_nrm / nrm_b) )
+    if args.variant in ['all', 'vanilla']:
+        print('\n###### no preconditioning ######')
+        x, nrm_x = tt_gmres(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, adaptiveTolerance=args.adaptive)
+        pitts_py.apply(TTOp, x, r)
+        r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
+        print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )
 
-    print('###### no preconditioning (PIVMGS) ######')
-    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, adaptiveTolerance=args.adaptive)
-    pitts_py.apply(TTOp, x, r)
-    r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
-    print("Checked resulting residual norm: %g" % (r_nrm / nrm_b) )
+    if args.variant in ['all', 'no_precond']:
+        print('\n###### no preconditioning (PIVMGS) ######')
+        x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, adaptiveTolerance=args.adaptive)
+        pitts_py.apply(TTOp, x, r)
+        r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
+        print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )
 
-    print('###### no preconditioning (test left) ######')
-    x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=None, adaptiveTolerance=args.adaptive)
-    pitts_py.apply(TTOp, x, r)
-    r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
-    print("Checked resulting residual norm: %g" % (r_nrm / nrm_b) )
+    if args.variant in ['all', 'left_precond']:
+        print('\n###### left preconditioning ######')
+        x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=preconOp, adaptiveTolerance=args.adaptive)
+        pitts_py.apply(TTOp, x, r)
+        r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
+        print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )
 
-    print('###### no preconditioning (test right) ######')
-    x, nrm_x = tt_gmres_rightprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=None, adaptiveTolerance=args.adaptive)
-    pitts_py.apply(TTOp, x, r)
-    r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
-    print("Checked resulting residual norm: %g" % (r_nrm / nrm_b) )
+    if args.variant in ['all', 'right_precond']:
+        print('\n###### right preconditioning ######')
+        x, nrm_x = tt_gmres_rightprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=preconOp, adaptiveTolerance=args.adaptive)
+        pitts_py.apply(TTOp, x, r)
+        r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
+        print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )
 
-    print('###### left preconditioning ######')
-    x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=preconOp, adaptiveTolerance=args.adaptive)
-    pitts_py.apply(TTOp, x, r)
-    r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
-    print("Checked resulting residual norm: %g" % (r_nrm / nrm_b) )
-
-    print('###### right preconditioning ######')
-    x, nrm_x = tt_gmres_rightprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=preconOp, adaptiveTolerance=args.adaptive)
-    pitts_py.apply(TTOp, x, r)
-    r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
-    print("Checked resulting residual norm: %g" % (r_nrm / nrm_b) )
-
-    pitts_py.finalize(verbose=False)
+    pitts_py.finalize(verbose=True)
 
