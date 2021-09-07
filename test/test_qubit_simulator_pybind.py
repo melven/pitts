@@ -9,6 +9,7 @@
 __all__ = ['TestTensorTrain']
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2020-06-26'
+import numpy as np
 import pitts_py
 from math import sqrt
 import unittest
