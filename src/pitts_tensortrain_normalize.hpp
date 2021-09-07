@@ -36,10 +36,31 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      //Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+      // threshold 0 is not useful, we can at best get floating point accuracy...
+      rankTolerance = std::max(rankTolerance, std::numeric_limits<T>::epsilon());
       svd.setThreshold(rankTolerance);
 
       return svd;
+    }
+
+    //! wrapper for qr, allows to show timings
+    template<typename T>
+    auto normalize_qb(const Tensor2<T>& M)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      Eigen::ColPivHouseholderQR<EigenMatrix> qr(ConstEigenMap(M));
+      const auto r = std::max(Eigen::Index(1), qr.rank());
+      qr.householderQ().setLength(r);
+
+      const EigenMatrix Q = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
+      const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
+      const EigenMatrix B = R * qr.colsPermutation().inverse();
+
+      return std::make_pair(Q, B);
     }
 
     //! contract Tensor2 and Tensor3 : A(:,*) * B(*,:,:)
@@ -164,38 +185,57 @@ namespace PITTS
         break;
       }
 
-      // now calculate SVD of t3_tmp(: : x :)
+      // now calculate the SVD of QR of t3_tmp(: : x :)
       t2_M.resize(r1_new*n, r2);
       for(int i = 0; i < r1_new; i++)
         for(int j = 0; j < n; j++)
           for(int k = 0; k < r2; k++)
             t2_M(i+j*r1_new,k) = t3_tmp(i,j,k);
 
-      const auto svd = internal::normalize_svd(t2_M, rankTolerance / std::sqrt(T(nDims-1)));
-      const auto r2_new = std::min<int>(maxRank, svd.rank());
-
-      // we always need at least rank 1
-      if( r2_new == 0 )
+      if( rankTolerance > 0 || maxRank < r2 )
       {
-        subT.resize(r1_new, n, 1);
-        for(int i = 0; i < r1_new; i++)
-          for(int j = 0; j < n; j++)
-            subT(i,j,0) = T(0);
+        // use an SVD, we want to truncate!
+        const auto svd = internal::normalize_svd(t2_M, rankTolerance / std::sqrt(T(nDims-1)));
+        const auto r2_new = std::min<int>(maxRank, svd.rank());
 
-        t2_M.resize(1,r2);
-        for(int i = 0; i < r2; i++)
-          t2_M(0,i) = T(0);
+        // we always need at least rank 1
+        if( r2_new == 0 )
+        {
+          subT.resize(r1_new, n, 1);
+          for(int i = 0; i < r1_new; i++)
+            for(int j = 0; j < n; j++)
+              subT(i,j,0) = T(0);
+
+          t2_M.resize(1,r2);
+          for(int i = 0; i < r2; i++)
+            t2_M(0,i) = T(0);
+        }
+        else // r2_new > 0
+        {
+          subT.resize(r1_new, n, r2_new);
+          for(int i = 0; i < r1_new; i++)
+            for(int j = 0; j < n; j++)
+              for(int k = 0; k < r2_new; k++)
+                subT(i,j,k) = svd.matrixU()(i+j*r1_new,k);
+
+          t2_M.resize(r2_new,r2);
+          EigenMap(t2_M) = svd.singularValues().topRows(r2_new).asDiagonal() * svd.matrixV().leftCols(r2_new).adjoint();
+        }
       }
-      else // r2_new > 0
+      else
       {
+        // use QR, no truncation...
+        const auto [Q,B] = internal::normalize_qb(t2_M);
+        const auto r2_new = std::min<int>(maxRank, Q.cols());
+
         subT.resize(r1_new, n, r2_new);
         for(int i = 0; i < r1_new; i++)
           for(int j = 0; j < n; j++)
             for(int k = 0; k < r2_new; k++)
-              subT(i,j,k) = svd.matrixU()(i+j*r1_new,k);
+              subT(i,j,k) = Q(i+j*r1_new,k);
 
         t2_M.resize(r2_new,r2);
-        EigenMap(t2_M) = svd.singularValues().topRows(r2_new).asDiagonal() * svd.matrixV().leftCols(r2_new).adjoint();
+        EigenMap(t2_M) = B;
       }
     }
 
