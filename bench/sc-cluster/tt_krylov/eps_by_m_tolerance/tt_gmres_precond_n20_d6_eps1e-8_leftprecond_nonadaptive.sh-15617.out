@@ -1,0 +1,148 @@
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->56  [0m[1;34m7->57  [0m[1;34m8->58  [0m[1;34m9->59  [0m[1;34m10->60  [0m[1;34m11->61  [0m[1;34m12->62  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 23301512652672 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 23301338425344 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 23301137098880 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 23300935772416 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 23300734445952 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 23300533119488 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 23300331793024 -> core 56 - OK[0m[1;34m
+[0m[1;34m	threadid 23300130466560 -> core 57 - OK[0m[1;34m
+[0m[1;34m	threadid 23299929140096 -> core 58 - OK[0m[1;34m
+[0m[1;34m	threadid 23299727813632 -> core 59 - OK[0m[1;34m
+[0m[1;34m	threadid 23299526487168 -> core 60 - OK[0m[1;34m
+[0m[1;34m	threadid 23299325160704 -> core 61 - OK[0m[1;34m
+[0m[1;34m	threadid 23299123834240 -> core 62 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 23301407790848 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 23301220099840 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+# Arguments: Namespace(C=0.1, I=0.0, L=1.0, Rc=0.0, Rr=2, SSOR_jacobiIter=3, SSOR_omega=1.3, adaptive=False, d=6, eps=1e-08, maxIter=90, n=20, random_rank=2, rhs_type='rhs_random', variant='left_precond')
+
+###### left preconditioning ######
+# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"      "precond direction rank"    "new Krylov vector rank"    "solution rank"
+0 1 1 2 30 30 0
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.9945756263117171
+# TT-PIVMGS:    ortho max err 1.9414450272459035e-14
+1 0.10401597736243158 0.08186212562182534 104 50 120 30
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.9639160136421334
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.471530447566961
+# TT-PIVMGS:    ortho max err 7.246503744284816e-14
+2 0.02506140533939135 0.01682903283450025 205 161 228 71
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.912765689305044
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.6468852223642862
+# TT-PIVMGS:    ortho 0 pivot 0 dot -1.842896374755549e-05
+# TT-PIVMGS:    ortho max err 1.9238733869886282e-14
+3 0.008875693598457772 0.005493192480836327 313 272 327 101
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.8850536163710535
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.6876164028015249
+# TT-PIVMGS:    ortho 0 pivot 1 dot 3.5874827626220136e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot -2.9250553103739546e-05
+# TT-PIVMGS:    ortho max err 3.120256603008492e-14
+4 0.003781548913772877 0.0022157906801646894 424 384 432 123
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.8692156587788403
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.6965043155244908
+# TT-PIVMGS:    ortho 0 pivot 2 dot 9.217215752250877e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot -6.8642750989324e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot 4.793810780336105e-07
+# TT-PIVMGS:    ortho max err 1.490235886081326e-14
+5 0.0018135198563595406 0.0010241913079457518 553 509 556 148
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.8605018871819845
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.7011933559637318
+# TT-PIVMGS:    ortho 0 pivot 3 dot 7.65018308055386e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot -3.396611107211035e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot -1.7874453491136975e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot -2.341691794575506e-07
+# TT-PIVMGS:    ortho max err 1.9716562096091378e-14
+6 0.0009390354885251421 0.0005160425934192004 691 651 698 169
+# TT-PIVMGS:    ortho 0 pivot 6 dot 0.8529975654484112
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.6999213533920929
+# TT-PIVMGS:    ortho 0 pivot 2 dot -7.694512639529422e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot 7.592547017018514e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot 3.3520437743694365e-05
+# TT-PIVMGS:    ortho 0 pivot 3 dot 1.0057938979265058e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot -7.479080569812446e-06
+# TT-PIVMGS:    ortho max err 1.6493750809587482e-14
+7 0.000517914541796851 0.00027645894043584014 852 809 860 190
+# TT-PIVMGS:    ortho 0 pivot 7 dot 0.8436238802907704
+# TT-PIVMGS:    ortho 0 pivot 6 dot 0.7009024781572827
+# TT-PIVMGS:    ortho 0 pivot 5 dot 6.033201943192729e-05
+# TT-PIVMGS:    ortho 0 pivot 3 dot -5.929679589818625e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot 2.8860053512048435e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot -2.0164076553388634e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot 1.99815867857364e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot 5.405629171842887e-06
+# TT-PIVMGS:    ortho max err 1.0975248487810063e-13
+8 0.00030479243235389565 0.00015815665964822188 1030 989 1038 217
+# TT-PIVMGS:    ortho 0 pivot 8 dot 0.8360673282224661
+# TT-PIVMGS:    ortho 0 pivot 7 dot 0.701956147945235
+# TT-PIVMGS:    ortho 0 pivot 5 dot 5.3482698568880734e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot -4.593556553918361e-05
+# TT-PIVMGS:    ortho 0 pivot 6 dot 2.2364797050515844e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot 1.6458236881432883e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot -1.1906573430748094e-05
+# TT-PIVMGS:    ortho 0 pivot 3 dot -1.0701062230226727e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot 2.9788729416259645e-06
+# TT-PIVMGS:    ortho max err 7.562006576478097e-14
+9 0.0001907646325177616 9.633693194865442e-05 1225 1189 1233 240
+# TT-PIVMGS:    ortho 0 pivot 9 dot 0.8314733119943537
+# TT-PIVMGS:    ortho 0 pivot 8 dot 0.7058104599957231
+# TT-PIVMGS:    ortho 0 pivot 6 dot 7.350292938110075e-05
+# TT-PIVMGS:    ortho 0 pivot 5 dot -6.700932188724498e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot -2.3395841296496175e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot 1.9607216729820224e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot 1.011343510471871e-05
+# TT-PIVMGS:    ortho 0 pivot 3 dot 9.50870788050083e-06
+# TT-PIVMGS:    ortho 0 pivot 7 dot 8.520284058416254e-06
+# TT-PIVMGS:    ortho 0 pivot 0 dot -6.2360669508649495e-06
+# TT-PIVMGS:    ortho max err 1.1207007544200565e-13
+10 0.00012557777943294785 6.219122180938534e-05 1440 1403 1447 263
+# TT-PIVMGS:    ortho 0 pivot 10 dot 0.8326547626027653
+# TT-PIVMGS:    ortho 0 pivot 9 dot 0.7097368807580933
+# TT-PIVMGS:    ortho 0 pivot 6 dot -5.816185512172488e-05
+# TT-PIVMGS:    ortho 0 pivot 7 dot 5.5126103893611555e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot -4.9573616657700836e-05
+# TT-PIVMGS:    ortho 0 pivot 5 dot 4.815530221068207e-05
+# TT-PIVMGS:    ortho 0 pivot 3 dot 1.5751358191010752e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot 8.772341217438693e-06
+# TT-PIVMGS:    ortho 0 pivot 1 dot -4.36210884684359e-06
+# TT-PIVMGS:    ortho 0 pivot 0 dot -1.398397831470135e-06
+# TT-PIVMGS:    ortho 0 pivot 8 dot -1.074986335487891e-06
+# TT-PIVMGS:    ortho max err 7.91786341353129e-14
+11 8.492121097613676e-05 4.1798607812489604e-05 1672 1633 1682 289
+# TT-PIVMGS:    ortho 0 pivot 11 dot 0.8357529360871774
+# TT-PIVMGS:    ortho 0 pivot 10 dot 0.707366238025415
+# TT-PIVMGS:    ortho 0 pivot 5 dot -6.667823685391552e-05
+# TT-PIVMGS:    ortho 0 pivot 6 dot 6.39294995878623e-05
+# TT-PIVMGS:    ortho 0 pivot 7 dot -5.130750809323719e-05
+# TT-PIVMGS:    ortho 0 pivot 8 dot 4.067967797955841e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot 3.378901933389592e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot 1.531398215185619e-05
+# TT-PIVMGS:    ortho 0 pivot 3 dot -1.3917380884685563e-05
+# TT-PIVMGS:    ortho 0 pivot 9 dot -1.3784948614236833e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot -1.1949520415913519e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot 2.5564429990025466e-06
+# TT-PIVMGS:    ortho max err 9.670042544485113e-14
+12 5.778825224883479e-05 2.8376100411613605e-05 1919 1882 1930 313
+# TT-PIVMGS:    ortho 0 pivot 12 dot 0.8323511010835006
+# TT-PIVMGS:    ortho 0 pivot 11 dot 0.7022564494411334
+# TT-PIVMGS:    ortho 0 pivot 7 dot 9.462145620507505e-05
+# TT-PIVMGS:    ortho 0 pivot 6 dot -6.55820659692715e-05
+# TT-PIVMGS:    ortho 0 pivot 8 dot -5.8101146487726536e-05
+# TT-PIVMGS:    ortho 0 pivot 2 dot -2.308901332752746e-05
+# TT-PIVMGS:    ortho 0 pivot 4 dot 2.1837032024464922e-05
+# TT-PIVMGS:    ortho 0 pivot 9 dot 1.5234423530685604e-05
+# TT-PIVMGS:    ortho 0 pivot 1 dot 1.4901830494174677e-05
+# TT-PIVMGS:    ortho 0 pivot 10 dot -1.4736907871740028e-05
+# TT-PIVMGS:    ortho 0 pivot 0 dot -2.624686883339548e-06
+# TT-PIVMGS:    ortho 0 pivot 5 dot 1.7921934464752275e-06
+# TT-PIVMGS:    ortho 0 pivot 3 dot 4.4034404187581495e-07
+# TT-PIVMGS:    ortho max err 7.885944501573317e-14
+13 3.983048205440362e-05 1.9336399460442015e-05 2186 2148 2189 337
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 15617.0 ON be-cpu04 CANCELLED AT 2021-08-26T21:56:09 ***
+slurmstepd: error: *** JOB 15617 ON be-cpu04 CANCELLED AT 2021-08-26T21:56:09 ***

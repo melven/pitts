@@ -19,8 +19,28 @@ from tt_convection_operator import ConvectionOperator
 from tt_pivmgs import tt_pivmgs
 
 
-def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
+def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
+
+    def calc_solution():
+        x = pitts_py.TensorTrain_double(b.dimensions())
+        x.setZero()
+        nrm_x = 0
+        for i in range(len(y)):
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps)
+        return x, nrm_x
+
+    def residual_error(x, nrm_x):
+        #print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
+        # calculate real residual
+        r = pitts_py.TensorTrain_double(b.dimensions())
+        r_nrm = nrm_x * AOp(x, r, eps/10, maxRank=9999)
+        r_nrm = pitts_py.axpby(nrm_b, b, -r_nrm, r, eps/10, maxRank=9999)
+        #print("TT-GMRES: real residual norm %g" % (r_nrm/nrm_b) )
+        return r_nrm
+
+    if verbose:
+        print('# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"     "new Krylov vector rank"    "solution rank"')
 
     # assumes b is normalized and nrm_b is the desired rhs norm
     # define initial subspace
@@ -31,21 +51,23 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
     H = np.zeros((m + 1, m), order='F')
 
     if verbose:
-        print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
+        print(0, 1, 1, np.max(b.getTTranks()), np.max(b.getTTranks()), 0)
+        #print("TT-GMRES: initial residual norm: %g, max. rank: %d" % (beta, np.max(b.getTTranks())))
 
     for j in range(m):
-        delta = eps / (curr_beta / beta) / 1.2
-        #delta = eps / 100
+        if adaptiveTolerance:
+            delta = eps / (curr_beta / beta) / (1.2 * m)
+        else:
+            delta = eps
         w = pitts_py.TensorTrain_double(b.dimensions())
-        w_nrm = AOp(V[j], w, delta / m, maxRank=9999) # maxRank=(j+2)*rank_b)
+        w_nrm = AOp(V[j], w, delta, maxRank=9999) # maxRank=(j+2)*rank_b)
+        
+        rank_w = np.max(w.getTTranks())
 
-        if verbose:
-            print("TT-GMRES: iteration %d, new direction max. rank: %d" %(j, np.max(w.getTTranks())))
 
-        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta / m, maxRank=9999)
+        H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta, maxRank=9999)
 
-        if verbose:
-            print("TT-GMRES: iteration %d, new Krylov vector max. rank: %d" %(j, np.max(w.getTTranks())))
+        rank_vj = np.max(w.getTTranks())
 
         Hj = H[:j+2,:j+1]
         betae = np.zeros(j+2)
@@ -54,17 +76,16 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True):
         y, curr_beta, rank, s = np.linalg.lstsq(Hj, betae, rcond=None)
         curr_beta = np.sqrt(curr_beta[0]) if curr_beta.size > 0 else 0
         if verbose:
-            print("TT-GMRES:   LSTSQ resirual norm: %g " % (curr_beta / beta) )
+            #print("TT-GMRES:   LSTSQ residual norm: %g " % (curr_beta / beta) )
+            x, nrm_x = calc_solution()
+            r_nrm = residual_error(x, nrm_x)
+            rank_x = np.max(x.getTTranks())
+            print(j+1, curr_beta/beta, r_nrm / nrm_b, rank_w, rank_vj, rank_x)
         if curr_beta / beta <= eps:
             break
 
-    x = pitts_py.TensorTrain_double(b.dimensions())
-    x.setZero()
-    nrm_x = 0
-    for i in range(len(y)):
-        nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / m)
-    if verbose:
-        print("TT-GMRES: solution max rank %d" % np.max(x.getTTranks()))
+    if not verbose:
+        x, nrm_x = calc_solution()
     return x, nrm_x
 
 
@@ -92,14 +113,14 @@ if __name__ == '__main__':
         y_nrm = pitts_py.normalize(y, rankTolerance, maxRank)
         return y_nrm
 
-    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=100, eps=1.e-4)
-    print("nrm_x %g" % nrm_x)
+    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=100, eps=1.e-3, verbose=True, adaptiveTolerance=False)
 
+    print("nrm_x %g" % nrm_x)
     r = pitts_py.TensorTrain_double(b.dimensions())
     pitts_py.apply(TTOp, x, r)
     r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
     print("Residual norm: %g" % (r_nrm / nrm_b) )
 
 
-    pitts_py.finalize()
+    pitts_py.finalize(verbose=False)
 

@@ -58,7 +58,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DMKL_DIRECT_CALL")
 # Eigen 3 library (for linear algebra calculations)
 find_package (Eigen3 3.3.7 REQUIRED NO_MODULE)
 link_libraries(Eigen3::Eigen)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_NO_AUTOMATIC_RESIZING")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_NO_AUTOMATIC_RESIZING -DEIGEN_USE_BLAS")
 # Option for possibly faster/parallel SVD algorithm with MKL, not enabled per default as it seems to cause problems sometimes...
 option(PITTS_EIGEN_USE_LAPACKE "Define EIGEN_USE_LAPACKE to call LAPACK routines for e.g. singular value computations" False)
 if(PITTS_EIGEN_USE_LAPACKE)

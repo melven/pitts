@@ -19,14 +19,15 @@ def LaplaceOperator(dims):
     TTOp_dummy.setEye()
     for iDim in range(len(dims)):
         n_i = dims[iDim]
+        h = 1 / (n_i+1)
         eye_i = TTOp_dummy.getSubTensor(iDim)
         tridi_i = np.zeros((n_i,n_i))
         for i in range(n_i):
             for j in range(n_i):
                 if i == j:
-                    tridi_i[i,j] = 2. / (n_i+1)**2
+                    tridi_i[i,j] = 2. / h**2
                 elif i+1 == j or i-1 == j:
-                    tridi_i[i,j] = -1. / (n_i+1)**2
+                    tridi_i[i,j] = -1. / h**2
                 else:
                     tridi_i[i,j] = 0
         TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
