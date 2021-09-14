@@ -62,7 +62,7 @@ def main():
     Y = random([args.n, args.k])
     if args.padding:
         X = pad(X)
-        y = pad(Y)
+        Y = pad(Y)
     gemm_numpy(X, M, Y, nIter=args.nIter)
     gemm_numpy(X, M, Y, nIter=args.nIter)
 
