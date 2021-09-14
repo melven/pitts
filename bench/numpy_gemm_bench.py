@@ -26,6 +26,26 @@ def random(shape):
     return np.random.rand(*shape).astype(dtype=np.float64, order='F')
 
 
+def paddedSize(n):
+    # pad to next number divisible by PD/2 but not by PD
+    PD = 8 * 16
+    if n < 2*PD:
+        return n
+    return n + (PD + PD//2 - n % PD) % PD;
+
+
+@timer
+def pad(X):
+    rows = X.shape[0]
+    cols = X.shape[1]
+    paddedRows = paddedSize(rows)
+    print('rows', rows)
+    print('paddedRows', paddedRows)
+    tmpX = np.zeros((paddedRows, cols), dtype=np.float64, order='F')
+    tmpX[:rows,:] = X
+    return tmpX[:rows,:]
+
+
 def main():
     # command line arguments
     parser = argparse.ArgumentParser(description='benchmark for numpy gemm')
@@ -33,12 +53,16 @@ def main():
     parser.add_argument('m', type=int)
     parser.add_argument('k', type=int)
     parser.add_argument('nIter', type=int)
+    parser.add_argument('--padding', default=False, action='store_true')
 
     args = parser.parse_args()
 
     X = random([args.n, args.m])
     M = random([args.m, args.k])
     Y = random([args.n, args.k])
+    if args.padding:
+        X = pad(X)
+        y = pad(Y)
     gemm_numpy(X, M, Y, nIter=args.nIter)
     gemm_numpy(X, M, Y, nIter=args.nIter)
 
