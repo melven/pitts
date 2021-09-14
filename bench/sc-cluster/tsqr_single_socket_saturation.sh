@@ -7,6 +7,8 @@
 #SBATCH --output="%x-%j.out"
 
 # module load PrgEnv/gcc10-openmpi-python
+# # to avoid some delay through the intel omp library
+# module unload intel-mkl
 
 totalSizeBytes=3000000000
 totalSizePerCore=$(expr $totalSizeBytes / 8 / 14 )
