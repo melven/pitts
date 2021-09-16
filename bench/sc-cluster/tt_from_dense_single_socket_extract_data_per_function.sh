@@ -10,7 +10,7 @@ for r in $ranks; do
     total=$(fgrep "x $r2" -A 100 $f | grep fromDense | head -n 1 | awk '{print $3}')
     calls=$(fgrep "x $r2" -A 100 $f | grep fromDense | head -n 1 | awk '{print $4}')
     tsqr_total=$(fgrep "x $r2" -A 100 $f | grep block | grep -v rows | head -n 1 | awk '{print $3}')
-    tsqr_steps=$(fgrep "x $r2" -A 100 $f | grep block | head -n 10 | awk '{print $8}')
+    tsqr_steps=$(fgrep "x $r2" -A 100 $f | grep block | head -n 10 | awk '{print $10}')
     tsqr_steps=${tsqr_steps//$'\n'/ }
     tsmm_total=$(fgrep "x $r2" -A 100 $f | grep transform | grep -v Xrows | head -n 1 | awk '{print $3}')
     tsmm_steps=$(fgrep "x $r2" -A 100 $f | grep transform | head -n 10 | awk '{print $12}')
