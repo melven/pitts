@@ -1,0 +1,1850 @@
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140666687825792 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140666679429120 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140666671032448 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140666662635776 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140666654239104 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140666645842432 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140666637445760 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140666151627520 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140666143230848 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140666134834176 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140666126437504 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140666118040832 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140666109644160 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140666101249792 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140665614759680 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.0948989
+singular values (new):
+1825.51
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 1, reductionFactor: 37, colBlockingSize: 12)	 0.0948353 	 50        	 10.8296   	 0         	 42.1784   	 0.256757  
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 1)                                           	 0.0166719 	 1         	 0         	 0         	 4.79849   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.0948353 	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0166719 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000146143	 1         
+<PITTS::Tensor2<double> >::resize                	 1.029e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139783100155776 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139783091759104 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139783083362432 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139783074965760 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139782864759168 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139782856362496 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139782847965824 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139782839569152 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139782831172480 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139782822775808 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139782814379136 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139782260780288 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139782252383616 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139782243989248 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139782228129536 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.170138
+singular values (new):
+1826.01 1825.49
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 2, reductionFactor: 37, colBlockingSize: 12)	 0.170071  	 50        	 24.1552   	 0         	 47.0391   	 0.513513  
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 2)                                           	 0.0272247 	 1         	 0         	 0         	 5.87703   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.170071  	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0272247 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000113742	 1         
+<PITTS::Tensor2<double> >::resize                	 2.011e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139674376157056 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139674367760384 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139674359363712 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139674148399360 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139674140002688 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139674131606016 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139674123209344 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139674114812672 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139674106416000 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139674098019328 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139673611529344 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139673603132672 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139673594736000 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139673586341632 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139673571555072 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.259834
+singular values (new):
+1826.01 1825.88 1825.42
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 3, reductionFactor: 37, colBlockingSize: 12)	 0.259755  	 50        	 35.5845   	 0         	 46.1974   	 0.77027   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 3)                                           	 0.0377666 	 1         	 0         	 0         	 6.35482   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.259755  	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0377666 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000157345	 1         
+<PITTS::Tensor2<double> >::resize                	 1.284e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140602105481088 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140602097084416 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140602088687744 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140602080291072 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140602071894400 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140601727117824 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140601718721152 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140601710324480 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140601701927808 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140601693531136 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140601685134464 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140601676737792 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140601190247808 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140601181853440 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140601167066880 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.3584
+singular values (new):
+1826.46 1825.72  1825.3  1825.1
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 4, reductionFactor: 37, colBlockingSize: 12)	 0.358321  	 50        	 45.8595   	 0         	 44.6527   	 1.02703   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 4)                                           	 0.0467007 	 1         	 0         	 0         	 6.85214   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.358321  	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0467007 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000159441	 1         
+<PITTS::Tensor2<double> >::resize                	 1.498e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139924237330304 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139924228933632 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139924220536960 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139924212140288 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139923994700160 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139923986303488 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139923977906816 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139923969510144 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139923961113472 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139923952716800 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139923944320128 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139923390721280 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139923382324608 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139923373930240 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139923365537536 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.478742
+singular values (new):
+1826.78  1826.1 1825.81 1825.11 1824.45
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 5, reductionFactor: 37, colBlockingSize: 12)	 0.478668  	 50        	 53.6398   	 0         	 41.7826   	 1.28378   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 5)                                           	 0.0565046 	 1         	 0         	 0         	 7.07907   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.478668  	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0565046 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000150281	 1         
+<PITTS::Tensor2<double> >::resize                	 2.158e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140517099186048 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140517090789376 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140517082392704 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140517073996032 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140517065599360 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140517057202688 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140517048806016 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140516565969664 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140516557572992 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140516549176320 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140516540779648 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140516532382976 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140516523986304 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140516515591936 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140516025902848 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.617194
+singular values (new):
+1827.02 1826.42 1826.04  1825.5 1825.23 1824.84
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 6, reductionFactor: 37, colBlockingSize: 12)	 0.617125  	 50        	 59.9117   	 0         	 38.8901   	 1.54054   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 6)                                           	 0.0644893 	 1         	 0         	 0         	 7.44309   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.617125  	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0644893 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000131188	 1         
+<PITTS::Tensor2<double> >::resize                	 1.738e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139848177551232 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139848094574592 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139848086177920 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139848077781248 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139848069384576 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139848060987904 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139848052591232 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139848044194560 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139847557704576 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139847549307904 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139847540911232 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139847532514560 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139847524117888 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139847515723520 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139847506253568 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 0.790297
+singular values (new):
+1826.72 1826.22 1826.01 1825.57 1825.34    1825 1824.92
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 7, reductionFactor: 37, colBlockingSize: 12)	 0.790203  	 50        	 63.6853   	 0         	 35.4339   	 1.7973    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 7)                                           	 0.0747794 	 1         	 0         	 0         	 7.48869   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 0.790203  	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0747794 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000201159	 1         
+<PITTS::Tensor2<double> >::resize                	 1.813e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140392266143616 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140392257746944 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140392249350272 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140392240953600 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140392232556928 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140392224160256 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140391877700224 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140391869303552 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140391860906880 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140391852510208 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140391844113536 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140391835716864 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140391827320192 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140391273723648 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140391260014336 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 1.01226
+singular values (new):
+1826.99 1826.85 1826.24 1826.07 1826.02 1825.41 1824.91 1824.31
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 8, reductionFactor: 37, colBlockingSize: 12)	 1.01218   	 50        	 64.9388   	 0         	 31.615    	 2.05405   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 8)                                           	 0.0841377 	 1         	 0         	 0         	 7.60658   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 1.01218   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0841377 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000175353	 1         
+<PITTS::Tensor2<double> >::resize                	 1.65e-06  	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139777519576960 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139777511180288 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139777428940928 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139777420544256 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139777412147584 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139777403750912 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139777395354240 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139777386957568 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139777378560896 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139776824962048 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139776816565376 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139776808168704 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139776799772032 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139776791377664 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139776781907712 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 1.21268
+singular values (new):
+1827.66 1826.71 1826.47 1826.35 1825.69 1825.47 1825.19 1824.58 1824.43
+Performance statistics:
+function                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 9, reductionFactor: 37, colBlockingSize: 12)	 1.21259   	 50        	 68.6045   	 0         	 29.6885   	 2.31081   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 9)                                           	 0.0927112 	 1         	 0         	 0         	 7.76605   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 1.21259   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.0927112 	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000202449	 1         
+<PITTS::Tensor2<double> >::resize                	 1.741e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139774192998272 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139774184601600 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139774176204928 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139774167808256 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139774159411584 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139774151014912 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139773805062784 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139773796666112 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139773788269440 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139773779872768 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139773771476096 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139773763079424 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139773754682752 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139773201086208 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139773187376896 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 1.44263
+singular values (new):
+1827.04 1826.79 1826.57 1826.41 1826.12 1825.68 1825.36 1825.23  1824.4 1824.08
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 10, reductionFactor: 37, colBlockingSize: 12)	 1.44252   	 50        	 71.1968   	 0         	 27.7293   	 2.56757   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 10)                                           	 0.103395  	 1         	 0         	 0         	 7.73735   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 1.44252   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.103395  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000218605	 1         
+<PITTS::Tensor2<double> >::resize                	 1.742e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140224113293184 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140224104896512 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140224096499840 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140224088103168 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140224079706496 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140224071309824 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140224062913152 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140224054516480 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140223568669568 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140223560272896 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140223551876224 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140223543479552 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140223535082880 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140223526688512 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140223098910464 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 1.71061
+singular values (new):
+ 1827.4 1826.73 1826.57 1826.33 1826.04 1825.77 1825.45 1825.38 1824.98 1824.71 1824.59
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 11, reductionFactor: 37, colBlockingSize: 12)	 1.71031   	 50        	 72.6595   	 0         	 25.7264   	 2.82432   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 11)                                           	 0.112688  	 1         	 0         	 0         	 7.80916   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 1.71031   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.112688  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000193762	 1         
+<PITTS::Tensor2<double> >::resize                	 1.694e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140685478610816 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140685470214144 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140685461817472 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140685453420800 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140685445024128 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140685436627456 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140685428230784 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140684942109440 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140684933712768 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140684925316096 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140684916919424 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140684908522752 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140684900126080 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140684891731712 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140684405241600 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 1.98895
+singular values (new):
+1827.82 1826.94 1826.81  1826.3 1826.17 1826.06 1825.81 1825.61 1825.25 1824.83 1824.41 1823.97
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 12, reductionFactor: 37, colBlockingSize: 12)	 1.98885   	 50        	 74.3607   	 0         	 24.1346   	 3.08108   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 12)                                           	 0.121949  	 1         	 0         	 0         	 7.87212   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 1.98885   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.121949  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000183554	 1         
+<PITTS::Tensor2<double> >::resize                	 2.552e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140526187394944 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140526178998272 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140526095427712 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140526087031040 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140526078634368 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140526070237696 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140526061841024 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140526053444352 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140526045047680 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140525491448832 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140525483052160 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140525474655488 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140525466258816 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140525457864448 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140525449471744 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 2.32168
+singular values (new):
+1827.02 1826.74 1826.56 1826.21 1825.97 1825.74 1825.69 1825.52 1825.24 1825.08 1824.99 1824.45 1824.38
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 13, reductionFactor: 37, colBlockingSize: 12)	 2.32156   	 50        	 74.7634   	 0         	 22.3988   	 3.33783   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 13)                                           	 0.131154  	 1         	 0         	 0         	 7.92962   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 2.32156   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.131154  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.00019315	 1         
+<PITTS::Tensor2<double> >::resize                	 2.157e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140532414547840 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140532336551936 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140532328155264 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140532319758592 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140532311361920 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140532302965248 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140532294568576 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140532286171904 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140531799681920 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140531791285248 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140531782888576 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140531774491904 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140531766095232 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140531757700864 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140531743991552 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 2.67543
+singular values (new):
+1827.46 1827.08  1826.8 1826.68 1826.38 1826.18 1826.05 1825.49 1825.27 1825.24 1825.01 1824.59 1823.85 1823.77
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 14, reductionFactor: 37, colBlockingSize: 12)	 2.67533   	 50        	 75.242    	 0         	 20.932    	 3.59459   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 14)                                           	 0.14028   	 1         	 0         	 0         	 7.98402   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 2.67533   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.14028   	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000204304	 1         
+<PITTS::Tensor2<double> >::resize                	 1.785e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140182993454976 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140182985058304 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140182976661632 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140182766479616 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140182758082944 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140182749686272 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140182741289600 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140182732892928 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140182724496256 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140182716099584 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140182229609600 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140182221212928 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140182212816256 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140182204421888 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140182188562176 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 3.01047
+singular values (new):
+1827.73 1827.18 1827.09 1826.34 1826.18 1826.05 1825.98 1825.81 1825.62 1825.48 1825.36 1824.88  1824.8 1824.08    1824
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 15, reductionFactor: 37, colBlockingSize: 12)	 3.01037   	 50        	 76.7617   	 0         	 19.9311   	 3.85135   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 15)                                           	 0.149296  	 1         	 0         	 0         	 8.03774   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 3.01037   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.149296  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000187168	 1         
+<PITTS::Tensor2<double> >::resize                	 2.013e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139733903677312 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139733895280640 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139733886883968 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139733673961728 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139733665565056 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139733657168384 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139733648771712 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139733640375040 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139733631978368 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139733623581696 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139733137091712 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139733128695040 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139733120298368 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139733111904000 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139733099271936 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 3.39802
+singular values (new):
+1827.77  1827.5 1827.33 1826.88 1826.72  1826.3 1826.08 1825.73 1825.58 1825.44 1824.97 1824.77 1824.69 1824.48 1824.33 1823.62
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 16, reductionFactor: 37, colBlockingSize: 12)	 3.39786   	 50        	 77.3778   	 0         	 18.8354   	 4.1081    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 16)                                           	 0.158556  	 1         	 0         	 0         	 8.07284   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 3.39786   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.158556  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000239463	 1         
+<PITTS::Tensor2<double> >::resize                	 1.833e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140459093362560 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140459084965888 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140459076569216 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140459068172544 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140458852346240 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140458843949568 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140458835552896 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140458827156224 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140458818759552 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140458810362880 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140458801966208 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140458248367360 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140458239970688 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140458231576320 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140458221061888 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 3.80481
+singular values (new):
+1827.72 1827.42 1826.97 1826.94 1826.75 1826.55 1826.01 1825.76 1825.65 1825.47 1825.12 1825.04 1824.88 1824.85 1824.46 1823.94 1823.62
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 17, reductionFactor: 37, colBlockingSize: 12)	 3.8047    	 50        	 78.0115   	 0         	 17.8726   	 4.36486   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 17)                                           	 0.170153  	 1         	 0         	 0         	 7.99281   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 3.8047    	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.170153  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000233793	 1         
+<PITTS::Tensor2<double> >::resize                	 2.024e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139905480578944 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139905472182272 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139905463785600 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139905455388928 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139905446992256 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139905438595584 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139905430198912 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139905421802240 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139904935783296 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139904927386624 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139904918989952 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139904910593280 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139904902196608 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139904893802240 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139904466024192 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 4.16954
+singular values (new):
+ 1827.9 1827.77 1827.37 1827.15  1826.8  1826.4 1826.26 1825.95 1825.86 1825.66 1825.44 1825.21 1824.93 1824.66 1824.42 1824.18 1823.94 1823.75
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 18, reductionFactor: 37, colBlockingSize: 12)	 4.16943   	 50        	 79.8087   	 0         	 17.2686   	 4.62161   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 18)                                           	 0.1783    	 1         	 0         	 0         	 8.07627   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 4.16943   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.1783    	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000245422	 1         
+<PITTS::Tensor2<double> >::resize                	 1.966e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140266932627328 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140266853885952 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140266845489280 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140266837092608 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140266828695936 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140266820299264 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140266811902592 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140266803505920 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140266317015936 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140266308619264 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140266300222592 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140266291825920 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140266283429248 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140266275034880 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140266262402816 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 4.64516
+singular values (new):
+1827.89 1827.51 1827.32 1827.11 1826.79 1826.65 1826.37 1826.06 1825.96 1825.58 1825.48 1825.37 1825.08 1824.84 1824.59 1824.47 1824.26 1824.08 1823.78
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 19, reductionFactor: 37, colBlockingSize: 12)	 4.64501   	 50        	 79.8182   	 0         	 16.3617   	 4.87837   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 19)                                           	 0.18517   	 1         	 0         	 0         	 8.20868   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 4.64501   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.18517   	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000246243	 1         
+<PITTS::Tensor2<double> >::resize                	 5.966e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140362279425920 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140362271029248 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140362262632576 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140362254235904 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140362245839232 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140362237442560 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140362229045888 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140361745820416 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140361737423744 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140361729027072 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140361720630400 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140361712233728 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140361703837056 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140361695442688 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140361205753600 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 5.09782
+singular values (new):
+1827.84 1827.69 1827.42 1827.25 1826.77 1826.63  1826.5 1826.24 1826.09 1825.96 1825.54  1825.4 1825.37 1825.21 1824.96 1824.67 1824.35  1824.2 1823.79  1823.7
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 20, reductionFactor: 37, colBlockingSize: 12)	 5.09769   	 50        	 80.5876   	 0         	 15.6934   	 5.13512   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 20)                                           	 0.196449  	 1         	 0         	 0         	 8.14459   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 5.09769   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.196449  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.00024558	 1         
+<PITTS::Tensor2<double> >::resize                	 6.288e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139931425924992 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139931417528320 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139931409131648 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139931400734976 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139931392338304 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139931041131008 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139931032734336 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139931024337664 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139931015940992 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139931007544320 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139930999147648 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139930990750976 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139930504260992 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139930495866624 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139930486396672 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 5.60963
+singular values (new):
+1827.91 1827.54 1827.36 1827.28 1827.07 1826.65 1826.45 1826.27 1826.24 1826.03 1825.81 1825.42 1825.36 1825.08  1824.9 1824.87 1824.54 1824.21 1823.93 1823.58 1823.26
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 21, reductionFactor: 37, colBlockingSize: 12)	 5.60949   	 50        	 80.7416   	 0         	 14.9747   	 5.39188   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 21)                                           	 0.206044  	 1         	 0         	 0         	 8.15358   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 5.60949   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.206044  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000275464	 1         
+<PITTS::Tensor2<double> >::resize                	 5.671e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140613864281984 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140613855885312 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140613847488640 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140613839091968 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140613830695296 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140613822298624 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140613471169152 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140613462772480 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140613454375808 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140613445979136 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140613437582464 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140613429185792 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140613420789120 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140612867192576 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140612857722624 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 6.06318
+singular values (new):
+1827.98 1827.78  1827.7 1827.41 1827.23 1826.86 1826.61 1826.47 1826.04 1825.88 1825.73 1825.44 1825.28 1825.22 1825.08 1824.86 1824.75 1824.46 1824.16 1823.99 1823.77  1823.2
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 22, reductionFactor: 37, colBlockingSize: 12)	 6.06305   	 50        	 81.9853   	 0         	 14.5142   	 5.64864   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 22)                                           	 0.215403  	 1         	 0         	 0         	 8.17072   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 6.06305   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.215403  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000290435	 1         
+<PITTS::Tensor2<double> >::resize                	 6.12e-06  	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140276554180480 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140276545783808 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140276537387136 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140276528990464 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140276316236160 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140276307839488 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140276299442816 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140276291046144 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140276282649472 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140276274252800 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140276265856128 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140275712257280 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140275703860608 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140275695466240 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140275682834176 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 6.4413
+singular values (new):
+1828.02 1827.86 1827.54 1827.45 1826.99 1826.85  1826.7 1826.43 1826.17 1826.13  1825.9 1825.69 1825.62 1825.33 1825.29 1825.18  1824.7  1824.5 1824.46 1824.07 1823.92  1823.8 1823.42
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 23, reductionFactor: 37, colBlockingSize: 12)	 6.44117   	 50        	 84.3476   	 0         	 14.2832   	 5.90539   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 23)                                           	 0.223404  	 1         	 0         	 0         	 8.23619   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 6.44117   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.223404  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000248591	 1         
+<PITTS::Tensor2<double> >::resize                	 6.266e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140686186121088 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140686177724416 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140686169327744 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140686160931072 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140685948742016 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140685940345344 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140685931948672 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140685923552000 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140685915155328 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140685906758656 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140685898361984 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140685344763136 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140685336366464 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140685327972096 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140685314262784 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 7.01671
+singular values (new):
+1828.06 1827.88 1827.52 1827.28 1826.96 1826.89 1826.57 1826.44 1826.21 1826.11 1826.02 1825.87 1825.52 1825.32 1825.19 1825.07 1824.89  1824.7 1824.55 1824.52 1824.07 1823.63 1823.37 1822.85
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 24, reductionFactor: 37, colBlockingSize: 12)	 7.01656   	 50        	 84.3102   	 0         	 13.6819   	 6.16215   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 24)                                           	 0.228506  	 1         	 0         	 0         	 8.4024    	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 7.01656   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.228506  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000278631	 1         
+<PITTS::Tensor2<double> >::resize                	 4.974e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140439083714432 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140439075317760 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140439066921088 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140438853904640 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140438845507968 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140438837111296 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140438828714624 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140438820317952 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140438811921280 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140438803524608 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140438317034624 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140438308637952 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140438300241280 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140438291846912 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140438279214848 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 7.55506
+singular values (new):
+1828.24 1828.12 1827.97 1827.72 1827.22 1827.14 1826.95 1826.84 1826.57 1826.32 1826.24 1825.89 1825.81 1825.59 1825.47 1825.26 1825.22 1824.98 1824.92 1824.67 1824.37 1824.28 1823.85 1823.75 1823.22
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 25, reductionFactor: 37, colBlockingSize: 12)	 7.55493   	 50        	 84.9633   	 0         	 13.2364   	 6.4189    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 25)                                           	 0.241117  	 1         	 0         	 0         	 8.29472   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 7.55493   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.241117  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000310988	 1         
+<PITTS::Tensor2<double> >::resize                	 5.906e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140357874882432 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140357866485760 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140357786396800 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140357778000128 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140357769603456 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140357761206784 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140357752810112 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140357744413440 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140357736016768 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140357182417920 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140357174021248 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140357165624576 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140357157227904 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140357148833536 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140357137241856 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 8.29486
+singular values (new):
+1828.03 1827.96  1827.6 1827.19  1827.1 1826.99 1826.92 1826.81 1826.66 1826.37 1826.24 1825.87  1825.7 1825.65  1825.4 1825.29 1825.15 1824.87 1824.72  1824.5 1824.47 1824.22 1823.83 1823.62 1823.58 1823.45
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 26, reductionFactor: 37, colBlockingSize: 12)	 8.29472   	 50        	 83.7002   	 0         	 12.5381   	 6.67566   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 26)                                           	 0.250148  	 1         	 0         	 0         	 8.31507   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 8.29472   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.250148  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.00027622	 1         
+<PITTS::Tensor2<double> >::resize                	 6.193e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139788481447808 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139788473051136 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139788464654464 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139788456257792 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139788447861120 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139788099250688 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139788090854016 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139788082457344 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139788074060672 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139788065664000 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139788057267328 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139788048870656 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139787562380672 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139787553986304 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139787542394624 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 8.80676
+singular values (new):
+ 1828.2 1827.81 1827.73 1827.57 1827.28 1827.12 1826.85 1826.71 1826.58 1826.38 1826.19 1826.17 1825.92 1825.78 1825.56  1825.3  1825.1 1825.01 1824.91 1824.64  1824.5 1824.32 1824.27 1823.97 1823.72  1823.5 1823.08
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 27, reductionFactor: 37, colBlockingSize: 12)	 8.80661   	 50        	 85.016    	 0         	 12.2635   	 6.93241   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 27)                                           	 0.258067  	 1         	 0         	 0         	 8.36991   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 8.80661   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.258067  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000322598	 1         
+<PITTS::Tensor2<double> >::resize                	 9.255e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139881524676480 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139881447680000 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139881439283328 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139881430886656 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139881422489984 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139881414093312 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139881405696640 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139881397299968 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139880910809984 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139880902413312 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139880894016640 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139880885619968 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139880877223296 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139880868828928 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139880854042368 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 9.30971
+singular values (new):
+1828.59  1828.1 1827.77 1827.62 1827.43 1827.19 1827.09    1827 1826.86 1826.77 1826.45 1826.38 1826.22 1825.98 1825.83 1825.62 1825.42 1825.13 1825.03 1824.75 1824.69 1824.43 1824.21 1823.95 1823.73 1823.38 1823.18 1822.76
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 28, reductionFactor: 37, colBlockingSize: 12)	 9.30958   	 50        	 86.4904   	 0         	 12.0307   	 7.18917   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 28)                                           	 0.264825  	 1         	 0         	 0         	 8.45843   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 9.30958   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.264825  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000290545	 1         
+<PITTS::Tensor2<double> >::resize                	 6.101e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140519116412800 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140519108016128 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140519099619456 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140519091222784 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140519082826112 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140519074429440 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140519066032768 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140519057636096 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140518579235712 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140518570839040 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140518562442368 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140518554045696 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140518545649024 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140518537254656 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140518109476608 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 9.9391
+singular values (new):
+1828.23 1828.04 1827.79 1827.65 1827.45 1827.32    1827 1826.83 1826.65 1826.53 1826.26 1826.17 1826.04 1825.86 1825.71 1825.52 1825.41 1825.31  1825.2 1824.91 1824.77 1824.45 1824.39 1824.28 1824.01 1823.82 1823.53 1823.41 1823.12
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 29, reductionFactor: 37, colBlockingSize: 12)	 9.93896   	 50        	 86.9034   	 0         	 11.6713   	 7.44592   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 29)                                           	 0.275132  	 1         	 0         	 0         	 8.43231   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 9.93896   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.275132  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000342959	 1         
+<PITTS::Tensor2<double> >::resize                	 5.863e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140303501784960 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140303493388288 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140303484991616 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140303476594944 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140303468198272 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140303459801600 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140303451404928 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140303443008256 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140302958455680 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140302950059008 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140302941662336 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140302933265664 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140302924868992 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140302916474624 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140302488696576 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 10.7264
+singular values (new):
+1828.68 1828.38 1828.04 1827.88 1827.64  1827.5 1827.31 1827.22 1827.07 1826.83  1826.8 1826.33  1826.1 1825.97 1825.89 1825.71 1825.62 1825.34 1825.16 1824.93 1824.77 1824.69 1824.58 1824.26 1824.22 1824.08 1823.72 1823.51 1823.11 1822.93
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 30, reductionFactor: 37, colBlockingSize: 12)	 10.7263   	 50        	 86.174    	 0         	 11.1875   	 7.70268   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 30)                                           	 0.281609  	 1         	 0         	 0         	 8.52247   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 10.7263   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.281609  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000312792	 1         
+<PITTS::Tensor2<double> >::resize                	 5.816e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140428560996224 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140428552599552 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140428544202880 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140428535806208 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140428317813120 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140428309416448 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140428301019776 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140428292623104 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140428284226432 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140428275829760 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140428267433088 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140427713834240 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140427705437568 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140427697043200 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140427688650496 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 11.2485
+singular values (new):
+1828.81 1828.47 1828.12 1827.97 1827.84 1827.61 1827.38 1827.16 1826.73 1826.69 1826.59 1826.38 1826.21 1825.99 1825.86 1825.84 1825.68 1825.53 1825.18 1824.96 1824.89 1824.77 1824.57 1824.27 1824.15 1824.02 1823.87 1823.68 1823.47 1823.15  1822.7
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 31, reductionFactor: 37, colBlockingSize: 12)	 11.2484   	 50        	 87.7435   	 0         	 11.0238   	 7.95943   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 31)                                           	 0.291428  	 1         	 0         	 0         	 8.50981   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 11.2484   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.291428  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000357464	 1         
+<PITTS::Tensor2<double> >::resize                	 7.988e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139640571041664 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139640562644992 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139640554248320 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139640545851648 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139640537454976 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139640191314432 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139640182917760 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139640174521088 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139640166124416 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139640157727744 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139640149331072 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139640140934400 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139639654444416 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139639646050048 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139639632340736 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 12.1576
+singular values (new):
+1829.05 1828.38 1828.15 1827.95 1827.92 1827.75 1827.47 1827.24 1826.93 1826.83 1826.72 1826.25 1826.14 1826.07 1825.91 1825.81 1825.54 1825.48 1825.23 1825.08 1824.84 1824.75 1824.52 1824.32 1824.22 1824.12 1824.04 1823.78 1823.53  1823.5 1823.13 1822.85
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 32, reductionFactor: 37, colBlockingSize: 12)	 12.1574   	 50        	 86.505    	 0         	 10.5286   	 8.21619   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 32)                                           	 0.299697  	 1         	 0         	 0         	 8.54196   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 12.1574   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.299697  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000319613	 1         
+<PITTS::Tensor2<double> >::resize                	 6.093e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139794189432704 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139794181036032 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139794172639360 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139794164242688 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139794155846016 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139794147449344 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139793803504256 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139793795107584 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139793786710912 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139793778314240 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139793769917568 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139793761520896 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139793753124224 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139793199527680 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139793183667968 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 12.7155
+singular values (new):
+ 1828.7 1828.42 1828.15 1827.84 1827.66 1827.55 1827.31 1827.26 1827.04 1826.75 1826.64 1826.51 1826.39 1826.18 1826.09 1826.04 1825.71  1825.7 1825.43 1825.22 1825.06 1825.02 1824.98  1824.6 1824.47 1824.28 1824.21 1823.94 1823.65 1823.48 1823.34 1823.05 1822.85
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 33, reductionFactor: 37, colBlockingSize: 12)	 12.7153   	 50        	 87.9595   	 0         	 10.3812   	 8.47295   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 33)                                           	 0.307484  	 1         	 0         	 0         	 8.5858    	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 12.7153   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.307484  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000336719	 1         
+<PITTS::Tensor2<double> >::resize                	 8.712e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139810017859456 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139810009462784 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139810001066112 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139809992669440 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139809775413632 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139809767016960 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139809758620288 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139809750223616 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139809741826944 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139809733430272 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139809725033600 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139809171434752 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139809163038080 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139809154643712 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139809145173760 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 13.2469
+singular values (new):
+1828.81 1828.48 1828.18 1827.77 1827.72 1827.51 1827.32 1827.28 1827.08 1826.86 1826.79 1826.59 1826.43 1826.35 1826.04 1825.97  1825.7 1825.58 1825.49 1825.37 1825.22 1825.09 1824.93 1824.71 1824.61 1824.48 1824.34 1824.24 1823.91 1823.68 1823.58 1823.39 1823.33 1822.68
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 34, reductionFactor: 37, colBlockingSize: 12)	 13.2468   	 50        	 89.6252   	 0         	 10.2667   	 8.7297    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 34)                                           	 0.314541  	 1         	 0         	 0         	 8.64751   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 13.2468   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.314541  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000325956	 1         
+<PITTS::Tensor2<double> >::resize                	 5.951e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140650504636288 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140650496239616 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140650487842944 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140650479446272 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140650471049600 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140650462652928 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140650112608896 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140650104212224 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140650095815552 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140650087418880 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140650079022208 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140650070625536 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140650062228864 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140649508632320 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140649498117888 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 14.0493
+singular values (new):
+1828.94 1828.46 1828.22 1827.86 1827.78 1827.73 1827.59 1827.25 1827.19 1826.99 1826.87 1826.68 1826.57 1826.42 1826.38 1826.18 1826.11 1825.97 1825.65 1825.49 1825.38 1825.14 1825.08 1824.91 1824.79 1824.49 1824.43 1824.29 1824.14 1823.94 1823.87 1823.36 1823.18 1823.04  1822.9
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 35, reductionFactor: 37, colBlockingSize: 12)	 14.0492   	 50        	 89.5503   	 0         	 9.96503   	 8.98646   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 35)                                           	 0.326992  	 1         	 0         	 0         	 8.56291   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 14.0492   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.326992  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000313903	 1         
+<PITTS::Tensor2<double> >::resize                	 6.54e-06  	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140173031753600 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140173023356928 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140173014960256 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140173006563584 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140172998166912 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140172989770240 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140172981373568 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140172498823936 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140172490427264 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140172482030592 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140172473633920 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140172465237248 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140172456840576 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140172448446208 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140171958757120 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 14.735
+singular values (new):
+1829.05 1828.91 1828.33 1828.22 1828.09 1827.41 1827.37 1827.29 1827.17  1827.1 1826.96 1826.87  1826.6 1826.39 1826.21 1826.08 1826.02 1825.77 1825.64 1825.57 1825.35 1825.26 1825.06 1824.88 1824.81 1824.67 1824.48 1824.32 1824.08    1824 1823.82 1823.51 1823.22 1823.03 1822.94 1822.65
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 36, reductionFactor: 37, colBlockingSize: 12)	 14.7348   	 50        	 90.3321   	 0         	 9.77281   	 9.24321   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 36)                                           	 0.33216   	 1         	 0         	 0         	 8.67051   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 14.7348   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.33216   	 1         
+<PITTS::MultiVector<double> >::resize            	 0.00036786	 1         
+<PITTS::Tensor2<double> >::resize                	 4.767e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139908668442496 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139908660045824 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139908651649152 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139908643252480 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139908425443712 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139908417047040 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139908408650368 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139908400253696 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139908391857024 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139908383460352 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139908375063680 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139907821464832 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139907813068160 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139907804673792 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139907796281088 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 15.6638
+singular values (new):
+1829.14 1828.95 1828.52 1828.14 1827.93 1827.81 1827.67 1827.62 1827.38 1827.29 1827.19 1827.01 1826.85 1826.65 1826.48 1826.37 1826.22 1826.13 1825.72 1825.51 1825.44 1825.22 1825.12 1824.95 1824.68  1824.6 1824.46 1824.39 1824.15 1823.96 1823.93 1823.79 1823.64 1823.41 1823.25 1822.96 1822.42
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 37, reductionFactor: 37, colBlockingSize: 12)	 15.6636   	 50        	 89.7625   	 0         	 9.44872   	 9.49996   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 37)                                           	 0.341196  	 1         	 0         	 0         	 8.67537   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 15.6636   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.341196  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000274248	 1         
+<PITTS::Tensor2<double> >::resize                	 8.263e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139829934385024 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139829925988352 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139829917591680 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139829706746112 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139829698349440 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139829689952768 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139829681556096 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139829673159424 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139829664762752 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139829656366080 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139829169876096 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139829161479424 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139829153082752 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139829144688384 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139829129901824 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 16.4145
+singular values (new):
+1829.05 1828.54 1828.26 1828.11 1828.08 1827.98 1827.58 1827.55 1827.22 1827.17 1827.06  1826.9 1826.79 1826.64  1826.5 1826.18 1826.13 1826.07 1825.78 1825.62 1825.43 1825.37 1825.28 1825.16 1824.89 1824.87 1824.65 1824.31 1824.25 1824.14 1823.87 1823.62 1823.59 1823.42 1823.37 1823.01  1822.8 1822.44
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 38, reductionFactor: 37, colBlockingSize: 12)	 16.4143   	 50        	 90.3496   	 0         	 9.26024   	 9.75672   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 38)                                           	 0.350005  	 1         	 0         	 0         	 8.68559   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 16.4143   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.350005  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000402142	 1         
+<PITTS::Tensor2<double> >::resize                	 6.342e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139957305763712 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139957297367040 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139957213587584 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139957205190912 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139957196794240 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139957188397568 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139957180000896 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139957171604224 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139957163207552 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139956609608704 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139956601212032 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139956592815360 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139956584418688 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139956576024320 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139956567631616 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 17.2922
+singular values (new):
+1829.17 1828.95 1828.58  1828.3 1828.18 1827.96 1827.73 1827.71 1827.48 1827.34 1827.22 1826.93 1826.77 1826.68 1826.56 1826.53 1826.33 1825.98 1825.85 1825.81 1825.75 1825.47 1825.42  1825.3  1825.2 1824.91 1824.62  1824.4 1824.21 1824.14    1824 1823.91 1823.67 1823.55  1823.5 1823.29 1823.03 1822.75 1822.66
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 39, reductionFactor: 37, colBlockingSize: 12)	 17.292    	 50        	 90.3372   	 0         	 9.02157   	 10.0135   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 39)                                           	 0.359643  	 1         	 0         	 0         	 8.67526   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 17.292    	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.359643  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000276328	 1         
+<PITTS::Tensor2<double> >::resize                	 6.148e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140513066846080 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140513058449408 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140513050052736 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140513041656064 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140513033259392 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140513024862720 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140512673655424 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140512665258752 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140512656862080 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140512648465408 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140512640068736 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140512631672064 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140512623275392 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140512069678848 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140512060208896 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 18.228
+singular values (new):
+1829.11 1828.96 1828.66 1828.46 1828.25 1828.19 1827.69 1827.51 1827.24 1827.17 1826.89 1826.82  1826.7 1826.55  1826.4 1826.22 1826.18 1826.06 1825.87 1825.73 1825.58 1825.41 1825.23 1825.14 1825.05 1825.02 1824.79 1824.67  1824.5 1824.39  1824.2 1824.15 1823.92 1823.76 1823.68 1823.43 1823.22 1822.77 1822.72 1822.32
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 40, reductionFactor: 37, colBlockingSize: 12)	 18.2278   	 50        	 90.1505   	 0         	 8.77785   	 10.2702   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 40)                                           	 0.369277  	 1         	 0         	 0         	 8.66558   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 18.2278   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.369277  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000376186	 1         
+<PITTS::Tensor2<double> >::resize                	 6.449e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140323888662400 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140323880265728 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140323871869056 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140323863472384 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140323855075712 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140323846679040 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140323838282368 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140323359550208 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140323351153536 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140323342756864 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140323334360192 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140323325963520 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140323317566848 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140323309172480 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140322816288512 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 18.9645
+singular values (new):
+1829.41 1828.89 1828.79 1828.68 1828.47 1828.25 1828.11 1827.99 1827.82 1827.52  1827.3 1827.23 1826.92  1826.8 1826.66 1826.45 1826.23 1826.21 1826.04 1825.91 1825.73 1825.62 1825.37 1825.05 1824.99 1824.96 1824.81 1824.74 1824.49 1824.44 1824.29 1823.95 1823.81 1823.74 1823.59 1823.39 1823.22 1823.01 1822.84 1822.64 1822.22
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 41, reductionFactor: 37, colBlockingSize: 12)	 18.9643   	 50        	 91.0361   	 0         	 8.64788   	 10.527    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 41)                                           	 0.376739  	 1         	 0         	 0         	 8.70629   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 18.9643   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.376739  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000409602	 1         
+<PITTS::Tensor2<double> >::resize                	 5.611e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140339485079424 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140339476682752 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140339398568064 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140339390171392 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140339381774720 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140339373378048 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140339364981376 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140339356584704 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140339348188032 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140338794589184 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140338786192512 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140338777795840 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140338769399168 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140338761004800 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140338747295488 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 16.0928
+singular values (new):
+1829.15 1828.86 1828.54  1828.4 1828.24  1828.1 1827.87  1827.6 1827.56 1827.39 1827.17 1827.16 1827.07 1826.85 1826.66 1826.58 1826.39  1826.3 1826.01 1825.97 1825.72 1825.55 1825.47 1825.34 1825.31 1825.17 1825.03 1824.98 1824.72 1824.61 1824.45 1824.32 1824.02 1823.99 1823.81 1823.42 1823.37 1823.19 1823.08    1823 1822.86 1822.47
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 42, reductionFactor: 37, colBlockingSize: 12)	 16.0926   	 50        	 112.578   	 0         	 10.4396   	 10.7837   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 42)                                           	 0.386632  	 1         	 0         	 0         	 8.69045   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 16.0926   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.386632  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000418948	 1         
+<PITTS::Tensor2<double> >::resize                	 5.975e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140076660348800 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140076651952128 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140076643555456 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140076635158784 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140076626762112 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140076618365440 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140076609968768 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140076130495232 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140076122098560 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140076113701888 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140076105305216 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140076096908544 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140076088511872 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140076080117504 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140075587233536 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 16.6412
+singular values (new):
+1829.03 1828.97 1828.87 1828.58 1828.41 1828.27 1827.97 1827.89 1827.69 1827.47 1827.37 1827.24 1827.11 1826.92 1826.72 1826.61 1826.55 1826.27 1826.19 1826.11 1825.93 1825.62 1825.51 1825.47 1825.28 1825.18  1825.1 1824.87 1824.78 1824.68 1824.48 1824.27  1824.1 1824.01 1823.92 1823.73 1823.44 1823.26 1823.04 1822.84 1822.69 1822.49 1822.41
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 43, reductionFactor: 37, colBlockingSize: 12)	 16.6411   	 50        	 114.113   	 0         	 10.3359   	 11.0405   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 43)                                           	 0.39481   	 1         	 0         	 0         	 8.71306   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 16.6411   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.39481   	 1         
+<PITTS::MultiVector<double> >::resize            	 0.00042092	 1         
+<PITTS::Tensor2<double> >::resize                	 6.944e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139721234552704 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139721226156032 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139721217759360 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139721209362688 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139721200966016 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139720856168960 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139720847772288 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139720839375616 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139720830978944 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139720822582272 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139720814185600 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139720805788928 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139720319298944 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139720310904576 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139720296118016 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 17.6223
+singular values (new):
+   1830 1829.07 1828.84 1828.63 1828.36    1828 1827.83 1827.76 1827.63 1827.36 1827.28 1827.04 1826.99 1826.88 1826.77 1826.37  1826.3 1826.17 1826.09 1826.05 1825.86 1825.83 1825.73 1825.63 1825.38 1825.29  1825.1 1825.05 1824.99 1824.86 1824.63 1824.56 1824.44 1824.23 1824.15 1823.81  1823.6 1823.46 1823.38 1823.12 1822.81 1822.68 1822.46 1822.37
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 44, reductionFactor: 37, colBlockingSize: 12)	 17.6222   	 50        	 112.831   	 0         	 9.98746   	 11.2972   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 44)                                           	 0.407706  	 1         	 0         	 0         	 8.63367   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 17.6222   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.407706  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000405475	 1         
+<PITTS::Tensor2<double> >::resize                	 6.191e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140053427853184 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140053419456512 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140053411059840 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140053402663168 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140053394266496 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140053045045760 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140053036649088 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140053028252416 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140053019855744 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140053011459072 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140053003062400 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140052994665728 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140052508175744 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140052499781376 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140052488189696 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 18.1678
+singular values (new):
+1829.49 1829.11 1828.98 1828.75 1828.41 1828.25  1828.2 1828.05 1827.76 1827.69 1827.41 1827.18 1827.12 1827.01 1826.72 1826.67 1826.56 1826.41 1826.36 1826.19 1826.04 1825.66 1825.65 1825.56 1825.36 1825.21 1825.09 1825.06 1824.81 1824.71 1824.61 1824.47 1824.35 1824.26  1824.2 1824.06  1823.9 1823.64 1823.39 1823.09 1822.99 1822.87 1822.73 1822.53 1822.38
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 45, reductionFactor: 37, colBlockingSize: 12)	 18.1676   	 50        	 114.475   	 0         	 9.90778   	 11.554    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 45)                                           	 0.413747  	 1         	 0         	 0         	 8.70097   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 18.1676   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.413747  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000440705	 1         
+<PITTS::Tensor2<double> >::resize                	 6.512e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140485463865216 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140485455468544 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140485447071872 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140485438675200 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140485226129792 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140485217733120 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140485209336448 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140485200939776 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140485192543104 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140485184146432 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140485175749760 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140484622150912 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140484613754240 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140484605359872 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140484592727808 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 18.8456
+singular values (new):
+1829.55 1828.99 1828.96 1828.84 1828.49 1828.33 1828.26 1827.97 1827.83 1827.69 1827.42 1827.22 1827.06 1826.97 1826.89 1826.74 1826.64  1826.5 1826.29 1826.04 1825.92 1825.87 1825.71 1825.65 1825.46 1825.21 1825.16 1824.92 1824.82 1824.78 1824.59 1824.55  1824.5 1824.33 1824.18 1824.16  1823.8 1823.73 1823.63 1823.42  1823.3 1823.15 1823.08 1822.88 1822.28 1822.22
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 46, reductionFactor: 37, colBlockingSize: 12)	 18.8455   	 50        	 115.316   	 0         	 9.76365   	 11.8108   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 46)                                           	 0.422456  	 1         	 0         	 0         	 8.71096   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 18.8455   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.422456  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000372309	 1         
+<PITTS::Tensor2<double> >::resize                	 6.68e-06  	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139786264631168 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139786256234496 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139786247837824 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139786239441152 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139786231044480 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139785884658176 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139785876261504 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139785867864832 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139785859468160 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139785851071488 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139785842674816 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139785834278144 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139785347788160 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139785339393792 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139785325684480 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 19.8331
+singular values (new):
+1829.28 1829.18 1828.95 1828.76 1828.26 1828.14 1828.06 1827.91 1827.85 1827.67 1827.54 1827.21 1827.13 1826.86 1826.81 1826.75 1826.58 1826.41 1826.37 1826.29 1826.16 1826.01 1825.89 1825.72 1825.67 1825.44 1825.36 1825.26  1825.1 1824.92 1824.89 1824.74 1824.64 1824.58 1824.39 1824.25  1824.1 1823.99 1823.88 1823.71 1823.64 1823.26 1823.11 1822.73 1822.59 1822.47 1821.79
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 47, reductionFactor: 37, colBlockingSize: 12)	 19.833    	 50        	 114.39    	 0         	 9.47921   	 12.0675   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 47)                                           	 0.429901  	 1         	 0         	 0         	 8.74621   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 19.833    	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.429901  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000403122	 1         
+<PITTS::Tensor2<double> >::resize                	 7.137e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140716353513344 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140716345116672 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140716336720000 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140716328323328 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140716319926656 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140716311529984 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140716303133312 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140716294736640 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140715812187008 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140715803790336 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140715795393664 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140715786996992 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140715778600320 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 140715770205952 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140715342427904 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 20.3161
+singular values (new):
+1829.64 1829.31    1829 1828.68 1828.62 1828.42 1828.17 1828.08 1827.85 1827.68  1827.5 1827.43 1827.27 1827.13 1826.94 1826.86 1826.79 1826.68 1826.54 1826.46 1826.39 1826.17  1826.1 1825.96 1825.68  1825.4 1825.38 1825.25 1825.15 1825.04 1824.84 1824.74 1824.64 1824.46  1824.4 1824.11 1824.04 1823.87 1823.76 1823.57 1823.51 1823.39 1823.18 1822.92 1822.63  1822.5 1822.32 1822.13
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 48, reductionFactor: 37, colBlockingSize: 12)	 20.316    	 50        	 116.473   	 0         	 9.45072   	 12.3243   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 48)                                           	 0.439374  	 1         	 0         	 0         	 8.73971   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 20.316    	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.439374  	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000403527	 1         
+<PITTS::Tensor2<double> >::resize                	 6.902e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139999299905408 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139999223736320 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139999215339648 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139999206942976 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139999198546304 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139999190149632 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139999181752960 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139999173356288 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139998686866304 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139998678469632 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139998670072960 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139998661676288 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139998653279616 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139998644885248 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139998630098688 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 22.3889
+singular values (new):
+ 1829.9 1829.45 1828.94 1828.71 1828.58 1828.32 1828.19 1828.09 1828.04 1827.88 1827.69 1827.53 1827.27  1827.2 1826.97  1826.9 1826.77 1826.66 1826.49 1826.43 1826.36 1826.17 1825.96 1825.93 1825.78 1825.58 1825.45 1825.37 1825.31 1825.14 1825.02 1824.93 1824.52  1824.5 1824.41 1824.22 1824.13 1823.98 1823.88 1823.68 1823.57 1823.45 1823.23 1822.92 1822.88 1822.75 1822.58  1822.1 1821.96
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 49, reductionFactor: 37, colBlockingSize: 12)	 22.3888   	 50        	 110.14    	 0         	 8.75443   	 12.581    
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 49)                                           	 0.44393   	 1         	 0         	 0         	 8.83022   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 22.3888   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.44393   	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000446599	 1         
+<PITTS::Tensor2<double> >::resize                	 6.827e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+Sleeping longer as likwid_sleep() called without prior initialization
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139951249794944 -> core 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139951173789696 -> core 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139951165393024 -> core 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139951156996352 -> core 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139951148599680 -> core 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139951140203008 -> core 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139951131806336 -> core 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139951123409664 -> core 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139950636919680 -> core 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139950628523008 -> core 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139950620126336 -> core 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139950611729664 -> core 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139950603332992 -> core 13 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 14
+[1;34mRoundrobin placement triggered
+	threadid 139950594938624 -> core 0 - OK[0m[1;34m
+[0m[1;34m	threadid 139950579078912 -> core 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+wtime: 23.0921
+singular values (new):
+1829.68 1829.51 1829.15 1828.82 1828.58 1828.41 1828.27 1828.19 1827.96 1827.79 1827.62 1827.49 1827.32 1827.19 1827.15 1827.03 1826.88 1826.82  1826.5  1826.4 1826.29 1826.27 1826.12 1826.04 1825.84 1825.66 1825.55 1825.46 1825.27  1825.1 1824.92 1824.91 1824.81 1824.66 1824.53 1824.36 1824.26 1824.16 1823.91 1823.81 1823.78 1823.56 1823.41 1823.29 1823.26 1823.13  1822.9 1822.57 1822.14 1821.83
+Performance statistics:
+function                                                                                                             	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double> >::block_TSQR<double>(rows: 10000000, cols: 50, reductionFactor: 37, colBlockingSize: 12)	 23.0919   	 50        	 111.189   	 0         	 8.66108   	 12.8378   
+<PITTS::MultiVector<double> >::randomize<double>(rows: 10000000, cols: 50)                                           	 0.45393   	 1         	 0         	 0         	 8.81193   	 0         
+Timing statistics:
+function                                         	 time [s]  	 #calls    
+<PITTS::MultiVector<double> >::block_TSQR<double>	 23.0919   	 50        
+<PITTS::MultiVector<double> >::randomize<double> 	 0.45393   	 1         
+<PITTS::MultiVector<double> >::resize            	 0.000457477	 1         
+<PITTS::Tensor2<double> >::resize                	 6.672e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
