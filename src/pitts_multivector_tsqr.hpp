@@ -773,9 +773,10 @@ namespace PITTS
       const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
       if( nProcs > 1 )
       {
-        // register MPI reduction operation
+        // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
+        // we should use a dedicated data type to prevent MPI from possibly splitting up the messages...
         MPI_Op tsqrOp;
-        if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 0, &tsqrOp) != MPI_SUCCESS )
+        if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 1, &tsqrOp) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Op_create");
 
         // actual MPI reduction, reusing buffers
