@@ -7,5 +7,5 @@ authors:
 title: "PITTS - Parallel Iterative Tensor-Train Solvers"
 version: 0.9.0
 date-released: 2021-09-28
-doi: "10.5281/zenodo.5534531"
+doi: "10.5281/zenodo.5534544"
 url: "https://github.com/melven/pitts"
