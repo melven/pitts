@@ -773,6 +773,10 @@ namespace PITTS
       const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
       if( nProcs > 1 )
       {
+//#define MPI_TIMINGS
+#ifdef MPI_TIMINGS
+        double wtime = omp_get_wtime();
+#endif
         // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
         // we should use a dedicated data type to prevent MPI from possibly splitting up the messages...
         MPI_Op tsqrOp;
@@ -787,6 +791,11 @@ namespace PITTS
         // unregister MPI reduction operation
         if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Op_free");
+#ifdef MPI_TIMINGS
+        wtime = omp_get_wtime() - wtime;
+        if( iProc == 0 )
+          std::cout << "TSQR MPI wtime: " << wtime << "\n";
+#endif
       }
     }
 
