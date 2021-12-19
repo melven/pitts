@@ -22,6 +22,7 @@
 #include <cassert>
 #include <memory>
 #include <cstdint>
+#include <bit>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -563,9 +564,9 @@ namespace PITTS
         // check alignement of buffers, we might be lucky often (because MPI allocated aligned buffers or we get our own buffers from the MPI_Allreduce call)
         const Chunk<T>* invecChunked = nullptr;
         Chunk<T>* inoutvecChunked = nullptr;
-        if( reinterpret_cast<std::uintptr_t>(invec) % ALIGNMENT == 0 )
+        if( std::bit_cast<std::uintptr_t>(invec) % ALIGNMENT == 0 )
           invecChunked = (const Chunk<T>*) invec;
-        if( reinterpret_cast<std::uintptr_t>(inoutvec) % ALIGNMENT == 0 )
+        if( std::bit_cast<std::uintptr_t>(inoutvec) % ALIGNMENT == 0 )
           inoutvecChunked = (Chunk<T>*) inoutvec;
 
         // copy to buffer

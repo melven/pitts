@@ -15,6 +15,7 @@
 #include <array>
 #include <string_view>
 #include <cstdint>
+#include <bit>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -143,9 +144,11 @@ namespace PITTS
       //! calculate a hash of the argument values (constexpr)
       constexpr djb_hash_type hash_values(djb_hash_type hash = djb_hash_init) const noexcept
       {
-        const auto size = sizeof(values[0]) * values.size();
-        const auto raw_buff = std::string_view(reinterpret_cast<const char*>(values.data()), size);
-        return djb_hash(raw_buff, hash);
+        constexpr auto size = sizeof(values[0]) * N;
+        using byte_array = std::array<char, size>;
+        const auto raw_buff = std::bit_cast<byte_array, decltype(values)>(values);
+        const auto raw_view = std::string_view{raw_buff.begin(), raw_buff.end()};
+        return djb_hash(raw_view, hash);
       }
     };
 
