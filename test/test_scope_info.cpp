@@ -61,8 +61,8 @@ TEST(PITTS_ScopeInfo, ArgumentInfo)
 TEST(PITTS_ScopeInfo, type)
 {
   constexpr auto scopeNone = PITTS::internal::ScopeInfo::current();
-  printf("type none: %s\n", scopeNone.type_name());
-  EXPECT_STREQ("", scopeNone.type_name());
+  std::cout << "type none: " << scopeNone.type_name() << "\n";
+  EXPECT_EQ("", scopeNone.type_name());
 
   // check that we can get the hash at compile time
   constexpr auto hashNone = getHash(scopeNone);
@@ -70,8 +70,8 @@ TEST(PITTS_ScopeInfo, type)
 
   // int
   constexpr auto scopeInt = PITTS::internal::ScopeInfo::current<int>();
-  printf("type int: %s\n", scopeInt.type_name());
-  EXPECT_STREQ("<int>", scopeInt.type_name());
+  std::cout << "type int: " << scopeNone.type_name() << "\n";
+  EXPECT_EQ("<int>", scopeInt.type_name());
 
   // check that we can get the hash at compile time
   constexpr auto hashInt = getHash(scopeInt);

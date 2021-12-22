@@ -104,9 +104,9 @@ namespace PITTS
 
         std::string fullName;
         if( !std::string_view(scope.type_name()).empty() )
-          fullName = scope.type_name() + std::string("::");
-        fullName += scope.function_name();
-        fullName += "(" + args.to_string() + ")";
+          fullName.append(scope.type_name()).append("::");
+        fullName.append(scope.function_name());
+        fullName.append("(" + args.to_string() + ")");
 
         namedMap.insert({std::move(fullName),performance});
       }

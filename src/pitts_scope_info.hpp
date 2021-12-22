@@ -80,7 +80,7 @@ namespace PITTS
       using std::experimental::source_location::line;
 
       //! get the user-defined type that was set in the constructor
-      constexpr const char* type_name() const noexcept {return type_name_;}
+      constexpr std::string_view type_name() const noexcept {return type_name_;}
 
       //! Callable to get hash from ScopeInfo object, can be used with std::unordered_map
       struct Hash final
@@ -99,13 +99,13 @@ namespace PITTS
 
     private:
       //! store type name string address
-      const char* type_name_;
+      std::string_view type_name_;
 
       //! function_name hash (constexpr, required as std::hash is not constexpr)
       djb_hash_type hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
 
       //! internal constructor, call current instead!
-      constexpr explicit ScopeInfo(std::experimental::source_location where, const char* typeStr) : std::experimental::source_location(where), type_name_(typeStr) {}
+      constexpr explicit ScopeInfo(std::experimental::source_location where, std::string_view typeStr) : std::experimental::source_location(where), type_name_(typeStr) {}
     };
 
 
