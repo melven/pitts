@@ -7,6 +7,7 @@ target_sources(pitts INTERFACE
   pitts_chunk_ops_avx512.hpp
   pitts_kernel_info.hpp
   pitts_hash_function.hpp
+  pitts_type_name.hpp
   pitts_scope_info.hpp
   pitts_timer.hpp
   pitts_performance.hpp
