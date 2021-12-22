@@ -11,6 +11,7 @@
 #define PITTS_SCOPE_INFO_HPP
 
 // includes
+#include "pitts_hash_function.hpp"
 #include <experimental/source_location>
 #include <array>
 #include <string_view>
@@ -24,27 +25,6 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
-    //! resulting hash type for djb_hash
-    using djb_hash_type = std::uint32_t;
-
-    //! initialization value for djb_hash
-    constexpr djb_hash_type djb_hash_init = 5381;
-
-    //! Simple, constexpr hash function for strings (because std::hash is not constexpr!)
-    //!
-    //! This is known as the djb hash function by Daniel J. Bernstein.
-    //!
-    //! @param str    the string to hash
-    //! @param hash   initial hash value, can be used to combine a hash for multiple strings
-    //!
-    constexpr djb_hash_type djb_hash(const std::string_view& str, djb_hash_type hash = djb_hash_init) noexcept
-    {
-      for(std::uint8_t c: str)
-        hash = ((hash << 5) + hash) ^ c;
-      return hash;
-    }
-
-
     //! Helper type to obtain and store the name of the current function / source file
     struct ScopeInfo final : private std::experimental::source_location
     {
