@@ -12,6 +12,7 @@
 
 // includes
 #include "pitts_hash_function.hpp"
+#include "pitts_type_name.hpp"
 #include <experimental/source_location>
 #include <array>
 #include <string_view>
@@ -46,8 +47,7 @@ namespace PITTS
       template<typename T>
       static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
       {
-        const auto typeStr = std::experimental::source_location::current().function_name()+7;  // 7 == length of "current"
-        return ScopeInfo{here, typeStr};
+        return ScopeInfo{here, TypeName::name<T>()};
       }
 
       //! get the name of the enclosing function

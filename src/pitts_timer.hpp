@@ -181,7 +181,7 @@ namespace PITTS
       {
         std::string fullName;
         if( !std::string_view(scope.type_name()).empty() )
-          fullName.append(scope.type_name()).append(std::string("::"));
+          fullName.append("<").append(scope.type_name()).append(std::string(">::"));
         fullName.append(scope.function_name());
 
         namedMap.insert({std::move(fullName),timings});

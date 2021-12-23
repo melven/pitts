@@ -64,7 +64,7 @@ TEST(PITTS_ScopeInfo, type)
   // int
   constexpr auto scopeInt = PITTS::internal::ScopeInfo::current<int>();
   std::cout << "type int: " << scopeNone.type_name() << "\n";
-  EXPECT_EQ("<int>", scopeInt.type_name());
+  EXPECT_EQ("int", scopeInt.type_name());
 
   // check that we can get the hash at compile time
   constexpr auto hashInt = getHash(scopeInt);

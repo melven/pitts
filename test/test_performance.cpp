@@ -85,7 +85,7 @@ TEST(PITTS_Performance, simple_function_with_type)
   for(const auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
   {
     ASSERT_STREQ("simpleFunctionWithType", scopeWithArgs.scope.function_name());
-    ASSERT_EQ("<int>", scopeWithArgs.scope.type_name());
+    ASSERT_EQ("int", scopeWithArgs.scope.type_name());
     ASSERT_EQ(2, performance.timings.calls);
     ASSERT_EQ(400, performance.kernel.flops.doublePrecision);
     ASSERT_EQ(false, performance.kernel.flops.noFMA);
