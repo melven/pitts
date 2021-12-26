@@ -13,7 +13,7 @@
 // includes
 #include "pitts_hash_function.hpp"
 #include "pitts_type_name.hpp"
-#include <experimental/source_location>
+#include <source_location>
 #include <array>
 #include <string_view>
 #include <cstdint>
@@ -27,13 +27,13 @@ namespace PITTS
   namespace internal
   {
     //! Helper type to obtain and store the name of the current function / source file
-    struct ScopeInfo final : private std::experimental::source_location
+    struct ScopeInfo final : private std::source_location
     {
       //! get information on the current scope
       //!
       //! Needs to be called without any argument, so the source_location is evaluated in the context of the caller!
       //!
-      static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
+      static constexpr ScopeInfo current(std::source_location here = std::source_location::current()) noexcept
       {
         return ScopeInfo{here, ""};
       }
@@ -45,19 +45,19 @@ namespace PITTS
       //! @tparam T  additional template type information for the user
       //!
       template<typename T>
-      static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
+      static constexpr ScopeInfo current(std::source_location here = std::source_location::current()) noexcept
       {
         return ScopeInfo{here, TypeName::name<T>()};
       }
 
       //! get the name of the enclosing function
-      using std::experimental::source_location::function_name;
+      using std::source_location::function_name;
 
       //! get the name of the source file
-      using std::experimental::source_location::file_name;
+      using std::source_location::file_name;
 
       //! get the line number in the source file
-      using std::experimental::source_location::line;
+      using std::source_location::line;
 
       //! get the user-defined type that was set in the constructor
       constexpr std::string_view type_name() const noexcept {return type_name_;}
@@ -85,7 +85,7 @@ namespace PITTS
       djb_hash_type hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
 
       //! internal constructor, call current instead!
-      constexpr explicit ScopeInfo(std::experimental::source_location where, std::string_view typeStr) : std::experimental::source_location(where), type_name_(typeStr) {}
+      constexpr explicit ScopeInfo(std::source_location where, std::string_view typeStr) : std::source_location(where), type_name_(typeStr) {}
     };
 
 

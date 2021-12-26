@@ -9,7 +9,8 @@ namespace
     return scope;
   }
 
-  constexpr auto templateFunction(std::vector<auto> x)
+  template<typename T>
+  constexpr auto templateFunction(std::vector<T> x)
   {
     auto scope = PITTS::internal::ScopeInfo::current();
     return scope;
@@ -24,7 +25,7 @@ namespace
 TEST(PITTS_ScopeInfo, simpleFunction)
 {
   constexpr auto scope = simpleFunction(7, 8);
-  EXPECT_STREQ("simpleFunction", scope.function_name());
+  EXPECT_STREQ("constexpr auto {anonymous}::simpleFunction(int, int)", scope.function_name());
 
   // check that we can get the hash at compile time
   constexpr auto hash = getHash(scope);
@@ -34,7 +35,7 @@ TEST(PITTS_ScopeInfo, templateFunction)
 {
   std::vector<double> bla = {1., 2., 3.};
   auto scope = templateFunction(bla);
-  EXPECT_STREQ("templateFunction<double>", scope.function_name());
+  EXPECT_STREQ("constexpr auto {anonymous}::templateFunction(std::vector<T>) [with T = double]", scope.function_name());
 
   // check that we can get the hash at compile time
   auto hash = getHash(scope);

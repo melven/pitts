@@ -104,7 +104,7 @@ namespace PITTS
 
         std::string fullName;
         if( !std::string_view(scope.type_name()).empty() )
-          fullName.append("<").append(scope.type_name()).append(">::");
+          fullName.append("<").append(scope.type_name()).append("> :: ");
         fullName.append(scope.function_name());
         fullName.append("(" + args.to_string() + ")");
 

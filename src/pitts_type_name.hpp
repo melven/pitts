@@ -11,7 +11,7 @@
 #define PITTS_TYPE_NAME_HPP
 
 // includes
-#include <experimental/source_location>
+#include <source_location>
 #include <string_view>
 
 
@@ -25,7 +25,7 @@ namespace PITTS
     template<typename Type>
     static consteval std::string_view wrapped_type_name()
     {
-      return std::experimental::source_location::current().function_name();
+      return std::source_location::current().function_name();
     }
 
     //! Helper type to obtain the name (as string) of a type
