@@ -12,7 +12,7 @@ You can get a copy of the repository from [https://github.com/melven/pitts]:
 
 ### Prerequisites
 * [CMake](https://cmake.org) >= 3.14 (tested with 3.18.1)
-* [GCC](https://gcc.gnu.org) >= 10.1 (or any other C++20 compliant compiler)
+* [GCC](https://gcc.gnu.org) >= 11.1 (or a C++20 compliant compiler)
   * [OpenMP](https://www.openmp.org) (usually included in the compiler)
 * [MPI](https://www.mpi-forum.org) (tested with [OpenMPI](https://open-mpi.org) 4.0)
 * [LAPACK](http://www.netlib.org/lapack) (tested with [Intel MKL](https://software.intel.com/en-us/intel-mkl) 2020)
