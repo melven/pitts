@@ -71,8 +71,8 @@ TEST(PITTS_Timer, simple_function)
   ASSERT_EQ(1,  PITTS::timing::globalTimingStatisticsMap.size());
   for(auto& [scope, timings]: PITTS::timing::globalTimingStatisticsMap)
   {
-    ASSERT_STREQ("simpleFunction", scope.function_name());
-    ASSERT_STREQ("", scope.type_name());
+    ASSERT_STREQ("void {anonymous}::simpleFunction(int, int)", scope.function_name());
+    ASSERT_EQ("", scope.type_name());
     ASSERT_EQ(1, timings.calls);
   }
 }
@@ -86,7 +86,7 @@ TEST(PITTS_Timer, simple_template_function)
   ASSERT_EQ(1,  PITTS::timing::globalTimingStatisticsMap.size());
   for(auto& [scope, timings]: PITTS::timing::globalTimingStatisticsMap)
   {
-    ASSERT_STREQ("simpleTemplateFunction<int>", scope.function_name());
+    ASSERT_STREQ("void {anonymous}::simpleTemplateFunction(int, int) [with T = int]", scope.function_name());
     ASSERT_EQ(1, timings.calls);
   }
 }
@@ -100,8 +100,8 @@ TEST(PITTS_Timer, simple_function_with_type)
   ASSERT_EQ(1,  PITTS::timing::globalTimingStatisticsMap.size());
   for(auto& [scope, timings]: PITTS::timing::globalTimingStatisticsMap)
   {
-    ASSERT_STREQ("simpleFunctionWithType", scope.function_name());
-    ASSERT_STREQ("<int>", scope.type_name());
+    ASSERT_STREQ("void {anonymous}::simpleFunctionWithType(int, int)", scope.function_name());
+    ASSERT_EQ("int", scope.type_name());
     ASSERT_EQ(1, timings.calls);
   }
 }

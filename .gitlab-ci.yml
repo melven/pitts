@@ -1,8 +1,6 @@
 before_script:
-  - module load PrgEnv/gcc10-openmpi-python
-  - module unload eigen
-  - module load eigen/eigen-3.3.9/eigen-3.3.9-gcc-7.5.0-nmd6pj4
-  - module load py-gcovr/py-gcovr-4.2/py-gcovr-4.2-gcc-7.5.0-python3-jyb5c7f
+  - export MODULEPATH=/scratch/spack-22.1/share/spack/modules/linux-ubuntu18.04-skylake_avx512:/scratch/spack-22.1/share/spack/modules/linux-ubuntu18.04-x86_64
+  - module load PrgEnv/gcc11-openmpi-python
   - export CCACHE_DIR="/var/tmp/$USER/ccache_PITTS/"
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited

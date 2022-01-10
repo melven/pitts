@@ -11,10 +11,13 @@
 #define PITTS_SCOPE_INFO_HPP
 
 // includes
-#include <experimental/source_location>
+#include "pitts_hash_function.hpp"
+#include "pitts_type_name.hpp"
+#include <source_location>
 #include <array>
 #include <string_view>
 #include <cstdint>
+#include <bit>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -23,35 +26,14 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
-    //! resulting hash type for djb_hash
-    using djb_hash_type = std::uint32_t;
-
-    //! initialization value for djb_hash
-    constexpr djb_hash_type djb_hash_init = 5381;
-
-    //! Simple, constexpr hash function for strings (because std::hash is not constexpr!)
-    //!
-    //! This is known as the djb hash function by Daniel J. Bernstein.
-    //!
-    //! @param str    the string to hash
-    //! @param hash   initial hash value, can be used to combine a hash for multiple strings
-    //!
-    constexpr djb_hash_type djb_hash(const std::string_view& str, djb_hash_type hash = djb_hash_init) noexcept
-    {
-      for(std::uint8_t c: str)
-        hash = ((hash << 5) + hash) ^ c;
-      return hash;
-    }
-
-
     //! Helper type to obtain and store the name of the current function / source file
-    struct ScopeInfo final : private std::experimental::source_location
+    struct ScopeInfo final : private std::source_location
     {
       //! get information on the current scope
       //!
       //! Needs to be called without any argument, so the source_location is evaluated in the context of the caller!
       //!
-      static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
+      static constexpr ScopeInfo current(std::source_location here = std::source_location::current()) noexcept
       {
         return ScopeInfo{here, ""};
       }
@@ -63,23 +45,22 @@ namespace PITTS
       //! @tparam T  additional template type information for the user
       //!
       template<typename T>
-      static constexpr ScopeInfo current(std::experimental::source_location here = std::experimental::source_location::current()) noexcept
+      static constexpr ScopeInfo current(std::source_location here = std::source_location::current()) noexcept
       {
-        const auto typeStr = std::experimental::source_location::current().function_name()+7;  // 7 == length of "current"
-        return ScopeInfo{here, typeStr};
+        return ScopeInfo{here, TypeName::name<T>()};
       }
 
       //! get the name of the enclosing function
-      using std::experimental::source_location::function_name;
+      using std::source_location::function_name;
 
       //! get the name of the source file
-      using std::experimental::source_location::file_name;
+      using std::source_location::file_name;
 
       //! get the line number in the source file
-      using std::experimental::source_location::line;
+      using std::source_location::line;
 
       //! get the user-defined type that was set in the constructor
-      constexpr const char* type_name() const noexcept {return type_name_;}
+      constexpr std::string_view type_name() const noexcept {return type_name_;}
 
       //! Callable to get hash from ScopeInfo object, can be used with std::unordered_map
       struct Hash final
@@ -98,13 +79,13 @@ namespace PITTS
 
     private:
       //! store type name string address
-      const char* type_name_;
+      std::string_view type_name_;
 
       //! function_name hash (constexpr, required as std::hash is not constexpr)
       djb_hash_type hash_ = djb_hash(function_name(),djb_hash(file_name(),djb_hash(type_name())));
 
       //! internal constructor, call current instead!
-      constexpr explicit ScopeInfo(std::experimental::source_location where, const char* typeStr) : std::experimental::source_location(where), type_name_(typeStr) {}
+      constexpr explicit ScopeInfo(std::source_location where, std::string_view typeStr) : std::source_location(where), type_name_(typeStr) {}
     };
 
 
@@ -143,9 +124,11 @@ namespace PITTS
       //! calculate a hash of the argument values (constexpr)
       constexpr djb_hash_type hash_values(djb_hash_type hash = djb_hash_init) const noexcept
       {
-        const auto size = sizeof(values[0]) * values.size();
-        const auto raw_buff = std::string_view(reinterpret_cast<const char*>(values.data()), size);
-        return djb_hash(raw_buff, hash);
+        constexpr auto size = sizeof(values[0]) * N;
+        using byte_array = std::array<char, size>;
+        const auto raw_buff = std::bit_cast<byte_array, decltype(values)>(values);
+        const auto raw_view = std::string_view{raw_buff.begin(), raw_buff.end()};
+        return djb_hash(raw_view, hash);
       }
     };
 
