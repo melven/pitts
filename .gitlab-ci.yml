@@ -1,6 +1,7 @@
 before_script:
   - export MODULEPATH=/scratch/spack-22.1/share/spack/modules/linux-ubuntu18.04-skylake_avx512:/scratch/spack-22.1/share/spack/modules/linux-ubuntu18.04-x86_64
   - module load PrgEnv/gcc11-openmpi-python
+  - module load itensor/itensor-3.1.10/itensor-3.1.10-gcc-11.2.0-openmpi-mkl-t6r65sm
   - export CCACHE_DIR="/var/tmp/$USER/ccache_PITTS/"
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited
