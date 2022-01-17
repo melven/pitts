@@ -20,6 +20,7 @@ TEST(PITTS_TensorTrainOperator_fromITensor, 2x2_zero)
   const auto ampo = itensor::AutoMPO(sites);
 
   const auto mpo = itensor::toMPO(ampo);
+  std::cout << "mpo:\n" << mpo;
 
   const TensorTrainOperator_double ttOp = PITTS::fromITensor<double>(mpo);
 
@@ -49,6 +50,7 @@ TEST(PITTS_TensorTrainOperator_fromITensor, 2x2_unit)
   // the default for single core operators is that all other cores stay identical...
 
   auto mpo = itensor::toMPO(ampo);
+  std::cout << "mpo:\n" << mpo;
 
   const TensorTrainOperator_double ttOp = PITTS::fromITensor<double>(mpo);
 

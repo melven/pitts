@@ -34,21 +34,19 @@ namespace PITTS
     const auto timer = PITTS::timing::createScopedTimer<TensorTrainOperator<T>>();
 
     // get ITensor indices of row dimensions
-    const auto row_idx = [&mpo]()
+    const auto [row_idx, col_idx] = [&mpo]()
     {
-      std::vector<itensor::Index> idx(length(mpo));
-      for(int iDim = 0; iDim < idx.size(); iDim++)
-        idx[iDim] = siteIndex(mpo, iDim+1);
-      return itensor::IndexSet(idx);
-    }();
-
-    // get ITensor indices of column dimensions
-    const auto col_idx = [&mpo,&row_idx]()
-    {
-      std::vector<itensor::Index> idx(length(mpo));
-      for(int iDim = 0; iDim < idx.size(); iDim++)
-        idx[iDim] = uniqueSiteIndex(mpo, row_idx, iDim+1);
-      return itensor::IndexSet(idx);
+      std::vector<itensor::Index> idx1(length(mpo));
+      std::vector<itensor::Index> idx2(length(mpo));
+      for(int iDim = 0; iDim < idx1.size(); iDim++)
+      {
+        const auto tmp  = siteInds(mpo, iDim+1);
+        idx1[iDim] = tmp(1);
+        idx2[iDim] = tmp(2);
+      }
+      return std::make_tuple(
+          itensor::IndexSet(idx1),
+          itensor::IndexSet(idx2));
     }();
 
     // get dimensions as integers from Index arrays

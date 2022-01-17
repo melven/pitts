@@ -39,7 +39,11 @@ namespace PITTS
       const int N = tt.dimensions().size();
       auto sites = itensor::SiteSet(N);
       for(int iDim = 0; iDim < N; iDim++)
-        sites.set(iDim+1, itensor::GenericSite(itensor::Index(tt.dimensions()[iDim])));
+      {
+        const auto d = tt.dimensions()[iDim];
+        const auto idx = itensor::Index(d, itensor::format("Site,n=%d", iDim+1));
+        sites.set(iDim+1, itensor::GenericSite(idx));
+      }
       return sites;
     }();
 
