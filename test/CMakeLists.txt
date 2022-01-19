@@ -7,12 +7,17 @@ include(GTest)
 include(CodeCoverage)
 
 # files for C++ unit tests
-file(GLOB_RECURSE CPP_SRCUNITTESTS *.cpp *.hpp)
+file(GLOB CPP_SRCUNITTESTS *.cpp *.hpp)
+
+# ITensor adapters
+add_subdirectory(itensor)
+
 
 # executable for the unit tests
 add_executable(pitts_tests EXCLUDE_FROM_ALL ${CPP_SRCUNITTESTS} ${GTEST_SOURCES})
 target_include_directories(pitts_tests PRIVATE ${GTEST_INCLUDE_PATH} ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(pitts_tests PRIVATE "-DGTEST_HAS_MPI=1")
+target_link_libraries(pitts_tests PRIVATE ${ITENSOR_TESTS})
 
 
 #enable valgrind for memory checking of tests
