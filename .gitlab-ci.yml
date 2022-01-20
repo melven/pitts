@@ -26,7 +26,7 @@ build_release:
     reports:
       junit: build_release/test/pitts_tests*.xml
 
-build_coverage:
+build_debug_with_coverage:
   stage: build
   variables:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
@@ -44,10 +44,25 @@ build_coverage:
     paths:
       - build_coverage/test/coverage*.html
 
+build_debug_no_itensor:
+  stage: build
+  variables:
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
+  needs: []
+  script:
+    - module unload itensor
+    - mkdir build_debug && cd build_debug
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build . -- -j 8
+    - cmake --build . --target check -j 8
+  artifacts:
+    reports:
+      junit: build_debug/test/pitts_tests*.xml
+
 pages:
   stage: deploy
   dependencies:
-    - build_coverage
+    - build_debug_with_coverage
   script:
     - mkdir -p public/coverage
     - mv build_coverage/test/coverage.*.html public/coverage/
