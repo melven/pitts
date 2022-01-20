@@ -62,7 +62,6 @@ foreach(NPROCS ${PITTS_TEST_NPROCS})
 endforeach()
 
 # tests for the python binding
-message(STATUS "bla: ${ITENSOR_PY_UNITTESTS}")
 file(GLOB PY_UNITTESTS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.py)
 if(pybind11_FOUND)
   foreach(tc ${PY_UNITTESTS} ${ITENSOR_PY_UNITTESTS})
