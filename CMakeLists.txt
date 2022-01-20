@@ -87,6 +87,18 @@ if(PITTS_USE_LIKWID_MARKER_API)
 endif()
 
 
+# ITensor for easy setup of tensor train operators from quantum physics
+find_package(ITensor)
+if(ITensor_FOUND)
+  message(STATUS "Found ITensor, building ITensor support.")
+  message(STATUS "  library location: ${ITENSOR_LIBRARY}")
+  message(STATUS "  include directory: ${ITENSOR_INCLUDE_DIR}")
+else()
+  message(STATUS "Did not find ITensor, not building ITensor support.")
+endif()
+
+
+
 ###
 ### Define source files and executables
 ###

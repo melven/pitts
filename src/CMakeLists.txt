@@ -81,6 +81,17 @@ add_executable(tt_from_dense_twosided_thickbounds_bench tt_from_dense_twosided_t
 
 # Python binding
 if(pybind11_FOUND)
+
+  # additional parts that require ITensor
+  if(ITensor_FOUND)
+    set(PITTS_PYBIND_ITENSOR_SOURCE
+      pitts_tensortrain_operator_itensor_autompo_pybind.hpp
+      pitts_tensortrain_operator_itensor_autompo_pybind.cpp
+      )
+  else()
+    set(PITTS_PYBIND_ITENSOR_SOURCE)
+  endif()
+
   pybind11_add_module(pitts_py MODULE NO_EXTRAS
     pitts_pybind.cpp
     pitts_qubit_simulator_pybind.hpp
@@ -93,6 +104,14 @@ if(pybind11_FOUND)
     pitts_common_pybind.cpp
     pitts_multivector_pybind.hpp
     pitts_multivector_pybind.cpp
+    ${PITTS_PYBIND_ITENSOR_SOURCE}
     )
+
+  if(ITensor_FOUND)
+    target_compile_definitions(pitts_py PRIVATE -DPITTS_HAVE_ITENSOR)
+    target_include_directories(pitts_py PRIVATE ${ITENSOR_INCLUDE_DIRS})
+    target_link_libraries(pitts_py PRIVATE ${ITENSOR_LIBRARIES})
+  endif()
+
   install(TARGETS pitts_py LIBRARY DESTINATION lib)
 endif()

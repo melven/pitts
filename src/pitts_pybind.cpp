@@ -13,6 +13,9 @@
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_multivector_pybind.hpp"
 #include "pitts_common_pybind.hpp"
+#ifdef PITTS_HAVE_ITENSOR
+#include "pitts_tensortrain_operator_itensor_autompo_pybind.hpp"
+#endif
 
 
 PYBIND11_MODULE(pitts_py, m)
@@ -22,6 +25,9 @@ PYBIND11_MODULE(pitts_py, m)
   PITTS::pybind::init_QubitSimulator(m);
   PITTS::pybind::init_TensorTrain(m);
   PITTS::pybind::init_TensorTrainOperator(m);
+#ifdef PITTS_HAVE_ITENSOR
+  PITTS::pybind::init_TensorTrainOperator_itensor_autompo(m);
+#endif
   PITTS::pybind::init_MultiVector(m);
   PITTS::pybind::init_common(m);
 }
