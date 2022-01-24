@@ -537,24 +537,32 @@ namespace PITTS
       //!
       //! @param invec      upper triangular part of this process (memory layout + padding see implementation)
       //! @param inoutvec   upper triangular part of the next process (memory layout + padding see implementation)
-      //! @param len        number of entries (including all padding, etc)
-      //! @param datatype   MPI data type (ignored)
+      //! @param len        number of entries, should always be 1 as we use a dedicated MPI data type
+      //! @param datatype   MPI data type, used to extract actual length
       //!
       template<typename T>
       void combineTwoBlocks(const T* invec, T* inoutvec, const int* len, const MPI_Datatype* datatype)
       {
-        assert( *datatype == parallel::mpiType<T>() );
+        assert( *len == 1 );
+        int size;
+        int ierr = MPI_Type_size(*datatype, &size);
+        assert( ierr == MPI_SUCCESS );
+        assert( size % sizeof(T) == 0 );
+        size /= sizeof(T);
+
+        // cannot easily check that datatype is the type returned by MPI_Type_contigous(size, parallel::mpiType<T>(), &type)
+        // assert( *datatype == parallel::mpiType<T>() );
 
         // get dimensions
         int m = 1, mChunks = 1;
-        while( m*mChunks*Chunk<T>::size < *len )
+        while( m*mChunks*Chunk<T>::size < size )
         {
           if( m % Chunk<T>::size == 0 )
             mChunks++;
           m++;
         }
         assert( mChunks == (m-1) / Chunk<T>::size + 1 );
-        assert( mChunks*Chunk<T>::size*m == *len );
+        assert( mChunks*Chunk<T>::size*m == size );
 
         const auto ldaBuff = 2*mChunks+2;
 
@@ -778,20 +786,32 @@ namespace PITTS
 #ifdef MPI_TIMINGS
         double wtime = omp_get_wtime();
 #endif
+        // define a dedicated datatype as MPI reduction operations are defined element-wise
+        MPI_Datatype tsqrType;
+        if( MPI_Type_contiguous(mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), &tsqrType) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Type_contiguous");
+
+        if( MPI_Type_commit(&tsqrType) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Type_commit");
+
         // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
-        // we should use a dedicated data type to prevent MPI from possibly splitting up the messages...
         MPI_Op tsqrOp;
         if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 1, &tsqrOp) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Op_create");
 
         // actual MPI reduction, reusing buffers
         std::swap(psharedBuff, presultBuff);
-        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Allreduce");
 
         // unregister MPI reduction operation
         if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Op_free");
+
+        // free dedicated MPI type
+        if( MPI_Type_free(&tsqrType) != MPI_SUCCESS )
+          throw std::runtime_error("Failure returned from MPI_Type_free");
+
 #ifdef MPI_TIMINGS
         wtime = omp_get_wtime() - wtime;
         if( iProc == 0 )
