@@ -428,8 +428,16 @@ TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
       }
     }
 
-    MPI_Datatype mpi_double = MPI_DOUBLE;
-    PITTS::internal::HouseholderQR::combineTwoBlocks((const double*)(&(buff1[0][0])), &(buff2[0][0]), &totalSize, &mpi_double);
+    // create helper type
+    MPI_Datatype mpiType;
+    ASSERT_EQ(MPI_SUCCESS, MPI_Type_contiguous(totalSize, MPI_DOUBLE, &mpiType));
+    ASSERT_EQ(MPI_SUCCESS, MPI_Type_commit(&mpiType));
+    int len = 1;
+
+    PITTS::internal::HouseholderQR::combineTwoBlocks((const double*)(&(buff1[0][0])), &(buff2[0][0]), &len, &mpiType);
+
+    // remove helper type
+    ASSERT_EQ(MPI_SUCCESS, MPI_Type_free(&mpiType));
 
     // compara singular values with Eigen
     Eigen::MatrixXd R12(2*m,m);
