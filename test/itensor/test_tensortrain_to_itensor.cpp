@@ -1,4 +1,10 @@
 #include <gtest/gtest.h>
+
+// workaround ITensor / Eigen LAPACK definition problems
+#ifdef EIGEN_USE_LAPACKE
+#undef EIGEN_USE_LAPACKE
+#endif
+
 #include "pitts_tensortrain_to_itensor.hpp"
 #include "pitts_tensortrain_from_itensor.hpp"
 #include "pitts_tensortrain_random.hpp"
