@@ -6,6 +6,11 @@
 *
 **/
 
+// workaround ITensor / Eigen LAPACK definition problems
+#ifdef EIGEN_USE_LAPACKE
+#undef EIGEN_USE_LAPACKE
+#endif
+
 // includes
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -15,6 +20,7 @@
 #include <exception>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_from_itensor.hpp"
+#include "pitts_tensortrain_operator_itensor_autompo_pybind.hpp"
 #include "itensor/all.h"
 
 namespace py = pybind11;
