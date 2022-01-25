@@ -100,11 +100,28 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([40,]*8)
-    pitts_py.axpby(0.1, ConvectionOperator([40,]*8), 1, TTOp)
+    TTOp = LaplaceOperator([80,]*8)
+    pitts_py.axpby(0.1, ConvectionOperator([80,]*8), 1, TTOp)
+    pitts_py.axpby(-0.99, LaplaceOperator([80,]*8, lambda iDim,i: i > 15 and i < 25), 1, TTOp)
+    pitts_py.axpby(-0.099, ConvectionOperator([80,]*8, lambda iDim,i: i > 15 and i < 25), 1, TTOp)
 
+    #N = 50
+    #siteset = pitts_py.itensor.SpinOne(N)
+    #ampo = pitts_py.itensor.AutoMPO(siteset)
+    #for j in range(1, N):
+    #    ampo += 0.5,"S+",j,"S-",j+1
+    #    ampo += 0.5,"S-",j,"S+",j+1
+    #    ampo +=     "Sz",j,"Sz",j+1
+    #TTOp = pitts_py.itensor.toTTOp(ampo)
+    #pitts_py.normalize(TTOp, rankTolerance=1.e-10)
+
+
+    #x = pitts_py.TensorTrain_double(TTOp.row_dimensions())
+    #x.setUnit([0,1,]*25)
+    #nrm_x = 1
     b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-    b.setTTranks(3)
+    #pitts_py.apply(TTOp, x, b)
+    b.setTTranks(1)
     pitts_py.randomize(b)
     nrm_b = pitts_py.normalize(b)
 
