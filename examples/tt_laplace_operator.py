@@ -12,7 +12,7 @@ import numpy as np
 import pitts_py
 
 
-def LaplaceOperator(dims):
+def LaplaceOperator(dims, mask=None):
     TTOp = pitts_py.TensorTrainOperator_double(dims, dims)
     TTOp.setZero()
     TTOp_dummy = pitts_py.TensorTrainOperator_double(dims, dims)
@@ -23,13 +23,13 @@ def LaplaceOperator(dims):
         eye_i = TTOp_dummy.getSubTensor(iDim)
         tridi_i = np.zeros((n_i,n_i))
         for i in range(n_i):
-            for j in range(n_i):
-                if i == j:
-                    tridi_i[i,j] = 2. / h**2
-                elif i+1 == j or i-1 == j:
-                    tridi_i[i,j] = -1. / h**2
-                else:
-                    tridi_i[i,j] = 0
+            if mask is not None and not mask(iDim, i):
+                continue
+            tridi_i[i,i] = 2. / h**2
+            if i > 0:
+                tridi_i[i,i-1] = -1. / h**2
+            if i+1 < n_i:
+                tridi_i[i,i+1] = -1. / h**2
         TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
         pitts_py.axpby(1, TTOp_dummy, 1, TTOp)
         TTOp_dummy.setSubTensor(iDim, eye_i)
@@ -39,8 +39,15 @@ def LaplaceOperator(dims):
 if __name__ == '__main__':
     pitts_py.initialize()
 
+    np.set_printoptions(linewidth=200)
+
     TTOp = LaplaceOperator([10,]*5)
     TTOp_nrm = pitts_py.normalize(TTOp)
     print('TTOp norm:', TTOp_nrm, 'rank:', TTOp.getTTranks())
+
+    TTOp = LaplaceOperator([10,]*1, lambda iDim, i: i < 5)
+    TTOp_nrm = pitts_py.normalize(TTOp)
+    print('TTOp norm:', TTOp_nrm, 'rank:', TTOp.getTTranks())
+    print(TTOp.getSubTensor(0).reshape([10,10], order='F'))
 
     pitts_py.finalize()

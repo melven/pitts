@@ -39,7 +39,7 @@ def tt_pivmgs(V, w, rankTolerance, maxRank, verbose=True):
         Vtw = [pitts_py.dot(v,w) for v in V]
         maxErr = np.max(np.abs(Vtw))
         if verbose:
-            print('# TT-PIVMGS:    ortho max err', maxErr)
+            print('# TT-PIVMGS:    ortho max err', maxErr, ', max. rank:', np.max(w.getTTranks()))
         if maxErr < rankTolerance:
             break
 
