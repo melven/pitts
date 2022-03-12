@@ -100,12 +100,12 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([80,]*8)
-    pitts_py.axpby(0.1, ConvectionOperator([80,]*8), 1, TTOp)
-    pitts_py.axpby(-0.99, LaplaceOperator([80,]*8, lambda iDim,i: i > 15 and i < 25), 1, TTOp)
-    pitts_py.axpby(-0.099, ConvectionOperator([80,]*8, lambda iDim,i: i > 15 and i < 25), 1, TTOp)
+    TTOp = LaplaceOperator([40,]*6)
+    pitts_py.axpby(0.1, ConvectionOperator([40,]*6), 1, TTOp)
+    pitts_py.axpby(1, LaplaceOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
+    pitts_py.axpby(-0.05, ConvectionOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
 
-    #N = 50
+    #N = 10
     #siteset = pitts_py.itensor.SpinOne(N)
     #ampo = pitts_py.itensor.AutoMPO(siteset)
     #for j in range(1, N):
@@ -114,6 +114,7 @@ if __name__ == '__main__':
     #    ampo +=     "Sz",j,"Sz",j+1
     #TTOp = pitts_py.itensor.toTTOp(ampo)
     #pitts_py.normalize(TTOp, rankTolerance=1.e-10)
+    print('TTOp', TTOp)
 
 
     #x = pitts_py.TensorTrain_double(TTOp.row_dimensions())
@@ -130,7 +131,7 @@ if __name__ == '__main__':
         y_nrm = pitts_py.normalize(y, rankTolerance, maxRank)
         return y_nrm
 
-    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=100, eps=1.e-3, verbose=True, adaptiveTolerance=False)
+    x, nrm_x = tt_gmres_pivmgs(AOp, b, nrm_b, maxIter=100, eps=1.e-4, verbose=True, adaptiveTolerance=False)
 
     print("nrm_x %g" % nrm_x)
     r = pitts_py.TensorTrain_double(b.dimensions())

@@ -11,6 +11,7 @@ import argparse
 import pitts_py
 import numpy as np
 from tt_ssor_preconditioner import SSOR_preconditioner
+from tt_rank1_preconditioner import TT_Rank1_preconditioner
 from tt_laplace_operator import LaplaceOperator
 from tt_convection_operator import ConvectionOperator
 from tt_gmres_pivmgs_leftprecond import tt_gmres_leftprecond
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('-C', type=float, help='Coefficient of the convection part of the operator, gets scaled by 1/sqrt(d) to obtain a dimension-independent constant convection velocity', default=0.1)
 
     # preconditioner setup
+    parser.add_argument('--preconditioner', type=str, help='type of the preconditionner', choices=['none', 'SSOR', 'TT-rank1'], required=True)
     parser.add_argument('--SSOR_omega', type=float, help='SSOR parameter omega', default=1.3)
     parser.add_argument('--SSOR_jacobiIter', type=int, help='SSOR Jaocbi iteration for approximate triangular solves', default=3)
 
@@ -72,7 +74,14 @@ if __name__ == '__main__':
         TTOpConvection = ConvectionOperator(dims)
         pitts_py.axpby(args.C/np.sqrt(args.d), TTOpConvection, 1, TTOp)
 
-    preconOp = SSOR_preconditioner(TTOp, args.SSOR_omega, args.SSOR_jacobiIter)
+    if args.preconditioner == 'none':
+        preconOp = None
+    elif args.preconditioner == 'SSOR':
+        preconOp = SSOR_preconditioner(TTOp, args.SSOR_omega, args.SSOR_jacobiIter)
+    elif args.preconditioner == 'TT-rank1':
+        preconOp = TT_Rank1_preconditioner(TTOp)
+    else:
+        raise ValueError("Unknown preconditioner type '"+args.preconditioner+'"')
 
     b = pitts_py.TensorTrain_double(dims)
     nrm_b = 1
