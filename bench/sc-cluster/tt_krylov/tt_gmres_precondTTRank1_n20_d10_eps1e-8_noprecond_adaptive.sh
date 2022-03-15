@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 1
+#SBATCH -t 1200
+#SBATCH --output="%x-%j.out"
+
+
+# module load PrgEnv/gcc10-openmpi-python
+export PYTHONPATH=$PYTHONPATH:~/pitts/build/src/:~/pitts/examples/
+export PYTHONUNBUFFERED=1
+ulimit -s unlimited
+export OMP_STACKSIZE=100M
+
+srun likwid-pin -c 0-0 python tt_gmres_precond.py -n 20 -d 10 --eps 1.e-8 --maxIter=90  --preconditioner TT-rank1 --variant no_precond --adaptive

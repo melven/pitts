@@ -5,7 +5,7 @@ Driver for running different variants of a TT-GMRES algorithm
 """
 
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
-__date__ = '2021-08-09'
+__date__ = '2022-03-14'
 
 import argparse
 import pitts_py
@@ -34,6 +34,8 @@ if __name__ == '__main__':
     parser.add_argument('-Rr', type=int, help='TT-ranks of the random part of the operator', default=2)
     parser.add_argument('-L', type=float, help='Coefficient of the Laplace/diffusion part of the operator', default=1.0)
     parser.add_argument('-C', type=float, help='Coefficient of the convection part of the operator, gets scaled by 1/sqrt(d) to obtain a dimension-independent constant convection velocity', default=0.1)
+    parser.add_argument('--Ljump', type=float, help='Jump in coefficient of the Laplace/diffusion part of the operator, uses L*Ljump in some inner region/hypercube', default=1.0)
+    parser.add_argument('--Cjump', type=float, help='Jump in coefficient of the convection part of the operator, uses C*Cjump in some inner region/hypercube', default=1.0)
 
     # preconditioner setup
     parser.add_argument('--preconditioner', type=str, help='type of the preconditioner', choices=['none', 'SSOR', 'TT-rank1'], required=True)
@@ -70,9 +72,15 @@ if __name__ == '__main__':
     if args.L != 0.0:
         TTOpLaplace = LaplaceOperator(dims)
         pitts_py.axpby(args.L, TTOpLaplace, 1, TTOp)
+    if args.Ljump != 1.0:
+        TTOpLaplace2 = LaplaceOperator(dims, lambda iDim,i: i > args.n*0.25 and i < args.n*0.75)
+        pitts_py.axpby(args.Ljump-1, TTOpLaplace2, 1, TTOp)
     if args.C != 0.0:
         TTOpConvection = ConvectionOperator(dims)
         pitts_py.axpby(args.C/np.sqrt(args.d), TTOpConvection, 1, TTOp)
+    if args.Cjump != 1.0:
+        TTOpConvection2 = ConvectionOperator(dims, lambda iDim,i: i > args.n*0.25 and i < args.n*0.75)
+        pitts_py.axpby(args.Cjump-1, TTOpConvection2, 1, TTOp)
 
     if args.preconditioner == 'none':
         preconOp = None
@@ -147,5 +155,5 @@ if __name__ == '__main__':
         r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
         print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )
 
-    pitts_py.finalize(verbose=True)
+    pitts_py.finalize(verbose=False)
 

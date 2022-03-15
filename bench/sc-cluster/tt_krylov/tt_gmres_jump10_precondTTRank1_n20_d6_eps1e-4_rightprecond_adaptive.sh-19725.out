@@ -1,0 +1,88 @@
+PITTS: OpenMP #threads: 1
+PITTS: MPI #procs: 1
+# Arguments: Namespace(C=0.1, Cjump=0.1, I=0.0, L=1.0, Ljump=10.0, Rc=0.0, Rr=2, SSOR_jacobiIter=3, SSOR_omega=1.3, adaptive=True, d=6, eps=0.0001, maxIter=40, n=20, preconditioner='TT-rank1', random_rank=2, rhs_type='rhs_random', variant='right_precond')
+
+###### right preconditioning ######
+# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"      "precond direction rank"    "new Krylov vector rank"    "solution rank"
+0 1 1 2 2 2 0
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.979241760338199
+# TT-PIVMGS:    ortho max err 2.525757381022231e-15 , max. rank: 6
+1 0.2026957690968063 0.20269576909680712 4 2 6 2
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.9033235593874998
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.6511386980174978
+# TT-PIVMGS:    ortho max err 2.7478019859472624e-15 , max. rank: 12
+2 0.07417423607359658 0.07417423607359641 10 6 12 6
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.8870426504758924
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.6658336285015285
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.0001400733661397844
+# TT-PIVMGS:    ortho max err 4.1934516969988067e-10 , max. rank: 18
+3 0.032180301524715516 0.032180912644495 16 12 18 10
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.8611850188945629
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.69437157457291
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.0004748691356434541
+# TT-PIVMGS:    ortho max err 0.00013684182875817533 , max. rank: 21
+# TT-PIVMGS:    ortho 1 pivot 0 dot -0.00013684182875817533
+# TT-PIVMGS:    ortho max err 1.180537181899588e-09 , max. rank: 21
+4 0.016092039232073325 0.016090239191256763 20 16 21 12
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.8471085719685962
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.6952839641320018
+# TT-PIVMGS:    ortho max err 0.0003000369492074193 , max. rank: 25
+# TT-PIVMGS:    ortho 1 pivot 2 dot 0.0003000369492074193
+# TT-PIVMGS:    ortho max err 2.4977825921799514e-05 , max. rank: 25
+5 0.008988989727764761 0.008989832293675707 22 18 25 14
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.8401709355004459
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.7014574238398974
+# TT-PIVMGS:    ortho max err 0.00025736060838141804 , max. rank: 28
+# TT-PIVMGS:    ortho 1 pivot 1 dot -0.00025736060838141804
+# TT-PIVMGS:    ortho max err 0.00019966828719028204 , max. rank: 28
+6 0.005410281528114806 0.00540843933193127 26 24 28 14
+# TT-PIVMGS:    ortho 0 pivot 6 dot 0.8354594728913893
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.705260728197286
+# TT-PIVMGS:    ortho max err 0.00040045648524097456 , max. rank: 32
+# TT-PIVMGS:    ortho 1 pivot 3 dot 0.00040045648524097456
+# TT-PIVMGS:    ortho max err 0.0002593854223698726 , max. rank: 32
+7 0.0034368150813017724 0.0034329929636560353 29 26 32 14
+# TT-PIVMGS:    ortho 0 pivot 7 dot 0.8352253095763036
+# TT-PIVMGS:    ortho 0 pivot 6 dot 0.7078715225389147
+# TT-PIVMGS:    ortho max err 0.0003296430761440816 , max. rank: 36
+8 0.002252575076841188 0.0022504035147187635 32 28 36 14
+# TT-PIVMGS:    ortho 0 pivot 8 dot 0.8341884989495982
+# TT-PIVMGS:    ortho 0 pivot 7 dot 0.707367899370911
+# TT-PIVMGS:    ortho max err 0.0004153854797019699 , max. rank: 40
+9 0.0015079702532345017 0.0015087315019065737 36 33 40 14
+# TT-PIVMGS:    ortho 0 pivot 9 dot 0.8339798147033967
+# TT-PIVMGS:    ortho 0 pivot 8 dot 0.7035565438335333
+# TT-PIVMGS:    ortho max err 0.0006122211893659184 , max. rank: 44
+10 0.0010248512297173784 0.0010229955719933748 38 35 44 16
+# TT-PIVMGS:    ortho 0 pivot 10 dot 0.8329214325522281
+# TT-PIVMGS:    ortho 0 pivot 9 dot 0.7062463828624738
+# TT-PIVMGS:    ortho max err 0.0010041508011902553 , max. rank: 49
+11 0.0007047155100724725 0.0006969828011121491 40 37 49 14
+# TT-PIVMGS:    ortho 0 pivot 11 dot 0.8301966706483798
+# TT-PIVMGS:    ortho 0 pivot 10 dot 0.7083919771992901
+# TT-PIVMGS:    ortho max err 0.0015751309085178609 , max. rank: 51
+12 0.0004919519513094585 0.0004969307462589468 42 39 51 14
+# TT-PIVMGS:    ortho 0 pivot 12 dot 0.8288473774974956
+# TT-PIVMGS:    ortho 0 pivot 11 dot 0.7061237530788389
+# TT-PIVMGS:    ortho max err 0.002446931475302191 , max. rank: 55
+13 0.0003491499075422808 0.0003668440587687354 45 42 55 14
+# TT-PIVMGS:    ortho 0 pivot 13 dot 0.829846907805464
+# TT-PIVMGS:    ortho 0 pivot 12 dot 0.7071015159503454
+# TT-PIVMGS:    ortho max err 0.003425174909590747 , max. rank: 56
+14 0.0002501773305084166 0.0003050874742046018 46 44 56 14
+# TT-PIVMGS:    ortho 0 pivot 14 dot 0.8305039864561647
+# TT-PIVMGS:    ortho 0 pivot 13 dot 0.7062670654035192
+# TT-PIVMGS:    ortho max err 0.004346961847653739 , max. rank: 58
+15 0.0001799757791308737 0.00020018309877250316 48 47 58 16
+# TT-PIVMGS:    ortho 0 pivot 15 dot 0.8300351818571821
+# TT-PIVMGS:    ortho 0 pivot 14 dot 0.7049845868015933
+# TT-PIVMGS:    ortho max err 0.005435290066343639 , max. rank: 62
+16 0.00012990914937579897 0.0001781332021168048 51 50 62 16
+# TT-PIVMGS:    ortho 0 pivot 16 dot 0.829284056169548
+# TT-PIVMGS:    ortho 0 pivot 15 dot 0.7044856151552836
+# TT-PIVMGS:    ortho max err 0.006587548424828837 , max. rank: 65
+17 9.420872808933172e-05 0.0001420076491944434 53 52 65 16
+# Checked resulting residual norm: 0.000142236
+
+INFO: You are running LIKWID in a cpuset with 1 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[likwid-pin] Main PID -> hwthread 12 - OK[0m

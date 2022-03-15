@@ -1,0 +1,54 @@
+PITTS: OpenMP #threads: 1
+PITTS: MPI #procs: 1
+# Arguments: Namespace(C=0.1, Cjump=0.5, I=0.0, L=1.0, Ljump=2.0, Rc=0.0, Rr=2, SSOR_jacobiIter=3, SSOR_omega=1.3, adaptive=True, d=6, eps=0.0001, maxIter=40, n=20, preconditioner='TT-rank1', random_rank=2, rhs_type='rhs_random', variant='right_precond')
+
+###### right preconditioning ######
+# "iteration"    "rel LSTQ norm"    "rel residual norm"    "new direction rank"      "precond direction rank"    "new Krylov vector rank"    "solution rank"
+0 1 1 2 2 2 0
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.9963817926124185
+# TT-PIVMGS:    ortho max err 1.246919234532129e-14 , max. rank: 6
+1 0.08499013678341077 0.08499013678341105 4 2 6 2
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.9640858669696782
+# TT-PIVMGS:    ortho 0 pivot 0 dot 0.4077454136641079
+# TT-PIVMGS:    ortho max err 1.2205514376972815e-14 , max. rank: 12
+2 0.020992685466377493 0.02099268546637766 10 6 12 6
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.9064958325139066
+# TT-PIVMGS:    ortho 0 pivot 1 dot 0.6307633326732678
+# TT-PIVMGS:    ortho max err 6.261826328470173e-05 , max. rank: 17
+3 0.00784771364368303 0.007847887250602238 16 12 17 10
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.8722737729065547
+# TT-PIVMGS:    ortho 0 pivot 2 dot 0.6917825276998627
+# TT-PIVMGS:    ortho max err 0.0002147763531347843 , max. rank: 20
+4 0.0035897252267432385 0.003590430786260577 18 16 20 12
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.8658649906784681
+# TT-PIVMGS:    ortho 0 pivot 3 dot 0.7027825117902338
+# TT-PIVMGS:    ortho max err 0.0005598672942392219 , max. rank: 24
+5 0.0017853630271336483 0.001785632259165175 22 18 24 13
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.8591636845326931
+# TT-PIVMGS:    ortho 0 pivot 4 dot 0.6977731798334548
+# TT-PIVMGS:    ortho max err 0.0010735779781874226 , max. rank: 26
+6 0.00094509665311714 0.0009447771108085305 24 20 26 14
+# TT-PIVMGS:    ortho 0 pivot 6 dot 0.8498816244605235
+# TT-PIVMGS:    ortho 0 pivot 5 dot 0.7014562446921774
+# TT-PIVMGS:    ortho max err 0.0016328861695497736 , max. rank: 29
+7 0.0005321254580352435 0.0005298391196148656 26 22 29 13
+# TT-PIVMGS:    ortho 0 pivot 7 dot 0.8472300016339471
+# TT-PIVMGS:    ortho 0 pivot 6 dot 0.7074968124928257
+# TT-PIVMGS:    ortho max err 0.002176563939559003 , max. rank: 32
+8 0.00031122934846336856 0.00030827933260256887 28 24 32 12
+# TT-PIVMGS:    ortho 0 pivot 8 dot 0.8470416081767307
+# TT-PIVMGS:    ortho 0 pivot 7 dot 0.7032299820362844
+# TT-PIVMGS:    ortho max err 0.002895332413077767 , max. rank: 34
+9 0.0001861400637593081 0.0001921135584613818 30 26 34 12
+# TT-PIVMGS:    ortho 0 pivot 9 dot 0.8440257702276946
+# TT-PIVMGS:    ortho 0 pivot 8 dot 0.7058658389165684
+# TT-PIVMGS:    ortho max err 0.004285839793183928 , max. rank: 35
+10 0.00011364302209491349 0.00012763273929918166 31 28 35 11
+# TT-PIVMGS:    ortho 0 pivot 10 dot 0.84449807727186
+# TT-PIVMGS:    ortho 0 pivot 9 dot 0.7062612136479
+# TT-PIVMGS:    ortho max err 0.006395826025421053 , max. rank: 37
+11 7.00962971197651e-05 8.690627886368576e-05 31 30 37 12
+# Checked resulting residual norm: 8.72766e-05
+
+INFO: You are running LIKWID in a cpuset with 1 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[likwid-pin] Main PID -> hwthread 12 - OK[0m
