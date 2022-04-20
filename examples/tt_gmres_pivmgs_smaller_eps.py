@@ -18,6 +18,8 @@ from tt_laplace_operator import LaplaceOperator
 from tt_convection_operator import ConvectionOperator
 from tt_pivmgs import tt_pivmgs
 
+np.set_printoptions(edgeitems=30, linewidth=100000)
+
 
 def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptiveTolerance=True):
     """ Tensor-train GMRES algorithm without restart """
@@ -64,7 +66,6 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
         
         rank_w = np.max(w.getTTranks())
 
-
         H[:j+2,j] = w_nrm * tt_pivmgs(V, w, delta, maxRank=9999)
 
         rank_vj = np.max(w.getTTranks())
@@ -81,6 +82,37 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
             r_nrm = residual_error(x, nrm_x)
             rank_x = np.max(x.getTTranks())
             print(j+1, curr_beta/beta, r_nrm / nrm_b, rank_w, rank_vj, rank_x)
+
+#            # calculate V^TV
+#            VtV = np.zeros((len(V), len(V)))
+#            for k1 in range(len(V)):
+#                for k2 in range(len(V)):
+#                    VtV[k1,k2] = pitts_py.dot(V[k1], V[k2])
+#            VtV_err = np.linalg.norm(VtV - np.eye(len(V)), ord=np.inf)
+#            print('VtV_err:', VtV_err)
+#
+#            # calculate AV
+#            AV = []
+#            AV_nrm = np.zeros(len(V))
+#            for k1 in range(len(V)):
+#                Avi = pitts_py.TensorTrain_double(b.dimensions())
+#                AV_nrm[k1] = AOp(V[k1], Avi, eps / len(V), maxRank=9999)
+#                AV += [Avi]
+#            # calculate VH
+#            VH = []
+#            VH_nrm = np.zeros(len(V)-1)
+#            for k1 in range(len(V)-1):
+#                VH += [pitts_py.TensorTrain_double(b.dimensions())]
+#                VH[k1].setZero()
+#                VH_nrm[k1] = 0
+#                for k2 in range(len(V)):
+#                    VH_nrm[k1] = pitts_py.axpby(H[k2,k1], V[k2], VH_nrm[k1], VH[k1], eps / len(V))
+#            # calculate AV-VH
+#            AV_VH_err = np.zeros(len(V)-1)
+#            for k1 in range(len(V)-1):
+#                AV_VH_err[k1] = pitts_py.axpby(-AV_nrm[k1], AV[k1], VH_nrm[k1], VH[k1], eps / len(V))
+#            print('AV-VH error', np.linalg.norm(AV_VH_err, ord=np.inf))
+#            #print('H\n', H[:len(V),:len(V)-1])
         if curr_beta / beta <= eps:
             break
 
@@ -100,20 +132,20 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([40,]*6)
-    pitts_py.axpby(0.1, ConvectionOperator([40,]*6), 1, TTOp)
-    pitts_py.axpby(1, LaplaceOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
-    pitts_py.axpby(-0.05, ConvectionOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
+    #TTOp = LaplaceOperator([40,]*6)
+    #pitts_py.axpby(0.1, ConvectionOperator([40,]*6), 1, TTOp)
+    #pitts_py.axpby(1, LaplaceOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
+    #pitts_py.axpby(-0.05, ConvectionOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
 
-    #N = 10
-    #siteset = pitts_py.itensor.SpinOne(N)
-    #ampo = pitts_py.itensor.AutoMPO(siteset)
-    #for j in range(1, N):
-    #    ampo += 0.5,"S+",j,"S-",j+1
-    #    ampo += 0.5,"S-",j,"S+",j+1
-    #    ampo +=     "Sz",j,"Sz",j+1
-    #TTOp = pitts_py.itensor.toTTOp(ampo)
-    #pitts_py.normalize(TTOp, rankTolerance=1.e-10)
+    N = 4
+    siteset = pitts_py.itensor.SpinOne(N)
+    ampo = pitts_py.itensor.AutoMPO(siteset)
+    for j in range(1, N):
+        ampo += 0.5,"S+",j,"S-",j+1
+        ampo += 0.5,"S-",j,"S+",j+1
+        ampo += 0.001,"Sz",j,"Sz",j+1
+    TTOp = pitts_py.itensor.toTTOp(ampo)
+    pitts_py.normalize(TTOp, rankTolerance=1.e-10)
     print('TTOp', TTOp)
 
 
@@ -122,8 +154,9 @@ if __name__ == '__main__':
     #nrm_x = 1
     b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
     #pitts_py.apply(TTOp, x, b)
-    b.setTTranks(1)
-    pitts_py.randomize(b)
+    #b.setTTranks(2)
+    #pitts_py.randomize(b)
+    b.setOnes()
     nrm_b = pitts_py.normalize(b)
 
     def AOp(x, y, rankTolerance, maxRank):
