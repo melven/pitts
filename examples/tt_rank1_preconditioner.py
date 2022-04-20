@@ -31,10 +31,14 @@ class TT_Rank1_preconditioner:
             assert(subT.shape[0] == 1)
             assert(subT.shape[1] == subT.shape[2])
             assert(subT.shape[3] == 1)
-            #U, S, Vt = np.linalg.svd(subT[0,:,:,0])
+            U, S, Vt = np.linalg.svd(subT[0,:,:,0])
+            rank = np.sum(S/S[0] > 1.e-8)
+            invS = np.ones(len(S))
+            invS[0:rank] = 1/S[0:rank]
+            subT[0,:,:,0] = Vt.T @ np.diag(invS) @ U.T
             #S = np.sqrt(np.abs(S)) / S
             #subT[0,:,:,0] = U @ np.diag(S) @ Vt
-            subT[0,:,:,0] = np.linalg.pinv(subT[0,:,:,0])
+            #subT[0,:,:,0] = np.linalg.pinv(subT[0,:,:,0])
             self.TTOp.setSubTensor(iDim, subT)
 
     def apply(self, x, y, rankTolerance, maxRank):
