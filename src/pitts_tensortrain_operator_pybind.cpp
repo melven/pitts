@@ -15,6 +15,7 @@
 #include <exception>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
+#include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_scope_info.hpp"
 
@@ -139,6 +140,11 @@ namespace PITTS
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrain<T>&, TensorTrain<T>& >(&apply<T>),
             py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),
             "Apply a tensor train operator\n\nCalculate TTy <- TTOp * TTx");
+
+        m.def("applyT",
+            py::overload_cast< const TensorTrainOperator<T>&, const TensorTrain<T>&, TensorTrain<T>& >(&applyT<T>),
+            py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),
+            "Apply a transposed tensor train operator\n\nCalculate TTy <- TTOp^T * TTx");
       }
     }
 
