@@ -19,6 +19,8 @@ target_sources(pitts INTERFACE
   pitts_tensor2_qb_decomposition.hpp
   pitts_tensor3.hpp
   pitts_tensor3_random.hpp
+  pitts_tensor3_combine.hpp
+  pitts_tensor3_split.hpp
   pitts_tensortrain.hpp
   pitts_tensortrain_norm.hpp
   pitts_tensortrain_dot.hpp
