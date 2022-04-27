@@ -11,11 +11,13 @@ import argparse
 import pitts_py
 import numpy as np
 from tt_ssor_preconditioner import SSOR_preconditioner
+from tt_rank1_preconditioner import TT_Rank1_preconditioner
 from tt_laplace_operator import LaplaceOperator
 from tt_convection_operator import ConvectionOperator
 from tt_gmres_pivmgs_leftprecond import tt_gmres_leftprecond
 from tt_gmres_pivmgs_rightprecond import tt_gmres_rightprecond
 from tt_gmres_pivmgs import tt_gmres_pivmgs
+from tt_gmres_pivmgs_smaller_eps import tt_gmres_pivmgs as tt_gmres_pivmgs_smaller_eps
 from tt_gmres import tt_gmres
 
 
@@ -34,6 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('-C', type=float, help='Coefficient of the convection part of the operator, gets scaled by 1/sqrt(d) to obtain a dimension-independent constant convection velocity', default=0.1)
 
     # preconditioner setup
+    parser.add_argument('--preconditioner', type=str, help='type of the preconditioner', choices=['none', 'SSOR', 'TT-rank1'], required=True)
     parser.add_argument('--SSOR_omega', type=float, help='SSOR parameter omega', default=1.3)
     parser.add_argument('--SSOR_jacobiIter', type=int, help='SSOR Jaocbi iteration for approximate triangular solves', default=3)
 
@@ -45,7 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--eps', type=float, help='desired residual tolerance', required=True)
     parser.add_argument('--maxIter', type=int, help='Max. number of GMRES iterations', required=True)
     parser.add_argument('--adaptive', action='store_true', help='Use adaptive tolerance in the GMRES algorithm')
-    parser.add_argument('--variant', type=str, help='(un)preconditioned GMRES variant', choices=['all', 'vanilla', 'no_precond', 'left_precond', 'right_precond'], default='all')
+    parser.add_argument('--variant', type=str, help='(un)preconditioned GMRES variant', choices=['all', 'vanilla', 'no_precond', 'left_precond', 'right_precond', 'smaller_eps'], default='all')
 
 
     args = parser.parse_args()
@@ -71,7 +74,14 @@ if __name__ == '__main__':
         TTOpConvection = ConvectionOperator(dims)
         pitts_py.axpby(args.C/np.sqrt(args.d), TTOpConvection, 1, TTOp)
 
-    preconOp = SSOR_preconditioner(TTOp, args.SSOR_omega, args.SSOR_jacobiIter)
+    if args.preconditioner == 'none':
+        preconOp = None
+    elif args.preconditioner == 'SSOR':
+        preconOp = SSOR_preconditioner(TTOp, args.SSOR_omega, args.SSOR_jacobiIter)
+    elif args.preconditioner == 'TT-rank1':
+        preconOp = TT_Rank1_preconditioner(TTOp)
+    else:
+        raise ValueError("Unknown preconditioner type '"+args.preconditioner+'"')
 
     b = pitts_py.TensorTrain_double(dims)
     nrm_b = 1
@@ -126,6 +136,13 @@ if __name__ == '__main__':
     if args.variant in ['all', 'right_precond']:
         print('\n###### right preconditioning ######')
         x, nrm_x = tt_gmres_rightprecond(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, preconOp=preconOp, adaptiveTolerance=args.adaptive)
+        pitts_py.apply(TTOp, x, r)
+        r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
+        print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )
+
+    if args.variant in ['all', 'smaller_eps']:
+        print('\n###### smaller eps (PIVMGS) ######')
+        x, nrm_x = tt_gmres_pivmgs_smaller_eps(AOp, b, nrm_b, maxIter=args.maxIter, eps=args.eps, adaptiveTolerance=args.adaptive)
         pitts_py.apply(TTOp, x, r)
         r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
         print("# Checked resulting residual norm: %g\n" % (r_nrm / nrm_b) )

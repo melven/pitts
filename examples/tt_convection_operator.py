@@ -23,10 +23,9 @@ def ConvectionOperator(dims, mask=None):
         eye_i = TTOp_dummy.getSubTensor(iDim)
         tridi_i = np.zeros((n_i,n_i))
         for i in range(n_i):
-            if mask is not None and not mask(iDim, i):
-                continue
-            tridi_i[i,i] = 1. / h
-            if i > 0:
+            if mask is None or mask(iDim, i):
+                tridi_i[i,i] = 1. / h
+            if i > 0 and (mask is None or mask(iDim, i-1)):
                 tridi_i[i,i-1] = -1. / h
         TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
         pitts_py.axpby(1, TTOp_dummy, 1, TTOp)

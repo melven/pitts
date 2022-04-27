@@ -23,13 +23,21 @@ def LaplaceOperator(dims, mask=None):
         eye_i = TTOp_dummy.getSubTensor(iDim)
         tridi_i = np.zeros((n_i,n_i))
         for i in range(n_i):
-            if mask is not None and not mask(iDim, i):
-                continue
-            tridi_i[i,i] = 2. / h**2
+            nu = 1
+            nu_l = 1
+            nu_r = 1
+            if mask is not None:
+                if mask(iDim, i):
+                    nu = 0
+                if mask(iDim, i-1):
+                    nu_l = 0
+                if mask(iDim, i+1):
+                    nu_r = 0
+            tridi_i[i,i] = (nu_l + 2*nu + nu_r)/2. / h**2
             if i > 0:
-                tridi_i[i,i-1] = -1. / h**2
+                tridi_i[i,i-1] = -(nu+nu_l)/2. / h**2
             if i+1 < n_i:
-                tridi_i[i,i+1] = -1. / h**2
+                tridi_i[i,i+1] = -(nu+nu_r)/2. / h**2
         TTOp_dummy.setSubTensor(iDim, tridi_i.reshape(1,n_i,n_i,1))
         pitts_py.axpby(1, TTOp_dummy, 1, TTOp)
         TTOp_dummy.setSubTensor(iDim, eye_i)

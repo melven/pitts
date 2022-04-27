@@ -15,6 +15,7 @@ __date__ = '2021-06-17'
 import numpy as np
 import pitts_py
 from tt_ssor_preconditioner import SSOR_preconditioner
+from tt_rank1_preconditioner import TT_Rank1_preconditioner
 from tt_laplace_operator import LaplaceOperator
 from tt_convection_operator import ConvectionOperator
 from tt_pivmgs import tt_pivmgs
@@ -133,14 +134,31 @@ if __name__ == '__main__':
     #TTOpEye.setEye()
     #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
 
-    TTOp = LaplaceOperator([40,]*4)
-    pitts_py.axpby(0.1, ConvectionOperator([40,]*4), 1, TTOp)
+    #TTOp = LaplaceOperator([40,]*6)
+    #pitts_py.axpby(0.1, ConvectionOperator([40,]*6), 1, TTOp)
+    #pitts_py.axpby(1, LaplaceOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
+    #pitts_py.axpby(-0.05, ConvectionOperator([40,]*6, lambda iDim,i: i > 5 and i < 15), 1, TTOp)
 
-    preconOp = SSOR_preconditioner(TTOp, 1.3, 3)
+    N = 4
+    siteset = pitts_py.itensor.SpinOne(N)
+    ampo = pitts_py.itensor.AutoMPO(siteset)
+    for j in range(1, N):
+        ampo += 0.5,"S+",j,"S-",j+1
+        ampo += 0.5,"S-",j,"S+",j+1
+        ampo += 0.0001,"Sz",j,"Sz",j+1
+    TTOp = pitts_py.itensor.toTTOp(ampo)
+    pitts_py.normalize(TTOp, rankTolerance=1.e-10)
+    print('TTOp', TTOp)
 
+    #preconOp = SSOR_preconditioner(TTOp, 1.3, 3)
+    preconOp = TT_Rank1_preconditioner(TTOp)
+
+    x = pitts_py.TensorTrain_double(TTOp.row_dimensions())
+    x.setOnes()
     b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
-    b.setTTranks(1)
-    pitts_py.randomize(b)
+    pitts_py.apply(TTOp, x, b)
+    #b.setTTranks(2)
+    #pitts_py.randomize(b)
     nrm_b = pitts_py.normalize(b)
 
     def AOp(x, y, rankTolerance, maxRank):
@@ -148,11 +166,10 @@ if __name__ == '__main__':
         y_nrm = pitts_py.normalize(y, rankTolerance, maxRank)
         return y_nrm
 
-    #x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=100, eps=1.e-3, preconOp=None)
-    x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=100, eps=1.e-3, preconOp=preconOp)
+    x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=100, eps=1.e-4, preconOp=None)
+    #x, nrm_x = tt_gmres_leftprecond(AOp, b, nrm_b, maxIter=100, eps=1.e-4, preconOp=preconOp)
 
     print("nrm_x %g" % nrm_x)
-
     r = pitts_py.TensorTrain_double(b.dimensions())
     pitts_py.apply(TTOp, x, r)
     r_nrm = pitts_py.axpby(nrm_b, b, -nrm_x, r)
