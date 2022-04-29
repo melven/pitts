@@ -19,6 +19,58 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! namespace for helper functionality
+  namespace internal
+  {
+    //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along middle dimension: A(:,*,:,:) * x(:,*,:)
+    template<typename T>
+    void applyT_contract(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
+    {
+      const auto rA1 = Aop.r1();
+      const auto rA2 = Aop.r2();
+      const auto r1 = x.r1();
+      const auto r2 = x.r2();
+      const auto n = x.n();
+      const auto m = Aop.n() / n;
+
+      y.resize(rA1*r1, m, rA2*r2);
+
+      const auto index = [n](int k, int l)
+      {
+        return k + n*l;
+      };
+
+      // check that the index function is ok...
+      for(int k = 0; k < n; k++)
+        for(int l = 0; l < m; l++)
+        {
+          assert(index(k,l) == TTOp.index(iDim, k, l));
+        }
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"rA1", "n", "m", "rA2", "r1", "r2"},{rA1, n, m, rA2, r1, r2}}, // arguments
+        {{rA1*rA2*n*m*r1*r2*kernel_info::FMA<T>()}, // flops
+         {(rA1*m*n*rA2+r1*n*r2)*kernel_info::Load<Chunk<T>>() + (rA1*r1*m*rA2*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+      for(int i1 = 0; i1 < rA1; i1++)
+        for(int j1 = 0; j1 < r1; j1++)
+        {
+          for(int i2 = 0; i2 < rA2; i2++)
+            for(int j2 = 0; j2 < r2; j2++)
+            {
+              for(int k = 0; k < m; k++)
+              {
+                T tmp = T(0);
+                for(int l = 0; l < n; l++)
+                  tmp += Aop(i1,index(l,k),i2) * x(j1,l,j2);
+                y(i1*r1+j1,k,i2*r2+j2) = tmp;
+              }
+            }
+        }
+    }
+  }
+
   //! Multiply a tensor train operator with a tensor train
   //!
   //! Calculate y <- A^T * x
@@ -40,10 +92,6 @@ namespace PITTS
     if( TTOp.column_dimensions() != TTy.dimensions() )
       throw std::invalid_argument("TensorTrainOperator: output tensor train dimension mismatch!");
 
-    // adjust ranks of output tensor train
-    const auto newTTranks = internal::dimension_product(TTOp.getTTranks(), TTx.getTTranks());
-    TTy.setTTranks(newTTranks);
-
     // perform actual calculation
     for(int iDim = 0; iDim < TTOp.tensorTrain().subTensors().size(); iDim++)
     {
@@ -51,21 +99,7 @@ namespace PITTS
       const auto& subTx = TTx.subTensors()[iDim];
       auto& subTy = TTy.editableSubTensors()[iDim];
 
-      for(int i1 = 0; i1 < subTOp.r1(); i1++)
-        for(int j1 = 0; j1 < subTx.r1(); j1++)
-        {
-          for(int i2 = 0; i2 < subTOp.r2(); i2++)
-            for(int j2 = 0; j2 < subTx.r2(); j2++)
-            {
-              for(int k = 0; k < subTy.n(); k++)
-              {
-                T tmp = T(0);
-                for(int l = 0; l < subTx.n(); l++)
-                  tmp += subTOp(i1,TTOp.index(iDim,l,k),i2) * subTx(j1,l,j2);
-                subTy(i1*subTx.r1()+j1,k,i2*subTx.r2()+j2) = tmp;
-              }
-            }
-        }
+      internal::applyT_contract(TTOp, iDim, subTOp, subTx, subTy);
     }
   }
 
