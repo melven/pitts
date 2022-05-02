@@ -169,7 +169,12 @@ namespace PITTS
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
     }
-    const T bTb = symmetricA ? dot(TTb,TTb) : dot(TTAtb,TTAtb);
+
+    // provide convenient name for TTOpA resp. TTOpAtA for the code below
+    const auto& effTTb = symmetricA ? TTb : TTAtb;
+    const auto effTTOpA = symmetricA ? TTOpA : TTOpAtA;
+
+    const T bTb = dot(effTTb,effTTb);
 
 
     // we store previous parts of x^Tb from left and right
@@ -185,7 +190,7 @@ namespace PITTS
       Tensor3<T> t3;
       for(int iDim = nDim-1; iDim >= 0; iDim--)
       {
-        const auto& subTb = symmetricA ? TTb.subTensors()[iDim] : TTAtb.subTensors()[iDim];
+        const auto& subTb = effTTb.subTensors()[iDim];
         const auto& subTx = TTx.subTensors()[iDim];
 
         // first contraction: subT1(:,:,*) * t2(:,*)
@@ -202,18 +207,9 @@ namespace PITTS
       assert(right_xTb.size() == nDim+1);
       assert(right_xTb[nDim].r1() == 1);
       assert(right_xTb[nDim].r2() == 1);
-      if( symmetricA )
-      {
-        const auto dot_ref = dot(TTx, TTb);
-        const auto err = std::abs(right_xTb[nDim](0,0) - dot_ref);
-        assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
-      else
-      {
-        const auto dot_ref = dot(TTx, TTAtb);
-        const auto err = std::abs(right_xTb[nDim](0,0) - dot_ref);
-        assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
+      const auto dot_ref = dot(TTx, effTTb);
+      const auto err = std::abs(right_xTb[nDim](0,0) - dot_ref);
+      assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
     }
 #endif
 
@@ -227,7 +223,7 @@ namespace PITTS
     right_xTAx[0].resize(1,1);
     right_xTAx[0](0,0) = T(1);
     // this includes a calculation of Ax, so reuse it
-    TensorTrain<T> TTAx(symmetricA ? TTOpA.row_dimensions() : TTOpAtA.row_dimensions());
+    TensorTrain<T> TTAx(effTTOpA.row_dimensions());
     // again like TT dot product but with Ax
     {
       // we have
@@ -249,11 +245,10 @@ namespace PITTS
         //     |      |
         //                    
         //
-        const auto& TTOp = symmetricA ? TTOpA : TTOpAtA;
-        const auto& subTOp = TTOp.tensorTrain().subTensors()[iDim];
+        const auto& subTOpA = effTTOpA.tensorTrain().subTensors()[iDim];
         const auto& subTx = TTx.subTensors()[iDim];
         auto& Axk = TTAx.editableSubTensors()[iDim];
-        internal::apply_contract(TTOp, iDim, subTOp, subTx, Axk);
+        internal::apply_contract(effTTOpA, iDim, subTOpA, subTx, Axk);
         // now we have
         //   |        ||
         //  x_k^T -- Axk
@@ -283,20 +278,10 @@ namespace PITTS
       assert(right_xTAx.size() == nDim+1);
       assert(right_xTAx[nDim].r1() == 1);
       assert(right_xTAx[nDim].r2() == 1);
-      if( symmetricA )
-      {
-        TensorTrain<T> TTAx_ref(TTOpA.row_dimensions());
-        apply(TTOpA, TTx, TTAx_ref);
-        const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
-        assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
-      else
-      {
-        TensorTrain<T> TTAtAx_ref(TTOpAtA.row_dimensions());
-        apply(TTOpAtA, TTx, TTAtAx_ref);
-        const auto errAx = std::abs(axpby(1., TTAx, -1., TTAtAx_ref));
-        assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
+      TensorTrain<T> TTAx_ref(effTTOpA.row_dimensions());
+      apply(effTTOpA, TTx, TTAx_ref);
+      const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
+      assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
       const auto dot_ref = dot(TTx, TTAx);
       const auto err = std::abs(right_xTAx[nDim](0,0) - dot_ref);
       assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
@@ -306,16 +291,9 @@ namespace PITTS
 
     // calculate the error norm
     // ||Ax - b||_2^2 = <Ax - b, Ax - b> = <Ax,Ax> - 2<Ax, b> + <b,b>
-    T squaredError;
-    if( symmetricA )
-      squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,TTb);
-    else
-      squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,TTAtb);
+    T squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
     auto residualError = std::sqrt(std::abs(squaredError));
-    if( symmetricA )
-      std::cout << "Initial residual norm: " << residualError << "\n";
-    else
-      std::cout << "Initial residual norm of the normal equations: " << residualError << "\n";
+    std::cout << "Initial residual norm: " << residualError << "\n";
 
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
@@ -332,7 +310,7 @@ namespace PITTS
           // calculate sub-problem right-hand side
           Tensor3<T> t3_rhs;
           {
-            const auto& subTb = symmetricA ? TTb.subTensors()[iDim] : TTAtb.subTensors()[iDim];
+            const auto& subTb = effTTb.subTensors()[iDim];
             Tensor3<T> t3_tmp;
             // first contract: subTb(:,:,*) * t2(:,*)
             internal::dot_contract1(subTb, right_xTb.back(), t3_tmp);
@@ -345,7 +323,7 @@ namespace PITTS
             const auto& subTx = TTx.subTensors()[iDim];
             // contraction t3_rhs and subTx should give xTb, respectively xTAtb
             const auto xTb = internal::t3_dot(subTx, t3_rhs);
-            const auto xTb_ref = symmetricA ? dot(TTx, TTb) : dot(TTx, TTAtb);
+            const auto xTb_ref = dot(TTx, effTTb);
             const auto xTb_err = std::abs(xTb - xTb_ref);
             assert(xTb_err < std::sqrt(std::numeric_limits<T>::epsilon()));
           }
@@ -359,15 +337,14 @@ namespace PITTS
           // --- right_xTAx ---
           Tensor2<T> t2_op;
           {
-            const auto& TTOp = symmetricA ? TTOpA : TTOpAtA;
-            const auto& Ak = TTOp.tensorTrain().subTensors()[iDim];
+            const auto& Ak = effTTOpA.tensorTrain().subTensors()[iDim];
             const auto& lOp = left_xTAx.back();
             const auto& rOp = right_xTAx.back();
             Tensor3<T> t3_tmp;
             {
               const auto r1 = lOp.r1() / Ak.r1();
-              const auto n = TTOp.row_dimensions()[iDim];
-              const auto m = TTOp.column_dimensions()[iDim];
+              const auto n = effTTOpA.row_dimensions()[iDim];
+              const auto m = effTTOpA.column_dimensions()[iDim];
               const auto r2 = lOp.r2();
               const auto rA1 = Ak.r1();
               const auto rA2 = Ak.r2();
@@ -391,7 +368,7 @@ namespace PITTS
                       {
                         T tmp = T(0);
                         for(int l = 0; l < rA1; l++)
-                          tmp += lOp(i1+l*r1,k1) * Ak(l,TTOp.index(iDim,i2,k2),j);
+                          tmp += lOp(i1+l*r1,k1) * Ak(l,effTTOpA.index(iDim,i2,k2),j);
                         t3_tmp(k1 + i2*r1, j, i1 + k2*r2) = tmp;
                       }
             }
@@ -473,7 +450,6 @@ namespace PITTS
             TensorTrain<T> TTp(TTx.dimensions()), TTq(TTx.dimensions());
             copy(TTx, TTp);
             copy(TTx, TTq);
-            const auto& TTOp = symmetricA ? TTOpA : TTOpAtA;
             TensorTrain<T> TTAq(TTAx.dimensions());
             Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> t2_op_ref(t2_op.r1(), t2_op.r2());
             for(int i = 0; i < t2_op.r1(); i++)
@@ -488,7 +464,7 @@ namespace PITTS
                 int j2 = ( j / r1 ) % n;
                 int j3 = j / (n*r1);
                 TTq.editableSubTensors()[iDim].setUnit(j1, j2, j3);
-                apply(TTOp, TTq, TTAq);
+                apply(effTTOpA, TTq, TTAq);
                 t2_op_ref(i,j) = dot(TTp, TTAq);
               }
             }
@@ -558,7 +534,7 @@ namespace PITTS
 
         // prepare left/right xTb for the next iteration
         {
-          const auto& subTb = symmetricA ? TTb.subTensors()[iDim] : TTAtb.subTensors()[iDim];
+          const auto& subTb = effTTb.subTensors()[iDim];
           const auto& subTx = TTx.subTensors()[iDim];
 
           Tensor3<T> t3_tmp;
@@ -573,11 +549,10 @@ namespace PITTS
 
         // prepare left/right xTAx for the next iteration
         {
-          const auto& TTOp = symmetricA ? TTOpA : TTOpAtA;
-          const auto& subTOp = TTOp.tensorTrain().subTensors()[iDim];
+          const auto& subTOpA = effTTOpA.tensorTrain().subTensors()[iDim];
           const auto& subTx = TTx.subTensors()[iDim];
           auto& Axk = TTAx.editableSubTensors()[iDim];
-          internal::apply_contract(TTOp, iDim, subTOp, subTx, Axk);
+          internal::apply_contract(effTTOpA, iDim, subTOpA, subTx, Axk);
           // now we have
           //   ------ xTAx
           //   |        ||
@@ -606,28 +581,18 @@ namespace PITTS
 
           if( iDim+1 < nDim )
           {
-            const auto& subTOp_next = TTOp.tensorTrain().subTensors()[iDim+1];
+            const auto& subTOp_next = effTTOpA.tensorTrain().subTensors()[iDim+1];
             const auto& subTx_next = TTx.subTensors()[iDim+1];
             auto& Axk_next = TTAx.editableSubTensors()[iDim+1];
-            internal::apply_contract(TTOp, iDim+1, subTOp_next, subTx_next, Axk_next);
+            internal::apply_contract(effTTOpA, iDim+1, subTOp_next, subTx_next, Axk_next);
           }
         }
 
 #ifndef NDEBUG
-        if( symmetricA )
-        {
-          TensorTrain<T> TTAx_ref(TTOpA.row_dimensions());
-          apply(TTOpA, TTx, TTAx_ref);
-          const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
-          assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-        }
-        else
-        {
-          TensorTrain<T> TTAtAx_ref(TTOpAtA.row_dimensions());
-          apply(TTOpAtA, TTx, TTAtAx_ref);
-          const auto errAx = std::abs(axpby(1., TTAx, -1., TTAtAx_ref));
-          assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-        }
+        TensorTrain<T> TTAx_ref(effTTOpA.row_dimensions());
+        apply(effTTOpA, TTx, TTAx_ref);
+        const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
+        assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
 #endif
       }
 #ifndef NDEBUG
@@ -636,18 +601,9 @@ namespace PITTS
       assert(left_xTb.size() == nDim+1);
       assert(left_xTb[nDim].r1() == 1);
       assert(left_xTb[nDim].r2() == 1);
-      if( symmetricA )
-      {
-        const auto dot_ref = dot(TTx, TTb);
-        const auto err = std::abs(left_xTb[nDim](0,0) - dot_ref);
-        assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
-      else
-      {
-        const auto dot_ref = dot(TTx, TTAtb);
-        const auto err = std::abs(left_xTb[nDim](0,0) - dot_ref);
-        assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
+      const auto dot_ref = dot(TTx, effTTb);
+      const auto err = std::abs(left_xTb[nDim](0,0) - dot_ref);
+      assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
     }
 #endif
 #ifndef NDEBUG
@@ -656,35 +612,19 @@ namespace PITTS
       assert(left_xTAx.size() == nDim+1);
       assert(left_xTAx[nDim].r1() == 1);
       assert(left_xTAx[nDim].r2() == 1);
-      if( symmetricA )
-      {
-        TensorTrain<T> TTAx_ref(TTOpA.row_dimensions());
-        apply(TTOpA, TTx, TTAx_ref);
-        const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
-        assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
-      else
-      {
-        TensorTrain<T> TTAtAx_ref(TTOpAtA.row_dimensions());
-        apply(TTOpAtA, TTx, TTAtAx_ref);
-        const auto errAx = std::abs(axpby(1., TTAx, -1., TTAtAx_ref));
-        assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-      }
+      TensorTrain<T> TTAx_ref(effTTOpA.row_dimensions());
+      apply(effTTOpA, TTx, TTAx_ref);
+      const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
+      assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
       const auto dot_ref = dot(TTx, TTAx);
       const auto err = std::abs(left_xTAx[nDim](0,0) - dot_ref);
       assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
     }
 #endif
 
-      if( symmetricA )
-        squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,TTb);
-      else
-        squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,TTAtb);
+      squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
       residualError = std::sqrt(std::abs(squaredError));
-      if( symmetricA )
-        std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << "\n";
-      else
-        std::cout << "Sweep " << iSweep+0.5 << " residual norm of the normal equations: " << residualError << "\n";
+      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << "\n";
     }
 
 
