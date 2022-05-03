@@ -347,7 +347,6 @@ namespace PITTS
   //! Approximate x with Ax = b
   //!
   //! @tparam T             data type (double, float, complex)
-  //! @tparam MALS          set to zero to use ALS, and one to use MALS
   //!
   //! @param TTOpA          tensor-train operator A
   //! @param symmetricA     flag to indicate that A is symmetric / Hermitian
@@ -356,16 +355,18 @@ namespace PITTS
   //! @param nSweeps        desired number of MALS sweeps
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks in the iteration
   //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
+  //! @param MALS           set to false to use ALS, true for MALS
   //! @return               residual norm of the result (||Ax - b||)
   //!
-  template<typename T, bool MALS = 1>
+  template<typename T>
   T solveMALS(const TensorTrainOperator<T>& TTOpA,
               const bool symmetricA,
               const TensorTrain<T>& TTb,
               TensorTrain<T>& TTx,
               int nSweeps,
               T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
-              int maxRank = std::numeric_limits<int>::max()) 
+              int maxRank = std::numeric_limits<int>::max(),
+              bool MALS = true)
   {
     using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;

@@ -3,6 +3,7 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_random.hpp"
@@ -56,10 +57,10 @@ TEST(PITTS_TensorTrain_solve_mals, Opeye_ones_nDim6)
   TTx.setOnes();
 
   double error = solveMALS(TTOpA, true, TTb, TTx, 1, eps, 10);
-  EXPECT_NEAR(0, error, eps);
+  EXPECT_NEAR(0, error, eps*norm2(TTb));
 
   double errNrm = axpby(-1., TTb, 1., TTx);
-  EXPECT_NEAR(0, errNrm, eps);
+  EXPECT_NEAR(0, errNrm, eps*norm2(TTb));
 }
 
 TEST(PITTS_TensorTrain_solve_mals, Opeye_ones_nDim6_nonsymmetric_least_squares)
@@ -162,26 +163,6 @@ TEST(PITTS_TensorTrain_solve_mals, random_nDim2)
   EXPECT_NEAR(error_ref, error, eps);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, random_nDim6)
-{
-  TensorTrainOperator_double TTOpA(6,5,5);
-  TTOpA.setTTranks(2);
-  randomize(TTOpA);
-  TensorTrain_double TTx(6,5), TTb(6,5);
-  TTb.setTTranks(2);
-  randomize(TTb);
-  TTx.setTTranks(2);
-  randomize(TTx);
-
-  double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 10);
-  EXPECT_NEAR(0, error, eps);
-
-  TensorTrain_double TTAx(TTb.dimensions());
-  apply(TTOpA, TTx, TTAx);
-  double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, eps);
-}
-
 TEST(PITTS_TensorTrain_solve_mals, random_nDim6_nonsymmetric_least_squares)
 {
   TensorTrainOperator_double TTOpA(6,5,4);
@@ -189,18 +170,24 @@ TEST(PITTS_TensorTrain_solve_mals, random_nDim6_nonsymmetric_least_squares)
   randomize(TTOpA);
 
   TensorTrain_double TTx(6,4), TTb(6,5);
-  TTb.setTTranks(2);
-  randomize(TTb);
-  TTx.setTTranks(2);
+  TTb.setOnes();
+  TTx.setTTranks(3);
   randomize(TTx);
 
-  double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 10);
-  EXPECT_NEAR(0, error, eps);
+  double normalResidual = solveMALS(TTOpA, false, TTb, TTx, 3, eps, 5);
+  TensorTrain_double TTAtb(TTx.dimensions());
+  applyT(TTOpA, TTb, TTAtb);
+  EXPECT_NEAR(0, normalResidual, 0.5*norm2(TTAtb));
 
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
-  double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, eps);
+  TensorTrain_double TTAtAx(TTx.dimensions());
+  applyT(TTOpA, TTAx, TTAtAx);
+  const double normalResidual_ref = axpby(-1., TTAtb, 1., TTAtAx);
+  EXPECT_NEAR(normalResidual_ref, normalResidual, eps*norm2(TTAtb));
+
+  //const double residualError = axpby(-1., TTb, 1., TTAx);
+  //EXPECT_NEAR(0., residualError, 0.1);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, symmetric_random_nDim6_rank1)
