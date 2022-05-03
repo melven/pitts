@@ -142,6 +142,49 @@ namespace PITTS
               }
     }
 
+    template<typename T>
+    void als_op_contract2(const Tensor2<T>& rOp, const Tensor3<T>& t3, Tensor2<T>& t2_op)
+    {
+      const auto nr1 = t3.r1();
+      const auto rA2 = t3.n();
+      const auto mr2 = t3.r2();
+      const auto r1 = rOp.r1();
+      const auto r2 = rOp.r2() / rA2;
+
+      t2_op.resize(r1*nr1, r2*mr2);
+      for(int i1 = 0; i1 < nr1; i1++)
+        for(int i2 = 0; i2 < r1; i2++)
+          for(int j1 = 0; j1 < mr2; j1++)
+            for(int j2 = 0; j2 < r2; j2++)
+            {
+              T tmp = T(0);
+              for(int k = 0; k < rA2; k++)
+                tmp += rOp(i2,j2+k*r2) * t3(i1,k,j1);
+              t2_op(i1+i2*nr1, j1+j2*mr2) = tmp;
+            }
+    }
+
+    template<typename T>
+    auto flatten(const Tensor3<T>& t3)
+    {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
+      for(int i = 0; i < t3.r1(); i++)
+        for(int j = 0; j < t3.n(); j++)
+          for(int k = 0; k < t3.r2(); k++)
+            v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
+      return v;
+    };
+
+    template<typename T>
+    void unflatten(const Eigen::Matrix<T, Eigen::Dynamic, 1>& v, Tensor3<T>& t3)
+    {
+      assert(v.size() == t3.r1()*t3.n()*t3.r2());
+      for(int i = 0; i < t3.r1(); i++)
+        for(int j = 0; j < t3.n(); j++)
+          for(int k = 0; k < t3.r2(); k++)
+            t3(i,j,k) = v(i + j*t3.r1() + k*t3.n()*t3.r1());
+    }
+
   }
 
 
@@ -178,6 +221,9 @@ namespace PITTS
     if( TTx.dimensions() != TTOpA.column_dimensions() )
       throw std::invalid_argument("TensorTrain solveMALS dimension mismatch!");
 
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+
     const int nDim = TTx.subTensors().size();
     std::cout << "Warning: falling back to ALS for now\n";
     //const bool useMALS = nDim > 1 && MALS;
@@ -204,16 +250,6 @@ namespace PITTS
 
 #ifndef NDEBUG
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
-
-    constexpr auto flatten = [](const Tensor3<T>& t3)
-    {
-      Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
-      for(int i = 0; i < t3.r1(); i++)
-        for(int j = 0; j < t3.n(); j++)
-          for(int k = 0; k < t3.r2(); k++)
-            v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
-      return v;
-    };
 #endif
 
     // we store previous parts of x^Tb from left and right
@@ -358,7 +394,6 @@ namespace PITTS
           Tensor2<T> t2_op;
           {
             const auto& Ak = effTTOpA.tensorTrain().subTensors()[iDim];
-            const auto& lOp = left_xTAx.back();
             const auto& rOp = right_xTAx.back();
             Tensor3<T> t3_tmp;
             // first contract left_xTAx and A_k
@@ -368,65 +403,34 @@ namespace PITTS
             // --- t3_tmp ---
             //        |
             // --- right_xTAx ---
-            {
-              const auto nr1 = t3_tmp.r1();
-              const auto rA2 = t3_tmp.n();
-              const auto mr2 = t3_tmp.r2();
-              const auto r1 = rOp.r1();
-              const auto r2 = rOp.r2() / rA2;
-
-              t2_op.resize(r1*nr1, r2*mr2);
-              for(int i1 = 0; i1 < nr1; i1++)
-                for(int i2 = 0; i2 < r1; i2++)
-                  for(int j1 = 0; j1 < mr2; j1++)
-                    for(int j2 = 0; j2 < r2; j2++)
-                    {
-                      T tmp = T(0);
-                      for(int k = 0; k < rA2; k++)
-                        tmp += rOp(i2,j2+k*r2) * t3_tmp(i1,k,j1);
-                      t2_op(i1+i2*nr1, j1+j2*mr2) = tmp;
-                    }
-            }
+            internal::als_op_contract2(right_xTAx.back(), t3_tmp, t2_op);
           }
-          assert( std::abs( flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
+          assert( std::abs( internal::flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * internal::flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
           
 
           // solve sub-problem t2_op * x = t3_rhs
+          const vec x_ = ConstEigenMap(t2_op).colPivHouseholderQr().solve( internal::flatten(t3_rhs) );
           {
-            int r1 = t3_rhs.r1();
-            int m = t3_rhs.n();
-            int r2 = t3_rhs.r2();
-            Eigen::Matrix<T, Eigen::Dynamic, 1> b_(r1*m*r2);
-            for(int i = 0; i < r1; i++)
-              for(int j = 0; j < m; j++)
-                for(int k = 0; k < r2; k++)
-                  b_(i + j*r1 + k*m*r1) = t3_rhs(i,j,k);
-            assert( b_.size() == t2_op.r1() );
-
-            const Eigen::Matrix<T, Eigen::Dynamic, 1> x_ = ConstEigenMap(t2_op).colPivHouseholderQr().solve(b_);
 
             if( useMALS == 0 )
             {
               auto& subTx = TTx.editableSubTensors()[iDim];
-              assert( subTx.r1() == r1 );
-              assert( subTx.r2() == r2 );
+              const auto r1 = subTx.r1();
               const auto n = subTx.n();
-              assert(r1*n*r2 == x_.size());
+              const auto r2 = subTx.r2();
 
               if( iDim+1 == nDim )
               {
-                for(int i = 0; i < r1; i++)
-                  for(int j = 0; j < n; j++)
-                    for(int k = 0; k < r2; k++)
-                      subTx(i,j,k) = x_(i + j*r1 + k*n*r1);
+                internal::unflatten(x_, subTx);
               }
               else
               {
                 Tensor2<T> t2x(r1*n,r2);
-                for(int i = 0; i < r1; i++)
-                  for(int j = 0; j < n; j++)
-                    for(int k = 0; k < r2; k++)
-                      t2x(i+j*r1,k) = x_(i + j*r1 + k*n*r1);
+                EigenMap(t2x) = Eigen::Map<const mat>(x_.data(), r1*n, r2);
+                //for(int i = 0; i < r1; i++)
+                //  for(int j = 0; j < n; j++)
+                //    for(int k = 0; k < r2; k++)
+                //      t2x(i+j*r1,k) = x_(i + j*r1 + k*n*r1);
 
                 const auto [Q,B] = internal::normalize_qb(t2x);
                 const auto r2_new = Q.cols();
