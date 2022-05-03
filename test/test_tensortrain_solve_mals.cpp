@@ -155,12 +155,12 @@ TEST(PITTS_TensorTrain_solve_mals, random_nDim2)
   randomize(TTx);
 
   double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 10);
-  EXPECT_NEAR(0, error, eps);
+  EXPECT_NEAR(0, error, 1.e-5*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
   double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, eps);
+  EXPECT_NEAR(error_ref, error, 1.e-5*norm2(TTb));
 }
 
 TEST(PITTS_TensorTrain_solve_mals, random_nDim6_nonsymmetric_least_squares)
