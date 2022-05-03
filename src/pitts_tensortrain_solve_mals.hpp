@@ -252,31 +252,130 @@ namespace PITTS
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 #endif
 
+    // helper function that returns a 1x1 Tensor2 with value 1
+    constexpr auto Tensor2_one = []()
+    {
+      Tensor2<T> t2(1,1);
+      t2(0,0) = T(1);
+      return t2;
+    };
+
+    // calculate next part of x^Tb from right to left (like TT dot product and store all intermediate results)
+    constexpr auto calculate_next_right_xTb = [](const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
+    {
+      // first contraction: subTb(:,:,*) * prev_t2(:,*)
+      Tensor3<T> t3_tmp;
+      internal::dot_contract1(subTb, prev_xTb, t3_tmp);
+
+      // second contraction: subTx(:,*,*) * t3_tmp(:,*,*)
+      Tensor2<T> t2;
+      internal::dot_contract2(subTx, t3_tmp, t2);
+      return t2;
+    };
+
+    // calculate next part of x^Tb from left to right
+    constexpr auto calculate_next_left_xTb = [](const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
+    {
+      // first contraction: pve_t2(*,:) * subTb(*,:,:)
+      Tensor3<T> t3_tmp;
+      internal::reverse_dot_contract1(prev_xTb, subTb, t3_tmp);
+
+      // second contraction: t3(*,*,:) * subTx(*,*,:)
+      Tensor2<T> t2;
+      internal::reverse_dot_contract2(t3_tmp, subTx, t2);
+      return t2;
+    };
+
+    // calculate next part of x^TAx from right to left
+    // again like TT dot product but with Ax
+    // we have
+    //  |   |     |
+    //  -- xTAx --
+    //
+    // and we need for the next step
+    //   |        |      |
+    //  x_k^T -- A_k -- x_k
+    //   |        |      |
+    //   ------ xTAx -----
+    //
+    // Also calculates the current sub-tensor of A*x
+    //
+    constexpr auto calculate_next_right_xTAx = [](const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor3<T>& Ak, const Tensor3<T>& xk, const Tensor2<T>& prev_xTAx, Tensor3<T>& Axk)
+    {
+      // first contract A_k with x_k
+      //     |      |
+      // -- A_k -- x_k
+      //     |      |
+      //                    
+      //
+      internal::apply_contract(TTOpA, iDim, Ak, xk, Axk);
+      // now we have
+      //   |        ||
+      //  x_k^T -- Axk
+      //   |        ||
+      //   ------ xTAx
+
+      // now contract Axk and xTAx
+      //            ||
+      //        -- Axk
+      //            ||
+      //       -- xTAx
+      Tensor3<T> t3_tmp;
+      internal::dot_contract1(Axk, prev_xTAx, t3_tmp);
+      // now we have
+      //   |        ||
+      //  x_k^T --- t3
+      //   |________|
+      //
+      Tensor2<T> t2;
+      internal::dot_contract2(xk, t3_tmp, t2);
+      return t2;
+    };
+
+    // calculate next part of x^TAx from left to right
+    //
+    // Also calculates the current sub-tensor of A*x
+    //
+    constexpr auto calculate_next_left_xTAx = [](const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor3<T>& Ak, const Tensor3<T>& xk, const Tensor2<T>& prev_xTAx, Tensor3<T>& Axk)
+    {
+      internal::apply_contract(TTOpA, iDim, Ak, xk, Axk);
+      // now we have
+      //   ------ xTAx
+      //   |        ||
+      //  x_k^T -- Axk
+      //   |        ||
+
+      // now contract Axk and xTAx
+      //       -- xTAx
+      //            ||
+      //        -- Axk
+      //            ||
+      Tensor3<T> t3_tmp;
+      // first contraction: xTAx(*,:) * Axk(*,:,:)
+      internal::reverse_dot_contract1(prev_xTAx, Axk, t3_tmp);
+      // now we have
+      //   __________
+      //   |        |
+      //  x_k^T --- t3
+      //   |        ||
+      //
+      Tensor2<T> t2;
+      // second contraction: t3_tmp(*,*,:) * xk(*,*,:)
+      internal::reverse_dot_contract2(t3_tmp, xk, t2);
+      return t2;
+    };
+
+
     // we store previous parts of x^Tb from left and right
     // (respectively x^T A^T b for the non-symmetric case)
-    std::vector<Tensor2<T>> left_xTb(1);
-    left_xTb[0].resize(1,1);
-    left_xTb[0](0,0) = T(1);
-    std::vector<Tensor2<T>> right_xTb(1);
-    right_xTb[0].resize(1,1);
-    right_xTb[0](0,0) = T(1);
+    std::vector<Tensor2<T>> left_xTb, right_xTb;
+    left_xTb.emplace_back(Tensor2_one());
+    right_xTb.emplace_back(Tensor2_one());
+    
     // like TT dot product and store all intermediate results
-    {
-      Tensor3<T> t3;
-      for(int iDim = nDim-1; iDim >= 0; iDim--)
-      {
-        const auto& subTb = effTTb.subTensors()[iDim];
-        const auto& subTx = TTx.subTensors()[iDim];
+    for(int iDim = nDim-1; iDim >= 0; iDim--)
+      right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], right_xTb.back()) );
 
-        // first contraction: subT1(:,:,*) * t2(:,*)
-        internal::dot_contract1(subTb, right_xTb.back(), t3);
-
-        // second contraction: subT2(:,*,*) * t3(:,*,*)
-        Tensor2<T> t2;
-        internal::dot_contract2(subTx, t3, t2);
-        right_xTb.emplace_back(std::move(t2));
-      }
-    }
     assert(right_xTb.size() == nDim+1);
     assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
     assert( std::abs(right_xTb[nDim](0,0) - dot(TTx, effTTb)) < sqrt_eps );
@@ -284,63 +383,15 @@ namespace PITTS
 
     // we store previous parts of x^T A x
     // (respectively x^T A^T A x for the non-symmetric case)
-    std::vector<Tensor2<T>> left_xTAx(1);
-    left_xTAx[0].resize(1,1);
-    left_xTAx[0](0,0) = T(1);
-    std::vector<Tensor2<T>> right_xTAx(1);
-    right_xTAx[0].resize(1,1);
-    right_xTAx[0](0,0) = T(1);
+    std::vector<Tensor2<T>> left_xTAx, right_xTAx;
+    left_xTAx.emplace_back(Tensor2_one());
+    right_xTAx.emplace_back(Tensor2_one());
+
     // this includes a calculation of Ax, so reuse it
     TensorTrain<T> TTAx(effTTOpA.row_dimensions());
-    // again like TT dot product but with Ax
-    {
-      // we have
-      //  |   |     |
-      //  -- xTAx --
-      //
-      // and we need for the next step
-      //   |        |      |
-      //  x_k^T -- A_k -- x_k
-      //   |        |      |
-      //   ------ xTAx -----
-      //
+    for(int iDim = nDim-1; iDim >= 0; iDim--)
+      right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], right_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
 
-      for(int iDim = nDim-1; iDim >= 0; iDim--)
-      {
-        // first contract A_k with x_k
-        //     |      |
-        // -- A_k -- x_k
-        //     |      |
-        //                    
-        //
-        const auto& subTOpA = effTTOpA.tensorTrain().subTensors()[iDim];
-        const auto& subTx = TTx.subTensors()[iDim];
-        auto& Axk = TTAx.editableSubTensors()[iDim];
-        internal::apply_contract(effTTOpA, iDim, subTOpA, subTx, Axk);
-        // now we have
-        //   |        ||
-        //  x_k^T -- Axk
-        //   |        ||
-        //   ------ xTAx
-
-        // now contract Axk and xTAx
-        //            ||
-        //        -- Axk
-        //            ||
-        //       -- xTAx
-        Tensor3<T> t3;
-        internal::dot_contract1(Axk, right_xTAx.back(), t3);
-        // now we have
-        //   |        ||
-        //  x_k^T --- t3
-        //   |________|
-        //
-        Tensor2<T> next_xTAx;
-        internal::dot_contract2(subTx, t3, next_xTAx);
-
-        right_xTAx.emplace_back(std::move(next_xTAx));
-      }
-    }
     assert(right_xTAx.size() == nDim+1);
     assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
     assert( std::abs( right_xTAx[nDim](0,0) - dot(TTx, TTAx) ) < sqrt_eps );
@@ -393,16 +444,10 @@ namespace PITTS
           // --- right_xTAx ---
           Tensor2<T> t2_op;
           {
-            const auto& Ak = effTTOpA.tensorTrain().subTensors()[iDim];
-            const auto& rOp = right_xTAx.back();
             Tensor3<T> t3_tmp;
             // first contract left_xTAx and A_k
-            internal::als_op_contract1(effTTOpA, iDim, left_xTAx.back(), Ak, t3_tmp);
-
-            // now contract
-            // --- t3_tmp ---
-            //        |
-            // --- right_xTAx ---
+            internal::als_op_contract1(effTTOpA, iDim, left_xTAx.back(), effTTOpA.tensorTrain().subTensors()[iDim], t3_tmp);
+            // now contract t3_tmp and right_xTAx
             internal::als_op_contract2(right_xTAx.back(), t3_tmp, t2_op);
           }
           assert( std::abs( internal::flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * internal::flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
@@ -410,100 +455,49 @@ namespace PITTS
 
           // solve sub-problem t2_op * x = t3_rhs
           const vec x_ = ConstEigenMap(t2_op).colPivHouseholderQr().solve( internal::flatten(t3_rhs) );
+
+          if( useMALS == 0 )
           {
+            auto& subTx = TTx.editableSubTensors()[iDim];
+            const auto r1 = subTx.r1();
+            const auto n = subTx.n();
+            const auto r2 = subTx.r2();
 
-            if( useMALS == 0 )
+            if( iDim+1 == nDim )
             {
-              auto& subTx = TTx.editableSubTensors()[iDim];
-              const auto r1 = subTx.r1();
-              const auto n = subTx.n();
-              const auto r2 = subTx.r2();
+              internal::unflatten(x_, subTx);
+            }
+            else
+            {
+              Tensor2<T> t2x(r1*n,r2);
+              EigenMap(t2x) = Eigen::Map<const mat>(x_.data(), r1*n, r2);
 
-              if( iDim+1 == nDim )
-              {
-                internal::unflatten(x_, subTx);
-              }
-              else
-              {
-                Tensor2<T> t2x(r1*n,r2);
-                EigenMap(t2x) = Eigen::Map<const mat>(x_.data(), r1*n, r2);
-                //for(int i = 0; i < r1; i++)
-                //  for(int j = 0; j < n; j++)
-                //    for(int k = 0; k < r2; k++)
-                //      t2x(i+j*r1,k) = x_(i + j*r1 + k*n*r1);
+              const auto [Q,B] = internal::normalize_qb(t2x);
+              const auto r2_new = Q.cols();
+              subTx.resize(r1, n, r2_new);
+              internal::unflatten<T>(Eigen::Map<const vec>(Q.data(), r1*n*r2_new), subTx);
 
-                const auto [Q,B] = internal::normalize_qb(t2x);
-                const auto r2_new = Q.cols();
-                subTx.resize(r1, n, r2_new);
-                for(int i = 0; i < r1; i++)
-                  for(int j = 0; j < n; j++)
-                    for(int k = 0; k < r2_new; k++)
-                      subTx(i,j,k) = Q(i+j*r1,k);
-
-                // first contract t2x(:,*) * subT(*,:,:)
-                t2x.resize(r2_new,r2);
-                Tensor3<T> subTx_next;
-                internal::normalize_contract1(t2x, TTx.subTensors()[iDim+1], subTx_next);
-                std::swap(TTx.editableSubTensors()[iDim+1], subTx_next);
-              }
+              // first contract t2x(:,*) * subT(*,:,:)
+              t2x.resize(r2_new,r2);
+              EigenMap(t2x) = B;
+              Tensor3<T> subTx_next;
+              internal::normalize_contract1(t2x, TTx.subTensors()[iDim+1], subTx_next);
+              std::swap(TTx.editableSubTensors()[iDim+1], subTx_next);
             }
           }
+
         }
 
         // prepare left/right xTb for the next iteration
+        left_xTb.emplace_back( calculate_next_left_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], left_xTb.back()) );
+        left_xTAx.emplace_back( calculate_next_left_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], left_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
+
+        if( iDim+1 < nDim )
         {
-          const auto& subTb = effTTb.subTensors()[iDim];
-          const auto& subTx = TTx.subTensors()[iDim];
-
-          Tensor3<T> t3_tmp;
-          // first contraction: t2(*,:) * subTb(*,:,:)
-          internal::reverse_dot_contract1(left_xTb.back(), subTb, t3_tmp);
-
-          // second contraction: t3(*,*,:) * subTx(*,*,:)
-          Tensor2<T> t2;
-          internal::reverse_dot_contract2(t3_tmp, subTx, t2);
-          left_xTb.emplace_back(std::move(t2));
-        }
-
-        // prepare left/right xTAx for the next iteration
-        {
-          const auto& subTOpA = effTTOpA.tensorTrain().subTensors()[iDim];
-          const auto& subTx = TTx.subTensors()[iDim];
-          auto& Axk = TTAx.editableSubTensors()[iDim];
-          internal::apply_contract(effTTOpA, iDim, subTOpA, subTx, Axk);
-          // now we have
-          //   ------ xTAx
-          //   |        ||
-          //  x_k^T -- Axk
-          //   |        ||
-
-          // now contract Axk and xTAx
-          //       -- xTAx
-          //            ||
-          //        -- Axk
-          //            ||
-          Tensor3<T> t3;
-          // first contraction: xTAx(*,:) * Axk(*,:,:)
-          internal::reverse_dot_contract1(left_xTAx.back(), Axk, t3);
-          // now we have
-          //   __________
-          //   |        |
-          //  x_k^T --- t3
-          //   |        ||
-          //
-          Tensor2<T> next_xTAx;
-          // second contraction: t3(*,*,:) * subTx(*,*,:)
-          internal::reverse_dot_contract2(t3, subTx, next_xTAx);
-
-          left_xTAx.emplace_back(std::move(next_xTAx));
-
-          if( iDim+1 < nDim )
-          {
-            const auto& subTOp_next = effTTOpA.tensorTrain().subTensors()[iDim+1];
-            const auto& subTx_next = TTx.subTensors()[iDim+1];
-            auto& Axk_next = TTAx.editableSubTensors()[iDim+1];
-            internal::apply_contract(effTTOpA, iDim+1, subTOp_next, subTx_next, Axk_next);
-          }
+          const auto& Ak_next = effTTOpA.tensorTrain().subTensors()[iDim+1];
+          const auto& xk_next = TTx.subTensors()[iDim+1];
+          auto& Axk_next = TTAx.editableSubTensors()[iDim+1];
+          internal::apply_contract(effTTOpA, iDim+1, Ak_next, xk_next, Axk_next);
         }
 
         assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
