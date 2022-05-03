@@ -118,6 +118,30 @@ namespace PITTS
         }
     }
 
+    template<typename T>
+    void als_op_contract1(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor2<T>& lOp, const Tensor3<T>& Ak, Tensor3<T>& t3)
+    {
+      const auto r1 = lOp.r1() / Ak.r1();
+      const auto n = TTOp.row_dimensions()[iDim];
+      const auto m = TTOp.column_dimensions()[iDim];
+      const auto r2 = lOp.r2();
+      const auto rA1 = Ak.r1();
+      const auto rA2 = Ak.r2();
+
+      t3.resize(r1*n, rA2, r2*m);
+      for(int i1 = 0; i1 < r1; i1++)
+        for(int i2 = 0; i2 < n; i2++)
+          for(int j = 0; j < rA2; j++)
+            for(int k1 = 0; k1 < r2; k1++)
+              for(int k2 = 0; k2 < m; k2++)
+              {
+                T tmp = T(0);
+                for(int l = 0; l < rA1; l++)
+                  tmp += lOp(i1+l*r1,k1) * Ak(l,TTOp.index(iDim,i2,k2),j);
+                t3(k1 + i2*r1, j, i1 + k2*r2) = tmp;
+              }
+    }
+
   }
 
 
@@ -337,28 +361,10 @@ namespace PITTS
             const auto& lOp = left_xTAx.back();
             const auto& rOp = right_xTAx.back();
             Tensor3<T> t3_tmp;
-            {
-              const auto r1 = lOp.r1() / Ak.r1();
-              const auto n = effTTOpA.row_dimensions()[iDim];
-              const auto m = effTTOpA.column_dimensions()[iDim];
-              const auto r2 = lOp.r2();
-              const auto rA1 = Ak.r1();
-              const auto rA2 = Ak.r2();
+            // first contract left_xTAx and A_k
+            internal::als_op_contract1(effTTOpA, iDim, left_xTAx.back(), Ak, t3_tmp);
 
-              t3_tmp.resize(r1*n, rA2, r2*m);
-              for(int i1 = 0; i1 < r1; i1++)
-                for(int i2 = 0; i2 < n; i2++)
-                  for(int j = 0; j < rA2; j++)
-                    for(int k1 = 0; k1 < r2; k1++)
-                      for(int k2 = 0; k2 < m; k2++)
-                      {
-                        T tmp = T(0);
-                        for(int l = 0; l < rA1; l++)
-                          tmp += lOp(i1+l*r1,k1) * Ak(l,effTTOpA.index(iDim,i2,k2),j);
-                        t3_tmp(k1 + i2*r1, j, i1 + k2*r2) = tmp;
-                      }
-            }
-            // no contract
+            // now contract
             // --- t3_tmp ---
             //        |
             // --- right_xTAx ---
