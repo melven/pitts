@@ -66,28 +66,6 @@ namespace PITTS
       }
     }
 
-#ifndef NDEBUG
-    //! dot product between two Tensor3 (for checking correctness)
-    template<typename T>
-    T t3_dot(const Tensor3<T>& A, const Tensor3<T>& B)
-    {
-      const auto r1 = A.r1();
-      const auto n = A.n();
-      const auto r2 = A.r2();
-      assert(A.r1() == B.r1());
-      assert(A.n() == B.n());
-      assert(A.r2() == B.r2());
-
-      T result{};
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            result += A(i,j,k) * B(i,j,k);
-
-      return result;
-    }
-#endif
-
     //! contract Tensor3 and Tensor3 along the first two dimensions: A(*,*,:) * B(*,*,:)
     template<typename T>
     void reverse_dot_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
@@ -117,6 +95,28 @@ namespace PITTS
           C(i,j) = tmp;
         }
     }
+
+#ifndef NDEBUG
+    //! dot product between two Tensor3 (for checking correctness)
+    template<typename T>
+    T t3_dot(const Tensor3<T>& A, const Tensor3<T>& B)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto r2 = A.r2();
+      assert(A.r1() == B.r1());
+      assert(A.n() == B.n());
+      assert(A.r2() == B.r2());
+
+      T result{};
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+            result += A(i,j,k) * B(i,j,k);
+
+      return result;
+    }
+#endif
 
     template<typename T>
     void als_op_contract1(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor2<T>& lOp, const Tensor3<T>& Ak, Tensor3<T>& t3)
@@ -164,25 +164,179 @@ namespace PITTS
             }
     }
 
-    template<typename T>
-    auto flatten(const Tensor3<T>& t3)
-    {
-      Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
-      for(int i = 0; i < t3.r1(); i++)
-        for(int j = 0; j < t3.n(); j++)
-          for(int k = 0; k < t3.r2(); k++)
-            v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
-      return v;
-    };
 
-    template<typename T>
-    void unflatten(const Eigen::Matrix<T, Eigen::Dynamic, 1>& v, Tensor3<T>& t3)
+    //! dedicated helper functions for solveMALS
+    namespace solve_mals
     {
-      assert(v.size() == t3.r1()*t3.n()*t3.r2());
-      for(int i = 0; i < t3.r1(); i++)
-        for(int j = 0; j < t3.n(); j++)
-          for(int k = 0; k < t3.r2(); k++)
-            t3(i,j,k) = v(i + j*t3.r1() + k*t3.n()*t3.r1());
+      //! Tensor3 as vector
+      template<typename T>
+      auto flatten(const Tensor3<T>& t3)
+      {
+        Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
+        for(int i = 0; i < t3.r1(); i++)
+          for(int j = 0; j < t3.n(); j++)
+            for(int k = 0; k < t3.r2(); k++)
+              v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
+        return v;
+      };
+
+      //! vector as Tensor3 (with known dimensions)
+      template<typename T>
+      void unflatten(const Eigen::Matrix<T, Eigen::Dynamic, 1>& v, Tensor3<T>& t3)
+      {
+        assert(v.size() == t3.r1()*t3.n()*t3.r2());
+        for(int i = 0; i < t3.r1(); i++)
+          for(int j = 0; j < t3.n(); j++)
+            for(int k = 0; k < t3.r2(); k++)
+              t3(i,j,k) = v(i + j*t3.r1() + k*t3.n()*t3.r1());
+      }
+
+      //! calculate next part of x^Tb from right to left (like TT dot product bug allows to store all intermediate results)
+      template<typename T>
+      Tensor2<T> calculate_next_right_xTb(const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
+      {
+        // first contraction: subTb(:,:,*) * prev_t2(:,*)
+        Tensor3<T> t3_tmp;
+        internal::dot_contract1(subTb, prev_xTb, t3_tmp);
+
+        // second contraction: subTx(:,*,*) * t3_tmp(:,*,*)
+        Tensor2<T> t2;
+        internal::dot_contract2(subTx, t3_tmp, t2);
+        return t2;
+      }
+
+      //! calculate next part of x^Tb from left to right
+      template<typename T>
+      Tensor2<T> calculate_next_left_xTb(const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
+      {
+        // first contraction: pve_t2(*,:) * subTb(*,:,:)
+        Tensor3<T> t3_tmp;
+        internal::reverse_dot_contract1(prev_xTb, subTb, t3_tmp);
+
+        // second contraction: t3(*,*,:) * subTx(*,*,:)
+        Tensor2<T> t2;
+        internal::reverse_dot_contract2(t3_tmp, subTx, t2);
+        return t2;
+      }
+
+      //! calculate next part of x^TAx from right to left
+      //! again like TT dot product but with Ax
+      //! we have
+      //!  |   |     |
+      //!  -- xTAx --
+      //!
+      //! and we need for the next step
+      //!   |        |      |
+      //!  x_k^T -- A_k -- x_k
+      //!   |        |      |
+      //!   ------ xTAx -----
+      //!
+      //! Also calculates the current sub-tensor of A*x
+      //!
+      template<typename T>
+      Tensor2<T> calculate_next_right_xTAx(const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor3<T>& Ak, const Tensor3<T>& xk, const Tensor2<T>& prev_xTAx, Tensor3<T>& Axk)
+      {
+        // first contract A_k with x_k
+        //     |      |
+        // -- A_k -- x_k
+        //     |      |
+        //                    
+        //
+        internal::apply_contract(TTOpA, iDim, Ak, xk, Axk);
+        // now we have
+        //   |        ||
+        //  x_k^T -- Axk
+        //   |        ||
+        //   ------ xTAx
+
+        // now contract Axk and xTAx
+        //            ||
+        //        -- Axk
+        //            ||
+        //       -- xTAx
+        Tensor3<T> t3_tmp;
+        internal::dot_contract1(Axk, prev_xTAx, t3_tmp);
+        // now we have
+        //   |        ||
+        //  x_k^T --- t3
+        //   |________|
+        //
+        Tensor2<T> t2;
+        internal::dot_contract2(xk, t3_tmp, t2);
+        return t2;
+      }
+
+      //! calculate next part of x^TAx from left to right
+      //!
+      //! Also calculates the current sub-tensor of A*x
+      //!
+      template<typename T>
+      Tensor2<T> calculate_next_left_xTAx(const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor3<T>& Ak, const Tensor3<T>& xk, const Tensor2<T>& prev_xTAx, Tensor3<T>& Axk)
+      {
+        internal::apply_contract(TTOpA, iDim, Ak, xk, Axk);
+        // now we have
+        //   ------ xTAx
+        //   |        ||
+        //  x_k^T -- Axk
+        //   |        ||
+
+        // now contract Axk and xTAx
+        //       -- xTAx
+        //            ||
+        //        -- Axk
+        //            ||
+        Tensor3<T> t3_tmp;
+        // first contraction: xTAx(*,:) * Axk(*,:,:)
+        internal::reverse_dot_contract1(prev_xTAx, Axk, t3_tmp);
+        // now we have
+        //   __________
+        //   |        |
+        //  x_k^T --- t3
+        //   |        ||
+        //
+        Tensor2<T> t2;
+        // second contraction: t3_tmp(*,*,:) * xk(*,*,:)
+        internal::reverse_dot_contract2(t3_tmp, xk, t2);
+        return t2;
+      }
+
+      //! calculate the local RHS vector for ALS
+      //! --- left_xTb
+      //!        |
+      //!   --  b_k
+      //!        |
+      //! --- right_xTb
+      template<typename T>
+      Tensor3<T> calculate_local_rhs(const Tensor2<T>& left_xTb, const Tensor3<T>& subTb, const Tensor2<T>& right_xTb)
+      {
+
+        // first contract: subTb(:,:,*) * t2(:,*)
+        Tensor3<T> t3_tmp;
+        internal::dot_contract1(subTb, right_xTb, t3_tmp);
+
+        // then contract: t2(*,:) * t3_tmp(*,:,:)
+        Tensor3<T> t3_rhs;
+        internal::reverse_dot_contract1(left_xTb, t3_tmp, t3_rhs);
+        return t3_rhs;
+      }
+
+      //! calculate sub-problem operator
+      //! --- left_xTAx ---
+      //!        |
+      //!   --  A_k --
+      //!        |
+      //! --- right_xTAx ---
+      template<typename T>
+      Tensor2<T> calculate_local_op(const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor2<T>& left_xTAx, const Tensor3<T>& Ak, const Tensor2<T>& right_xTAx)
+      {
+        // first contract left_xTAx and A_k
+        Tensor3<T> t3_tmp;
+        internal::als_op_contract1(TTOpA, iDim, left_xTAx, Ak, t3_tmp);
+        // now contract t3_tmp and right_xTAx
+        Tensor2<T> t2_op;
+        internal::als_op_contract2(right_xTAx, t3_tmp, t2_op);
+        return t2_op;
+      }
     }
 
   }
@@ -213,6 +367,10 @@ namespace PITTS
               T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
               int maxRank = std::numeric_limits<int>::max()) 
   {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+    using namespace internal::solve_mals;
+
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
     // check that dimensions match
@@ -220,9 +378,6 @@ namespace PITTS
       throw std::invalid_argument("TensorTrain solveMALS dimension mismatch!");
     if( TTx.dimensions() != TTOpA.column_dimensions() )
       throw std::invalid_argument("TensorTrain solveMALS dimension mismatch!");
-
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
 
     const int nDim = TTx.subTensors().size();
     std::cout << "Warning: falling back to ALS for now\n";
@@ -247,6 +402,7 @@ namespace PITTS
     const auto effTTOpA = symmetricA ? TTOpA : TTOpAtA;
 
     const T bTb = dot(effTTb,effTTb);
+    const T sqrt_bTb = std::sqrt(bTb);
 
 #ifndef NDEBUG
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
@@ -257,111 +413,6 @@ namespace PITTS
     {
       Tensor2<T> t2(1,1);
       t2(0,0) = T(1);
-      return t2;
-    };
-
-    // calculate next part of x^Tb from right to left (like TT dot product and store all intermediate results)
-    constexpr auto calculate_next_right_xTb = [](const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
-    {
-      // first contraction: subTb(:,:,*) * prev_t2(:,*)
-      Tensor3<T> t3_tmp;
-      internal::dot_contract1(subTb, prev_xTb, t3_tmp);
-
-      // second contraction: subTx(:,*,*) * t3_tmp(:,*,*)
-      Tensor2<T> t2;
-      internal::dot_contract2(subTx, t3_tmp, t2);
-      return t2;
-    };
-
-    // calculate next part of x^Tb from left to right
-    constexpr auto calculate_next_left_xTb = [](const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
-    {
-      // first contraction: pve_t2(*,:) * subTb(*,:,:)
-      Tensor3<T> t3_tmp;
-      internal::reverse_dot_contract1(prev_xTb, subTb, t3_tmp);
-
-      // second contraction: t3(*,*,:) * subTx(*,*,:)
-      Tensor2<T> t2;
-      internal::reverse_dot_contract2(t3_tmp, subTx, t2);
-      return t2;
-    };
-
-    // calculate next part of x^TAx from right to left
-    // again like TT dot product but with Ax
-    // we have
-    //  |   |     |
-    //  -- xTAx --
-    //
-    // and we need for the next step
-    //   |        |      |
-    //  x_k^T -- A_k -- x_k
-    //   |        |      |
-    //   ------ xTAx -----
-    //
-    // Also calculates the current sub-tensor of A*x
-    //
-    constexpr auto calculate_next_right_xTAx = [](const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor3<T>& Ak, const Tensor3<T>& xk, const Tensor2<T>& prev_xTAx, Tensor3<T>& Axk)
-    {
-      // first contract A_k with x_k
-      //     |      |
-      // -- A_k -- x_k
-      //     |      |
-      //                    
-      //
-      internal::apply_contract(TTOpA, iDim, Ak, xk, Axk);
-      // now we have
-      //   |        ||
-      //  x_k^T -- Axk
-      //   |        ||
-      //   ------ xTAx
-
-      // now contract Axk and xTAx
-      //            ||
-      //        -- Axk
-      //            ||
-      //       -- xTAx
-      Tensor3<T> t3_tmp;
-      internal::dot_contract1(Axk, prev_xTAx, t3_tmp);
-      // now we have
-      //   |        ||
-      //  x_k^T --- t3
-      //   |________|
-      //
-      Tensor2<T> t2;
-      internal::dot_contract2(xk, t3_tmp, t2);
-      return t2;
-    };
-
-    // calculate next part of x^TAx from left to right
-    //
-    // Also calculates the current sub-tensor of A*x
-    //
-    constexpr auto calculate_next_left_xTAx = [](const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor3<T>& Ak, const Tensor3<T>& xk, const Tensor2<T>& prev_xTAx, Tensor3<T>& Axk)
-    {
-      internal::apply_contract(TTOpA, iDim, Ak, xk, Axk);
-      // now we have
-      //   ------ xTAx
-      //   |        ||
-      //  x_k^T -- Axk
-      //   |        ||
-
-      // now contract Axk and xTAx
-      //       -- xTAx
-      //            ||
-      //        -- Axk
-      //            ||
-      Tensor3<T> t3_tmp;
-      // first contraction: xTAx(*,:) * Axk(*,:,:)
-      internal::reverse_dot_contract1(prev_xTAx, Axk, t3_tmp);
-      // now we have
-      //   __________
-      //   |        |
-      //  x_k^T --- t3
-      //   |        ||
-      //
-      Tensor2<T> t2;
-      // second contraction: t3_tmp(*,*,:) * xk(*,*,:)
-      internal::reverse_dot_contract2(t3_tmp, xk, t2);
       return t2;
     };
 
@@ -410,11 +461,13 @@ namespace PITTS
     // ||Ax - b||_2^2 = <Ax - b, Ax - b> = <Ax,Ax> - 2<Ax, b> + <b,b>
     T squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
     auto residualError = std::sqrt(std::abs(squaredError));
-    std::cout << "Initial residual norm: " << residualError << "\n";
+    std::cout << "Initial residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel)\n";
 
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
+      if( residualError / sqrt_bTb < rankTolerance )
+        break;
 
       // sweep left to right
       for(int iDim = 0; iDim < nDim; iDim++)
@@ -425,36 +478,15 @@ namespace PITTS
         if( iDim + useMALS < nDim )
         {
           // calculate sub-problem right-hand side
-          Tensor3<T> t3_rhs;
-          {
-            const auto& subTb = effTTb.subTensors()[iDim];
-            Tensor3<T> t3_tmp;
-            // first contract: subTb(:,:,*) * t2(:,*)
-            internal::dot_contract1(subTb, right_xTb.back(), t3_tmp);
-            // then contract: t2(*,:) * t3_tmp(*,:,:)
-            internal::reverse_dot_contract1(left_xTb.back(), t3_tmp, t3_rhs);
-          }
+          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), effTTb.subTensors()[iDim], right_xTb.back());
           assert( std::abs( internal::t3_dot(TTx.subTensors()[iDim], t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // calculate sub-problem operator
-          // --- left_xTAx ---
-          //        |
-          //   --  A_k --
-          //        |
-          // --- right_xTAx ---
-          Tensor2<T> t2_op;
-          {
-            Tensor3<T> t3_tmp;
-            // first contract left_xTAx and A_k
-            internal::als_op_contract1(effTTOpA, iDim, left_xTAx.back(), effTTOpA.tensorTrain().subTensors()[iDim], t3_tmp);
-            // now contract t3_tmp and right_xTAx
-            internal::als_op_contract2(right_xTAx.back(), t3_tmp, t2_op);
-          }
-          assert( std::abs( internal::flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * internal::flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
+          const Tensor2<T> t2_op = calculate_local_op(effTTOpA, iDim, left_xTAx.back(), effTTOpA.tensorTrain().subTensors()[iDim], right_xTAx.back());
+          assert( std::abs( flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
           
-
           // solve sub-problem t2_op * x = t3_rhs
-          const vec x_ = ConstEigenMap(t2_op).colPivHouseholderQr().solve( internal::flatten(t3_rhs) );
+          const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
 
           if( useMALS == 0 )
           {
@@ -465,19 +497,19 @@ namespace PITTS
 
             if( iDim+1 == nDim )
             {
-              internal::unflatten(x_, subTx);
+              unflatten(x, subTx);
             }
             else
             {
               Tensor2<T> t2x(r1*n,r2);
-              EigenMap(t2x) = Eigen::Map<const mat>(x_.data(), r1*n, r2);
+              EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1*n, r2);
 
               const auto [Q,B] = internal::normalize_qb(t2x);
               const auto r2_new = Q.cols();
               subTx.resize(r1, n, r2_new);
-              internal::unflatten<T>(Eigen::Map<const vec>(Q.data(), r1*n*r2_new), subTx);
+              unflatten<T>(Eigen::Map<const vec>(Q.data(), r1*n*r2_new), subTx);
 
-              // first contract t2x(:,*) * subT(*,:,:)
+              // now contract B(:,*) * subT(*,:,:)
               t2x.resize(r2_new,r2);
               EigenMap(t2x) = B;
               Tensor3<T> subTx_next;
@@ -502,16 +534,105 @@ namespace PITTS
 
         assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
       }
-
+      assert(left_xTb.size() == nDim+1);
+      assert(left_xTb[nDim].r1() == 1 && left_xTb[nDim].r2() == 1);
       assert( std::abs( left_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
-      assert(right_xTAx.size() == 1);
       assert(left_xTAx.size() == nDim+1);
       assert(left_xTAx[nDim].r1() == 1 && left_xTAx[nDim].r2() == 1);
       assert( std::abs( left_xTAx[nDim](0,0) - dot(TTx,TTAx) ) < sqrt_eps );
+      assert(right_xTb.size() == 1);
+      assert(right_xTAx.size() == 1);
 
+
+      // check error
       squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
       residualError = std::sqrt(std::abs(squaredError));
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << "\n";
+      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel)\n";
+
+      if( residualError / sqrt_bTb < rankTolerance )
+        break;
+
+
+      // sweep right to left
+      for(int iDim = nDim-1; iDim >= 0; iDim--)
+      {
+        left_xTb.pop_back();
+        left_xTAx.pop_back();
+
+        if( iDim - useMALS >= 0 )
+        {
+          // calculate sub-problem right-hand side
+          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), effTTb.subTensors()[iDim], right_xTb.back());
+          assert( std::abs( internal::t3_dot(TTx.subTensors()[iDim], t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
+
+          // calculate sub-problem operator
+          const Tensor2<T> t2_op = calculate_local_op(effTTOpA, iDim, left_xTAx.back(), effTTOpA.tensorTrain().subTensors()[iDim], right_xTAx.back());
+          assert( std::abs( flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
+          
+          // solve sub-problem t2_op * x = t3_rhs
+          const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
+
+          if( useMALS == 0 )
+          {
+            auto& subTx = TTx.editableSubTensors()[iDim];
+            const auto r1 = subTx.r1();
+            const auto n = subTx.n();
+            const auto r2 = subTx.r2();
+
+            if( iDim == 0 )
+            {
+              unflatten(x, subTx);
+            }
+            else
+            {
+              Tensor2<T> t2x(r2*n,r1);
+              EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1, n*r2).transpose();
+
+              const auto [Q,B] = internal::normalize_qb(t2x);
+              const auto r1_new = Q.cols();
+              subTx.resize(r1_new, n, r2);
+              mat Qt = Q.transpose();
+              unflatten<T>(Eigen::Map<const vec>(Qt.data(), r1_new*n*r2), subTx);
+
+              // first contract subT(:,:,*) * B(*,:)
+              // now contract: subT(:,:,*) * B^T(:,*)
+              t2x.resize(r1_new,r1);
+              EigenMap(t2x) = B.transpose();
+              Tensor3<T> subTx_prev;
+              internal::dot_contract1(TTx.subTensors()[iDim-1], t2x, subTx_prev);
+              std::swap(TTx.editableSubTensors()[iDim-1], subTx_prev);
+            }
+          }
+        }
+
+        // prepare left/right xTb for the next iteration
+        right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], right_xTb.back()) );
+        right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], right_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
+
+        if( iDim > 0 )
+        {
+          const auto& Ak_prev = effTTOpA.tensorTrain().subTensors()[iDim-1];
+          const auto& xk_prev = TTx.subTensors()[iDim-1];
+          auto& Axk_prev = TTAx.editableSubTensors()[iDim-1];
+          internal::apply_contract(effTTOpA, iDim-1, Ak_prev, xk_prev, Axk_prev);
+        }
+
+        assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
+      }
+      assert(right_xTb.size() == nDim+1);
+      assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
+      assert( std::abs( right_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
+      assert(right_xTAx.size() == nDim+1);
+      assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
+      assert( std::abs( right_xTAx[nDim](0,0) - dot(TTx,TTAx) ) < sqrt_eps );
+      assert(left_xTb.size() == 1);
+      assert(left_xTAx.size() == 1);
+
+
+      // check error
+      squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
+      residualError = std::sqrt(std::abs(squaredError));
+      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel)\n";
     }
 
 

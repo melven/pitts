@@ -14,7 +14,7 @@ namespace
   using Tensor2_double = PITTS::Tensor2<double>;
   using Tensor3_double = PITTS::Tensor3<double>;
   using mat = Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>;
-  constexpr auto eps = 1.e-10;
+  constexpr auto eps = 1.e-7;
 }
 
 TEST(PITTS_TensorTrain_solve_mals, Opeye_ones_nDim1)
@@ -211,19 +211,32 @@ TEST(PITTS_TensorTrain_solve_mals, symmetric_random_nDim6_rank1)
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4);
+  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
   TTx_ref.setTTranks(1);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setTTranks(1);
-  randomize(TTx);
+  TTx.setOnes();
 
-  double error = solveMALS(TTOpA, true, TTb, TTx, 1, eps, 10);
-  EXPECT_NEAR(0, error, eps);
+  copy(TTx, TTdx);
+  double initialError = axpby(-1., TTx_ref, 1., TTdx);
+  apply(TTOpA, TTx, TTr);
+  double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
-  double errNrm = axpby(-1., TTx_ref, 1., TTx);
-  EXPECT_NEAR(0, errNrm, eps);
+
+  double residualNorm = solveMALS(TTOpA, true, TTb, TTx, 5, eps, 10);
+
+
+  apply(TTOpA, TTx, TTr);
+  double residualNorm_ref = axpby(-1., TTb, 1., TTr);
+  EXPECT_NEAR(residualNorm_ref, residualNorm, eps*initialResidualNorm);
+
+  std::cout << "initialResidualNorm: " << initialResidualNorm << ", newResidualNorm: " << residualNorm << "\n";
+
+  copy(TTx, TTdx);
+  double error = axpby(-1., TTx_ref, 1., TTdx);
+  std::cout << "initialError: " << initialError << ", newError: " << error << "\n";
+  EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, symmetric_random_nDim6)
@@ -234,18 +247,32 @@ TEST(PITTS_TensorTrain_solve_mals, symmetric_random_nDim6)
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4);
+  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setTTranks(2);
+  TTx.setTTranks(3);
   randomize(TTx);
 
-  double error = solveMALS(TTOpA, true, TTb, TTx, 1, eps, 10);
-  EXPECT_NEAR(0, error, eps);
+  copy(TTx, TTdx);
+  double initialError = axpby(-1., TTx_ref, 1., TTdx);
+  apply(TTOpA, TTx, TTr);
+  double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
-  double errNrm = axpby(-1., TTx_ref, 1., TTx);
-  EXPECT_NEAR(0, errNrm, eps);
+
+  double residualNorm = solveMALS(TTOpA, true, TTb, TTx, 5, eps, 10);
+
+
+  apply(TTOpA, TTx, TTr);
+  double residualNorm_ref = axpby(-1., TTb, 1., TTr);
+  EXPECT_NEAR(residualNorm_ref, residualNorm, eps*initialResidualNorm);
+
+  std::cout << "initialResidualNorm: " << initialResidualNorm << ", newResidualNorm: " << residualNorm << "\n";
+
+  copy(TTx, TTdx);
+  double error = axpby(-1., TTx_ref, 1., TTdx);
+  std::cout << "initialError: " << initialError << ", newError: " << error << "\n";
+  EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
