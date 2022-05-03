@@ -66,6 +66,7 @@ namespace PITTS
       }
     }
 
+#ifndef NDEBUG
     //! dot product between two Tensor3 (for checking correctness)
     template<typename T>
     T t3_dot(const Tensor3<T>& A, const Tensor3<T>& B)
@@ -85,6 +86,7 @@ namespace PITTS
 
       return result;
     }
+#endif
 
     //! contract Tensor3 and Tensor3 along the first two dimensions: A(*,*,:) * B(*,*,:)
     template<typename T>
@@ -176,6 +178,19 @@ namespace PITTS
 
     const T bTb = dot(effTTb,effTTb);
 
+#ifndef NDEBUG
+    constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+
+    constexpr auto flatten = [](const Tensor3<T>& t3)
+    {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
+      for(int i = 0; i < t3.r1(); i++)
+        for(int j = 0; j < t3.n(); j++)
+          for(int k = 0; k < t3.r2(); k++)
+            v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
+      return v;
+    };
+#endif
 
     // we store previous parts of x^Tb from left and right
     // (respectively x^T A^T b for the non-symmetric case)
@@ -202,16 +217,9 @@ namespace PITTS
         right_xTb.emplace_back(std::move(t2));
       }
     }
-#ifndef NDEBUG
-    {
-      assert(right_xTb.size() == nDim+1);
-      assert(right_xTb[nDim].r1() == 1);
-      assert(right_xTb[nDim].r2() == 1);
-      const auto dot_ref = dot(TTx, effTTb);
-      const auto err = std::abs(right_xTb[nDim](0,0) - dot_ref);
-      assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-    }
-#endif
+    assert(right_xTb.size() == nDim+1);
+    assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
+    assert( std::abs(right_xTb[nDim](0,0) - dot(TTx, effTTb)) < sqrt_eps );
 
 
     // we store previous parts of x^T A x
@@ -273,20 +281,18 @@ namespace PITTS
         right_xTAx.emplace_back(std::move(next_xTAx));
       }
     }
+    assert(right_xTAx.size() == nDim+1);
+    assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
+    assert( std::abs( right_xTAx[nDim](0,0) - dot(TTx, TTAx) ) < sqrt_eps );
 #ifndef NDEBUG
+    constexpr auto apply_error = [](const TensorTrainOperator<T>& A, const TensorTrain<T>& x, const TensorTrain<T>& Ax) -> T
     {
-      assert(right_xTAx.size() == nDim+1);
-      assert(right_xTAx[nDim].r1() == 1);
-      assert(right_xTAx[nDim].r2() == 1);
-      TensorTrain<T> TTAx_ref(effTTOpA.row_dimensions());
-      apply(effTTOpA, TTx, TTAx_ref);
-      const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
-      assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-      const auto dot_ref = dot(TTx, TTAx);
-      const auto err = std::abs(right_xTAx[nDim](0,0) - dot_ref);
-      assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-    }
+      TensorTrain<T> Ax_ref(A.row_dimensions());
+      apply(A, x, Ax_ref);
+      return std::abs(axpby(1., Ax, -1., Ax_ref));
+    };
 #endif
+    assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
 
 
     // calculate the error norm
@@ -317,17 +323,7 @@ namespace PITTS
             // then contract: t2(*,:) * t3_tmp(*,:,:)
             internal::reverse_dot_contract1(left_xTb.back(), t3_tmp, t3_rhs);
           }
-#ifndef NDEBUG
-          {
-            // check local RHS
-            const auto& subTx = TTx.subTensors()[iDim];
-            // contraction t3_rhs and subTx should give xTb, respectively xTAtb
-            const auto xTb = internal::t3_dot(subTx, t3_rhs);
-            const auto xTb_ref = dot(TTx, effTTb);
-            const auto xTb_err = std::abs(xTb - xTb_ref);
-            assert(xTb_err < std::sqrt(std::numeric_limits<T>::epsilon()));
-          }
-#endif
+          assert( std::abs( internal::t3_dot(TTx.subTensors()[iDim], t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // calculate sub-problem operator
           // --- left_xTAx ---
@@ -348,17 +344,7 @@ namespace PITTS
               const auto r2 = lOp.r2();
               const auto rA1 = Ak.r1();
               const auto rA2 = Ak.r2();
-//std::cout << "lOp.r1(): " << lOp.r1() << ", lOp.r2(): " << lOp.r2() << "\n";
-//std::cout << "   " << r1 << " x " << rA1 << " x " << r2 << "\n";
-// check symmetry
-/*
-{
-  for(int i1 = 0; i1 < r1; i1++)
-    for(int k1 = 0; k1 < r2; k1++)
-      for(int l = 0; l < rA1; l++)
-        assert(lOp(i1+l*r1,k1) == lOp(k1+l*r1,i1));
-}
-*/
+
               t3_tmp.resize(r1*n, rA2, r2*m);
               for(int i1 = 0; i1 < r1; i1++)
                 for(int i2 = 0; i2 < n; i2++)
@@ -382,27 +368,7 @@ namespace PITTS
               const auto mr2 = t3_tmp.r2();
               const auto r1 = rOp.r1();
               const auto r2 = rOp.r2() / rA2;
-/*
-{
-  std::cout << "rOp.r1(): " << rOp.r1() << ", rOp.r2(): " << rOp.r2() << "\n";
-  std::cout << "rOp: " << r1 << " x " << rA2 << " x " << r2 << "\n";
-  for(int k = 0; k < rA2; k++)
-  {
-    for(int i2 = 0; i2 < r1; i2++)
-    {
-      for(int j2 = 0; j2 < r2; j2++)
-        std::cout << " " << rOp(i2,j2+k*r2);
-      std::cout << "\n";
-    }
-    std::cout << "\n";
-  }
-  std::cout << std::endl;
-  for(int i2 = 0; i2 < r1; i2++)
-    for(int j2 = 0; j2 < r2; j2++)
-      for(int k = 0; k < rA2; k++)
-        assert( std::abs(rOp(i2+k*r1,j2) - rOp(j2+k*r1,i2)) < std::sqrt(std::numeric_limits<T>::epsilon())); 
-}
-*/
+
               t2_op.resize(r1*nr1, r2*mr2);
               for(int i1 = 0; i1 < nr1; i1++)
                 for(int i2 = 0; i2 < r1; i2++)
@@ -416,65 +382,7 @@ namespace PITTS
                     }
             }
           }
-#ifndef NDEBUG
-          {
-            // check local operator
-            const auto& subTx = TTx.subTensors()[iDim];
-            const auto r1 = subTx.r1();
-            const auto n = subTx.n();
-            const auto r2 = subTx.r2();
-            Eigen::Matrix<T, Eigen::Dynamic, 1> x_(r1*n*r2);
-            for(int i = 0; i < r1; i++)
-              for(int j = 0; j < n; j++)
-                for(int k = 0; k < r2; k++)
-                  x_(i + j*r1 + k*n*r1) = subTx(i,j,k);
-            assert(x_.size() == t2_op.r1());
-            assert(x_.size() == t2_op.r2());
-            const T xTAx = x_.transpose() * ConstEigenMap(t2_op) * x_;
-            const auto xTAx_ref = dot(TTx, TTAx);
-            const auto xTAx_err = std::abs(xTAx - xTAx_ref);
-            std::cout << "iSweep: " << iSweep << ", iDim: " << iDim << ", xTAx_err: " << xTAx_err << ", xTAx_ref: " << xTAx_ref << ", xTAx: " << xTAx << "\n";
-            //Eigen::Matrix<T, Eigen::Dynamic, 1> b_(r1*n*r2);
-            //assert(t3_rhs.r1() == r1);
-            //assert(t3_rhs.n() == n);
-            //assert(t3_rhs.r2() == r2);
-            //for(int i = 0; i < r1; i++)
-            //  for(int j = 0; j < n; j++)
-            //    for(int k = 0; k < r2; k++)
-            //      b_(i + j*r1 + k*n*r1) = t3_rhs(i,j,k);
-            //std::cout << "  local rhs:\n" << b_.transpose() << "\n";
-            //std::cout << "  local x:\n" << x_.transpose() << "\n";
-            //std::cout << "  local operator:\n" << ConstEigenMap(t2_op) << std::endl;
-            //std::cout << "  symmetry error: " << (ConstEigenMap(t2_op) - ConstEigenMap(t2_op).transpose()).norm() << "\n";
-            /*
-            TensorTrain<T> TTp(TTx.dimensions()), TTq(TTx.dimensions());
-            copy(TTx, TTp);
-            copy(TTx, TTq);
-            TensorTrain<T> TTAq(TTAx.dimensions());
-            Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> t2_op_ref(t2_op.r1(), t2_op.r2());
-            for(int i = 0; i < t2_op.r1(); i++)
-            {
-              for(int j = 0; j < t2_op.r2(); j++)
-              {
-                int i1 = i % r1;
-                int i2 = ( i / r1 ) % n;
-                int i3 = i / (n*r1);
-                TTp.editableSubTensors()[iDim].setUnit(i1, i2, i3);
-                int j1 = j % r1;
-                int j2 = ( j / r1 ) % n;
-                int j3 = j / (n*r1);
-                TTq.editableSubTensors()[iDim].setUnit(j1, j2, j3);
-                apply(effTTOpA, TTq, TTAq);
-                t2_op_ref(i,j) = dot(TTp, TTAq);
-              }
-            }
-            std::cout << "  local operator (ref):\n" << t2_op_ref << "\n";
-            std::cout << "  local operator error:\n" << ConstEigenMap(t2_op) - t2_op_ref << "\n";
-            std::cout << "  xTAx with t2_op_ref: " << x_.transpose() * t2_op_ref * x_ << "\n";
-            */
-            assert(xTAx_err < std::sqrt(std::numeric_limits<T>::epsilon()));
-          }
-#endif
+          assert( std::abs( flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
           
 
           // solve sub-problem t2_op * x = t3_rhs
@@ -588,39 +496,14 @@ namespace PITTS
           }
         }
 
-#ifndef NDEBUG
-        TensorTrain<T> TTAx_ref(effTTOpA.row_dimensions());
-        apply(effTTOpA, TTx, TTAx_ref);
-        const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
-        assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-#endif
+        assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
       }
-#ifndef NDEBUG
-    {
-      assert(right_xTb.size() == 1);
-      assert(left_xTb.size() == nDim+1);
-      assert(left_xTb[nDim].r1() == 1);
-      assert(left_xTb[nDim].r2() == 1);
-      const auto dot_ref = dot(TTx, effTTb);
-      const auto err = std::abs(left_xTb[nDim](0,0) - dot_ref);
-      assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-    }
-#endif
-#ifndef NDEBUG
-    {
+
+      assert( std::abs( left_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
       assert(right_xTAx.size() == 1);
       assert(left_xTAx.size() == nDim+1);
-      assert(left_xTAx[nDim].r1() == 1);
-      assert(left_xTAx[nDim].r2() == 1);
-      TensorTrain<T> TTAx_ref(effTTOpA.row_dimensions());
-      apply(effTTOpA, TTx, TTAx_ref);
-      const auto errAx = std::abs(axpby(1., TTAx, -1., TTAx_ref));
-      assert(errAx < std::sqrt(std::numeric_limits<T>::epsilon()));
-      const auto dot_ref = dot(TTx, TTAx);
-      const auto err = std::abs(left_xTAx[nDim](0,0) - dot_ref);
-      assert(err < std::sqrt(std::numeric_limits<T>::epsilon()));
-    }
-#endif
+      assert(left_xTAx[nDim].r1() == 1 && left_xTAx[nDim].r2() == 1);
+      assert( std::abs( left_xTAx[nDim](0,0) - dot(TTx,TTAx) ) < sqrt_eps );
 
       squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
       residualError = std::sqrt(std::abs(squaredError));
