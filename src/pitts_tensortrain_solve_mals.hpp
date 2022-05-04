@@ -608,7 +608,7 @@ namespace PITTS
               Tensor2<T> t2x(r1*n,r2);
               EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1*n, r2);
 
-              const auto [Q,B] = internal::normalize_qb(t2x);
+              const auto [Q,B] = internal::normalize_qb(t2x, rankTolerance, maxRank);
               const auto r2_new = Q.cols();
               subTx.resize(r1, n, r2_new);
               unflatten<T>(Eigen::Map<const vec>(Q.data(), r1*n*r2_new), subTx);
@@ -726,7 +726,7 @@ namespace PITTS
               Tensor2<T> t2x(r2*n,r1);
               EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1, n*r2).transpose();
 
-              const auto [Q,B] = internal::normalize_qb(t2x);
+              const auto [Q,B] = internal::normalize_qb(t2x, rankTolerance, maxRank);
               const auto r1_new = Q.cols();
               subTx.resize(r1_new, n, r2);
               mat Qt = Q.transpose();
