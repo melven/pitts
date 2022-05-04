@@ -19,6 +19,8 @@
 #include <iostream>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor3_combine.hpp"
+#include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_normalize.hpp"
@@ -119,11 +121,10 @@ namespace PITTS
 #endif
 
     template<typename T>
-    void als_op_contract1(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor2<T>& lOp, const Tensor3<T>& Ak, Tensor3<T>& t3)
+    void als_op_contract1(const Tensor2<T>& lOp, const Tensor3<T>& Ak, int n, Tensor3<T>& t3)
     {
       const auto r1 = lOp.r1() / Ak.r1();
-      const auto n = TTOp.row_dimensions()[iDim];
-      const auto m = TTOp.column_dimensions()[iDim];
+      const auto m = Ak.n() / n;
       const auto r2 = lOp.r2();
       const auto rA1 = Ak.r1();
       const auto rA2 = Ak.r2();
@@ -143,7 +144,7 @@ namespace PITTS
               {
                 T tmp = T(0);
                 for(int l = 0; l < rA1; l++)
-                  tmp += lOp(i1+l*r1,k1) * Ak(l,TTOp.index(iDim,i2,k2),j);
+                  tmp += lOp(i1+l*r1,k1) * Ak(l,i2+k2*n,j);
                 t3(k1 + i2*r1, j, i1 + k2*r2) = tmp;
               }
     }
@@ -174,6 +175,57 @@ namespace PITTS
                 tmp += rOp(i2,j2+k*r2) * t3(i1,k,j1);
               t2_op(i1+i2*nr1, j1+j2*mr2) = tmp;
             }
+    }
+
+    //! calculate the result of multiplying two rank-3 operator tensors (contraction of third and first dimension, reordering of middle dimension)
+    //!
+    //! The resulting tensor is t3c with
+    //!   t3c_(i,(k,l),j) = sum_l t3a_(i,(k1,l1),l) * t3b_(l,(k2,l2),j)
+    //! with a tensor product of the second dimensions.
+    //!
+    //! @tparam T  underlying data type (double, complex, ...)
+    //!
+    //! @param t3a    first rank-3 tensor
+    //! @param t3b    second rank-3 tensor
+    //! @param na     first middle dimensions of t3a
+    //! @param nb     first middle dimensions of t3b
+    //! @return       resulting t3c (see formula above)
+    //!
+    template<typename T>
+    auto combine_op(const Tensor3<T>& t3a, const Tensor3<T>& t3b, int na, int nb)
+    {
+      if( t3a.r2() != t3b.r1() )
+        throw std::invalid_argument("Dimension mismatch!");
+
+      // gather performance data
+      const auto r1 = t3a.r1();
+      assert(t3a.n() % na == 0);
+      const auto ma = t3a.n() / na;
+      const auto r = t3a.r2();
+      assert(t3b.n() % nb == 0);
+      const auto mb = t3b.n() / nb;
+      const auto r2 = t3b.r2();
+
+      const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+          {{"r1", "na", "ma", "r", "nb", "mb", "r2"}, {r1, na, ma, r, nb, mb, r2}},     // arguments
+          {{r1*r2*na*ma*nb*mb*r*kernel_info::FMA<T>()},    // flops
+          {(r1*na*ma*r + r*nb*mb*r2)*kernel_info::Load<T>() + r1*na*ma*nb*mb*r2*kernel_info::Store<T>()}}    // data transfers
+          );
+
+      Tensor3<T> t3c(r1,na*ma*nb*mb,r2);
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < r2; j++)
+          for(int k1 = 0; k1 < na; k1++)
+            for(int l1 = 0; l1 < ma; l1++)
+              for(int k2 = 0; k2 < nb; k2++)
+                for(int l2 = 0; l2 < mb; l2++)
+                {
+                  T tmp = T(0);
+                  for(int ii = 0; ii < r; ii++)
+                    tmp += t3a(i,k1+na*l1,ii) * t3b(ii,k2+nb*l2,j);
+                  t3c(i,(k1+na*k2)+(l1+ma*l2)*na*nb,j) = tmp;
+                }
+      return t3c;
     }
 
 
@@ -339,11 +391,11 @@ namespace PITTS
       //!        |
       //! --- right_xTAx ---
       template<typename T>
-      Tensor2<T> calculate_local_op(const TensorTrainOperator<T>& TTOpA, int iDim, const Tensor2<T>& left_xTAx, const Tensor3<T>& Ak, const Tensor2<T>& right_xTAx)
+      Tensor2<T> calculate_local_op(const Tensor2<T>& left_xTAx, const Tensor3<T>& Ak, int nAk, const Tensor2<T>& right_xTAx)
       {
         // first contract left_xTAx and A_k
         Tensor3<T> t3_tmp;
-        internal::als_op_contract1(TTOpA, iDim, left_xTAx, Ak, t3_tmp);
+        internal::als_op_contract1(left_xTAx, Ak, nAk, t3_tmp);
         // now contract t3_tmp and right_xTAx
         Tensor2<T> t2_op;
         internal::als_op_contract2(right_xTAx, t3_tmp, t2_op);
@@ -393,9 +445,7 @@ namespace PITTS
       throw std::invalid_argument("TensorTrain solveMALS dimension mismatch!");
 
     const int nDim = TTx.subTensors().size();
-    std::cout << "Warning: falling back to ALS for now\n";
-    //const bool useMALS = nDim > 1 && MALS;
-    const bool useMALS = 0;
+    const bool useMALS = nDim > 1 && MALS;
 
     // first left-normalize x
     rightNormalize(TTx, rankTolerance, maxRank);
@@ -482,26 +532,52 @@ namespace PITTS
       if( residualError / sqrt_bTb < rankTolerance )
         break;
 
-      // sweep left to right
-      for(int iDim = 0; iDim < nDim; iDim++)
+      if( useMALS )
       {
         right_xTb.pop_back();
         right_xTAx.pop_back();
+      }
 
+      // sweep left to right
+      for(int iDim = 0; iDim < nDim; iDim++)
+      {
         if( iDim + useMALS < nDim )
         {
+          right_xTb.pop_back();
+          right_xTAx.pop_back();
+
+          Tensor3<T> t3x, t3b;
+          Tensor3<T> t3A;
+          int nA;
+          if( !useMALS )
+          {
+            copy(effTTb.subTensors()[iDim], t3b);
+            copy(TTx.subTensors()[iDim], t3x);
+            copy(effTTOpA.tensorTrain().subTensors()[iDim], t3A);
+            nA = effTTOpA.row_dimensions()[iDim];
+          }
+          else // useMALS
+          {
+            copy(combine(effTTb.subTensors()[iDim], effTTb.subTensors()[iDim+1]), t3b);
+            copy(combine(TTx.subTensors()[iDim], TTx.subTensors()[iDim+1]), t3x);
+            const int n1 = effTTOpA.row_dimensions()[iDim];
+            const int n2 = effTTOpA.row_dimensions()[iDim+1];
+            copy(internal::combine_op(effTTOpA.tensorTrain().subTensors()[iDim], effTTOpA.tensorTrain().subTensors()[iDim+1], n1, n2), t3A);
+            nA = n1*n2;
+          }
+
           // calculate sub-problem right-hand side
-          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), effTTb.subTensors()[iDim], right_xTb.back());
-          assert( std::abs( internal::t3_dot(TTx.subTensors()[iDim], t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
+          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), t3b, right_xTb.back());
+          assert( std::abs( internal::t3_dot(t3x, t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // calculate sub-problem operator
-          const Tensor2<T> t2_op = calculate_local_op(effTTOpA, iDim, left_xTAx.back(), effTTOpA.tensorTrain().subTensors()[iDim], right_xTAx.back());
-          assert( std::abs( flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
+          const Tensor2<T> t2_op = calculate_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back());
+          assert( std::abs( flatten(t3x).transpose() * ConstEigenMap(t2_op) * flatten(t3x) - dot(TTx,TTAx) ) < sqrt_eps );
           
           // solve sub-problem t2_op * x = t3_rhs
           const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
 
-          if( useMALS == 0 )
+          if( !useMALS )
           {
             auto& subTx = TTx.editableSubTensors()[iDim];
             const auto r1 = subTx.r1();
@@ -529,6 +605,15 @@ namespace PITTS
               internal::normalize_contract1(t2x, TTx.subTensors()[iDim+1], subTx_next);
               std::swap(TTx.editableSubTensors()[iDim+1], subTx_next);
             }
+          }
+          else // useMALS
+          {
+            unflatten(x, t3x);
+            const int n1 = TTx.dimensions()[iDim];
+            const int n2 = TTx.dimensions()[iDim+1];
+            auto [xk,xk_next] = split(t3x, n1, n2, true);
+            std::swap(TTx.editableSubTensors()[iDim], xk);
+            std::swap(TTx.editableSubTensors()[iDim+1], xk_next);
           }
 
         }
@@ -565,27 +650,52 @@ namespace PITTS
       if( residualError / sqrt_bTb < rankTolerance )
         break;
 
+      if( useMALS )
+      {
+        left_xTb.pop_back();
+        left_xTAx.pop_back();
+      }
 
       // sweep right to left
       for(int iDim = nDim-1; iDim >= 0; iDim--)
       {
-        left_xTb.pop_back();
-        left_xTAx.pop_back();
-
         if( iDim - useMALS >= 0 )
         {
+          left_xTb.pop_back();
+          left_xTAx.pop_back();
+
+          Tensor3<T> t3x, t3b;
+          Tensor3<T> t3A;
+          int nA;
+          if( !useMALS )
+          {
+            copy(effTTb.subTensors()[iDim], t3b);
+            copy(TTx.subTensors()[iDim], t3x);
+            copy(effTTOpA.tensorTrain().subTensors()[iDim], t3A);
+            nA = effTTOpA.row_dimensions()[iDim];
+          }
+          else // useMALS
+          {
+            copy(combine(effTTb.subTensors()[iDim-1], effTTb.subTensors()[iDim]), t3b);
+            copy(combine(TTx.subTensors()[iDim-1], TTx.subTensors()[iDim]), t3x);
+            const int n1 = effTTOpA.row_dimensions()[iDim-1];
+            const int n2 = effTTOpA.row_dimensions()[iDim];
+            copy(internal::combine_op(effTTOpA.tensorTrain().subTensors()[iDim-1], effTTOpA.tensorTrain().subTensors()[iDim], n1, n2), t3A);
+            nA = n1*n2;
+          }
+
           // calculate sub-problem right-hand side
-          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), effTTb.subTensors()[iDim], right_xTb.back());
-          assert( std::abs( internal::t3_dot(TTx.subTensors()[iDim], t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
+          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), t3b, right_xTb.back());
+          assert( std::abs( internal::t3_dot(t3x, t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // calculate sub-problem operator
-          const Tensor2<T> t2_op = calculate_local_op(effTTOpA, iDim, left_xTAx.back(), effTTOpA.tensorTrain().subTensors()[iDim], right_xTAx.back());
-          assert( std::abs( flatten(TTx.subTensors()[iDim]).transpose() * ConstEigenMap(t2_op) * flatten(TTx.subTensors()[iDim]) - dot(TTx,TTAx) ) < sqrt_eps );
+          const Tensor2<T> t2_op = calculate_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back());
+          assert( std::abs( flatten(t3x).transpose() * ConstEigenMap(t2_op) * flatten(t3x) - dot(TTx,TTAx) ) < sqrt_eps );
           
           // solve sub-problem t2_op * x = t3_rhs
           const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
 
-          if( useMALS == 0 )
+          if( !useMALS )
           {
             auto& subTx = TTx.editableSubTensors()[iDim];
             const auto r1 = subTx.r1();
@@ -615,6 +725,15 @@ namespace PITTS
               internal::dot_contract1(TTx.subTensors()[iDim-1], t2x, subTx_prev);
               std::swap(TTx.editableSubTensors()[iDim-1], subTx_prev);
             }
+          }
+          else // useMALS
+          {
+            unflatten(x, t3x);
+            const int n1 = TTx.dimensions()[iDim-1];
+            const int n2 = TTx.dimensions()[iDim];
+            auto [xk_prev,xk] = split(t3x, n1, n2, false);
+            std::swap(TTx.editableSubTensors()[iDim-1], xk_prev);
+            std::swap(TTx.editableSubTensors()[iDim], xk);
           }
         }
 
