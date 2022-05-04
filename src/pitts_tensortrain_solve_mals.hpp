@@ -128,6 +128,12 @@ namespace PITTS
       const auto rA1 = Ak.r1();
       const auto rA2 = Ak.r2();
 
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "m", "r2", "rA1", "rA2"},{r1, n, m, r2, rA1, rA2}}, // arguments
+        {{r1*n*rA2*r2*m*rA1*kernel_info::FMA<T>()}, // flops
+         {(r1*rA1*r2 + rA1*n*m*rA2)*kernel_info::Load<T>() + (r1*n*rA2*r2*m)*kernel_info::Store<T>()}} // data transfers
+        );
+
       t3.resize(r1*n, rA2, r2*m);
       for(int i1 = 0; i1 < r1; i1++)
         for(int i2 = 0; i2 < n; i2++)
@@ -150,6 +156,12 @@ namespace PITTS
       const auto mr2 = t3.r2();
       const auto r1 = rOp.r1();
       const auto r2 = rOp.r2() / rA2;
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"nr1", "rA2", "mr2", "r1", "r2"},{nr1, rA2, mr2, r1, r2}}, // arguments
+        {{nr1*r1*mr2*r2*rA2*kernel_info::FMA<T>()}, // flops
+         {(r1*rA2*r2 + nr1*rA2*mr2)*kernel_info::Load<T>() + (nr1*r1*mr2*r2)*kernel_info::Store<T>()}} // data transfers
+        );
 
       t2_op.resize(r1*nr1, r2*mr2);
       for(int i1 = 0; i1 < nr1; i1++)
