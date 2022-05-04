@@ -232,6 +232,21 @@ namespace PITTS
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
+      //! helper function for converting an array to a string
+      template<typename T>
+      std::string to_string(const std::vector<T>& v)
+      {
+        std::string result = "[";
+        for(int i = 0; i < v.size(); i++)
+        {
+          if( i > 0 )
+            result += ", ";
+          result += std::to_string(v[i]);
+        }
+        result += "]";
+        return result;
+      }
+
       //! Tensor3 as vector
       template<typename T>
       auto flatten(const Tensor3<T>& t3)
@@ -524,7 +539,7 @@ namespace PITTS
     // ||Ax - b||_2^2 = <Ax - b, Ax - b> = <Ax,Ax> - 2<Ax, b> + <b,b>
     T squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
     auto residualError = std::sqrt(std::abs(squaredError));
-    std::cout << "Initial residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel)\n";
+    std::cout << "Initial residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
 
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
@@ -645,7 +660,7 @@ namespace PITTS
       // check error
       squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
       residualError = std::sqrt(std::abs(squaredError));
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel)\n";
+      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
 
       if( residualError / sqrt_bTb < rankTolerance )
         break;
@@ -764,7 +779,7 @@ namespace PITTS
       // check error
       squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
       residualError = std::sqrt(std::abs(squaredError));
-      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel)\n";
+      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
     }
 
 
