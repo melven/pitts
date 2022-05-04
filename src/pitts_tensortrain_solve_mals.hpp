@@ -529,7 +529,7 @@ namespace PITTS
     {
       TensorTrain<T> Ax_ref(A.row_dimensions());
       apply(A, x, Ax_ref);
-      return std::abs(axpby(1., Ax, -1., Ax_ref));
+      return std::abs(axpby(T(1), Ax, T(-1), Ax_ref));
     };
 #endif
     assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
