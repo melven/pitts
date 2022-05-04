@@ -626,7 +626,7 @@ namespace PITTS
             unflatten(x, t3x);
             const int n1 = TTx.dimensions()[iDim];
             const int n2 = TTx.dimensions()[iDim+1];
-            auto [xk,xk_next] = split(t3x, n1, n2, true);
+            auto [xk,xk_next] = split(t3x, n1, n2, true, rankTolerance, maxRank);
             std::swap(TTx.editableSubTensors()[iDim], xk);
             std::swap(TTx.editableSubTensors()[iDim+1], xk_next);
           }
@@ -746,7 +746,7 @@ namespace PITTS
             unflatten(x, t3x);
             const int n1 = TTx.dimensions()[iDim-1];
             const int n2 = TTx.dimensions()[iDim];
-            auto [xk_prev,xk] = split(t3x, n1, n2, false);
+            auto [xk_prev,xk] = split(t3x, n1, n2, false, rankTolerance, maxRank);
             std::swap(TTx.editableSubTensors()[iDim-1], xk_prev);
             std::swap(TTx.editableSubTensors()[iDim], xk);
           }
