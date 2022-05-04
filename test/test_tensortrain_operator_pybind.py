@@ -121,6 +121,27 @@ class TestTensorTrainOperator(unittest.TestCase):
 
         ttOp.setEye()
         pitts_py.randomize(ttX)
+        pitts_py.applyT(ttOp, ttX, ttY)
+        err = pitts_py.axpby(-1, ttX, 1, ttY)
+        self.assertLess(err, 1.e-8)
+
+    def test_applyT_zero(self):
+        ttOp = pitts_py.TensorTrainOperator_double([2,3,2],[3,4,1])
+        ttX = pitts_py.TensorTrain_double([2,3,2])
+        ttY = pitts_py.TensorTrain_double([3,4,1])
+
+        ttOp.setZero()
+        pitts_py.randomize(ttX)
+        pitts_py.applyT(ttOp, ttX, ttY)
+        self.assertEqual(0, pitts_py.norm2(ttY))
+
+    def test_applyT_identity(self):
+        ttOp = pitts_py.TensorTrainOperator_double([5,3,3],[5,3,3])
+        ttX = pitts_py.TensorTrain_double([5,3,3])
+        ttY = pitts_py.TensorTrain_double([5,3,3])
+
+        ttOp.setEye()
+        pitts_py.randomize(ttX)
         pitts_py.apply(ttOp, ttX, ttY)
         err = pitts_py.axpby(-1, ttX, 1, ttY)
         self.assertLess(err, 1.e-8)
@@ -157,6 +178,29 @@ class TestTensorTrainOperator(unittest.TestCase):
 
         err = pitts_py.axpby(-nrm, ttY12, 1., ttY)
         self.assertLess(err, 1.e-8)
+
+    def test_apply_op(self):
+        ttOpA = pitts_py.TensorTrainOperator_double([2,3,2],[3,4,1])
+        ttOpB = pitts_py.TensorTrainOperator_double([3,4,1],[3,2,3])
+        ttOpC = pitts_py.TensorTrainOperator_double([2,3,2],[3,2,3])
+        ttX = pitts_py.TensorTrain_double([3,2,3])
+        ttY = pitts_py.TensorTrain_double([3,4,1])
+        ttZ = pitts_py.TensorTrain_double([2,3,2])
+        ttZ_ref = pitts_py.TensorTrain_double([2,3,2])
+
+        pitts_py.randomize(ttOpA)
+        pitts_py.randomize(ttOpB)
+        pitts_py.randomize(ttX)
+
+        pitts_py.apply(ttOpA, ttOpB, ttOpC)
+
+        pitts_py.apply(ttOpC, ttX, ttZ)
+        
+        pitts_py.apply(ttOpB, ttX, ttY)
+        pitts_py.apply(ttOpA, ttY, ttZ_ref)
+
+        error = pitts_py.axpby(1., ttZ_ref, -1., ttZ)
+        self.assertLess(error, 1.e-8)
 
     def test_axpby_dimensionMismatch(self):
         ttOp = pitts_py.TensorTrainOperator_double([2,4,3],[2,2,2])
