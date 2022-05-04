@@ -16,6 +16,8 @@
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
+#include "pitts_tensortrain_operator_apply_op.hpp"
+#include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_scope_info.hpp"
 
@@ -141,10 +143,21 @@ namespace PITTS
             py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),
             "Apply a tensor train operator\n\nCalculate TTy <- TTOp * TTx");
 
+        m.def("apply",
+            py::overload_cast< const TensorTrainOperator<T>&, const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&apply<T>),
+            py::arg("TTOpA"), py::arg("TTOpB"), py::arg("TTOpC"),
+            "Apply a TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA * TTOpB");
+
         m.def("applyT",
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrain<T>&, TensorTrain<T>& >(&applyT<T>),
             py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),
             "Apply a transposed tensor train operator\n\nCalculate TTy <- TTOp^T * TTx");
+
+        m.def("applyT",
+            py::overload_cast< const TensorTrainOperator<T>&, const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&applyT<T>),
+            py::arg("TTOpA"), py::arg("TTOpB"), py::arg("TTOpC"),
+            "Apply a transposed TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA^T * TTOpB");
+
       }
     }
 
