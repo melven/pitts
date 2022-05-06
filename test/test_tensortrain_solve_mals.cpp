@@ -173,9 +173,10 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2_rank1)
   TensorTrain_double TTx(2,5), TTb(2,5);
   TTb.setTTranks(1);
   randomize(TTb);
+  normalize(TTb);
   randomize(TTx);
 
-  double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 10, false);
+  double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 2, false);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -192,9 +193,10 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
   TensorTrain_double TTx(2,5), TTb(2,5);
   TTb.setTTranks(1);
   randomize(TTb);
+  normalize(TTb);
   randomize(TTx);
 
-  double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 10, true);
+  double error = solveMALS(TTOpA, false, TTb, TTx, 5, eps, 3, true);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -328,7 +330,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim6_rank1)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  double residualNorm = solveMALS(TTOpA, true, TTb, TTx, 5, eps, 10, false);
+  double residualNorm = solveMALS(TTOpA, true, TTb, TTx, 5, eps, 2, false);
 
 
   apply(TTOpA, TTx, TTr);
@@ -364,7 +366,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6_rank1)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  double residualNorm = solveMALS(TTOpA, true, TTb, TTx, 5, eps, 10, true);
+  double residualNorm = solveMALS(TTOpA, true, TTb, TTx, 5, eps, 2, true);
 
 
   apply(TTOpA, TTx, TTr);
@@ -423,6 +425,12 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6)
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  normalize(TTOpA);
+
+  TensorTrainOperator_double TTOpI(6,4,4);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/10, TTOpA);
 
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
   TTx_ref.setTTranks(2);
