@@ -210,19 +210,24 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2)
   TensorTrainOperator_double TTOpA(2,2,2);
   TTOpA.setTTranks(2);
   randomize(TTOpA);
+  normalize(TTOpA);
+  TensorTrainOperator_double TTOpI(2,2,2);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/10, TTOpA);
+
   TensorTrain_double TTx(2,2), TTb(2,2);
   TTb.setTTranks(2);
   randomize(TTb);
-  TTx.setTTranks(2);
-  randomize(TTx);
+  copy(TTb, TTx);
 
-  double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 10, false);
+  double error = solveMALS(TTOpA, false, TTb, TTx, 2, eps, 10, false);
   EXPECT_NEAR(0, error, 1.e-5*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
   double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, 1.e-5*norm2(TTb));
+  EXPECT_NEAR(error_ref, error, 1.e-4*norm2(TTb));
 }
 
 TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2)

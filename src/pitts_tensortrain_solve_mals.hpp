@@ -124,6 +124,29 @@ namespace PITTS
       return result;
     }
 
+    //! norm of a Tensor3
+    template<typename T>
+    T t3_nrm(const Tensor3<T>& A)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto r2 = A.r2();
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{r1*n*r2*kernel_info::FMA<T>()}, // flops
+         {(r1*n*r2)*kernel_info::Load<T>()}} // data transfers
+        );
+
+      T result{};
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+            result += A(i,j,k) * A(i,j,k);
+
+      return std::sqrt(result);
+    }
+
     //! axpy operation for two Tensor3 (with matching dimensions)
     template<typename T>
     void t3_axpy(T alpha, const Tensor3<T>& x, Tensor3<T>& y)
@@ -145,6 +168,113 @@ namespace PITTS
         for(int j = 0; j < n; j++)
           for(int k = 0; k < r2; k++)
             y(i,j,k) += alpha * x(i,j,k);
+    }
+
+    //! scale operation for a Tensor3
+    template<typename T>
+    void t3_scale(T alpha, Tensor3<T>& x)
+    {
+      const auto r1 = x.r1();
+      const auto n = x.n();
+      const auto r2 = x.r2();
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{r1*n*r2*kernel_info::Mult<T>()}, // flops
+         {(r1*n*r2)*kernel_info::Update<T>()}} // data transfers
+        );
+
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+            x(i,j,k) *= alpha;
+    }
+
+    template<typename T>
+    void als_apply_op_contract1(const Tensor2<T>& lOp, const int rA1, const Tensor3<T>& t3x, Tensor3<T>& t3tmp)
+    {
+      const auto r1 = lOp.r1() / rA1;
+      const auto r = lOp.r2();
+      assert(lOp.r2() == t3x.r1());
+      const auto n = t3x.n();
+      const auto r2 = t3x.r2();
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "r", "n", "r2", "rA1"},{r1, r, n, r2, rA1}}, // arguments
+        {{r1*n*rA1*r2*r*kernel_info::FMA<T>()}, // flops
+         {(r1*rA1*r + r*n*r2)*kernel_info::Load<T>() + (r1*rA1*n*r2)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      t3tmp.resize(r1, rA1*n, r2);
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < rA1; j++)
+          for(int k = 0; k < n; k++)
+            for(int l = 0; l < r2; l++)
+            {
+              T tmp = T(0);
+              for(int ii = 0; ii < r; ii++)
+                tmp += lOp(ii+j*r1,i) * t3x(ii,k,l);
+              t3tmp(i,j+k*rA1,l) = tmp;
+            }
+    }
+
+    template<typename T>
+    void als_apply_op_contract2(const Tensor3<T>& Ak, const int m, const Tensor3<T>& t3a, Tensor3<T>& t3b)
+    {
+      const auto r1 = t3a.r1();
+      const auto r2 = t3a.r2();
+      const auto rA1 = t3a.n() / m;
+      const auto n = Ak.n() / m;
+      const auto rA2 = Ak.r2();
+      assert(rA1 == Ak.r1());
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "r2", "rA1", "n", "m", "rA2"},{r1, r2, rA1, n, m, rA2}}, // arguments
+        {{r1*n*rA2*r2*rA1*m*kernel_info::FMA<T>()}, // flops
+         {(rA1*n*m*rA2 + r1*rA1*m*r2)*kernel_info::Load<T>() + (r1*n*rA2*r2)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      t3b.resize(r1, n, rA2*r2);
+#pragma omp parallel for collapse(4) schedule(static)
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < rA2; k++)
+            for(int l = 0; l < r2; l++)
+            {
+              T tmp = T(0);
+              for(int ii = 0; ii < rA1; ii++)
+                for(int jj = 0; jj < m; jj++)
+                  tmp += Ak(ii,j+jj*n,k) * t3a(i,ii+jj*rA1,l);
+              t3b(i,j,k+l*rA2) = tmp;
+            }
+    }
+
+    template<typename T>
+    void als_apply_op_contract3(const Tensor3<T>& t3tmp, const Tensor2<T>& rOp, const int rA2, Tensor3<T>& t3y)
+    {
+      const auto r1 = t3tmp.r1();
+      const auto n = t3tmp.n();
+      const auto r2 = rOp.r1();
+      const auto r = rOp.r2() / rA2;
+      assert(r*rA2 == t3tmp.r2());
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "r2", "r", "rA2"},{r1, n, r2, r, rA2}}, // arguments
+        {{r1*n*r2*rA2*r*kernel_info::FMA<T>()}, // flops
+         {(r1*n*r*rA2 + r2*r*rA2)*kernel_info::Load<T>() + (r1*n*r2)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      t3y.resize(r1,n,r2);
+      for(int i = 0; i < r1; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2; k++)
+          {
+            T tmp = T(0);
+            for(int ii = 0; ii < rA2; ii++)
+              for(int jj = 0; jj < r; jj++)
+                tmp += t3tmp(i,j,ii+jj*rA2) * rOp(k,jj+ii*r);
+            t3y(i,j,k) = tmp;
+          }
     }
 
     template<typename T>
@@ -455,57 +585,95 @@ namespace PITTS
       template<typename T>
       void apply_local_op(const Tensor2<T>& left_xTAx, const Tensor3<T>& Ak, int nAk, const Tensor2<T>& right_xTAx, const Tensor3<T>& t3_x, Tensor3<T>& t3_y)
       {
-        // TODO: improve contraction ordering!
+        // first contract left_xTAx and t3_x
+        internal::als_apply_op_contract1(left_xTAx, Ak.r1(), t3_x, t3_y);
 
-        // first contract left_xTAx and A_k
+        // now contract t3_tmp and Ak
         Tensor3<T> t3_tmp;
-        internal::als_op_contract1(left_xTAx, Ak, nAk, t3_tmp);
-        // now contract t3_tmp and right_xTAx
-        Tensor2<T> t2_op;
-        internal::als_op_contract2(right_xTAx, t3_tmp, t2_op);
+        internal::als_apply_op_contract2(Ak, nAk, t3_y, t3_tmp);
 
-        t3_y.resize(t3_x.r1(), t3_x.n(), t3_x.r2());
-        unflatten<T>(ConstEigenMap(t2_op) * flatten(t3_x), t3_y);
+        // finally contract result with right_xTAx
+        internal::als_apply_op_contract3(t3_tmp, right_xTAx, Ak.r2(), t3_y);
       }
 
-      //! MINRES implementation for the local problem
+      //! GMRES implementation for the local problem (without restart)
+      //!
+      //! We could use MINRES but GMRES is slightly more robust and the additional operations (dot, axpy) are currently not influencing the total runtime significantly.
+      //!
       template<typename T>
-      void solve_local_MINRES(const Tensor2<T>& localOp_left_xTAx, const Tensor3<T>& localOp_Ak, int nAk, const Tensor2<T>& localOp_right_xTAx,
-                              const Tensor3<T>& t3_rhs, Tensor3<T>& t3_x, const int maxIter, const T absResTol, const T relResTol)
+      void solve_local_GMRES(const Tensor2<T>& localOp_left_xTAx, const Tensor3<T>& localOp_Ak, int nAk, const Tensor2<T>& localOp_right_xTAx,
+                             const Tensor3<T>& t3_rhs, Tensor3<T>& t3_x, const int maxIter, const T absResTol, const T relResTol)
       {
-        Tensor3<T> r, p0, p1, p2, s0, s1, s2;
-        apply_local_op(localOp_left_xTAx, localOp_Ak, nAk, localOp_right_xTAx, t3_x, r);
-        t3_axpy(T(-1), t3_rhs, r);
+        using vec = Eigen::Matrix<T,Eigen::Dynamic,1>;
+        using mat = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
 
-        const T initialResidualNorm = std::sqrt(t3_dot(r,r));
-        std::cout << " local problem initial residual norm: " << initialResidualNorm << "\n";
-        if( initialResidualNorm < absResTol )
-          return;
-
-        copy(r, p0);
-        apply_local_op(localOp_left_xTAx, localOp_Ak, nAk, localOp_right_xTAx, p0, s0);
-
-        for(int iter = 0; iter < maxIter; iter++)
+        const auto apply_A = [&localOp_left_xTAx, &localOp_Ak, &nAk, &localOp_right_xTAx](const Tensor3<T>& x)
         {
-          std::swap(p2, p1); std::swap(p1, p0);
-          std::swap(s2, s1); std::swap(s1, s0);
-          const T alpha = t3_dot(r,s1) / t3_dot(s1,s1);
-          t3_axpy(-alpha,p1,t3_x);
-          t3_axpy(-alpha,s1,r);
-          const T residualNorm = std::sqrt(t3_dot(r,r));
-          std::cout << " local problem iter: " << iter << ", residual norm: " << residualNorm << "\n";
-          if( residualNorm < absResTol || residualNorm / initialResidualNorm < relResTol )
-            return;
-          copy(s1,p0);
-          apply_local_op(localOp_left_xTAx, localOp_Ak, nAk, localOp_right_xTAx, s1, s0);
-          const T beta1 = t3_dot(s0,s1) / t3_dot(s1,s1);
-          t3_axpy(-beta1,p1,p0);
-          t3_axpy(-beta1,s1,s0);
-          if( iter > 0 )
+          Tensor3<T> Ax;
+          apply_local_op(localOp_left_xTAx, localOp_Ak, nAk, localOp_right_xTAx, x, Ax);
+          return Ax;
+        };
+
+        auto t3_tmp = apply_A(t3_x);
+        t3_axpy(T(-1), t3_rhs, t3_tmp);
+        const T beta = t3_nrm(t3_tmp);
+        std::cout << " local problem: initial residual: " << beta << "\n";
+        if( beta <= absResTol )
+          return;
+        t3_scale(1/beta, t3_tmp);
+
+        vec b_hat = vec::Unit(maxIter+1, 0) * beta;
+        mat H = mat::Zero(maxIter+1,maxIter);
+        mat R = mat::Zero(maxIter,maxIter);
+        vec c = vec::Zero(maxIter);
+        vec s = vec::Zero(maxIter);
+        
+        std::vector<Tensor3<T>> v;
+        v.emplace_back(std::move(t3_tmp));
+
+
+        for(int i = 0; i < maxIter; i++)
+        {
+          auto w = apply_A(v[i]);
+          for(int j = 0; j <= i; j++)
           {
-            const T beta2 = t3_dot(s0,s2) / t3_dot(s2,s2);
-            t3_axpy(-beta2,p2,p0);
-            t3_axpy(-beta2,s2,s0);
+            H(j,i) = t3_dot(v[j],w);
+            t3_axpy(-H(j,i),v[j],w);
+          }
+          H(i+1,i) = t3_nrm(w);
+          t3_scale(1/H(i+1,i), w);
+          v.emplace_back(std::move(w));
+          //std::cout << " local problem: H:\n" << H.topLeftCorner(i+2,i+1) << "\n";
+
+          // least squares solve using Givens rotations
+          R(0,i) = H(0,i);
+          for(int j = 1; j <= i; j++)
+          {
+            const T gamma = c(j-1)*R(j-1,i) + s(j-1)*H(j,i);
+            R(j,i) = -s(j-1)*R(j-1,i) + c(j-1)*H(j,i);
+            R(j-1,i) = gamma;
+          }
+          const T delta = std::sqrt(R(i,i)*R(i,i) + H(i+1,i)*H(i+1,i));
+          c(i) = R(i,i) / delta;
+          s(i) = H(i+1,i) / delta;
+          R(i,i) = c(i)*R(i,i) + s(i)*H(i+1,i);
+          //std::cout << " local problem: c: " << c.topRows(i+1).transpose() << "\n";
+          //std::cout << " local problem: s: " << s.topRows(i+1).transpose() << "\n";
+          //std::cout << " local problem: R:\n" << R.topLeftCorner(i+1,i+1) << "\n";
+          b_hat(i+1) = -s(i)*b_hat(i);
+          b_hat(i) = c(i)*b_hat(i);
+          //std::cout << " local problem: b_hat: " << b_hat.transpose() << "\n";
+          const T rho = std::abs(b_hat(i+1));
+          std::cout << " local problem: GMRES iter " << i+1 << " residual: " << rho << "\n";
+          if( rho <= absResTol || rho/beta <= relResTol )
+          {
+            const auto Ri = R.topLeftCorner(i+1,i+1);
+            const auto bi = b_hat.topRows(i+1);
+            const vec y = Ri.template triangularView<Eigen::Upper>().solve(b_hat.topRows(i+1));
+            //std::cout << " local problem: y: " << y.transpose() << "\n";
+            for(int j = 0; j <= i; j++)
+              t3_axpy(-y(j),v[j],t3_x);
+            break;
           }
         }
       }
@@ -521,15 +689,15 @@ namespace PITTS
   //!
   //! @tparam T             data type (double, float, complex)
   //!
-  //! @param TTOpA          tensor-train operator A
-  //! @param symmetricA     flag to indicate that A is symmetric / Hermitian
-  //! @param TTb            right-hand side tensor-train b
-  //! @param TTx            initial guess on input, overwritten with the (approximate) result on output
-  //! @param nSweeps        desired number of MALS sweeps
-  //! @param rankTolerance  approximation accuracy, used to reduce the TTranks in the iteration
-  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
-  //! @param MALS           set to false to use ALS, true for MALS
-  //! @return               residual norm of the result (||Ax - b||)
+  //! @param TTOpA              tensor-train operator A
+  //! @param symmetricA         flag to indicate that A is symmetric / Hermitian
+  //! @param TTb                right-hand side tensor-train b
+  //! @param TTx                initial guess on input, overwritten with the (approximate) result on output
+  //! @param nSweeps            desired number of MALS sweeps
+  //! @param residualTolerance  desired approximation accuracy, used to abort the iteration and to reduce the TTranks in the iteration
+  //! @param maxRank            maximal allowed TT-rank, enforced even if this violates the residualTolerance
+  //! @param MALS               set to false to use ALS, true for MALS
+  //! @return                   residual norm of the result (||Ax - b||)
   //!
   template<typename T>
   T solveMALS(const TensorTrainOperator<T>& TTOpA,
@@ -537,7 +705,7 @@ namespace PITTS
               const TensorTrain<T>& TTb,
               TensorTrain<T>& TTx,
               int nSweeps,
-              T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
+              T residualTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
               int maxRank = std::numeric_limits<int>::max(),
               bool MALS = true)
   {
@@ -557,7 +725,7 @@ namespace PITTS
     const bool useMALS = nDim > 1 && MALS;
 
     // first left-normalize x
-    rightNormalize(TTx, rankTolerance, maxRank);
+    rightNormalize(TTx, residualTolerance/nDim, maxRank);
 
 
     // for the non-symmetric case, we solve the normal equations, so calculate A^T*b and A^T*A
@@ -638,7 +806,7 @@ namespace PITTS
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
-      if( residualError / sqrt_bTb < rankTolerance )
+      if( residualError / sqrt_bTb < residualTolerance )
         break;
 
       if( useMALS )
@@ -683,6 +851,22 @@ namespace PITTS
           // calculate sub-problem operator
           const Tensor2<T> t2_op = calculate_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back());
           assert( std::abs( flatten(t3x).transpose() * ConstEigenMap(t2_op) * flatten(t3x) - dot(TTx,TTAx) ) < sqrt_eps );
+          {
+            mat M(t2_op.r1(),t2_op.r2());
+            Tensor3<T> t3tmp(t3x.r1(),t3x.n(),t3x.r2());
+            Tensor3<T> t3Ax;
+            for(int i = 0; i < t3x.r1(); i++)
+              for(int j = 0; j < t3x.n(); j++)
+                for(int k = 0; k < t3x.r2(); k++)
+                {
+                  t3tmp.setUnit(i,j,k);
+                  apply_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3tmp, t3Ax);
+                  M.col(i+j*t3x.r1()+k*t3x.r1()*t3x.n()) = flatten(t3Ax);
+                }
+            std::cout << " local_op ref:\n" << ConstEigenMap(t2_op) << "\n";
+            std::cout << " local_op new:\n" << M << "\n";
+            std::cout << " local_op dif:\n" << M - ConstEigenMap(t2_op) << "\n";
+          }
           
           // solve sub-problem t2_op * x = t3_rhs
           std::cout << " local problem size: " << t2_op.r1() << " x " << t2_op.r2() << "\n";
@@ -692,10 +876,11 @@ namespace PITTS
           {
             Tensor3<T> t3Ax;
             apply_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3x, t3Ax);
-            assert( std::abs( internal::t3_dot(t3x, t3Ax) - dot(TTx,TTAx) ) < sqrt_eps );
+            //assert( std::abs( internal::t3_dot(t3x, t3Ax) - dot(TTx,TTAx) ) < sqrt_eps );
           }
 #endif
-          solve_local_MINRES(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3_rhs, t3x, 50, rankTolerance, T(1.e-4));
+          // absolute tolerance is not invariant wrt. #dimensions
+          solve_local_GMRES(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3_rhs, t3x, 50, T(0), T(1.e-4));
           const vec x = flatten(t3x);
 
           if( !useMALS )
@@ -714,7 +899,7 @@ namespace PITTS
               Tensor2<T> t2x(r1*n,r2);
               EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1*n, r2);
 
-              const auto [Q,B] = internal::normalize_qb(t2x, rankTolerance, maxRank);
+              const auto [Q,B] = internal::normalize_qb(t2x, residualTolerance/nDim, maxRank);
               const auto r2_new = Q.cols();
               subTx.resize(r1, n, r2_new);
               unflatten<T>(Eigen::Map<const vec>(Q.data(), r1*n*r2_new), subTx);
@@ -732,7 +917,7 @@ namespace PITTS
             unflatten(x, t3x);
             const int n1 = TTx.dimensions()[iDim];
             const int n2 = TTx.dimensions()[iDim+1];
-            auto [xk,xk_next] = split(t3x, n1, n2, true, rankTolerance, maxRank);
+            auto [xk,xk_next] = split(t3x, n1, n2, true, residualTolerance/nDim, maxRank);
             std::swap(TTx.editableSubTensors()[iDim], xk);
             std::swap(TTx.editableSubTensors()[iDim+1], xk_next);
           }
@@ -767,6 +952,8 @@ namespace PITTS
       squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
       residualError = std::sqrt(std::abs(squaredError));
       std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+      if( residualError / sqrt_bTb < residualTolerance )
+        break;
 
       if( useMALS )
       {
@@ -810,6 +997,23 @@ namespace PITTS
           // calculate sub-problem operator
           const Tensor2<T> t2_op = calculate_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back());
           assert( std::abs( flatten(t3x).transpose() * ConstEigenMap(t2_op) * flatten(t3x) - dot(TTx,TTAx) ) < sqrt_eps );
+
+          {
+            mat M(t2_op.r1(),t2_op.r2());
+            Tensor3<T> t3tmp(t3x.r1(),t3x.n(),t3x.r2());
+            Tensor3<T> t3Ax;
+            for(int i = 0; i < t3x.r1(); i++)
+              for(int j = 0; j < t3x.n(); j++)
+                for(int k = 0; k < t3x.r2(); k++)
+                {
+                  t3tmp.setUnit(i,j,k);
+                  apply_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3tmp, t3Ax);
+                  M.col(i+j*t3x.r1()+k*t3x.r1()*t3x.n()) = flatten(t3Ax);
+                }
+            std::cout << " local_op ref:\n" << ConstEigenMap(t2_op) << "\n";
+            std::cout << " local_op new:\n" << M << "\n";
+            std::cout << " local_op dif:\n" << M - ConstEigenMap(t2_op) << "\n";
+          }
           
           // solve sub-problem t2_op * x = t3_rhs
           const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
@@ -819,10 +1023,12 @@ namespace PITTS
           {
             Tensor3<T> t3Ax;
             apply_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3x, t3Ax);
+            std::cout << "error: " << std::abs( internal::t3_dot(t3x, t3Ax) - dot(TTx,TTAx) ) << ", ref: " << dot(TTx,TTAx) << "\n";
             assert( std::abs( internal::t3_dot(t3x, t3Ax) - dot(TTx,TTAx) ) < sqrt_eps );
           }
 #endif
-          solve_local_MINRES(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3_rhs, t3x, 50, rankTolerance, T(1.e-4));
+          // absolute tolerance is not invariant wrt. #dimensions
+          solve_local_GMRES(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3_rhs, t3x, 50, T(0), T(1.e-4));
           const vec x = flatten(t3x);
 
 
@@ -842,7 +1048,7 @@ namespace PITTS
               Tensor2<T> t2x(r2*n,r1);
               EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1, n*r2).transpose();
 
-              const auto [Q,B] = internal::normalize_qb(t2x, rankTolerance, maxRank);
+              const auto [Q,B] = internal::normalize_qb(t2x, residualTolerance/nDim, maxRank);
               const auto r1_new = Q.cols();
               subTx.resize(r1_new, n, r2);
               mat Qt = Q.transpose();
@@ -862,7 +1068,7 @@ namespace PITTS
             unflatten(x, t3x);
             const int n1 = TTx.dimensions()[iDim-1];
             const int n2 = TTx.dimensions()[iDim];
-            auto [xk_prev,xk] = split(t3x, n1, n2, false, rankTolerance, maxRank);
+            auto [xk_prev,xk] = split(t3x, n1, n2, false, residualTolerance/nDim, maxRank);
             std::swap(TTx.editableSubTensors()[iDim-1], xk_prev);
             std::swap(TTx.editableSubTensors()[iDim], xk);
           }
