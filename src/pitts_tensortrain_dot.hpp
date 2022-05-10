@@ -99,6 +99,39 @@ namespace PITTS
           C(i,j) = tmpC[i+j*r1];
 
     }
+
+    //! contract Tensor3 and Tensor3 along all dimensions: A(*,*,*) * B(*,*,*)
+    template<typename T>
+    T t3_dot(const Tensor3<T>& A, const Tensor3<T>& B)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto nChunks = A.nChunks();
+      const auto r2 = A.r2();
+      assert(A.r1() == B.r1());
+      assert(A.n() == B.n());
+      assert(A.r2() == B.r2());
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{r1*n*r2*kernel_info::FMA<T>()}, // flops
+         {(2*r1*n*r2)*kernel_info::Load<T>()}} // data transfers
+        );
+
+      T result{};
+#pragma omp parallel reduction(+:result)
+      {
+        Chunk<T> tmp{};
+#pragma omp for collapse(3) schedule(static) nowait
+        for(int j = 0; j < r2; j++)
+          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+            for(int i = 0; i < r1; i++)
+              fmadd(A.chunk(i,kChunk,j), B.chunk(i,kChunk,j), tmp);
+        result = sum(tmp);
+      }
+
+      return result;
+    }
   }
 
   //! calculate the inner product for two vectors in tensor train format
@@ -121,26 +154,57 @@ namespace PITTS
     //
     // Algorithm starts on the right and works like a zipper...
     //
+
+    const int nDim = TT1.subTensors().size();
+    if( nDim == 1 )
+    {
+      const auto& subT1 = TT1.subTensors()[0];
+      const auto& subT2 = TT2.subTensors()[0];
+
+      const T result = internal::t3_dot(subT1, subT2);
+      return result;
+    }
     
     // Auxiliary tensor of rank-2, currently contracted
-    Tensor2<T> t2(1,1);
-    t2(0,0) = T(1);
+    Tensor2<T> t2;
     Tensor3<T> t3;
 
-    // iterate from left to right
-    const int nDim = TT1.subTensors().size();
-    for(int iDim = nDim-1; iDim >= 0; iDim--)
+    // first iteration / last subtensors
+    {
+      const auto& subT1 = TT1.subTensors()[nDim-1];
+      const auto& subT2 = TT2.subTensors()[nDim-1];
+
+      // only contract: subT2(:,*,*) * subT1(:,*,*)
+      internal::dot_contract2(subT2, subT1, t2);
+    }
+
+    // iterate from left to right (middle)
+    for(int iDim = nDim-2; iDim >= 1; iDim--)
     {
       const auto& subT1 = TT1.subTensors()[iDim];
       const auto& subT2 = TT2.subTensors()[iDim];
-
+      
       // first contraction: subT1(:,:,*) * t2(:,*)
       internal::dot_contract1(subT1, t2, t3);
 
       // second contraction: subT2(:,*,*) * t3(:,*,*)
       internal::dot_contract2(subT2, t3, t2);
     }
-    return t2(0,0);
+
+    // last iteration / first subtensors
+    T result;
+    {
+      const auto& subT1 = TT1.subTensors()[0];
+      const auto& subT2 = TT2.subTensors()[0];
+
+      // first contraction: subT1(:,:,*) * t2(:,*)
+      internal::dot_contract1(subT1, t2, t3);
+
+      // second fully contract subT2(*,*,*) * t3(*,*,*)
+      result = internal::t3_dot(subT2, t3);
+    }
+
+    return result;
   }
 
 }
