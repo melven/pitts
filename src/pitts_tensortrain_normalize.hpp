@@ -19,6 +19,7 @@
 #include <cassert>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
@@ -43,24 +44,6 @@ namespace PITTS
       svd.setThreshold(rankTolerance);
 
       return svd;
-    }
-
-    //! wrapper for qr, allows to show timings
-    template<typename T>
-    auto normalize_qb(const Tensor2<T>& M)
-    {
-      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      Eigen::ColPivHouseholderQR<EigenMatrix> qr(ConstEigenMap(M));
-      const auto r = std::max(Eigen::Index(1), qr.rank());
-      qr.householderQ().setLength(r);
-
-      const EigenMatrix Q = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
-      const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
-      const EigenMatrix B = R * qr.colsPermutation().inverse();
-
-      return std::make_pair(Q, B);
     }
 
     //! contract Tensor2 and Tensor3 : A(:,*) * B(*,:,:)

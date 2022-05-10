@@ -246,6 +246,23 @@ class TestTensorTrainOperator(unittest.TestCase):
         np.testing.assert_array_almost_equal(t2_ref, ttOp.getSubTensor(1))
         np.testing.assert_array_almost_equal(t3_ref, ttOp.getSubTensor(2))
 
+    def test_apply_identity(self):
+        ttOp = pitts_py.TensorTrainOperator_double([5,3,3],[5,3,3])
+        ttX = pitts_py.TensorTrain_double([5,3,3])
+        ttB = pitts_py.TensorTrain_double([5,3,3])
+
+        ttOp.setEye()
+        pitts_py.randomize(ttB)
+        pitts_py.randomize(ttX)
+
+        residualNorm = pitts_py.solveMALS(ttOp, True, ttB, ttX, 10)
+        self.assertLess(residualNorm, 1.e-5)
+
+        ttR = pitts_py.TensorTrain_double([5,3,3])
+        pitts_py.apply(ttOp, ttX, ttR)
+        residualNorm_ref = pitts_py.axpby(-1, ttB, 1, ttR)
+        self.assertLess(residualNorm_ref, 1.e-5)
+
 
 if __name__ == '__main__':
     unittest.main()
