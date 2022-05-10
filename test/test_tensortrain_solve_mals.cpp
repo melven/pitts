@@ -235,6 +235,12 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2)
   TensorTrainOperator_double TTOpA(2,2,2);
   TTOpA.setTTranks(2);
   randomize(TTOpA);
+  normalize(TTOpA);
+  TensorTrainOperator_double TTOpI(2,2,2);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/10, TTOpA);
+
   TensorTrain_double TTx(2,2), TTb(2,2);
   TTb.setTTranks(2);
   randomize(TTb);
