@@ -38,15 +38,6 @@ namespace PITTS
       auto rankTol = std::abs(rankTolerance);
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
-      /*
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
-      svd.setThreshold(rankTol);
-      const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
-      const EigenMatrix Q = svd.matrixU().leftCols(r);
-      const EigenMatrix B = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
-      */
-
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       Eigen::ColPivHouseholderQR<EigenMatrix> qr(ConstEigenMap(M));
       qr.setThreshold(rankTol);
@@ -58,6 +49,35 @@ namespace PITTS
       const EigenMatrix B = R * qr.colsPermutation().inverse();
 
       return std::make_pair(Q, B);
+    }
+
+    //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
+    template<typename T>
+    auto normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
+    {
+      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
+      // get reasonable rank tolerance
+      auto rankTol = std::abs(rankTolerance);
+      rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+      svd.setThreshold(rankTol);
+      const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
+      EigenMatrix U, Vt;
+      if( leftOrthog )
+      {
+        U = svd.matrixU().leftCols(r);
+        Vt = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+      }
+      else
+      {
+        U = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+        Vt = svd.matrixV().leftCols(r).adjoint();
+      }
+
+      return std::make_pair(U, Vt);
     }
   }
 
@@ -112,7 +132,9 @@ namespace PITTS
               t3cMat(j+k2*r2, k1+na*i) = t3c(i, k1+na*k2, j);
     }
 
-    const auto [Q,B] = internal::normalize_qb(t3cMat, rankTolerance, maxRank);
+    const auto [Q,B] = rankTolerance != T(0) ?
+      internal::normalize_svd(t3cMat, true, rankTolerance, maxRank) :
+      internal::normalize_qb(t3cMat, rankTolerance, maxRank);
     const int r = Q.cols();
 
     std::tuple<Tensor3<T>,Tensor3<T>> result;
@@ -146,25 +168,6 @@ namespace PITTS
     }
 
     return result;
-    /*
-    auto svd = Eigen::JacobiSVD<Matrix, Eigen::HouseholderQRPreconditioner>(t3cMap, Eigen::ComputeThinV | Eigen::ComputeThinU);
-    svd.setThreshold(1.e-10);
-    const auto r = svd.rank();
-
-    t3a.resize(r1,r);
-    t3b.resize(r,r2);
-    if( leftOrthog )
-    {
-      Map(&t3a(0,0,0), r1*N,r) = svd.matrixU().leftCols(r);
-      Map(&t3b(0,0,0), r,r2*N) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
-    }
-    else
-    {
-      Map(&t3a(0,0,0), r1*N,r) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-      Map(&t3b(0,0,0), r,r2*N) = svd.matrixV().leftCols(r).adjoint();
-    }
-    //std::cout << "Singular value |.|: " << svd.singularValues().head(r).transpose().array().abs() << "\n";
-    */
   }
 
 }

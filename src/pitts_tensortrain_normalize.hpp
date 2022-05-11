@@ -30,22 +30,6 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
-    //! wrapper for svd, allows to show timings
-    template<typename T>
-    auto normalize_svd(const Tensor2<T>& M, T rankTolerance)
-    {
-      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      //Eigen::BDCSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-      // threshold 0 is not useful, we can at best get floating point accuracy...
-      rankTolerance = std::max(rankTolerance, std::numeric_limits<T>::epsilon());
-      svd.setThreshold(rankTolerance);
-
-      return svd;
-    }
-
     //! contract Tensor2 and Tensor3 : A(:,*) * B(*,:,:)
     template<typename T>
     void normalize_contract1(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
@@ -175,51 +159,20 @@ namespace PITTS
           for(int k = 0; k < r2; k++)
             t2_M(i+j*r1_new,k) = t3_tmp(i,j,k);
 
-      if( rankTolerance > 0 || maxRank < r2 )
-      {
-        // use an SVD, we want to truncate!
-        const auto svd = internal::normalize_svd(t2_M, rankTolerance / std::sqrt(T(nDims-1)));
-        const auto r2_new = std::min<int>(maxRank, svd.rank());
+      const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
+        internal::normalize_svd(t2_M, true, rankTolerance / std::sqrt(T(nDims-1)), maxRank) :
+        internal::normalize_qb(t2_M);
 
-        // we always need at least rank 1
-        if( r2_new == 0 )
-        {
-          subT.resize(r1_new, n, 1);
-          for(int i = 0; i < r1_new; i++)
-            for(int j = 0; j < n; j++)
-              subT(i,j,0) = T(0);
+      const auto r2_new = Q.cols();
 
-          t2_M.resize(1,r2);
-          for(int i = 0; i < r2; i++)
-            t2_M(0,i) = T(0);
-        }
-        else // r2_new > 0
-        {
-          subT.resize(r1_new, n, r2_new);
-          for(int i = 0; i < r1_new; i++)
-            for(int j = 0; j < n; j++)
-              for(int k = 0; k < r2_new; k++)
-                subT(i,j,k) = svd.matrixU()(i+j*r1_new,k);
+      subT.resize(r1_new, n, r2_new);
+      for(int i = 0; i < r1_new; i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < r2_new; k++)
+            subT(i,j,k) = Q(i+j*r1_new,k);
 
-          t2_M.resize(r2_new,r2);
-          EigenMap(t2_M) = svd.singularValues().topRows(r2_new).asDiagonal() * svd.matrixV().leftCols(r2_new).adjoint();
-        }
-      }
-      else
-      {
-        // use QR, no truncation...
-        const auto [Q,B] = internal::normalize_qb(t2_M);
-        const auto r2_new = std::min<int>(maxRank, Q.cols());
-
-        subT.resize(r1_new, n, r2_new);
-        for(int i = 0; i < r1_new; i++)
-          for(int j = 0; j < n; j++)
-            for(int k = 0; k < r2_new; k++)
-              subT(i,j,k) = Q(i+j*r1_new,k);
-
-        t2_M.resize(r2_new,r2);
-        EigenMap(t2_M) = B;
-      }
+      t2_M.resize(r2_new,r2);
+      EigenMap(t2_M) = B;
     }
 
     return t2_M(0,0);
