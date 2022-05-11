@@ -398,3 +398,55 @@ TEST(PITTS_TensorTrain_dot, boundary_rank_nDim2)
   const double dot_ref = dot(TT1_ref, TT2_ref);
   EXPECT_NEAR(dot_ref, dot(TT1, TT2), std::abs(dot_ref)*eps);
 }
+
+TEST(PITTS_TensorTrain_dot, boundary_rank_nDim6)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  constexpr auto eps = 1.e-10;
+
+  // special tensor train where the first dimensions of the first sub tensor is not one
+  // (and similarly the last dimension of the last sub tensor)
+  TensorTrain_double TT1_ref(8,4), TT2_ref(8,4);
+  TensorTrain_double TT1(6,4), TT2(6,4);
+
+  TT1_ref.setTTranks(3);
+  TT2_ref.setTTranks(3);
+  randomize(TT1_ref);
+  randomize(TT2_ref);
+
+  // make boundary tensors identity
+  {
+    auto& subT1 = TT1_ref.editableSubTensors()[0];
+    auto& subT2 = TT2_ref.editableSubTensors()[0];
+
+    subT1.setConstant(0);
+    subT2.setConstant(0);
+    for(int i = 0; i < 3; i++)
+    {
+      subT1(0,i,i) = 1;
+      subT2(0,i,i) = 1;
+    }
+  }
+  {
+    auto& subT1 = TT1_ref.editableSubTensors()[7];
+    auto& subT2 = TT2_ref.editableSubTensors()[7];
+
+    subT1.setConstant(0);
+    subT2.setConstant(0);
+    for(int i = 0; i < 3; i++)
+    {
+      subT1(i,i,0) = 1;
+      subT2(i,i,0) = 1;
+    }
+  }
+
+  // copy inner tensors
+  for(int iDim = 0; iDim < 6; iDim++)
+  {
+    copy(TT1_ref.subTensors()[iDim+1], TT1.editableSubTensors()[iDim]);
+    copy(TT2_ref.subTensors()[iDim+1], TT2.editableSubTensors()[iDim]);
+  }
+
+  const double dot_ref = dot(TT1_ref, TT2_ref);
+  EXPECT_NEAR(dot_ref, dot(TT1, TT2), std::abs(dot_ref)*eps);
+}

@@ -17,6 +17,7 @@
 #include <cassert>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 
@@ -103,6 +104,36 @@ namespace PITTS
           C(i,j) = tmpC[i*r1+j];
 
     }
+
+    //! 2-norm of a Tensor3 contracting Tensor3 along all dimensions sqrt(A(*,*,*) * A(*,*,*))
+    template<typename T>
+    T t3_nrm(const Tensor3<T>& A)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto nChunks = A.nChunks();
+      const auto r2 = A.r2();
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{r1*n*r2*kernel_info::FMA<T>()}, // flops
+         {(r1*n*r2)*kernel_info::Load<T>()}} // data transfers
+        );
+
+      T result{};
+#pragma omp parallel reduction(+:result)
+      {
+        Chunk<T> tmp{};
+#pragma omp for collapse(3) schedule(static) nowait
+        for(int j = 0; j < r2; j++)
+          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+            for(int i = 0; i < r1; i++)
+              fmadd(A.chunk(i,kChunk,j), A.chunk(i,kChunk,j), tmp);
+        result = sum(tmp);
+      }
+
+      return std::sqrt(result);
+    }
   }
 
   //! calculate the 2-norm for a vector in tensor train format
@@ -114,6 +145,10 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
+    const int nDim = TT.subTensors().size();
+    if( nDim <= 0)
+      throw std::invalid_argument("TensorTrain #dimensions < 1!");
+
     // Computes the contractions
     //
     // o--o--   --o--o
@@ -123,18 +158,32 @@ namespace PITTS
     // where the top and the bottom are the same tensor.
     // Algorithm starts on the right and works like a zipper...
     //
+
+    if( nDim == 1 )
+    {
+      const auto& subT = TT.subTensors()[0];
+
+      const T result = internal::t3_nrm(subT);
+      return result;
+    }
     
     // Auxiliary tensor of rank-2, currently contracted
-    Tensor2<T> t2(1,1);
-    t2(0,0) = T(1);
+    Tensor2<T> t2;
     Tensor3<T> t3;
 
-    // iterate from right to left
-    const int nDim = TT.subTensors().size();
-    for(int iDim = nDim-1; iDim >= 0; iDim--)
+    // first iteration / last subtensors
+    {
+      const auto& subT = TT.subTensors()[nDim-1];
+
+      // only contract: subT(:,*,*) * subT(:,*,*)
+      internal::norm2_contract2(subT, subT, t2);
+    }
+
+    // iterate from left to right (middle)
+    for(int iDim = nDim-2; iDim >= 1; iDim--)
     {
       const auto& subT = TT.subTensors()[iDim];
-
+      
       // first contraction: subT(:,:,*) * t2(:,*)
       internal::norm2_contract1(subT, t2, t3);
 
@@ -142,7 +191,19 @@ namespace PITTS
       internal::norm2_contract2(subT, t3, t2);
     }
 
-    return std::sqrt(t2(0,0));
+    // last iteration / first subtensors
+    T result;
+    {
+      const auto& subT = TT.subTensors()[0];
+
+      // first contraction: subT(:,:,*) * t2(:,*)
+      internal::norm2_contract1(subT, t2, t3);
+
+      // second fully contract subT(*,*,*) * t3(*,*,*)
+      result = internal::t3_dot(subT, t3);
+    }
+
+    return std::sqrt(result);
   }
 
 }
