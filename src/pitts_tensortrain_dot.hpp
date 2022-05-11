@@ -136,6 +136,9 @@ namespace PITTS
 
   //! calculate the inner product for two vectors in tensor train format
   //!
+  //! This also allows to calculate the dot product of two tensor trains with boundary ranks > 1
+  //! (e.g. from extracting a sub-tensor-train from the middle of another tensor train)
+  //!
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
@@ -146,6 +149,15 @@ namespace PITTS
     if( TT1.dimensions() != TT2.dimensions() )
       throw std::invalid_argument("TensorTrain dot dimensions mismatch!");
 
+    const int nDim = TT1.subTensors().size();
+    if( nDim <= 0)
+      throw std::invalid_argument("TensorTrain #dimensions < 1!");
+
+    // we can handle first r1 != 1 and last r2 != 1 but the ranks have to match...
+    if( TT1.subTensors()[     0].r1() != TT2.subTensors()[     0].r1() ||
+        TT1.subTensors()[nDim-1].r2() != TT2.subTensors()[nDim-1].r2()  )
+      throw std::invalid_argument("TensorTrain boundary ranks mismatch!");
+
     // Computes the contractions
     //
     // o--o--   --o--o
@@ -155,7 +167,6 @@ namespace PITTS
     // Algorithm starts on the right and works like a zipper...
     //
 
-    const int nDim = TT1.subTensors().size();
     if( nDim == 1 )
     {
       const auto& subT1 = TT1.subTensors()[0];
