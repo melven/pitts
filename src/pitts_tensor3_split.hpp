@@ -36,7 +36,16 @@ namespace PITTS
 
       // get reasonable rank tolerance
       auto rankTol = std::abs(rankTolerance);
-      rankTolerance = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
+      rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
+
+      /*
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+      svd.setThreshold(rankTol);
+      const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
+      const EigenMatrix Q = svd.matrixU().leftCols(r);
+      const EigenMatrix B = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+      */
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       Eigen::ColPivHouseholderQR<EigenMatrix> qr(ConstEigenMap(M));

@@ -98,32 +98,6 @@ namespace PITTS
         }
     }
 
-    //! dot product between two Tensor3
-    template<typename T>
-    T t3_dot(const Tensor3<T>& A, const Tensor3<T>& B)
-    {
-      const auto r1 = A.r1();
-      const auto n = A.n();
-      const auto r2 = A.r2();
-      assert(A.r1() == B.r1());
-      assert(A.n() == B.n());
-      assert(A.r2() == B.r2());
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
-        {{r1*n*r2*kernel_info::FMA<T>()}, // flops
-         {(2*r1*n*r2)*kernel_info::Load<T>()}} // data transfers
-        );
-
-      T result{};
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            result += A(i,j,k) * B(i,j,k);
-
-      return result;
-    }
-
     //! norm of a Tensor3
     template<typename T>
     T t3_nrm(const Tensor3<T>& A)
