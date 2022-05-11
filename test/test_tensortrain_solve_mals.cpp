@@ -175,6 +175,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2_rank1)
   randomize(TTb);
   normalize(TTb);
   randomize(TTx);
+  normalize(TTx);
 
   double error = solveMALS(TTOpA, false, TTb, TTx, 1, eps, 2, false);
   EXPECT_NEAR(0, error, eps);
@@ -195,14 +196,15 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
   randomize(TTb);
   normalize(TTb);
   randomize(TTx);
+  normalize(TTx);
 
   double error = solveMALS(TTOpA, false, TTb, TTx, 5, eps, 3, true);
-  EXPECT_NEAR(0, error, eps);
+  EXPECT_NEAR(0, error, 100*eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
   double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, eps);
+  EXPECT_NEAR(error_ref, error, 10*eps);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2)
