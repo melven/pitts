@@ -23,6 +23,7 @@
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
@@ -96,29 +97,6 @@ namespace PITTS
               tmp += A(k,l,i) * B(k,l,j);
           C(i,j) = tmp;
         }
-    }
-
-    //! norm of a Tensor3
-    template<typename T>
-    T t3_nrm(const Tensor3<T>& A)
-    {
-      const auto r1 = A.r1();
-      const auto n = A.n();
-      const auto r2 = A.r2();
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
-        {{r1*n*r2*kernel_info::FMA<T>()}, // flops
-         {(r1*n*r2)*kernel_info::Load<T>()}} // data transfers
-        );
-
-      T result{};
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            result += A(i,j,k) * A(i,j,k);
-
-      return std::sqrt(result);
     }
 
     //! axpy operation for two Tensor3 (with matching dimensions)
