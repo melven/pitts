@@ -122,26 +122,6 @@ namespace PITTS
             y(i,j,k) += alpha * x(i,j,k);
     }
 
-    //! scale operation for a Tensor3
-    template<typename T>
-    void t3_scale(T alpha, Tensor3<T>& x)
-    {
-      const auto r1 = x.r1();
-      const auto n = x.n();
-      const auto r2 = x.r2();
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
-        {{r1*n*r2*kernel_info::Mult<T>()}, // flops
-         {(r1*n*r2)*kernel_info::Update<T>()}} // data transfers
-        );
-
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            x(i,j,k) *= alpha;
-    }
-
     template<typename T>
     void als_apply_op_contract1(const Tensor2<T>& lOp, const int rA1, const Tensor3<T>& t3x, Tensor3<T>& t3tmp)
     {

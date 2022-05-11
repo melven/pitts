@@ -21,6 +21,7 @@
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 
@@ -62,6 +63,29 @@ namespace PITTS
         }
       }
     }
+
+    //! scale operation for a Tensor3
+    template<typename T>
+    void t3_scale(T alpha, Tensor3<T>& x)
+    {
+      const auto r1 = x.r1();
+      const auto n = x.n();
+      const auto nChunks = x.nChunks();
+      const auto r2 = x.r2();
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{r1*n*r2*kernel_info::Mult<T>()}, // flops
+         {(r1*n*r2)*kernel_info::Update<T>()}} // data transfers
+        );
+
+#pragma omp parallel for collapse(3) schedule(static)
+      for(int k = 0; k < r2; k++)
+        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+          for(int i = 0; i < r1; i++)
+            mul(alpha, x.chunk(i,jChunk,k), x.chunk(i,jChunk,k));
+    }
+
   }
 
   //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right)
@@ -94,6 +118,10 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
+    const int nDim = TT.subTensors().size();
+    if( nDim <= 0)
+      throw std::invalid_argument("TensorTrain #dimensions < 1!");
+
     // Transforms the tensor train in the following invariant way
     //
     // o--o--   --o--o
@@ -106,76 +134,53 @@ namespace PITTS
     //
     // where the "q" are all left-orthogonal.
     //
-    // Algorithm based on svqb...
-    //
 
-    // matrix from previous step
-    Tensor2<T> t2_M(1,1);
-    t2_M(0,0) = T(1);
 
-    // auxiliary tensor of rank-3
-    Tensor3<T> t3_tmp;
+    // auxiliary matrix / tensor
+    Tensor2<T> t2;
+    Tensor3<T> t3;
 
-    const int nDims = TT.subTensors().size();
-    for(int iDim = 0; iDim < nDims; iDim++)
+    for(int iDim = 0; iDim+1 < nDim; iDim++)
     {
       auto& subT = TT.editableSubTensors()[iDim];
       const auto r1 = subT.r1();
       const auto r2 = subT.r2();
       const auto n = subT.n();
 
-      const auto r1_new = t2_M.r1();
-      assert(r1 == t2_M.r2());
-
-      // first contract t2_M(:,*) * subT(*,:,:)
-      internal::normalize_contract1(t2_M, subT, t3_tmp);
-
-      // just calculate norm and scale if this is the last subtensor
-      if( iDim+1 == nDims )
-      {
-        T tmp{};
-        for(int i = 0; i < r1_new; i++)
-          for(int j = 0; j < n; j++)
-            for(int k = 0; k < r2; k++)
-              tmp += t3_tmp(i,j,k)*t3_tmp(i,j,k);
-        t2_M.resize(1,1);
-        t2_M(0,0) = std::sqrt(tmp);
-        if( t2_M(0,0) != T(0) )
-          tmp = 1/t2_M(0,0);
-        for(int i = 0; i < r1_new; i++)
-          for(int j = 0; j < n; j++)
-            for(int k = 0; k < r2; k++)
-              t3_tmp(i,j,k) *= tmp;
-
-        std::swap(subT, t3_tmp);
-
-        break;
-      }
-
-      // now calculate the SVD of QR of t3_tmp(: : x :)
-      t2_M.resize(r1_new*n, r2);
-      for(int i = 0; i < r1_new; i++)
+      // calculate the SVD or QR of subT(: : x :)
+      t2.resize(r1*n, r2);
+      for(int k = 0; k < r2; k++)
         for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            t2_M(i+j*r1_new,k) = t3_tmp(i,j,k);
+          for(int i = 0; i < r1; i++)
+            t2(i+j*r1,k) = subT(i,j,k);
 
       const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
-        internal::normalize_svd(t2_M, true, rankTolerance / std::sqrt(T(nDims-1)), maxRank) :
-        internal::normalize_qb(t2_M);
+        internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+        internal::normalize_qb(t2);
 
       const auto r2_new = Q.cols();
 
-      subT.resize(r1_new, n, r2_new);
-      for(int i = 0; i < r1_new; i++)
+      subT.resize(r1, n, r2_new);
+      for(int k = 0; k < r2_new; k++)
         for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2_new; k++)
-            subT(i,j,k) = Q(i+j*r1_new,k);
+          for(int i = 0; i < r1; i++)
+            subT(i,j,k) = Q(i+j*r1,k);
 
-      t2_M.resize(r2_new,r2);
-      EigenMap(t2_M) = B;
+      t2.resize(r2_new,r2);
+      EigenMap(t2) = B;
+
+      auto& subT_next = TT.editableSubTensors()[iDim+1];
+      // now contract t2(:,*) * subT_next(*,:,:)
+      internal::normalize_contract1(t2, subT_next, t3);
+      std::swap(subT_next, t3);
     }
 
-    return t2_M(0,0);
+    // just calculate its norm and scale the last subtensor
+    auto& subT = TT.editableSubTensors()[nDim-1];
+    const T nrm = internal::t3_nrm(subT);
+    const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
+    internal::t3_scale(invNrm, subT);
+    return nrm;
   }
 
 
