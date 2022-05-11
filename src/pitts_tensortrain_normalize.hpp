@@ -64,6 +64,38 @@ namespace PITTS
       }
     }
 
+    //! contract Tensor3 and Tensor2 : A(:,:,*) * B(*,:)
+    template<typename T>
+    void normalize_contract2(const Tensor3<T>& A, const Tensor2<T>& B, Tensor3<T>& C)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto nChunks = A.nChunks();
+      const auto r = A.r2();
+      assert(A.r2() == B.r1());
+      const auto r2 = B.r2();
+
+      C.resize(r1, n, r2);
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "nChunks", "r", "r2"},{r1, nChunks, r, r2}}, // arguments
+        {{r1*nChunks*r*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1*nChunks*r+r*r2)*kernel_info::Load<Chunk<T>>() + (r1*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+#pragma omp parallel for collapse(2) schedule(static)
+      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int k = 0; k < r2; k++)
+        {
+          Chunk<T> tmp[r1]{};
+          for(int l = 0; l < r; l++)
+            for(int i = 0; i < r1; i++)
+              fmadd(B(l,k), A.chunk(i,jChunk,l), tmp[i]);
+          for(int i = 0; i < r1; i++)
+            C.chunk(i,jChunk,k) = tmp[i];
+        }
+    }
+
     //! scale operation for a Tensor3
     template<typename T>
     void t3_scale(T alpha, Tensor3<T>& x)
@@ -198,39 +230,55 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    // transpose and leftNormalize for stupidity for now
-    auto reverseDims = TT.dimensions();
-    std::reverse(reverseDims.begin(), reverseDims.end());
-    TensorTrain<T> tmpTT(reverseDims);
-    const auto nDim = TT.dimensions().size();
-    for(int iDim = 0; iDim < nDim; iDim++)
+    const int nDim = TT.subTensors().size();
+    if( nDim <= 0)
+      throw std::invalid_argument("TensorTrain #dimensions < 1!");
+
+    // auxiliary matrix / tensor
+    Tensor2<T> t2;
+    Tensor3<T> t3;
+
+    for(int iDim = nDim-1; iDim >= 1; iDim--)
     {
-      auto& subT = tmpTT.editableSubTensors()[nDim-1-iDim];
-      const auto& oldSubT = TT.subTensors()[iDim];
-      const auto r1 = oldSubT.r2();
-      const auto n = oldSubT.n();
-      const auto r2 = oldSubT.r1();
-      subT.resize(r1,n,r2);
-      for(int j = 0; j < r2; j++)
-        for(int k = 0; k < n; k++)
+      auto& subT = TT.editableSubTensors()[iDim];
+      const auto r1 = subT.r1();
+      const auto r2 = subT.r2();
+      const auto n = subT.n();
+
+      // calculate the SVD or QR of ( subT(: x : :) )^T
+      t2.resize(r2*n, r1);
+      for(int k = 0; k < r2; k++)
+        for(int j = 0; j < n; j++)
           for(int i = 0; i < r1; i++)
-            subT(i,k,j) = oldSubT(j,k,i);
+            t2(k+j*r2,i) = subT(i,j,k);
+
+      const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
+        internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+        internal::normalize_qb(t2);
+
+      const auto r1_new = Q.cols();
+
+      subT.resize(r1_new, n, r2);
+      for(int k = 0; k < r2; k++)
+        for(int j = 0; j < n; j++)
+          for(int i = 0; i < r1_new; i++)
+            subT(i,j,k) = Q(k+j*r2,i);
+
+      t2.resize(r1,r1_new);
+      EigenMap(t2) = B.transpose();
+
+      auto& subT_prev = TT.editableSubTensors()[iDim-1];
+      // now contract subT_next(:,:,*) * t2(*,:)
+      internal::normalize_contract2(subT_prev, t2, t3);
+      std::swap(subT_prev, t3);
     }
-    const auto norm = leftNormalize(tmpTT, rankTolerance, maxRank);
-    for(int iDim = 0; iDim < nDim; iDim++)
-    {
-      auto& subT = TT.editableSubTensors()[nDim-1-iDim];
-      const auto& oldSubT = tmpTT.subTensors()[iDim];
-      const auto r1 = oldSubT.r2();
-      const auto n = oldSubT.n();
-      const auto r2 = oldSubT.r1();
-      subT.resize(r1,n,r2);
-      for(int j = 0; j < r2; j++)
-        for(int k = 0; k < n; k++)
-          for(int i = 0; i < r1; i++)
-            subT(i,k,j) = oldSubT(j,k,i);
-    }
-    return norm;
+
+    // just calculate its norm and scale the last subtensor
+    auto& subT = TT.editableSubTensors()[0];
+    const T nrm = internal::t3_nrm(subT);
+    const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
+    internal::t3_scale(invNrm, subT);
+    return nrm;
   }
 
 

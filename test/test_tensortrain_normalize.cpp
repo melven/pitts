@@ -366,3 +366,47 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d10)
   //std::cout << "\n";
   EXPECT_LT(maxRank(TTtruncated), maxRank(TT));
 }
+
+TEST(PITTS_TensorTrain_normalize, rightNormalize_same_as_leftNormalize_reversed)
+{
+  TensorTrain_double TT({10,9,8,7});
+  TT.setTTranks({5,4,4});
+  randomize(TT);
+
+  TensorTrain_double TT_reversed({7,8,9,10});
+  TT_reversed.setTTranks({4,4,5});
+
+  constexpr auto transpose = [](const Tensor3_double& A, Tensor3_double& B)
+  {
+    B.resize(A.r2(),A.n(),A.r1());
+    for(int i = 0; i < A.r1(); i++)
+      for(int j = 0; j < A.n(); j++)
+        for(int k = 0; k < A.r2(); k++)
+          B(k,j,i) = A(i,j,k);
+  };
+
+  const auto nDim = TT.dimensions().size();
+  for(int iDim = 0; iDim < nDim; iDim++)
+    transpose(TT.subTensors()[iDim], TT_reversed.editableSubTensors()[nDim-1-iDim]);
+
+  const double nrm = rightNormalize(TT, 0.1, 3);
+  const double nrm_ref = leftNormalize(TT_reversed, 0.1, 3);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    const auto& subT = TT.subTensors()[iDim];
+    const auto& subT_reversed = TT_reversed.subTensors()[nDim-1-iDim];
+    Tensor3_double subT_ref;
+    transpose(subT_reversed, subT_ref);
+    ASSERT_EQ(subT_ref.r1(), subT.r1());
+    ASSERT_EQ(subT_ref.n(), subT.n());
+    ASSERT_EQ(subT_ref.r2(), subT.r2());
+    for(int i = 0; i < subT.r1(); i++)
+      for(int j = 0; j < subT.n(); j++)
+        for(int k = 0; k < subT.r2(); k++)
+        {
+          EXPECT_NEAR(subT_ref(i,j,k), subT(i,j,k), eps);
+        }
+  }
+}
+
