@@ -55,20 +55,32 @@ namespace
 
     // check that the result is normalized
     // except for the case alpha or beta == 0
+    const auto nDim = TTresult.dimensions().size();
     if( alpha*beta != 0 )
     {
       EXPECT_NEAR(1., norm2(TTresult), eps);
       // check orthogonality of subtensors
-      for(const auto& subT: TTresult.subTensors())
+      for(int iDim = 0; iDim < nDim; iDim++)
       {
-        const mat orthogErr = ConstEigenMap(leftContract(subT)) - mat::Identity(subT.r2(),subT.r2());
-        EXPECT_NEAR(0., orthogErr.norm(), eps);
+        const auto& subT = TTresult.subTensors()[iDim];
+
+        if( iDim != nDim-1 )
+        {
+          const mat orthogErr = ConstEigenMap(leftContract(subT)) - mat::Identity(subT.r2(),subT.r2());
+          EXPECT_NEAR(0., orthogErr.norm(), eps);
+        }
+        else // iDim == nDim-1
+        {
+          const double normalizeErr = PITTS::internal::t3_nrm(subT) - 1;
+          EXPECT_NEAR(0., normalizeErr, eps);
+        }
       }
     }
 
     // check that the result is correct
     TensorTrain_double testTT(TTresult.dimensions());
-    if( TTresult.dimensions().size() == 1 )
+    copy(TTb, testTT);
+    if( nDim == 1 && testTT.subTensors()[0].r1() == 1 && testTT.subTensors()[nDim-1].r2() == 1 )
     {
       for(int i = 0; i < TTresult.dimensions()[0]; i++)
       {
@@ -76,7 +88,7 @@ namespace
         EXPECT_NEAR(alpha*dot(TTa,testTT)+beta*dot(TTb,testTT), gamma*dot(TTresult,testTT), eps);
       }
     }
-    else if( TTresult.dimensions().size() == 2 )
+    else if( nDim == 2 && testTT.subTensors()[0].r1() == 1 && testTT.subTensors()[nDim-1].r2() == 1 )
     {
       for(int i = 0; i < TTresult.dimensions()[0]; i++)
         for(int j = 0; j < TTresult.dimensions()[1]; j++)
@@ -266,4 +278,54 @@ TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
   nrm = PITTS::axpby(-1., TTy, nrm, TTz);
   nrm = PITTS::axpby(-1., TTx, nrm, TTz);
   EXPECT_NEAR(0.3, nrm, 0.1);
+}
+
+TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_constant)
+{
+  TensorTrain_double TTx(1, 5), TTy(1, 5);
+  auto& subTx = TTx.editableSubTensors()[0];
+  auto& subTy = TTy.editableSubTensors()[0];
+
+  subTx.resize(3,5,4);
+  subTy.resize(3,5,4);
+
+  subTx.setConstant(1);
+  subTy.setConstant(2);
+
+  const double nrm = axpby(0.7, TTx, 0.3, TTy);
+  const double nrm_ref = std::sqrt(1.3*1.3*3*5*4);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  const double v_ref = 1/std::sqrt(3*5*4.);
+  for(int i = 0; i < subTy.r1(); i++)
+    for(int j = 0; j < subTy.n(); j++)
+      for(int k = 0; k < subTy.r2(); k++)
+      {
+        EXPECT_NEAR(v_ref, subTy(i,j,k), eps);
+      }
+}
+
+TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_random)
+{
+  TensorTrain_double TTx(1, 5), TTy(1, 5);
+  TTx.editableSubTensors()[0].resize(3,5,4);
+  TTy.editableSubTensors()[0].resize(3,5,4);
+  randomize(TTx);
+  randomize(TTy);
+
+  check_axpby(0.2, TTx, -0.5, TTy);
+}
+
+TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim3_random)
+{
+  TensorTrain_double TTx({5,3,2}, 2), TTy({5,3,2}, 2);
+  TTx.setTTranks({5,3});
+  TTy.setTTranks({1,4});
+  TTx.editableSubTensors()[0].resize(3,5,5);
+  TTx.editableSubTensors()[2].resize(3,2,3);
+  TTy.editableSubTensors()[0].resize(3,5,1);
+  TTy.editableSubTensors()[2].resize(4,2,3);
+  randomize(TTx);
+  randomize(TTy);
+
+  check_axpby(0.2, TTx, -0.5, TTy);
 }
