@@ -34,6 +34,25 @@ namespace
     return result;
   }
 
+  // helper function to contract a subtensor of the tensor train
+  Tensor2_double rightContract(const Tensor3_double& subT)
+  {
+    const auto r1 = subT.r1();
+    const auto r2 = subT.r2();
+    const auto n = subT.n();
+
+    Tensor2_double result(r1,r1);
+    for(int j = 0; j < r1; j++)
+      for(int i = 0; i < r1; i++)
+        result(i,j) = 0;
+    for(int k = 0; k < n; k++)
+      for(int j = 0; j < r1; j++)
+        for(int i = 0; i < r1; i++)
+          for(int i_ = 0; i_ < r2; i_++)
+            result(i,j) += subT(i,k,i_)*subT(j,k,i_);
+    return result;
+  }
+
   // helper function to call normalize on a tensor train and do common checks
   void check_normalize(TensorTrain_double& TT)
   {
@@ -76,6 +95,80 @@ namespace
         randomize(testTT);
         EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps*norm2(testTT));
       }
+    }
+  }
+
+  // helper function to call leftNormalize on a tensor train and do common checks (with boundary rank support)
+  void check_leftNormalize_boundaryRank(TensorTrain_double& TT)
+  {
+    const TensorTrain_double refTT = TT;
+    const double TTnorm = leftNormalize(TT);
+
+    EXPECT_NEAR(norm2(refTT), TTnorm, eps);
+    EXPECT_NEAR(1., norm2(TT), eps);
+
+    // check orthogonality of subtensors
+    const int nDim = TT.dimensions().size();
+    for(int iDim = 0; iDim < nDim; iDim++)
+    {
+      const auto& subT = TT.subTensors()[iDim];
+      
+      if( iDim != nDim-1 )
+      {
+        const mat orthogErr = ConstEigenMap(leftContract(subT)) - mat::Identity(subT.r2(),subT.r2());
+        EXPECT_NEAR(0., orthogErr.norm(), eps);
+      }
+      else
+      {
+        const double normalizeErr = PITTS::internal::t3_nrm(subT) - 1;
+        EXPECT_NEAR(0., normalizeErr, eps);
+      }
+    }
+
+    // check tensor is the same, except for scaling...
+    TensorTrain_double testTT(TT.dimensions());
+    copy(TT, testTT);
+    for(int i = 0; i < 10; i++)
+    {
+      randomize(testTT);
+      EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps*norm2(testTT));
+    }
+  }
+
+  // helper function to call leftNormalize on a tensor train and do common checks (with boundary rank support)
+  void check_rightNormalize_boundaryRank(TensorTrain_double& TT)
+  {
+    const TensorTrain_double refTT = TT;
+    const double TTnorm = rightNormalize(TT);
+
+    EXPECT_NEAR(norm2(refTT), TTnorm, eps);
+    EXPECT_NEAR(1., norm2(TT), eps);
+
+    // check orthogonality of subtensors
+    const int nDim = TT.dimensions().size();
+    for(int iDim = 0; iDim < nDim; iDim++)
+    {
+      const auto& subT = TT.subTensors()[iDim];
+      
+      if( iDim != 0 )
+      {
+        const mat orthogErr = ConstEigenMap(rightContract(subT)) - mat::Identity(subT.r1(),subT.r1());
+        EXPECT_NEAR(0., orthogErr.norm(), eps);
+      }
+      else
+      {
+        const double normalizeErr = PITTS::internal::t3_nrm(subT) - 1;
+        EXPECT_NEAR(0., normalizeErr, eps);
+      }
+    }
+
+    // check tensor is the same, except for scaling...
+    TensorTrain_double testTT(TT.dimensions());
+    copy(TT, testTT);
+    for(int i = 0; i < 10; i++)
+    {
+      randomize(testTT);
+      EXPECT_NEAR(dot(refTT,testTT), TTnorm*dot(TT,testTT), eps*norm2(testTT));
     }
   }
 
@@ -365,4 +458,153 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d10)
   //  std::cout << " " << r;
   //std::cout << "\n";
   EXPECT_LT(maxRank(TTtruncated), maxRank(TT));
+}
+
+TEST(PITTS_TensorTrain_normalize, rightNormalize_same_as_leftNormalize_reversed)
+{
+  TensorTrain_double TT({10,9,8,7});
+  TT.setTTranks({5,4,4});
+  randomize(TT);
+
+  TensorTrain_double TT_reversed({7,8,9,10});
+  TT_reversed.setTTranks({4,4,5});
+
+  constexpr auto transpose = [](const Tensor3_double& A, Tensor3_double& B)
+  {
+    B.resize(A.r2(),A.n(),A.r1());
+    for(int i = 0; i < A.r1(); i++)
+      for(int j = 0; j < A.n(); j++)
+        for(int k = 0; k < A.r2(); k++)
+          B(k,j,i) = A(i,j,k);
+  };
+
+  const auto nDim = TT.dimensions().size();
+  for(int iDim = 0; iDim < nDim; iDim++)
+    transpose(TT.subTensors()[iDim], TT_reversed.editableSubTensors()[nDim-1-iDim]);
+
+  const double nrm = rightNormalize(TT, 0.1, 3);
+  const double nrm_ref = leftNormalize(TT_reversed, 0.1, 3);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    const auto& subT = TT.subTensors()[iDim];
+    const auto& subT_reversed = TT_reversed.subTensors()[nDim-1-iDim];
+    Tensor3_double subT_ref;
+    transpose(subT_reversed, subT_ref);
+    ASSERT_EQ(subT_ref.r1(), subT.r1());
+    ASSERT_EQ(subT_ref.n(), subT.n());
+    ASSERT_EQ(subT_ref.r2(), subT.r2());
+    for(int i = 0; i < subT.r1(); i++)
+      for(int j = 0; j < subT.n(); j++)
+        for(int k = 0; k < subT.r2(); k++)
+        {
+          EXPECT_NEAR(subT_ref(i,j,k), subT(i,j,k), eps);
+        }
+  }
+}
+
+TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1)
+{
+  using PITTS::internal::t3_nrm;
+
+  TensorTrain_double TT(1,5);
+  auto& subT = TT.editableSubTensors()[0];
+  subT.resize(7,5,3);
+
+  subT.setConstant(1);
+
+  double nrm = leftNormalize(TT);
+
+  double nrm_ref = std::sqrt(7*5*3);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  EXPECT_NEAR(1., t3_nrm(subT), eps);
+  for(int i = 0; i < subT.r1(); i++)
+    for(int j = 0; j < subT.n(); j++)
+      for(int k = 0; k < subT.r2(); k++)
+      {
+        EXPECT_NEAR(1./nrm_ref, subT(i,j,k), eps);
+      }
+
+  randomize(subT);
+  nrm_ref = t3_nrm(subT);
+
+  nrm = leftNormalize(TT);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  EXPECT_NEAR(1., t3_nrm(subT), eps);
+}
+
+TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
+{
+  using PITTS::internal::t3_nrm;
+
+  TensorTrain_double TT(1,5);
+  auto& subT = TT.editableSubTensors()[0];
+  subT.resize(7,5,3);
+
+  subT.setConstant(1);
+
+  double nrm = rightNormalize(TT);
+
+  double nrm_ref = std::sqrt(7*5*3);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  EXPECT_NEAR(1., t3_nrm(subT), eps);
+  for(int i = 0; i < subT.r1(); i++)
+    for(int j = 0; j < subT.n(); j++)
+      for(int k = 0; k < subT.r2(); k++)
+      {
+        EXPECT_NEAR(1./nrm_ref, subT(i,j,k), eps);
+      }
+
+  randomize(subT);
+  nrm_ref = t3_nrm(subT);
+
+  nrm = rightNormalize(TT);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+  EXPECT_NEAR(1., t3_nrm(subT), eps);
+}
+
+TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1_random)
+{
+  TensorTrain_double TT(1,5);
+  auto& subT = TT.editableSubTensors()[0];
+  subT.resize(7,5,3);
+  randomize(subT);
+
+  check_leftNormalize_boundaryRank(TT);
+}
+
+TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim4_random)
+{
+  TensorTrain_double TT({3,4,5,6});
+  TT.setTTranks(2);
+  auto& subTl = TT.editableSubTensors()[0];
+  auto& subTr = TT.editableSubTensors()[3];
+  subTl.resize(7,3,2);
+  subTr.resize(2,6,3);
+  randomize(TT);
+
+  check_leftNormalize_boundaryRank(TT);
+}
+
+TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1_random)
+{
+  TensorTrain_double TT(1,5);
+  auto& subT = TT.editableSubTensors()[0];
+  subT.resize(7,5,3);
+  randomize(subT);
+
+  check_rightNormalize_boundaryRank(TT);
+}
+
+TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim4_random)
+{
+  TensorTrain_double TT({3,4,5,6});
+  TT.setTTranks(2);
+  auto& subTl = TT.editableSubTensors()[0];
+  auto& subTr = TT.editableSubTensors()[3];
+  subTl.resize(7,3,2);
+  subTr.resize(2,6,3);
+  randomize(TT);
+
+  check_rightNormalize_boundaryRank(TT);
 }

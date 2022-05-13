@@ -36,7 +36,7 @@ namespace PITTS
       const auto r1x = X.r1();
       const auto r1y = Y.r1();
       // special case, for first==true, we calculate (X Y)(:,:,*) * B(*,:)
-      const auto r1sum = first ? 1 : r1x + r1y;
+      const auto r1sum = first ? r1x : r1x + r1y;
       const auto n = X.n();
       const auto nChunks = X.nChunks();
       assert(X.n() == Y.n());
@@ -125,6 +125,10 @@ else
     if( TTx.dimensions() != TTy.dimensions() )
       throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
 
+    const int nDim = TTx.subTensors().size();
+    if( TTx.subTensors()[0].r1() != TTy.subTensors()[0].r1() || TTx.subTensors()[nDim-1].r2() != TTy.subTensors()[nDim-1].r2() )
+      throw std::invalid_argument("TensorTrain axpby boundary ranks mismatch!");
+
     // handle corner cases
     if( std::abs(alpha) == 0 )
       return beta;
@@ -157,11 +161,18 @@ else
     Tensor3<T> t3_tmp;
 
     // Auxiliary tensor of rank-2
-    Tensor2<T> t2_M(2,1);
-    t2_M(0,0) = alpha;
-    t2_M(1,0) = beta;
+    Tensor2<T> t2_M;
+    {
+      const int r2 = TTx.subTensors()[nDim-1].r2();
+      t2_M.resize(2*r2, r2);
+      for(int i = 0; i < r2; i++)
+        for(int j = 0; j < r2; j++)
+        {
+          t2_M(i,j) = i == j ? alpha : T(0);
+          t2_M(r2+i,j) = i == j ? beta : T(0);
+        }
+    }
 
-    const int nDim = TTx.subTensors().size();
     for(int iDim = nDim-1; iDim >= 0; iDim--)
     {
       const auto& subTx = TTx.subTensors()[iDim];
@@ -177,7 +188,6 @@ else
       if( iDim == 0 )
       {
         // no need for any further steps, we do a normalize afterwards anyway!
-        assert(r1 == 1);
         copy(t3_tmp, subTy);
         break;
       }
