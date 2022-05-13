@@ -9,7 +9,7 @@ TEST(PITTS_MultiVector_norm, single_col)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, Eigen::Dynamic, 1>;
+  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
 
   MultiVector_double X(50,1);
 
@@ -27,7 +27,7 @@ TEST(PITTS_MultiVector_norm, simple)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, Eigen::Dynamic, 1>;
+  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
 
   MultiVector_double X(2,3);
 
@@ -55,7 +55,7 @@ TEST(PITTS_MultiVector_norm, multi_col)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, Eigen::Dynamic, 1>;
+  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
 
   MultiVector_double X(51,5);
 

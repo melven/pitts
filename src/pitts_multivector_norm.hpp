@@ -59,7 +59,7 @@ namespace PITTS
       }
     }
 
-    using arr = Eigen::Array<T, Eigen::Dynamic, 1>;
+    using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
     arr result = Eigen::Map<arr>(tmp, nCols).sqrt();
     return result;
   }
