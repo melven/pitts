@@ -62,6 +62,7 @@ target_sources(pitts INTERFACE
   pitts_multivector_transpose.hpp
   pitts_multivector_dot.hpp
   pitts_multivector_norm.hpp
+  pitts_multivector_scale.hpp
   )
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
