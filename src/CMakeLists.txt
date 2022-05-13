@@ -39,6 +39,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_operator_apply_transposed.hpp
   pitts_tensortrain_operator_apply_op.hpp
   pitts_tensortrain_operator_apply_transposed_op.hpp
+  pitts_tensortrain_operator_apply_dense.hpp
   pitts_tensortrain_operator_from_itensor.hpp
   pitts_tensortrain_operator_to_itensor.hpp
   pitts_tensortrain_solve_mals.hpp
