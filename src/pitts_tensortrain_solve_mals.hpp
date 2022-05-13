@@ -209,63 +209,6 @@ namespace PITTS
           }
     }
 
-    template<typename T>
-    void als_op_contract1(const Tensor2<T>& lOp, const Tensor3<T>& Ak, int n, Tensor3<T>& t3)
-    {
-      const auto r1 = lOp.r1() / Ak.r1();
-      const auto m = Ak.n() / n;
-      const auto r2 = lOp.r2();
-      const auto rA1 = Ak.r1();
-      const auto rA2 = Ak.r2();
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "n", "m", "r2", "rA1", "rA2"},{r1, n, m, r2, rA1, rA2}}, // arguments
-        {{r1*n*rA2*r2*m*rA1*kernel_info::FMA<T>()}, // flops
-         {(r1*rA1*r2 + rA1*n*m*rA2)*kernel_info::Load<T>() + (r1*n*rA2*r2*m)*kernel_info::Store<T>()}} // data transfers
-        );
-
-      t3.resize(r1*n, rA2, r2*m);
-      for(int i1 = 0; i1 < r1; i1++)
-        for(int i2 = 0; i2 < n; i2++)
-          for(int j = 0; j < rA2; j++)
-            for(int k1 = 0; k1 < r2; k1++)
-              for(int k2 = 0; k2 < m; k2++)
-              {
-                T tmp = T(0);
-                for(int l = 0; l < rA1; l++)
-                  tmp += lOp(i1+l*r1,k1) * Ak(l,i2+k2*n,j);
-                t3(k1 + i2*r1, j, i1 + k2*r2) = tmp;
-              }
-    }
-
-    template<typename T>
-    void als_op_contract2(const Tensor2<T>& rOp, const Tensor3<T>& t3, Tensor2<T>& t2_op)
-    {
-      const auto nr1 = t3.r1();
-      const auto rA2 = t3.n();
-      const auto mr2 = t3.r2();
-      const auto r1 = rOp.r1();
-      const auto r2 = rOp.r2() / rA2;
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"nr1", "rA2", "mr2", "r1", "r2"},{nr1, rA2, mr2, r1, r2}}, // arguments
-        {{nr1*r1*mr2*r2*rA2*kernel_info::FMA<T>()}, // flops
-         {(r1*rA2*r2 + nr1*rA2*mr2)*kernel_info::Load<T>() + (nr1*r1*mr2*r2)*kernel_info::Store<T>()}} // data transfers
-        );
-
-      t2_op.resize(r1*nr1, r2*mr2);
-      for(int i1 = 0; i1 < nr1; i1++)
-        for(int i2 = 0; i2 < r1; i2++)
-          for(int j1 = 0; j1 < mr2; j1++)
-            for(int j2 = 0; j2 < r2; j2++)
-            {
-              T tmp = T(0);
-              for(int k = 0; k < rA2; k++)
-                tmp += rOp(i2,j2+k*r2) * t3(i1,k,j1);
-              t2_op(i1+i2*nr1, j1+j2*mr2) = tmp;
-            }
-    }
-
     //! calculate the result of multiplying two rank-3 operator tensors (contraction of third and first dimension, reordering of middle dimension)
     //!
     //! The resulting tensor is t3c with
@@ -486,24 +429,6 @@ namespace PITTS
         Tensor3<T> t3_rhs;
         internal::reverse_dot_contract1(left_xTb, t3_tmp, t3_rhs);
         return t3_rhs;
-      }
-
-      //! calculate sub-problem operator
-      //! --- left_xTAx ---
-      //!        |
-      //!   --  A_k --
-      //!        |
-      //! --- right_xTAx ---
-      template<typename T>
-      Tensor2<T> calculate_local_op(const Tensor2<T>& left_xTAx, const Tensor3<T>& Ak, int nAk, const Tensor2<T>& right_xTAx)
-      {
-        // first contract left_xTAx and A_k
-        Tensor3<T> t3_tmp;
-        internal::als_op_contract1(left_xTAx, Ak, nAk, t3_tmp);
-        // now contract t3_tmp and right_xTAx
-        Tensor2<T> t2_op;
-        internal::als_op_contract2(right_xTAx, t3_tmp, t2_op);
-        return t2_op;
       }
 
       //! apply sub-problem operator
@@ -779,31 +704,6 @@ namespace PITTS
           const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), t3b, right_xTb.back());
           assert( std::abs( internal::t3_dot(t3x, t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
 
-          /*
-          // calculate sub-problem operator
-          const Tensor2<T> t2_op = calculate_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back());
-          assert( std::abs( flatten(t3x).transpose() * ConstEigenMap(t2_op) * flatten(t3x) - dot(TTx,TTAx) ) < sqrt_eps );
-          {
-            mat M(t2_op.r1(),t2_op.r2());
-            Tensor3<T> t3tmp(t3x.r1(),t3x.n(),t3x.r2());
-            Tensor3<T> t3Ax;
-            for(int i = 0; i < t3x.r1(); i++)
-              for(int j = 0; j < t3x.n(); j++)
-                for(int k = 0; k < t3x.r2(); k++)
-                {
-                  t3tmp.setUnit(i,j,k);
-                  apply_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3tmp, t3Ax);
-                  M.col(i+j*t3x.r1()+k*t3x.r1()*t3x.n()) = flatten(t3Ax);
-                }
-            std::cout << " local_op ref:\n" << ConstEigenMap(t2_op) << "\n";
-            std::cout << " local_op new:\n" << M << "\n";
-            std::cout << " local_op dif:\n" << M - ConstEigenMap(t2_op) << "\n";
-          }
-          
-          // solve sub-problem t2_op * x = t3_rhs
-          std::cout << " local problem size: " << t2_op.r1() << " x " << t2_op.r2() << "\n";
-          const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
-          */
 #ifndef NDEBUG
           {
             Tensor3<T> t3Ax;
@@ -925,31 +825,6 @@ namespace PITTS
           const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), t3b, right_xTb.back());
           assert( std::abs( internal::t3_dot(t3x, t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
 
-          /*
-          // calculate sub-problem operator
-          const Tensor2<T> t2_op = calculate_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back());
-          assert( std::abs( flatten(t3x).transpose() * ConstEigenMap(t2_op) * flatten(t3x) - dot(TTx,TTAx) ) < sqrt_eps );
-
-          {
-            mat M(t2_op.r1(),t2_op.r2());
-            Tensor3<T> t3tmp(t3x.r1(),t3x.n(),t3x.r2());
-            Tensor3<T> t3Ax;
-            for(int i = 0; i < t3x.r1(); i++)
-              for(int j = 0; j < t3x.n(); j++)
-                for(int k = 0; k < t3x.r2(); k++)
-                {
-                  t3tmp.setUnit(i,j,k);
-                  apply_local_op(left_xTAx.back(), t3A, nA, right_xTAx.back(), t3tmp, t3Ax);
-                  M.col(i+j*t3x.r1()+k*t3x.r1()*t3x.n()) = flatten(t3Ax);
-                }
-            std::cout << " local_op ref:\n" << ConstEigenMap(t2_op) << "\n";
-            std::cout << " local_op new:\n" << M << "\n";
-            std::cout << " local_op dif:\n" << M - ConstEigenMap(t2_op) << "\n";
-          }
-          
-          // solve sub-problem t2_op * x = t3_rhs
-          const vec x = ConstEigenMap(t2_op).colPivHouseholderQr().solve( flatten(t3_rhs) );
-          */
           // check sub-problem operator
 #ifndef NDEBUG
           {
