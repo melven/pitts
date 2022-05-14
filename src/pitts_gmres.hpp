@@ -111,7 +111,8 @@ namespace PITTS
     auto r0 = Vector();
     apply(OpA, x, r0);
     const auto nrm_b = norm2(b); // we need some prototype to generate T(-1) (could be an Eigen Array)
-    const T minusOne = nrm_b-nrm_b - 1; // generates minusOne with the same length as nrm_b
+    const T zero = nrm_b-nrm_b;  // generates zero with the same length as nrm_b
+    const T minusOne = zero - 1; // generates minusOne with the same length as nrm_b
     const auto beta = axpy_norm2(minusOne, b, r0);
     if( verbose )
       std::cout << outputPrefix << "Initial residual norm: " << beta << ", rhs norm: " << nrm_b << "\n";
@@ -122,10 +123,10 @@ namespace PITTS
 
     vec b_hat = vec::Zero(maxIter+1);
     b_hat(0) = beta;
-    mat H = mat::Zero(maxIter+1,maxIter);
-    mat R = mat::Zero(maxIter,maxIter);
-    vec c = vec::Zero(maxIter);
-    vec s = vec::Zero(maxIter);
+    mat H = mat::Constant(maxIter+1, maxIter, zero);
+    mat R = mat::Constant(maxIter, maxIter, zero);
+    vec c = vec::Constant(maxIter, zero);
+    vec s = vec::Constant(maxIter, zero);
 
     // current residual
     T rho = beta;
