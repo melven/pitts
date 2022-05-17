@@ -378,7 +378,7 @@ namespace PITTS
     right_xTAx.emplace_back(Tensor2_one());
 
     // this includes a calculation of Ax, so reuse it
-    TensorTrain<T> TTAx(effTTOpA.row_dimensions());
+    TensorTrain<T> TTAx(effTTOpA.row_dimensions()), residualVector(effTTOpA.row_dimensions());
     for(int iDim = nDim-1; iDim >= 0; iDim--)
       right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], right_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
 
@@ -397,15 +397,14 @@ namespace PITTS
 
 
     // calculate the error norm
-    // ||Ax - b||_2^2 = <Ax - b, Ax - b> = <Ax,Ax> - 2<Ax, b> + <b,b>
-    T squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
-    auto residualError = std::sqrt(std::abs(squaredError));
-    std::cout << "Initial residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+    copy(effTTb, residualVector);
+    auto residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
+    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
 
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
-      if( residualError / sqrt_bTb < residualTolerance )
+      if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
       if( useMALS )
@@ -550,10 +549,10 @@ namespace PITTS
 
 
       // check error
-      squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
-      residualError = std::sqrt(std::abs(squaredError));
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
-      if( residualError / sqrt_bTb < residualTolerance )
+      copy(effTTb, residualVector);
+      residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
+      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+      if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
       if( useMALS )
@@ -700,13 +699,13 @@ namespace PITTS
 
 
       // check error
-      squaredError = bTb + dot(TTAx,TTAx) - 2*dot(TTAx,effTTb);
-      residualError = std::sqrt(std::abs(squaredError));
-      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualError << " (abs), " << residualError / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+      copy(effTTb, residualVector);
+      residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
+      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
     }
 
 
-    return residualError;
+    return residualNorm;
   }
 
 }
