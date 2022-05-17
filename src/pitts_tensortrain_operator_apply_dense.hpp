@@ -59,19 +59,23 @@ namespace PITTS
 
       y.resize(n_left * n * r2 * m_right, nCols);
 
-      for(int iCol = 0; iCol < nCols; iCol++)
+#pragma omp parallel
       {
-        for(int jr = 0; jr < m_right; jr++)
-          for(int k2 = 0; k2 < r2; k2++)
-            for(int i = 0; i < n; i++)
-              for(int jl = 0; jl < n_left; jl++)
-              {
-                T tmp{};
-                for(int j = 0; j < m; j++)
-                  for(int k1 = 0; k1 < r1; k1++)
-                    tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
-                y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
-              }
+        for(int iCol = 0; iCol < nCols; iCol++)
+        {
+#pragma omp for collapse(4) schedule(static) nowait
+          for(int jr = 0; jr < m_right; jr++)
+            for(int k2 = 0; k2 < r2; k2++)
+              for(int i = 0; i < n; i++)
+                for(int jl = 0; jl < n_left; jl++)
+                {
+                  T tmp{};
+                  for(int j = 0; j < m; j++)
+                    for(int k1 = 0; k1 < r1; k1++)
+                      tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
+                  y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
+                }
+        }
       }
     }
   }
