@@ -38,22 +38,41 @@ namespace PITTS
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    const auto totalSize = std::accumulate(begin(TT.dimensions()), end(TT.dimensions()), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
+    if( TT.dimensions().size() == 0 )
+    {
+      X.resize(0,1);
+      return;
+    }
+
+    const int r0 = TT.subTensors().front().r1();
+    const int rd = TT.subTensors().back().r2();
+    const int nDim = TT.dimensions().size();
+
+    const auto totalSize = r0 * rd * std::accumulate(begin(TT.dimensions()), end(TT.dimensions()), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
 
     // use "multivector <- multivector * tensor2" ("transform") implementation
     // as in most cases the calculation becomes memory bound and requires lots of reshaping
+    if( nDim == 1 )
     {
       const auto& subT = TT.subTensors()[0];
-      assert(subT.r1() == 1);
-      X.resize(subT.n(), subT.r2());
+      X.resize(subT.r1() * subT.n() * subT.r2(), 1);
+      for(int k = 0; k < subT.r2(); k++)
+        for(int j = 0; j < subT.n(); j++)
+          for(int i = 0; i < subT.r1(); i++)
+            X(i+subT.r1()*j+subT.r1()*subT.n()*k,0) = subT(i,j,k);
+    }
+    else // nDim > 1
+    {
+      const auto& subT = TT.subTensors()[0];
+      X.resize(subT.r1() * subT.n(), subT.r2());
       for(int j = 0; j < X.cols(); j++)
         for(int i = 0; i < X.rows(); i++)
-          X(i,j) = subT(0,i,j);
+          X(i,j) = subT(i%r0,i/r0,j);
     }
 
     MultiVector<T> Y;
     Tensor2<T> M;
-    for(int iDim = 1; iDim < TT.dimensions().size(); iDim++)
+    for(int iDim = 1; iDim < nDim; iDim++)
     {
       // copy sub-tensor to Tensor2 to pass it to transform later
       const auto& subT = TT.subTensors()[iDim];
@@ -63,7 +82,10 @@ namespace PITTS
           for(int i = 0; i < subT.r1(); i++)
             M(i, j+subT.n()*k) = subT(i,j,k);
 
-      transform(X, M, Y, {X.rows()*subT.n(),subT.r2()});
+      if( iDim+1 == nDim )
+        transform(X, M, Y, {X.rows()*subT.n()*subT.r2(),1});
+      else
+        transform(X, M, Y, {X.rows()*subT.n(),subT.r2()});
       std::swap(X, Y);
     }
     assert(X.rows() == totalSize && X.cols() == 1);
@@ -93,11 +115,14 @@ namespace PITTS
     if( TT.dimensions().size() == 0 )
     {
       if( last - first != 0 )
-      throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::toDense");
+        throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::toDense");
       return;
     }
 
-    const auto totalSize = std::accumulate(begin(TT.dimensions()), end(TT.dimensions()), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
+    const int r0 = TT.subTensors().front().r1();
+    const int rd = TT.subTensors().back().r2();
+
+    const auto totalSize = r0 * rd * std::accumulate(begin(TT.dimensions()), end(TT.dimensions()), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
     if( totalSize != last - first )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::toDense");
 
