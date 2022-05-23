@@ -30,6 +30,7 @@
 #include "pitts_tensortrain_operator_apply_dense.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
+#include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_axpby.hpp"
 #include "pitts_multivector_norm.hpp"
@@ -125,17 +126,17 @@ namespace PITTS
         return result;
       }
 
-      //! Tensor3 as vector
-      template<typename T>
-      auto flatten(const Tensor3<T>& t3)
-      {
-        Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
-        for(int i = 0; i < t3.r1(); i++)
-          for(int j = 0; j < t3.n(); j++)
-            for(int k = 0; k < t3.r2(); k++)
-              v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
-        return v;
-      };
+      ////! Tensor3 as vector
+      //template<typename T>
+      //auto flatten(const Tensor3<T>& t3)
+      //{
+      //  Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
+      //  for(int i = 0; i < t3.r1(); i++)
+      //    for(int j = 0; j < t3.n(); j++)
+      //      for(int k = 0; k < t3.r2(); k++)
+      //        v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
+      //  return v;
+      //};
 
       //! vector as Tensor3 (with known dimensions)
       template<typename T>
@@ -257,24 +258,92 @@ namespace PITTS
         return t2;
       }
 
-      //! calculate the local RHS vector for ALS
-      //! --- left_xTb
-      //!        |
-      //!   --  b_k
-      //!        |
-      //! --- right_xTb
+      //! calculate the local RHS tensor-train for (M)ALS
       template<typename T>
-      Tensor3<T> calculate_local_rhs(const Tensor2<T>& left_xTb, const Tensor3<T>& subTb, const Tensor2<T>& right_xTb)
+      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_xTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_xTb)
       {
+        std::vector<int> dims(nMALS+1);
+        copy_n(TTb.dimensions().begin() + iDim, nMALS+1, dims.begin());
+  
+        TensorTrain<T> tt_b(dims);
+        for(int i = 0; i <= nMALS; i++)
+          copy(TTb.subTensors()[iDim+i], tt_b.editableSubTensors()[i]);
 
-        // first contract: subTb(:,:,*) * t2(:,*)
+        // first contract: tt_b_right(:,:,*) * right_xTb(:,*)
         Tensor3<T> t3_tmp;
-        internal::dot_contract1(subTb, right_xTb, t3_tmp);
+        std::swap(tt_b.editableSubTensors().back(), t3_tmp);
+        internal::dot_contract1(t3_tmp, right_xTb, tt_b.editableSubTensors().back());
 
-        // then contract: t2(*,:) * t3_tmp(*,:,:)
-        Tensor3<T> t3_rhs;
-        internal::reverse_dot_contract1(left_xTb, t3_tmp, t3_rhs);
-        return t3_rhs;
+        // then contract: left_xTb(*,:) * tt_b_left(*,:,:)
+        std::swap(tt_b.editableSubTensors().front(), t3_tmp);
+        internal::reverse_dot_contract1(left_xTb, t3_tmp, tt_b.editableSubTensors().front());
+
+        return tt_b;
+      }
+
+      //! calculate the local initial solutiuon in TT format for (M)ALS
+      template<typename T>
+      TensorTrain<T> calculate_local_x(int iDim, int nMALS, const TensorTrain<T>& TTx)
+      {
+        std::vector<int> dims(nMALS+1);
+        copy_n(TTx.dimensions().begin() + iDim, nMALS+1, dims.begin());
+  
+        TensorTrain<T> tt_x(dims);
+        for(int i = 0; i <= nMALS; i++)
+          copy(TTx.subTensors()[iDim+i], tt_x.editableSubTensors()[i]);
+
+        return tt_x;
+      }
+
+      //! calculate the local linear operator in TT format for (M)ALS
+      template<typename T>
+      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor3<T>& left_xTAx, const TensorTrainOperator<T>& TTOp, const Tensor3<T>& right_xTAx)
+      {
+        const int n0 = std::round(std::sqrt(left_xTAx.n()));
+        const int nd = std::round(std::sqrt(right_xTAx.n()));
+        assert(n0*n0 == left_xTAx.n());
+        assert(nd*nd == right_xTAx.n());
+
+        std::vector<int> localRowDims(nMALS+3), localColDims(nMALS+3);
+        localRowDims.front() = localColDims.front() = n0;
+        for(int i = 0; i <= nMALS; i++)
+        {
+          localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
+          localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
+        }
+        localRowDims.back()  = localColDims.back()  = nd;
+
+        TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
+        copy(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
+        for(int i = 0; i <= nMALS; i++)
+          copy(TTOp.tensorTrain().subTensors()[iDim+i], localTTOp.tensorTrain().editableSubTensors()[1+i]);
+        copy(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
+
+        return localTTOp;
+      }
+
+      template<typename T>
+      void dummy_l(const Tensor2<T>& t2, Tensor3<T>& t3)
+      {
+          const int r1 = t2.r2();
+          const int rAl = t2.r1() / r1;
+          t3.resize(1,r1*r1,rAl);
+          for(int i = 0; i < r1; i++)
+            for(int j = 0; j < r1; j++)
+              for(int k = 0; k < rAl; k++)
+                t3(0,i+j*r1,k) = t2(j+k*r1,i);
+      }
+
+      template<typename T>
+      void dummy_r(const Tensor2<T>& t2, Tensor3<T>& t3)
+      {
+          const int r2 = t2.r1();
+          const int rAr = t2.r2() / r2;
+          t3.resize(rAr,r2*r2,1);
+          for(int i = 0; i < r2; i++)
+            for(int j = 0; j < r2; j++)
+              for(int k = 0; k < rAr; k++)
+                t3(k,i+j*r2,0) = t2(i,j+k*r2);
       }
     }
 
@@ -424,60 +493,20 @@ namespace PITTS
 
           // prepare operator and right-hand side
           const int r1 = left_xTAx.back().r2();
-          const int rAl = left_xTAx.back().r1() / r1;
           const int r2 = right_xTAx.back().r1();
-          const int rAr = right_xTAx.back().r2() / r2;
-          Tensor3<T> subT_l(1,r1*r1,rAl);
-          Tensor3<T> subT_r(rAr,r2*r2,1);
-          for(int i = 0; i < r1; i++)
-            for(int j = 0; j < r1; j++)
-              for(int k = 0; k < rAl; k++)
-                subT_l(0,i+j*r1,k) = left_xTAx.back()(j+k*r1,i);
-          for(int i = 0; i < r2; i++)
-            for(int j = 0; j < r2; j++)
-              for(int k = 0; k < rAr; k++)
-                subT_r(k,i+j*r2,0) = right_xTAx.back()(i,j+k*r2);
+          Tensor3<T> subT_l, subT_r;
+          dummy_l(left_xTAx.back(), subT_l);
+          dummy_r(right_xTAx.back(), subT_r);
 
-          std::vector<int> localRowDims, localColDims;
-          Tensor3<T> t3x, t3b;
-          if( !useMALS )
-          {
-            localRowDims = {r1,effTTOpA.row_dimensions()[iDim],r2};
-            localColDims = {r1,effTTOpA.column_dimensions()[iDim],r2};
+          TensorTrain<T> tt_x = calculate_local_x(iDim, useMALS, TTx);
+          const TensorTrain<T> tt_b = calculate_local_rhs(iDim, useMALS, left_xTb.back(), effTTb, right_xTb.back());
+          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, useMALS, subT_l, effTTOpA, subT_r);
+          assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
-            copy(effTTb.subTensors()[iDim], t3b);
-            copy(TTx.subTensors()[iDim], t3x);
-          }
-          else // useMALS
-          {
-            localRowDims = {r1,effTTOpA.row_dimensions()[iDim],effTTOpA.row_dimensions()[iDim+1],r2};
-            localColDims = {r1,effTTOpA.column_dimensions()[iDim],effTTOpA.column_dimensions()[iDim+1],r2};
-
-            copy(combine(effTTb.subTensors()[iDim], effTTb.subTensors()[iDim+1]), t3b);
-            copy(combine(TTx.subTensors()[iDim], TTx.subTensors()[iDim+1]), t3x);
-          }
-          TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
-          if( !useMALS )
-          {
-            copy(subT_l, localTTOp.tensorTrain().editableSubTensors()[0]);
-            copy(effTTOpA.tensorTrain().subTensors()[iDim], localTTOp.tensorTrain().editableSubTensors()[1]);
-            copy(subT_r, localTTOp.tensorTrain().editableSubTensors()[2]);
-          }
-          else // useMALS
-          {
-            copy(subT_l, localTTOp.tensorTrain().editableSubTensors()[0]);
-            copy(effTTOpA.tensorTrain().subTensors()[iDim], localTTOp.tensorTrain().editableSubTensors()[1]);
-            copy(effTTOpA.tensorTrain().subTensors()[iDim+1], localTTOp.tensorTrain().editableSubTensors()[2]);
-            copy(subT_r, localTTOp.tensorTrain().editableSubTensors()[3]);
-          }
-
-          // calculate sub-problem right-hand side
-          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), t3b, right_xTb.back());
-          assert( std::abs( internal::t3_dot(t3x, t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
-          MultiVector<T> mv_x(t3x.r1()*t3x.n()*t3x.r2(),1);
-          MultiVector<T> mv_rhs(t3_rhs.r1()*t3_rhs.n()*t3_rhs.r2(),1);
-          EigenMap(mv_x) = flatten(t3x);
-          EigenMap(mv_rhs) = flatten(t3_rhs);
+          // GMRES with dense vectors...
+          MultiVector<T> mv_x, mv_rhs;
+          toDense(tt_x, mv_x);
+          toDense(tt_b, mv_rhs);
 
           // absolute tolerance is not invariant wrt. #dimensions
           GMRES<arr>(localTTOp, true, mv_rhs, mv_x, 50, arr::Constant(1, 0), arr::Constant(1, 1.e-4), " (M)ALS local problem: ", true);
@@ -514,9 +543,10 @@ namespace PITTS
           }
           else // useMALS
           {
-            unflatten(x, t3x);
             const int n1 = TTx.dimensions()[iDim];
             const int n2 = TTx.dimensions()[iDim+1];
+            Tensor3<T> t3x(r1,n1*n2,r2);
+            unflatten(x, t3x);
             auto [xk,xk_next] = split(t3x, n1, n2, true, residualTolerance/nDim, maxRank);
             std::swap(TTx.editableSubTensors()[iDim], xk);
             std::swap(TTx.editableSubTensors()[iDim+1], xk_next);
@@ -572,60 +602,20 @@ namespace PITTS
 
           // prepare operator and right-hand side
           const int r1 = left_xTAx.back().r2();
-          const int rAl = left_xTAx.back().r1() / r1;
           const int r2 = right_xTAx.back().r1();
-          const int rAr = right_xTAx.back().r2() / r2;
-          Tensor3<T> subT_l(1,r1*r1,rAl);
-          Tensor3<T> subT_r(rAr,r2*r2,1);
-          for(int i = 0; i < r1; i++)
-            for(int j = 0; j < r1; j++)
-              for(int k = 0; k < rAl; k++)
-                subT_l(0,i+j*r1,k) = left_xTAx.back()(j+k*r1,i);
-          for(int i = 0; i < r2; i++)
-            for(int j = 0; j < r2; j++)
-              for(int k = 0; k < rAr; k++)
-                subT_r(k,i+j*r2,0) = right_xTAx.back()(i,j+k*r2);
+          Tensor3<T> subT_l, subT_r;
+          dummy_l(left_xTAx.back(), subT_l);
+          dummy_r(right_xTAx.back(), subT_r);
 
-          std::vector<int> localRowDims, localColDims;
-          Tensor3<T> t3x, t3b;
-          if( !useMALS )
-          {
-            localRowDims = {r1,effTTOpA.row_dimensions()[iDim],r2};
-            localColDims = {r1,effTTOpA.column_dimensions()[iDim],r2};
+          TensorTrain<T> tt_x = calculate_local_x(iDim-useMALS, useMALS, TTx);
+          const TensorTrain<T> tt_b = calculate_local_rhs(iDim-useMALS, useMALS, left_xTb.back(), effTTb, right_xTb.back());
+          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim-useMALS, useMALS, subT_l, effTTOpA, subT_r);
+          assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
-            copy(effTTb.subTensors()[iDim], t3b);
-            copy(TTx.subTensors()[iDim], t3x);
-          }
-          else // useMALS
-          {
-            localRowDims = {r1,effTTOpA.row_dimensions()[iDim-1],effTTOpA.row_dimensions()[iDim],r2};
-            localColDims = {r1,effTTOpA.column_dimensions()[iDim-1],effTTOpA.column_dimensions()[iDim],r2};
-
-            copy(combine(effTTb.subTensors()[iDim-1], effTTb.subTensors()[iDim]), t3b);
-            copy(combine(TTx.subTensors()[iDim-1], TTx.subTensors()[iDim]), t3x);
-          }
-          TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
-          if( !useMALS )
-          {
-            copy(subT_l, localTTOp.tensorTrain().editableSubTensors()[0]);
-            copy(effTTOpA.tensorTrain().subTensors()[iDim], localTTOp.tensorTrain().editableSubTensors()[1]);
-            copy(subT_r, localTTOp.tensorTrain().editableSubTensors()[2]);
-          }
-          else // useMALS
-          {
-            copy(subT_l, localTTOp.tensorTrain().editableSubTensors()[0]);
-            copy(effTTOpA.tensorTrain().subTensors()[iDim-1], localTTOp.tensorTrain().editableSubTensors()[1]);
-            copy(effTTOpA.tensorTrain().subTensors()[iDim], localTTOp.tensorTrain().editableSubTensors()[2]);
-            copy(subT_r, localTTOp.tensorTrain().editableSubTensors()[3]);
-          }
-
-          // calculate sub-problem right-hand side
-          const Tensor3<T> t3_rhs = calculate_local_rhs(left_xTb.back(), t3b, right_xTb.back());
-          assert( std::abs( internal::t3_dot(t3x, t3_rhs) - dot(TTx, effTTb) ) < sqrt_eps );
-          MultiVector<T> mv_x(t3x.r1()*t3x.n()*t3x.r2(),1);
-          MultiVector<T> mv_rhs(t3_rhs.r1()*t3_rhs.n()*t3_rhs.r2(),1);
-          EigenMap(mv_x) = flatten(t3x);
-          EigenMap(mv_rhs) = flatten(t3_rhs);
+          // GMRES with dense vectors...
+          MultiVector<T> mv_x, mv_rhs;
+          toDense(tt_x, mv_x);
+          toDense(tt_b, mv_rhs);
 
           // absolute tolerance is not invariant wrt. #dimensions
           GMRES<arr>(localTTOp, true, mv_rhs, mv_x, 50, arr::Constant(1, 0), arr::Constant(1, 1.e-4), " (M)ALS local problem: ", true);
@@ -665,9 +655,10 @@ namespace PITTS
           }
           else // useMALS
           {
-            unflatten(x, t3x);
             const int n1 = TTx.dimensions()[iDim-1];
             const int n2 = TTx.dimensions()[iDim];
+            Tensor3<T> t3x(r1,n1*n2,r2);
+            unflatten(x, t3x);
             auto [xk_prev,xk] = split(t3x, n1, n2, false, residualTolerance/nDim, maxRank);
             std::swap(TTx.editableSubTensors()[iDim-1], xk_prev);
             std::swap(TTx.editableSubTensors()[iDim], xk);
