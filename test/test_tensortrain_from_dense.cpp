@@ -6,6 +6,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
+#include "pitts_tensor3_combine.hpp"
 #include <Eigen/Dense>
 
 namespace
@@ -506,3 +507,135 @@ TEST(PITTS_TensorTrain_fromDense, another_tensor5d_mpiGlobal)
 {
   check_mpiGlobal_result({2, 5, 4, 5, 3});
 }
+
+TEST(PITTS_TensorTrain_fromDense, boundaryRank_nDim1_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  constexpr auto eps = 1.e-10;
+
+  const int r0 = 3;
+  std::vector<int> shape = {5};
+  const int rd = 2;
+  MultiVector_double M(r0, 5*rd);
+  randomize(M);
+
+  MultiVector_double work;
+  TensorTrain_double TT = PITTS::fromDense(M, work, shape, 0., -1, false, r0, rd);
+
+  ASSERT_EQ(shape, TT.dimensions());
+  const auto& subT = TT.subTensors()[0];
+  ASSERT_EQ(r0, subT.r1());
+  ASSERT_EQ(rd, subT.r2());
+
+  for(int i = 0; i < subT.r1(); i++)
+    for(int j = 0; j < subT.n(); j++)
+      for(int k = 0; k < subT.r2(); k++)
+      {
+        EXPECT_NEAR(M(i,j+k*5), subT(i,j,k), eps);
+      }
+}
+
+TEST(PITTS_TensorTrain_fromDense, boundaryRank_nDim2_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+  constexpr auto eps = 1.e-10;
+
+  const int r0 = 3;
+  std::vector<int> shape = {3,5};
+  const int rd = 2;
+  MultiVector_double M(r0*3, 5*rd);
+  randomize(M);
+
+  MultiVector_double work;
+  TensorTrain_double TT = PITTS::fromDense(M, work, shape, 0., -1, false, r0, rd);
+
+  ASSERT_EQ(shape, TT.dimensions());
+  const auto& subT_l = TT.subTensors().front();
+  const auto& subT_r = TT.subTensors().back();
+  ASSERT_EQ(r0, subT_l.r1());
+  ASSERT_EQ(rd, subT_r.r2());
+
+  Tensor3_double subT = combine(subT_l, subT_r);
+
+  for(int i = 0; i < r0; i++)
+    for(int j = 0; j < shape[0]; j++)
+      for(int k = 0; k < shape[1]; k++)
+        for(int l = 0; l < rd; l++)
+        {
+          EXPECT_NEAR(M(i+j*r0,k+shape[1]*l), subT(i,j+k*shape[0],l), eps);
+        }
+}
+
+TEST(PITTS_TensorTrain_fromDense, boundaryRank_nDim5_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+  constexpr auto eps = 1.e-10;
+
+  const int r0 = 3;
+  const std::vector<int> shape = {4,2,3,4,3};
+  const int rd = 2;
+  MultiVector_double M(r0*4*2*3*4, 3*rd), refM;
+  randomize(M);
+  copy(M, refM);
+
+  MultiVector_double work;
+  TensorTrain_double TT = PITTS::fromDense(M, work, shape, 0., -1, false, r0, rd);
+
+  ASSERT_EQ(shape, TT.dimensions());
+  const auto& subT_l = TT.subTensors().front();
+  const auto& subT_r = TT.subTensors().back();
+  ASSERT_EQ(r0, subT_l.r1());
+  ASSERT_EQ(rd, subT_r.r2());
+
+  std::vector<int> refShape = shape;
+  refShape.front() *= r0;
+  refShape.back() *= rd;
+  TensorTrain_double refTT = PITTS::fromDense(refM, work, refShape, 0., -1, false);
+
+  constexpr auto tensor3_equal = [eps](const Tensor3_double& a, const Tensor3_double& b)
+  {
+    ASSERT_EQ(a.r1(), b.r1());
+    ASSERT_EQ(a.n(), b.n());
+    ASSERT_EQ(a.r2(), b.r2());
+
+    for(int i = 0; i < a.r1(); i++)
+      for(int j = 0; j < a.n(); j++)
+        for(int k = 0; k < a.r2(); k++)
+        {
+          EXPECT_NEAR(a(i,j,k), b(i,j,k), eps);
+        }
+  };
+
+  tensor3_equal(refTT.subTensors()[1], TT.subTensors()[1]);
+  tensor3_equal(refTT.subTensors()[2], TT.subTensors()[2]);
+  tensor3_equal(refTT.subTensors()[3], TT.subTensors()[3]);
+
+  const auto& refSubT_l = refTT.subTensors().front();
+  const auto& refSubT_r = refTT.subTensors().back();
+  
+  ASSERT_EQ(refSubT_l.r1(), 1);
+  ASSERT_EQ(refSubT_l.n(), subT_l.r1() * subT_l.n());
+  ASSERT_EQ(refSubT_l.r2(), subT_l.r2());
+  for(int i = 0; i < subT_l.r1(); i++)
+    for(int j = 0; j < subT_l.n(); j++)
+      for(int k = 0; k < subT_l.r2(); k++)
+      {
+        EXPECT_NEAR(refSubT_l(0,i+j*r0,k), subT_l(i,j,k), eps);
+      }
+
+  ASSERT_EQ(refSubT_r.r1(), subT_r.r1());
+  ASSERT_EQ(refSubT_r.n(), subT_r.n() * subT_r.r2());
+  ASSERT_EQ(refSubT_r.r2(), 1);
+  for(int i = 0; i < subT_r.r1(); i++)
+    for(int j = 0; j < subT_r.n(); j++)
+      for(int k = 0; k < subT_r.r2(); k++)
+      {
+        EXPECT_NEAR(refSubT_r(i,j+k*subT_r.n(),0), subT_r(i,j,k), eps);
+      }
+}
+

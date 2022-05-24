@@ -44,10 +44,12 @@ namespace PITTS
   //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @param mpiGlobal      (experimental) perform a MPI parallel decomposition, this assumes that the data is distributed on the MPI processes and dimensions specify the local dimensions
+  //! @param r0             first rank dimension of the first sub-tensor, handled like a zeroth dimension
+  //! @param rd             last rank dimension of the last sub-tensors, handled like a (d+1)th dimension
   //! @return               resulting tensor train
   //!
   template<typename T>
-  TensorTrain<T> fromDense(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1, bool mpiGlobal = false)
+  TensorTrain<T> fromDense(MultiVector<T>& X, MultiVector<T>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1, bool mpiGlobal = false, int r0 = 1, int rd = 1)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -60,9 +62,9 @@ namespace PITTS
       return TensorTrain<T>{dimensions};
     }
 
-    const auto totalSize = std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
+    const auto totalSize = r0 * rd * std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
     const auto nDims = dimensions.size();
-    if( X.rows() != totalSize/dimensions[nDims-1] || X.cols() != dimensions[nDims-1] )
+    if( X.rows() != totalSize/(dimensions[nDims-1]*rd) || X.cols() != dimensions[nDims-1]*rd )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
     bool root = true;
@@ -114,10 +116,11 @@ namespace PITTS
     }
     // last sub-tensor is now in X
     auto& lastSubT = result.editableSubTensors()[0];
-    lastSubT.resize(1, dimensions[0], X.cols()/dimensions[0]);
-    for(int i = 0; i < lastSubT.n(); i++)
-      for(int j = 0; j < lastSubT.r2(); j++)
-        lastSubT(0, i, j) = X(0, i+j*dimensions[0]);
+    lastSubT.resize(r0, dimensions[0], X.cols()/dimensions[0]);
+    for(int i = 0; i < lastSubT.r1(); i++)
+      for(int j = 0; j < lastSubT.n(); j++)
+        for(int k = 0; k < lastSubT.r2(); k++)
+        lastSubT(i, j, k) = X(i, j+k*dimensions[0]);
 
     // make sure we swap X and work back: prevents problems where the reserved space in X is used again later AND the data does only fit into memory once ;)
     if( nDims % 2 == 0 )
