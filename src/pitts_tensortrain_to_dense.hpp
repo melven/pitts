@@ -19,6 +19,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_tensor2.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_transform.hpp"
 
@@ -64,10 +65,7 @@ namespace PITTS
     else // nDim > 1
     {
       const auto& subT = TT.subTensors()[0];
-      X.resize(subT.r1() * subT.n(), subT.r2());
-      for(int j = 0; j < X.cols(); j++)
-        for(int i = 0; i < X.rows(); i++)
-          X(i,j) = subT(i%r0,i/r0,j);
+      unfold_left(subT, X);
     }
 
     MultiVector<T> Y;
@@ -76,11 +74,7 @@ namespace PITTS
     {
       // copy sub-tensor to Tensor2 to pass it to transform later
       const auto& subT = TT.subTensors()[iDim];
-      M.resize(subT.r1(), subT.n()*subT.r2());
-      for(int k = 0; k < subT.r2(); k++)
-        for(int j = 0; j < subT.n(); j++)
-          for(int i = 0; i < subT.r1(); i++)
-            M(i, j+subT.n()*k) = subT(i,j,k);
+      unfold_right(subT, M);
 
       if( iDim+1 == nDim )
         transform(X, M, Y, {X.rows()*subT.n()*subT.r2(),1});

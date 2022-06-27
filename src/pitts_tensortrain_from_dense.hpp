@@ -18,6 +18,7 @@
 #include "pitts_multivector_transform.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor3_fold.hpp"
 #include "pitts_timer.hpp"
 #include <limits>
 #include <numeric>
@@ -101,11 +102,7 @@ namespace PITTS
       if( maxRank > 0 )
         rank = std::min(maxRank, rank);
       auto& subT = result.editableSubTensors()[iDim];
-      subT.resize(rank, dimensions[iDim], X.cols()/dimensions[iDim]);
-      for(int i = 0; i < subT.r1(); i++)
-        for(int j = 0; j < subT.n(); j++)
-          for(int k = 0; k < subT.r2(); k++)
-            subT(i,j,k) = svd.matrixV()(j+subT.n()*k, i);
+      fold_right(svd.matrixV().leftCols(rank).transpose(), dimensions[iDim], subT);
 
       tmpR.resize(X.cols(), rank);
       EigenMap(tmpR) = svd.matrixV().leftCols(rank);
@@ -116,11 +113,7 @@ namespace PITTS
     }
     // last sub-tensor is now in X
     auto& lastSubT = result.editableSubTensors()[0];
-    lastSubT.resize(r0, dimensions[0], X.cols()/dimensions[0]);
-    for(int i = 0; i < lastSubT.r1(); i++)
-      for(int j = 0; j < lastSubT.n(); j++)
-        for(int k = 0; k < lastSubT.r2(); k++)
-        lastSubT(i, j, k) = X(i, j+k*dimensions[0]);
+    fold_right(X, dimensions[0], lastSubT);
 
     // make sure we swap X and work back: prevents problems where the reserved space in X is used again later AND the data does only fit into memory once ;)
     if( nDims % 2 == 0 )

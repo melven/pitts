@@ -18,6 +18,8 @@
 #include <Eigen/Dense>
 #pragma GCC pop_options
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor3_unfold.hpp"
+#include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_timer.hpp"
@@ -129,7 +131,7 @@ namespace PITTS
         for(int j = 0; j < r2; j++)
           for(int k1 = 0; k1 < na; k1++)
             for(int k2 = 0; k2 < nb; k2++)
-              t3cMat(j+k2*r2, k1+na*i) = t3c(i, k1+na*k2, j);
+              t3cMat(k2+nb*j, i+k1*r1) = t3c(i, k1+na*k2, j);
     }
 
     const auto [Q,B] = rankTolerance != T(0) ?
@@ -139,32 +141,16 @@ namespace PITTS
 
     std::tuple<Tensor3<T>,Tensor3<T>> result;
     auto& [t3a, t3b] = result;
-    t3a.resize(r1, na, r);
-    t3b.resize(r, nb, r2);
 
     if( leftOrthog )
     {
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < r; j++)
-          for(int k = 0; k < na; k++)
-            t3a(i,k,j) = Q(i+r1*k,j);
-
-      for(int i = 0; i < r; i++)
-        for(int j = 0; j < r2; j++)
-          for(int k = 0; k < nb; k++)
-            t3b(i,k,j) = B(i,k+j*nb);
+      fold_left(Q, na, t3a);
+      fold_right(B, nb, t3b);
     }
     else
     {
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < r; j++)
-          for(int k = 0; k < na; k++)
-            t3a(i,k,j) = B(j,k+na*i);
-
-      for(int i = 0; i < r; i++)
-        for(int j = 0; j < r2; j++)
-          for(int k = 0; k < nb; k++)
-            t3b(i,k,j) = Q(j+k*r2,i);
+      fold_left(B.transpose(), na, t3a);
+      fold_right(Q.transpose(), nb, t3b);
     }
 
     return result;

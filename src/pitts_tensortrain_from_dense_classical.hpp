@@ -22,6 +22,7 @@
 #pragma GCC pop_options
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
+#include "pitts_tensor3_fold.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -74,22 +75,15 @@ namespace PITTS
         rank = std::min(rank, maxRank);
 
       auto& subT = result.editableSubTensors()[iDim];
-      subT.resize(tmp.rows()/dimensions[iDim], dimensions[iDim], rank);
-      for(int i = 0; i < subT.r1(); i++)
-        for(int j = 0; j < subT.n(); j++)
-          for(int k = 0; k < subT.r2(); k++)
-            subT(i,j,k) = svd.matrixU()(i+j*subT.r1(), k);
+      fold_left(svd.matrixU().leftCols(rank), dimensions[iDim], subT);
 
       tmp.resize(rank, tmp.cols());
       tmp = svd.singularValues().topRows(rank).asDiagonal() * svd.matrixV().leftCols(rank).adjoint();
     }
     int lastDim = dimensions.size()-1;
     auto& lastSubT = result.editableSubTensors()[lastDim];
-    tmp.resize(tmp.size()/dimensions[lastDim], dimensions[lastDim]);
-    lastSubT.resize(tmp.rows(), tmp.cols(), 1);
-    for(int j = 0; j < tmp.cols(); j++)
-      for(int i = 0; i < tmp.rows(); i++)
-        lastSubT(i, j, 0) = tmp(i, j);
+    tmp.resize(tmp.rows()*dimensions[lastDim], tmp.cols()/dimensions[lastDim]);
+    fold_left(tmp, dimensions[lastDim], lastSubT);
 
     return result;
   }
