@@ -20,6 +20,8 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_timer.hpp"
@@ -175,16 +177,11 @@ namespace PITTS
     for(int iDim = 0; iDim+1 < nDim; iDim++)
     {
       auto& subT = TT.editableSubTensors()[iDim];
-      const auto r1 = subT.r1();
       const auto r2 = subT.r2();
       const auto n = subT.n();
 
       // calculate the SVD or QR of subT(: : x :)
-      t2.resize(r1*n, r2);
-      for(int k = 0; k < r2; k++)
-        for(int j = 0; j < n; j++)
-          for(int i = 0; i < r1; i++)
-            t2(i+j*r1,k) = subT(i,j,k);
+      unfold_left(subT, t2);
 
       const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
         internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
@@ -192,11 +189,7 @@ namespace PITTS
 
       const auto r2_new = Q.cols();
 
-      subT.resize(r1, n, r2_new);
-      for(int k = 0; k < r2_new; k++)
-        for(int j = 0; j < n; j++)
-          for(int i = 0; i < r1; i++)
-            subT(i,j,k) = Q(i+j*r1,k);
+      fold_left(Q, n, subT);
 
       t2.resize(r2_new,r2);
       EigenMap(t2) = B;
@@ -250,7 +243,7 @@ namespace PITTS
       for(int k = 0; k < r2; k++)
         for(int j = 0; j < n; j++)
           for(int i = 0; i < r1; i++)
-            t2(k+j*r2,i) = subT(i,j,k);
+            t2(j+k*n,i) = subT(i,j,k);
 
       const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
         internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
@@ -258,11 +251,7 @@ namespace PITTS
 
       const auto r1_new = Q.cols();
 
-      subT.resize(r1_new, n, r2);
-      for(int k = 0; k < r2; k++)
-        for(int j = 0; j < n; j++)
-          for(int i = 0; i < r1_new; i++)
-            subT(i,j,k) = Q(k+j*r2,i);
+      fold_right(Q.transpose(), n, subT);
 
       t2.resize(r1,r1_new);
       EigenMap(t2) = B.transpose();
