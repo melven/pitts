@@ -58,6 +58,39 @@ namespace PITTS
       }
     }
 
+    //! contract Tensor3 and Tensor2 along first dimensions: A(*,:) * B(*,:,:)
+    template<typename T>
+    void reverse_dot_contract1(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
+    {
+      const auto r1 = A.r1();
+      const auto n = B.n();
+      const auto nChunks = B.nChunks();
+      const auto r2 = B.r2();
+      assert(A.r1() == B.r1());
+      const auto r1_ = A.r2();
+      C.resize(r1_, n, r2);
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "nChunks", "r2", "r1_"},{r1, nChunks, r2, r1_}}, // arguments
+        {{r1*nChunks*r2*r1_*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1*nChunks*r2+r1*r1_)*kernel_info::Load<Chunk<T>>() + (r1_*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+#pragma omp parallel for collapse(2) schedule(static)
+      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      {
+        for (int k = 0; k < r2; k++)
+        {
+          Chunk<T> tmp[r1_]{};
+          for (int l = 0; l < r1; l++)
+            for (int i = 0; i < r1_; i++)
+              fmadd(A(l,i), B.chunk(l,jChunk,k), tmp[i]);
+          for (int i = 0; i < r1_; i++)
+            C.chunk(i, jChunk, k) = tmp[i];
+        }
+      }
+    }
+
     //! contract Tensor3 and Tensor3 along the last two dimensions: A(:,*,*) * B(:,*,*)
     template<typename T>
     void dot_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
@@ -94,11 +127,55 @@ namespace PITTS
           tmpC[i+j*r1] = sum(tmp);
         }
 }
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < r1_; j++)
-          C(i,j) = tmpC[i+j*r1];
+      for (int j = 0; j < r1_; j++)
+        for (int i = 0; i < r1; i++)
+          C(i, j) = tmpC[i + j * r1];
 
     }
+
+    //! contract Tensor3 and Tensor3 along the first two dimensions: A(*,*,:) * B(*,*,:)
+    template<typename T>
+    void reverse_dot_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
+    {
+      const auto r1 = A.r1();
+      const auto n = A.n();
+      const auto nChunks = A.nChunks();
+      const auto rA2 = A.r2();
+      assert(A.r1() == B.r1());
+      assert(A.n() == B.n());
+      const auto rB2 = B.r2();
+      C.resize(rA2,rB2);
+
+      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+        {{"r1", "nChunks", "rA2", "rB2"},{r1, nChunks, rA2, rB2}}, // arguments
+        {{r1*nChunks*rA2*rB2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
+         {(r1*nChunks*rA2+r1*nChunks*rB2)*kernel_info::Load<Chunk<T>>() + (rA2*rB2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        );
+
+      //double tmpC[rA2*rB2];
+      //for(int j = 0; j < rA2; j++)
+      //  for(int i = 0; i < rB2; i++)
+      //    tmpC[i+j*rA2] = 0;
+
+//#pragma omp parallel reduction(+:tmpC)
+{
+      for (int j = 0; j < rB2; j++)
+        for (int i = 0; i < rA2; i++)
+        {
+          Chunk<T> tmp{};
+//#pragma omp for collapse(2) schedule(static) nowait
+          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+            for(int l = 0; l < r1; l++)
+              fmadd(A.chunk(l,kChunk,i), B.chunk(l,kChunk,j), tmp);
+          //tmpC[i+j*rA2] = sum(tmp);
+          C(i,j) = sum(tmp);
+        }
+}
+      //for(int i = 0; i < rA2; i++)
+      //  for(int j = 0; j < rB2; j++)
+      //    C(i,j) = tmpC[i+j*rA2];
+    }
+
 
     //! contract Tensor3 and Tensor3 along all dimensions: A(*,*,*) * B(*,*,*)
     template<typename T>

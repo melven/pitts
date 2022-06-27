@@ -47,67 +47,6 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
-    //! contract Tensor3 and Tensor2 along first dimensions: A(*,:) * B(*,:,:)
-    template<typename T>
-    void reverse_dot_contract1(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
-    {
-      const auto r1 = A.r1();
-      const auto n = B.n();
-      const auto nChunks = B.nChunks();
-      const auto r2 = B.r2();
-      assert(A.r1() == B.r1());
-      const auto r1_ = A.r2();
-      C.resize(r1_, n, r2);
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "nChunks", "r2", "r1_"},{r1, nChunks, r2, r1_}}, // arguments
-        {{r1*nChunks*r2*r1_*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*r2+r1*r1_)*kernel_info::Load<Chunk<T>>() + (r1_*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
-        );
-
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
-      {
-        for(int i = 0; i < r1_; i++)
-          for(int k = 0; k < r2; k++)
-          {
-            Chunk<T> tmp{};
-            for(int l = 0; l < r1; l++)
-              fmadd(A(l,i), B.chunk(l,jChunk,k), tmp);
-            C.chunk(i,jChunk,k) = tmp;
-          }
-      }
-    }
-
-    //! contract Tensor3 and Tensor3 along the first two dimensions: A(*,*,:) * B(*,*,:)
-    template<typename T>
-    void reverse_dot_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
-    {
-      const auto r1 = A.r1();
-      const auto n = A.n();
-      const auto nChunks = A.nChunks();
-      const auto rA2 = A.r2();
-      assert(A.r1() == B.r1());
-      assert(A.n() == B.n());
-      const auto rB2 = B.r2();
-      C.resize(rA2,rB2);
-
-      const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "nChunks", "rA2", "rB2"},{r1, nChunks, rA2, rB2}}, // arguments
-        {{r1*nChunks*rA2*rB2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*rA2+r1*nChunks*rB2)*kernel_info::Load<Chunk<T>>() + (rA2*rB2)*kernel_info::Store<Chunk<T>>()}} // data transfers
-        );
-
-      for(int i = 0; i < rA2; i++)
-        for(int j = 0; j < rB2; j++)
-        {
-          T tmp = T(0);
-          for(int k = 0; k < r1; k++)
-            for(int l = 0; l < n; l++)
-              tmp += A(k,l,i) * B(k,l,j);
-          C(i,j) = tmp;
-        }
-    }
-
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
