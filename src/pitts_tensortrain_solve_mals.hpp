@@ -469,8 +469,7 @@ namespace PITTS
 
               const auto [Q,B] = internal::normalize_qb(t2x, residualTolerance/nDim, maxRank);
               const auto r2_new = Q.cols();
-              subTx.resize(r1, n, r2_new);
-              unflatten<T>(Eigen::Map<const vec>(Q.data(), r1*n*r2_new), subTx);
+              fold_left(Q, n, subTx);
 
               // now contract B(:,*) * subT(*,:,:)
               t2x.resize(r2_new,r2);
@@ -579,9 +578,7 @@ namespace PITTS
 
               const auto [Q,B] = internal::normalize_qb(t2x, residualTolerance/nDim, maxRank);
               const auto r1_new = Q.cols();
-              subTx.resize(r1_new, n, r2);
-              mat Qt = Q.transpose();
-              unflatten<T>(Eigen::Map<const vec>(Qt.data(), r1_new*n*r2), subTx);
+              fold_right(Q.transpose(), n, subTx);
 
               // first contract subT(:,:,*) * B(*,:)
               // now contract: subT(:,:,*) * B^T(:,*)
