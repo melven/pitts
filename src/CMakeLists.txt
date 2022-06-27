@@ -21,6 +21,8 @@ target_sources(pitts INTERFACE
   pitts_tensor3_random.hpp
   pitts_tensor3_combine.hpp
   pitts_tensor3_split.hpp
+  pitts_tensor3_unfold.hpp
+  pitts_tensor3_fold.hpp
   pitts_tensortrain.hpp
   pitts_tensortrain_norm.hpp
   pitts_tensortrain_dot.hpp
