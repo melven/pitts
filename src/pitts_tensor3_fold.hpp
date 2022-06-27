@@ -90,7 +90,7 @@ namespace PITTS
   {
     const auto r1 = internal::rows(mat);
     assert(internal::cols(mat) % n == 0);
-    const auto r2 = cols(mat) / n;
+    const auto r2 = internal::cols(mat) / n;
 
     const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
         {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
