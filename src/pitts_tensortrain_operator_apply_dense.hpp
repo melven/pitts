@@ -59,19 +59,74 @@ namespace PITTS
 
       y.resize(n_left * n * r2 * m_right, nCols);
 
-      for(int iCol = 0; iCol < nCols; iCol++)
+      if( n_left >= Chunk<T>::size )
       {
-        for(int jr = 0; jr < m_right; jr++)
-          for(int k2 = 0; k2 < r2; k2++)
-            for(int i = 0; i < n; i++)
-              for(int jl = 0; jl < n_left; jl++)
-              {
-                T tmp{};
-                for(int j = 0; j < m; j++)
-                  for(int k1 = 0; k1 < r1; k1++)
-                    tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
-                y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
-              }
+#pragma omp parallel
+        {
+          for(int iCol = 0; iCol < nCols; iCol++)
+          {
+            const long nLeftChunks = n_left / Chunk<T>::size;
+#pragma omp for collapse(3) schedule(static) nowait
+            for(long jr = 0; jr < m_right; jr++)
+              for(long i = 0; i < n; i++)
+                for(long jlChunk = 0; jlChunk < nLeftChunks; jlChunk++)
+                {
+                  const long jl = jlChunk*Chunk<T>::size;
+                  for(long k2 = 0; k2 < r2; k2++)
+                  {
+                    Chunk<T> tmp{};
+                    for(long j = 0; j < m; j++)
+                      for(long k1 = 0; k1 < r1; k1++)
+                      {
+                        Chunk<T> xChunk;
+                        unaligned_load(&x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol), xChunk);
+                        fmadd(Aop(k1,TTOp.index(iDim,i,j),k2), xChunk, tmp);
+                      }
+                    unaligned_store(tmp, &y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol));
+                  }
+                }
+            if( nLeftChunks*Chunk<T>::size < n_left )
+            {
+#pragma omp for collapse(2) schedule(static) nowait
+              for(long jr = 0; jr < m_right; jr++)
+                for(long i = 0; i < n; i++)
+                  for(long jl = nLeftChunks*Chunk<T>::size; jl < n_left; jl++)
+                  {
+                    for(long k2 = 0; k2 < r2; k2++)
+                    {
+                      T tmp{};
+                      for(long j = 0; j < m; j++)
+                        for(long k1 = 0; k1 < r1; k1++)
+                          tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
+                      y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
+                    }
+                  }
+            }
+          }
+        }
+      }
+      else // generic case
+      {
+#pragma omp parallel
+        {
+          for(int iCol = 0; iCol < nCols; iCol++)
+          {
+#pragma omp for collapse(3) schedule(static) nowait
+            for(long jr = 0; jr < m_right; jr++)
+              for(long i = 0; i < n; i++)
+                for(long jl = 0; jl < n_left; jl++)
+                {
+                  for(long k2 = 0; k2 < r2; k2++)
+                  {
+                    T tmp{};
+                    for(long j = 0; j < m; j++)
+                      for(long k1 = 0; k1 < r1; k1++)
+                        tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
+                    y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
+                  }
+                }
+          }
+        }
       }
     }
   }
