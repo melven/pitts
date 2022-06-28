@@ -30,9 +30,9 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
-    //! wrapper for qr, allows to show timings
+    //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
     template<typename T>
-    auto normalize_qb(const Tensor2<T>& M, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
+    auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
     {
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -41,16 +41,31 @@ namespace PITTS
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      Eigen::ColPivHouseholderQR<EigenMatrix> qr(ConstEigenMap(M));
+      const auto mapM = ConstEigenMap(M);
+      auto qr = leftOrthog ?
+        Eigen::ColPivHouseholderQR<EigenMatrix>(mapM) :
+        Eigen::ColPivHouseholderQR<EigenMatrix>(mapM.transpose());
       qr.setThreshold(rankTol);
       const auto r = std::max(Eigen::Index(1), std::min(qr.rank(), Eigen::Index(maxRank)));
       qr.householderQ().setLength(r);
-
-      const EigenMatrix Q = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
       const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
-      const EigenMatrix B = R * qr.colsPermutation().inverse();
 
-      return std::make_pair(Q, B);
+      std::pair<EigenMatrix,EigenMatrix> result;
+
+      if( leftOrthog )
+      {
+        // return QR
+        result.first = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
+        result.second = R * qr.colsPermutation().inverse();
+      }
+      else
+      {
+        // return LQ
+        result.first = (R * qr.colsPermutation().inverse()).transpose();
+        result.second = EigenMatrix::Identity(r, M.r2()) * qr.householderQ().transpose();
+      }
+
+      return result;
     }
 
     //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
@@ -115,43 +130,22 @@ namespace PITTS
       throw std::invalid_argument("Invalid desired dimensions (na*na != t3c.n())!");
 
     Tensor2<T> t3cMat;
-    if( leftOrthog )
-    {
-      t3cMat.resize(r1*na, nb*r2);
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < r2; j++)
-          for(int k1 = 0; k1 < na; k1++)
-            for(int k2 = 0; k2 < nb; k2++)
-              t3cMat(i+k1*r1, k2+nb*j) = t3c(i, k1+na*k2, j);
-    }
-    else
-    {
-      t3cMat.resize(r2*nb, na*r1);
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < r2; j++)
-          for(int k1 = 0; k1 < na; k1++)
-            for(int k2 = 0; k2 < nb; k2++)
-              t3cMat(k2+nb*j, i+k1*r1) = t3c(i, k1+na*k2, j);
-    }
+    t3cMat.resize(r1*na, nb*r2);
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < r2; j++)
+        for(int k1 = 0; k1 < na; k1++)
+          for(int k2 = 0; k2 < nb; k2++)
+            t3cMat(i+k1*r1, k2+nb*j) = t3c(i, k1+na*k2, j);
 
-    const auto [Q,B] = rankTolerance != T(0) ?
-      internal::normalize_svd(t3cMat, true, rankTolerance, maxRank) :
-      internal::normalize_qb(t3cMat, rankTolerance, maxRank);
-    const int r = Q.cols();
+    const auto [U,Vt] = rankTolerance != T(0) ?
+      internal::normalize_svd(t3cMat, leftOrthog, rankTolerance, maxRank) :
+      internal::normalize_qb(t3cMat, leftOrthog, rankTolerance, maxRank);
+    const int r = U.cols();
 
-    std::tuple<Tensor3<T>,Tensor3<T>> result;
-    auto& [t3a, t3b] = result;
+    std::pair<Tensor3<T>,Tensor3<T>> result;
 
-    if( leftOrthog )
-    {
-      fold_left(Q, na, t3a);
-      fold_right(B, nb, t3b);
-    }
-    else
-    {
-      fold_left(B.transpose(), na, t3a);
-      fold_right(Q.transpose(), nb, t3b);
-    }
+    fold_left(U, na, result.first);
+    fold_right(Vt, nb, result.second);
 
     return result;
   }
