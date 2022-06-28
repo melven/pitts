@@ -187,16 +187,11 @@ namespace PITTS
         internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
         internal::normalize_qb(t2, true);
 
-      const auto r2_new = Q.cols();
-
       fold_left(Q, n, subT);
 
-      t2.resize(r2_new,r2);
-      EigenMap(t2) = B;
-
       auto& subT_next = TT.editableSubTensors()[iDim+1];
-      // now contract t2(:,*) * subT_next(*,:,:)
-      internal::normalize_contract1(t2, subT_next, t3);
+      // now contract B(:,*) * subT_next(*,:,:)
+      internal::normalize_contract1(B, subT_next, t3);
       std::swap(subT_next, t3);
     }
 
@@ -245,16 +240,11 @@ namespace PITTS
         internal::normalize_svd(t2, false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
         internal::normalize_qb(t2, false);
 
-      const auto r1_new = U.cols();
-
       fold_right(Vt, n, subT);
 
-      t2.resize(r1,r1_new);
-      EigenMap(t2) = U;
-
       auto& subT_prev = TT.editableSubTensors()[iDim-1];
-      // now contract subT_next(:,:,*) * t2(*,:)
-      internal::normalize_contract2(subT_prev, t2, t3);
+      // now contract subT_next(:,:,*) * U(*,:)
+      internal::normalize_contract2(subT_prev, U, t3);
       std::swap(subT_prev, t3);
     }
 

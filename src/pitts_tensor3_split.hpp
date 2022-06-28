@@ -50,19 +50,20 @@ namespace PITTS
       qr.householderQ().setLength(r);
       const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
 
-      std::pair<EigenMatrix,EigenMatrix> result;
-
+      std::pair<Tensor2<T>,Tensor2<T>> result;
+      result.first.resize(M.r1(), r);
+      result.second.resize(r, M.r2());
       if( leftOrthog )
       {
         // return QR
-        result.first = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
-        result.second = R * qr.colsPermutation().inverse();
+        EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
+        EigenMap(result.second) = R * qr.colsPermutation().inverse();
       }
       else
       {
         // return LQ
-        result.first = (R * qr.colsPermutation().inverse()).transpose();
-        result.second = EigenMatrix::Identity(r, M.r2()) * qr.householderQ().transpose();
+        EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
+        EigenMap(result.second) = EigenMatrix::Identity(r, M.r2()) * qr.householderQ().transpose();
       }
 
       return result;
@@ -82,19 +83,22 @@ namespace PITTS
       auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
       svd.setThreshold(rankTol);
       const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
-      EigenMatrix U, Vt;
+
+      std::pair<Tensor2<T>,Tensor2<T>> result;
+      result.first.resize(M.r1(), r);
+      result.second.resize(r, M.r2());
       if( leftOrthog )
       {
-        U = svd.matrixU().leftCols(r);
-        Vt = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+        EigenMap(result.first) = svd.matrixU().leftCols(r);
+        EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
       }
       else
       {
-        U = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-        Vt = svd.matrixV().leftCols(r).adjoint();
+        EigenMap(result.first) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+        EigenMap(result.second) = svd.matrixV().leftCols(r).adjoint();
       }
 
-      return std::make_pair(U, Vt);
+      return result;
     }
   }
 
@@ -140,7 +144,6 @@ namespace PITTS
     const auto [U,Vt] = rankTolerance != T(0) ?
       internal::normalize_svd(t3cMat, leftOrthog, rankTolerance, maxRank) :
       internal::normalize_qb(t3cMat, leftOrthog, rankTolerance, maxRank);
-    const int r = U.cols();
 
     std::pair<Tensor3<T>,Tensor3<T>> result;
 
