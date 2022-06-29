@@ -234,33 +234,6 @@ namespace PITTS
         return tt_x;
       }
 
-      //! calculate the local linear operator in TT format for (M)ALS
-      template<typename T>
-      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor3<T>& left_xTAx, const TensorTrainOperator<T>& TTOp, const Tensor3<T>& right_xTAx)
-      {
-        const int n0 = std::round(std::sqrt(left_xTAx.n()));
-        const int nd = std::round(std::sqrt(right_xTAx.n()));
-        assert(n0*n0 == left_xTAx.n());
-        assert(nd*nd == right_xTAx.n());
-
-        std::vector<int> localRowDims(nMALS+3), localColDims(nMALS+3);
-        localRowDims.front() = localColDims.front() = n0;
-        for(int i = 0; i <= nMALS; i++)
-        {
-          localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
-          localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
-        }
-        localRowDims.back()  = localColDims.back()  = nd;
-
-        TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
-        copy(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
-        for(int i = 0; i <= nMALS; i++)
-          copy(TTOp.tensorTrain().subTensors()[iDim+i], localTTOp.tensorTrain().editableSubTensors()[1+i]);
-        copy(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
-
-        return localTTOp;
-      }
-
       template<typename T>
       void dummy_l(const Tensor2<T>& t2, Tensor3<T>& t3)
       {
@@ -283,6 +256,31 @@ namespace PITTS
             for(int j = 0; j < r2; j++)
               for(int k = 0; k < rAr; k++)
                 t3(k,i+j*r2,0) = t2(i,j+k*r2);
+      }
+
+      //! calculate the local linear operator in TT format for (M)ALS
+      template<typename T>
+      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_xTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_xTAx)
+      {
+        const int n0 = left_xTAx.r2();
+        const int nd = right_xTAx.r1();
+
+        std::vector<int> localRowDims(nMALS+3), localColDims(nMALS+3);
+        localRowDims.front() = localColDims.front() = n0;
+        for(int i = 0; i <= nMALS; i++)
+        {
+          localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
+          localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
+        }
+        localRowDims.back()  = localColDims.back()  = nd;
+
+        TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
+        dummy_l(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
+        for(int i = 0; i <= nMALS; i++)
+          copy(TTOp.tensorTrain().subTensors()[iDim+i], localTTOp.tensorTrain().editableSubTensors()[1+i]);
+        dummy_r(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
+
+        return localTTOp;
       }
     }
 
@@ -431,15 +429,9 @@ namespace PITTS
 
 
           // prepare operator and right-hand side
-          const int r1 = left_xTAx.back().r2();
-          const int r2 = right_xTAx.back().r1();
-          Tensor3<T> subT_l, subT_r;
-          dummy_l(left_xTAx.back(), subT_l);
-          dummy_r(right_xTAx.back(), subT_r);
-
           TensorTrain<T> tt_x = calculate_local_x(iDim, useMALS, TTx);
           const TensorTrain<T> tt_b = calculate_local_rhs(iDim, useMALS, left_xTb.back(), effTTb, right_xTb.back());
-          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, useMALS, subT_l, effTTOpA, subT_r);
+          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, useMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // GMRES with dense vectors...
@@ -478,8 +470,10 @@ namespace PITTS
           }
           else // useMALS
           {
+            const int r1 = TTx.subTensors()[iDim].r1();
             const int n1 = TTx.dimensions()[iDim];
             const int n2 = TTx.dimensions()[iDim+1];
+            const int r2 = TTx.subTensors()[iDim+1].r2();
             Tensor3<T> t3x(r1,n1*n2,r2);
             unflatten(x, t3x);
             auto [xk,xk_next] = split(t3x, n1, n2, true, residualTolerance/nDim, maxRank);
@@ -536,15 +530,9 @@ namespace PITTS
 
 
           // prepare operator and right-hand side
-          const int r1 = left_xTAx.back().r2();
-          const int r2 = right_xTAx.back().r1();
-          Tensor3<T> subT_l, subT_r;
-          dummy_l(left_xTAx.back(), subT_l);
-          dummy_r(right_xTAx.back(), subT_r);
-
           TensorTrain<T> tt_x = calculate_local_x(iDim-useMALS, useMALS, TTx);
           const TensorTrain<T> tt_b = calculate_local_rhs(iDim-useMALS, useMALS, left_xTb.back(), effTTb, right_xTb.back());
-          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim-useMALS, useMALS, subT_l, effTTOpA, subT_r);
+          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim-useMALS, useMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // GMRES with dense vectors...
@@ -585,8 +573,10 @@ namespace PITTS
           }
           else // useMALS
           {
+            const int r1 = TTx.subTensors()[iDim-1].r1();
             const int n1 = TTx.dimensions()[iDim-1];
             const int n2 = TTx.dimensions()[iDim];
+            const int r2 = TTx.subTensors()[iDim].r2();
             Tensor3<T> t3x(r1,n1*n2,r2);
             unflatten(x, t3x);
             auto [xk_prev,xk] = split(t3x, n1, n2, false, residualTolerance/nDim, maxRank);
