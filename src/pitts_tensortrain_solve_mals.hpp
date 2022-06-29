@@ -235,11 +235,20 @@ namespace PITTS
       }
 
       template<typename T>
-      void dummy_l(const Tensor2<T>& t2, Tensor3<T>& t3)
+      void copy_op_left(const Tensor2<T>& t2, Tensor3<T>& t3)
       {
           const int r1 = t2.r2();
           const int rAl = t2.r1() / r1;
+
+          const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+              {{"r1", "rAl"}, {r1, rAl}},   // arguments
+              {{r1*r1*rAl*kernel_info::NoOp<T>()},    // flops
+              {r1*r1*rAl*kernel_info::Store<T>() + r1*r1*rAl*kernel_info::Load<T>()}}  // data
+              );
+
           t3.resize(1,r1*r1,rAl);
+
+#pragma omp parallel for collapse(3) schedule(static) if(r1*r1*rAl > 500)
           for(int i = 0; i < r1; i++)
             for(int j = 0; j < r1; j++)
               for(int k = 0; k < rAl; k++)
@@ -247,11 +256,20 @@ namespace PITTS
       }
 
       template<typename T>
-      void dummy_r(const Tensor2<T>& t2, Tensor3<T>& t3)
+      void copy_op_right(const Tensor2<T>& t2, Tensor3<T>& t3)
       {
           const int r2 = t2.r1();
           const int rAr = t2.r2() / r2;
+
+          const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+              {{"r2", "rAr"}, {r2, rAr}},   // arguments
+              {{r2*r2*rAr*kernel_info::NoOp<T>()},    // flops
+              {r2*r2*rAr*kernel_info::Store<T>() + r2*r2*rAr*kernel_info::Load<T>()}}  // data
+              );
+
           t3.resize(rAr,r2*r2,1);
+
+#pragma omp parallel for collapse(3) schedule(static) if(r2*r2*rAr > 500)
           for(int i = 0; i < r2; i++)
             for(int j = 0; j < r2; j++)
               for(int k = 0; k < rAr; k++)
@@ -275,10 +293,10 @@ namespace PITTS
         localRowDims.back()  = localColDims.back()  = nd;
 
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
-        dummy_l(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
+        copy_op_left(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
         for(int i = 0; i <= nMALS; i++)
           copy(TTOp.tensorTrain().subTensors()[iDim+i], localTTOp.tensorTrain().editableSubTensors()[1+i]);
-        dummy_r(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
+        copy_op_right(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
 
         return localTTOp;
       }
