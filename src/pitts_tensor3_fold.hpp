@@ -41,6 +41,17 @@ namespace PITTS
       else
         return x.cols();
     }
+
+    //! dispatch to either [i] or (i) for compatibility of std::vector and Eigen vectors
+    template<typename T>
+    auto elem(const T& v, int i)
+    {
+      constexpr bool has_bracket_operator = requires(const T& t, int i){t[i];};
+      if constexpr (has_bracket_operator)
+        return v[i];
+      else
+        return v(i);
+    }
   }
 
   //! reshape a matrix to a 3d tensor splitting the first dimension (r1*n x r2)
@@ -105,6 +116,38 @@ namespace PITTS
         for (int i = 0; i < r1; i++)
         {
           t3(i,j,k) = mat(i,j+k*n);
+        }
+  }
+
+
+  //! reshape a vector to a 3d tensor with given dimensions
+  //!
+  //! @tparam T           underlying data type (double, complex, ...)
+  //! @tparam VectorType  class for the vector, must support (i) element-wise access and provide dimension as size()
+  //!
+  //! @param vec      input vector of dimension (r1*n*r2)
+  //! @param r1       first dimension of the output tensor
+  //! @param n        second dimension of the output tensor
+  //! @param r2       third dimension of the output tensor
+  //!
+  template<typename T, class VectorType>
+  void fold(const VectorType& v, int r1, int n, int r2, Tensor3<T>& t3)
+  {
+    assert(v.size() == r1*n*r2);
+
+    const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+        {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
+        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+         {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
+        );
+
+    t3.resize(r1, n, r2);
+#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
+    for (int k = 0; k < r2; k++)
+      for (int j = 0; j < n; j++)
+        for (int i = 0; i < r1; i++)
+        {
+          t3(i,j,k) = internal::elem(v, i+j*r1+k*n*r1);
         }
   }
 }
