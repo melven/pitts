@@ -639,3 +639,41 @@ TEST(PITTS_TensorTrain_fromDense, boundaryRank_nDim5_random)
       }
 }
 
+TEST(PITTS_TensorTrain_fromDense, suboptimal_input_dimension)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  constexpr auto eps = 1.e-10;
+
+  const std::vector<int> shape = {10,2,3,4,3};
+  const int nTotal = 10*2*3*4*3;
+  MultiVector_double mv(nTotal, 1);
+  randomize(mv);
+  const int n = nTotal / 3;
+  const int m = 3;
+  MultiVector_double mv_(n, m);
+  for(int i = 0; i < nTotal; i++)
+    mv_(i % n, i / n) = mv(i,0);
+
+  MultiVector_double work;
+
+  const TensorTrain_double tt = fromDense(mv, work, shape);
+  const TensorTrain_double tt_ref = fromDense(mv_, work, shape);
+
+  ASSERT_EQ(tt_ref.dimensions(), tt.dimensions());
+  for(int iDim = 0; iDim < tt_ref.dimensions().size(); iDim++)
+  {
+    const auto& subT = tt.subTensors()[iDim];
+    const auto& subT_ref = tt_ref.subTensors()[iDim];
+    ASSERT_EQ(subT_ref.r1(), subT.r1());
+    ASSERT_EQ(subT_ref.n(), subT.n());
+    ASSERT_EQ(subT_ref.r2(), subT.r2());
+    for(int i = 0; i < subT_ref.r1(); i++)
+      for (int j = 0; j < subT_ref.n(); j++)
+        for (int k = 0; k < subT_ref.r2(); k++)
+        {
+          EXPECT_NEAR(subT_ref(i,j,k), subT(i,j,k), eps);
+        }
+  }
+  
+}

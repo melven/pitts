@@ -16,6 +16,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_multivector_transform.hpp"
+#include "pitts_multivector_reshape.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_fold.hpp"
@@ -65,6 +66,17 @@ namespace PITTS
 
     const auto totalSize = r0 * rd * std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
     const auto nDims = dimensions.size();
+    if( X.rows()*X.cols() != totalSize )
+      throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
+
+    // for convenience, we also handle X.cols() == 1 != dims[-1]*rd with a warning
+    if( X.cols() == 1 && dimensions[nDims-1]*rd != 1 )
+    {
+      std::cout << "Warning: sub-optimal input dimension to fromDense, performing and additional copy...";
+      std::swap(X, work);
+      reshape(work, totalSize/dimensions[nDims-1]*rd, dimensions[nDims-1]*rd, X);
+    }
+
     if( X.rows() != totalSize/(dimensions[nDims-1]*rd) || X.cols() != dimensions[nDims-1]*rd )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
