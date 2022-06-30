@@ -220,3 +220,24 @@ TEST(PITTS_Tensor3_fold, fold_vec_std_vector)
 
   check_equal(t3_ref, t3, eps);
 }
+
+TEST(PITTS_Tensor3_fold, fold_unfold_vec)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  constexpr auto eps = 1.e-10;
+
+
+  Tensor3_double t3_ref(3, 5, 7);
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 7; k++)
+        t3_ref(i,j,k) = i+10*j+100*k;
+
+  std::vector<double> v;
+  unfold(t3_ref, v);
+  
+  Tensor3_double t3;
+  fold(v, 3, 5, 7, t3);
+
+  check_equal(t3_ref, t3, eps);
+}
