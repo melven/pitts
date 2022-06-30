@@ -77,17 +77,6 @@ namespace PITTS
       //  return v;
       //};
 
-      //! vector as Tensor3 (with known dimensions)
-      template<typename T>
-      void unflatten(const Eigen::Matrix<T, Eigen::Dynamic, 1>& v, Tensor3<T>& t3)
-      {
-        assert(v.size() == t3.r1()*t3.n()*t3.r2());
-        for(int i = 0; i < t3.r1(); i++)
-          for(int j = 0; j < t3.n(); j++)
-            for(int k = 0; k < t3.r2(); k++)
-              t3(i,j,k) = v(i + j*t3.r1() + k*t3.n()*t3.r1());
-      }
-
       //! calculate next part of x^Tb from right to left (like TT dot product bug allows to store all intermediate results)
       template<typename T>
       Tensor2<T> calculate_next_right_xTb(const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
@@ -470,7 +459,7 @@ namespace PITTS
 
             if( iDim+1 == nDim )
             {
-              unflatten(x, subTx);
+              fold(x, r1, n, r2, subTx);
             }
             else
             {
@@ -492,8 +481,8 @@ namespace PITTS
             const int n1 = TTx.dimensions()[iDim];
             const int n2 = TTx.dimensions()[iDim+1];
             const int r2 = TTx.subTensors()[iDim+1].r2();
-            Tensor3<T> t3x(r1,n1*n2,r2);
-            unflatten(x, t3x);
+            Tensor3<T> t3x;
+            fold(x, r1, n1*n2, r2, t3x);
             auto [xk,xk_next] = split(t3x, n1, n2, true, residualTolerance/nDim, maxRank);
             std::swap(TTx.editableSubTensors()[iDim], xk);
             std::swap(TTx.editableSubTensors()[iDim+1], xk_next);
@@ -572,7 +561,7 @@ namespace PITTS
 
             if( iDim == 0 )
             {
-              unflatten(x, subTx);
+              fold(x, r1, n, r2, subTx);
             }
             else
             {
@@ -595,8 +584,8 @@ namespace PITTS
             const int n1 = TTx.dimensions()[iDim-1];
             const int n2 = TTx.dimensions()[iDim];
             const int r2 = TTx.subTensors()[iDim].r2();
-            Tensor3<T> t3x(r1,n1*n2,r2);
-            unflatten(x, t3x);
+            Tensor3<T> t3x;
+            fold(x, r1, n1*n2, r2, t3x);
             auto [xk_prev,xk] = split(t3x, n1, n2, false, residualTolerance/nDim, maxRank);
             std::swap(TTx.editableSubTensors()[iDim-1], xk_prev);
             std::swap(TTx.editableSubTensors()[iDim], xk);
