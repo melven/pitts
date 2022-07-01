@@ -467,15 +467,12 @@ namespace PITTS
               Tensor2<T> t2x(r1*n,r2);
               EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1*n, r2);
 
-              const auto [Q,B] = internal::normalize_qb(t2x, residualTolerance/nDim, maxRank);
-              const auto r2_new = Q.cols();
+              const auto [Q,B] = internal::normalize_qb(t2x, true, residualTolerance/nDim, maxRank);
               fold_left(Q, n, subTx);
 
               // now contract B(:,*) * subT(*,:,:)
-              t2x.resize(r2_new,r2);
-              EigenMap(t2x) = B;
               Tensor3<T> subTx_next;
-              internal::normalize_contract1(t2x, TTx.subTensors()[iDim+1], subTx_next);
+              internal::normalize_contract1(B, TTx.subTensors()[iDim+1], subTx_next);
               std::swap(TTx.editableSubTensors()[iDim+1], subTx_next);
             }
           }
@@ -573,19 +570,16 @@ namespace PITTS
             }
             else
             {
-              Tensor2<T> t2x(r2*n,r1);
-              EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1, n*r2).transpose();
+              Tensor2<T> t2x(r1,r2*n);
+              EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1, n*r2);
 
-              const auto [Q,B] = internal::normalize_qb(t2x, residualTolerance/nDim, maxRank);
-              const auto r1_new = Q.cols();
-              fold_right(Q.transpose(), n, subTx);
+              const auto [B,Qt] = internal::normalize_qb(t2x, false, residualTolerance/nDim, maxRank);
+              fold_right(Qt, n, subTx);
 
               // first contract subT(:,:,*) * B(*,:)
               // now contract: subT(:,:,*) * B^T(:,*)
-              t2x.resize(r1_new,r1);
-              EigenMap(t2x) = B.transpose();
               Tensor3<T> subTx_prev;
-              internal::dot_contract1(TTx.subTensors()[iDim-1], t2x, subTx_prev);
+              internal::dot_contract1(TTx.subTensors()[iDim-1], B, subTx_prev);
               std::swap(TTx.editableSubTensors()[iDim-1], subTx_prev);
             }
           }

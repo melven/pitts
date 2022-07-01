@@ -185,18 +185,13 @@ namespace PITTS
 
       const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
         internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
-        internal::normalize_qb(t2);
-
-      const auto r2_new = Q.cols();
+        internal::normalize_qb(t2, true);
 
       fold_left(Q, n, subT);
 
-      t2.resize(r2_new,r2);
-      EigenMap(t2) = B;
-
       auto& subT_next = TT.editableSubTensors()[iDim+1];
-      // now contract t2(:,*) * subT_next(*,:,:)
-      internal::normalize_contract1(t2, subT_next, t3);
+      // now contract B(:,*) * subT_next(*,:,:)
+      internal::normalize_contract1(B, subT_next, t3);
       std::swap(subT_next, t3);
     }
 
@@ -239,26 +234,17 @@ namespace PITTS
       const auto n = subT.n();
 
       // calculate the SVD or QR of ( subT(: x : :) )^T
-      t2.resize(r2*n, r1);
-      for(int k = 0; k < r2; k++)
-        for(int j = 0; j < n; j++)
-          for(int i = 0; i < r1; i++)
-            t2(j+k*n,i) = subT(i,j,k);
+      unfold_right(subT, t2);
 
-      const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
-        internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
-        internal::normalize_qb(t2);
+      const auto [U, Vt] = rankTolerance > 0 || maxRank < r2 ?
+        internal::normalize_svd(t2, false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+        internal::normalize_qb(t2, false);
 
-      const auto r1_new = Q.cols();
-
-      fold_right(Q.transpose(), n, subT);
-
-      t2.resize(r1,r1_new);
-      EigenMap(t2) = B.transpose();
+      fold_right(Vt, n, subT);
 
       auto& subT_prev = TT.editableSubTensors()[iDim-1];
-      // now contract subT_next(:,:,*) * t2(*,:)
-      internal::normalize_contract2(subT_prev, t2, t3);
+      // now contract subT_next(:,:,*) * U(*,:)
+      internal::normalize_contract2(subT_prev, U, t3);
       std::swap(subT_prev, t3);
     }
 

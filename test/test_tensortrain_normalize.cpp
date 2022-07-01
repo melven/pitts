@@ -498,7 +498,8 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_same_as_leftNormalize_reversed)
       for(int j = 0; j < subT.n(); j++)
         for(int k = 0; k < subT.r2(); k++)
         {
-          EXPECT_NEAR(subT_ref(i,j,k), subT(i,j,k), eps);
+          // sign of singular vectors is arbitrary, so just compare absolute values
+          EXPECT_NEAR(std::abs(subT_ref(i,j,k)), std::abs(subT(i,j,k)), eps);
         }
   }
 }
