@@ -72,7 +72,7 @@ namespace PITTS
     // for convenience, we also handle X.cols() == 1 != dims[-1]*rd with a warning
     if( X.cols() == 1 && dimensions[nDims-1]*rd != 1 )
     {
-      std::cout << "Warning: sub-optimal input dimension to fromDense, performing and additional copy...";
+      std::cout << "Warning: sub-optimal input dimension to fromDense, performing and additional copy...\n";
       std::swap(X, work);
       reshape(work, totalSize/(dimensions[nDims-1]*rd), dimensions[nDims-1]*rd, X);
     }
