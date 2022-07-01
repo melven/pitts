@@ -120,6 +120,93 @@ namespace PITTS
             mul(alpha, x.chunk(i,jChunk,k), x.chunk(i,jChunk,k));
     }
 
+    //! Make a subset of sub-tensors left-orthogonal sweeping the given index range (left to right)
+    //!
+    //! @tparam T  underlying data type (double, complex, ...)
+    //!
+    //! @param TT             tensor in tensor train format
+    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
+    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
+    //! @param rankTolerance  approximation tolerance
+    //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
+    //!
+    template<typename T>
+    void leftNormalize_range(TensorTrain<T>& TT, int firstIdx, int lastIdx, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      const auto nDim = TT.dimensions().size();
+
+      assert(0 <= firstIdx );
+      assert(lastIdx < nDim);
+
+      // auxiliary matrix / tensor
+      Tensor2<T> t2;
+      Tensor3<T> t3;
+
+      for(int iDim = firstIdx; iDim < lastIdx; iDim++)
+      {
+        auto& subT = TT.editableSubTensors()[iDim];
+        auto& subT_next = TT.editableSubTensors()[iDim+1];
+
+        // calculate the SVD or QR of subT(: : x :)
+        unfold_left(subT, t2);
+
+        const auto [U, Vt] = rankTolerance > 0 || maxRank < subT.r2() ?
+          internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+          internal::normalize_qb(t2, true);
+
+        fold_left(U, subT.n(), subT);
+
+        // now contract Vt(:,*) * subT_next(*,:,:)
+        internal::normalize_contract1(Vt, subT_next, t3);
+        std::swap(subT_next, t3);
+      }
+    }
+
+    //! Make a subset of sub-tensors right-orthogonal sweeping the given index range (right to left)
+    //!
+    //! @tparam T  underlying data type (double, complex, ...)
+    //!
+    //! @param TT             tensor in tensor train format
+    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
+    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
+    //! @param rankTolerance  approximation tolerance
+    //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
+    //!
+    template<typename T>
+    void rightNormalize_range(TensorTrain<T>& TT, int firstIdx, int lastIdx, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      const auto nDim = TT.dimensions().size();
+
+      assert(0 <= firstIdx );
+      assert(lastIdx < nDim);
+
+      // auxiliary matrix / tensor
+      Tensor2<T> t2;
+      Tensor3<T> t3;
+
+      for(int iDim = lastIdx; iDim > firstIdx; iDim--)
+      {
+        auto& subT_prev = TT.editableSubTensors()[iDim-1];
+        auto& subT = TT.editableSubTensors()[iDim];
+
+        // calculate the SVD or QR of ( subT(: x : :) )^T
+        unfold_right(subT, t2);
+
+        const auto [U, Vt] = rankTolerance > 0 || maxRank < subT.r1() ?
+          internal::normalize_svd(t2, false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+          internal::normalize_qb(t2, false);
+
+        fold_right(Vt, subT.n(), subT);
+
+        // now contract subT_prev(:,:,*) * U(*,:)
+        internal::normalize_contract2(subT_prev, U, t3);
+        std::swap(subT_prev, t3);
+      }
+    }
   }
 
   //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right)
@@ -134,8 +221,18 @@ namespace PITTS
   template<typename T>
   T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
   {
-    const auto norm = rightNormalize(TT, T(0));
-    return norm * leftNormalize(TT, rankTolerance, maxRank);
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+    const auto nDim = TT.dimensions().size();
+    internal::rightNormalize_range(TT, 0, nDim-1, T(0));
+    internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
+
+    // just calculate its norm and scale the last subtensor
+    auto& subT = TT.editableSubTensors()[nDim-1];
+    const T nrm = internal::t3_nrm(subT);
+    const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
+    internal::t3_scale(invNrm, subT);
+    return nrm;
   }
 
   //! Make all sub-tensors orthogonal sweeping left to right
@@ -168,32 +265,7 @@ namespace PITTS
     //
     // where the "q" are all left-orthogonal.
     //
-
-
-    // auxiliary matrix / tensor
-    Tensor2<T> t2;
-    Tensor3<T> t3;
-
-    for(int iDim = 0; iDim+1 < nDim; iDim++)
-    {
-      auto& subT = TT.editableSubTensors()[iDim];
-      const auto r2 = subT.r2();
-      const auto n = subT.n();
-
-      // calculate the SVD or QR of subT(: : x :)
-      unfold_left(subT, t2);
-
-      const auto [Q, B] = rankTolerance > 0 || maxRank < r2 ?
-        internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
-        internal::normalize_qb(t2, true);
-
-      fold_left(Q, n, subT);
-
-      auto& subT_next = TT.editableSubTensors()[iDim+1];
-      // now contract B(:,*) * subT_next(*,:,:)
-      internal::normalize_contract1(B, subT_next, t3);
-      std::swap(subT_next, t3);
-    }
+    internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
     auto& subT = TT.editableSubTensors()[nDim-1];
@@ -222,31 +294,7 @@ namespace PITTS
     if( nDim <= 0)
       throw std::invalid_argument("TensorTrain #dimensions < 1!");
 
-    // auxiliary matrix / tensor
-    Tensor2<T> t2;
-    Tensor3<T> t3;
-
-    for(int iDim = nDim-1; iDim >= 1; iDim--)
-    {
-      auto& subT = TT.editableSubTensors()[iDim];
-      const auto r1 = subT.r1();
-      const auto r2 = subT.r2();
-      const auto n = subT.n();
-
-      // calculate the SVD or QR of ( subT(: x : :) )^T
-      unfold_right(subT, t2);
-
-      const auto [U, Vt] = rankTolerance > 0 || maxRank < r2 ?
-        internal::normalize_svd(t2, false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
-        internal::normalize_qb(t2, false);
-
-      fold_right(Vt, n, subT);
-
-      auto& subT_prev = TT.editableSubTensors()[iDim-1];
-      // now contract subT_next(:,:,*) * U(*,:)
-      internal::normalize_contract2(subT_prev, U, t3);
-      std::swap(subT_prev, t3);
-    }
+    internal::rightNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
     auto& subT = TT.editableSubTensors()[0];
