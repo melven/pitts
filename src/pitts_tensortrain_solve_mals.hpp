@@ -192,11 +192,11 @@ namespace PITTS
       template<typename T>
       TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_xTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_xTb)
       {
-        std::vector<int> dims(nMALS+1);
-        copy_n(TTb.dimensions().begin() + iDim, nMALS+1, dims.begin());
+        std::vector<int> dims(nMALS);
+        copy_n(TTb.dimensions().begin() + iDim, nMALS, dims.begin());
   
         TensorTrain<T> tt_b(dims);
-        for(int i = 0; i <= nMALS; i++)
+        for(int i = 0; i < nMALS; i++)
           copy(TTb.subTensors()[iDim+i], tt_b.editableSubTensors()[i]);
 
         // first contract: tt_b_right(:,:,*) * right_xTb(:,*)
@@ -215,11 +215,11 @@ namespace PITTS
       template<typename T>
       TensorTrain<T> calculate_local_x(int iDim, int nMALS, const TensorTrain<T>& TTx)
       {
-        std::vector<int> dims(nMALS+1);
-        copy_n(TTx.dimensions().begin() + iDim, nMALS+1, dims.begin());
+        std::vector<int> dims(nMALS);
+        copy_n(TTx.dimensions().begin() + iDim, nMALS, dims.begin());
   
         TensorTrain<T> tt_x(dims);
-        for(int i = 0; i <= nMALS; i++)
+        for(int i = 0; i < nMALS; i++)
           copy(TTx.subTensors()[iDim+i], tt_x.editableSubTensors()[i]);
 
         return tt_x;
@@ -274,9 +274,9 @@ namespace PITTS
         const int n0 = left_xTAx.r2();
         const int nd = right_xTAx.r1();
 
-        std::vector<int> localRowDims(nMALS+3), localColDims(nMALS+3);
+        std::vector<int> localRowDims(nMALS+2), localColDims(nMALS+2);
         localRowDims.front() = localColDims.front() = n0;
-        for(int i = 0; i <= nMALS; i++)
+        for(int i = 0; i < nMALS; i++)
         {
           localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
           localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
@@ -285,7 +285,7 @@ namespace PITTS
 
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
         copy_op_left(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
-        for(int i = 0; i <= nMALS; i++)
+        for(int i = 0; i < nMALS; i++)
           copy(TTOp.tensorTrain().subTensors()[iDim+i], localTTOp.tensorTrain().editableSubTensors()[1+i]);
         copy_op_right(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
 
@@ -309,7 +309,8 @@ namespace PITTS
   //! @param nSweeps            desired number of MALS sweeps
   //! @param residualTolerance  desired approximation accuracy, used to abort the iteration and to reduce the TTranks in the iteration
   //! @param maxRank            maximal allowed TT-rank, enforced even if this violates the residualTolerance
-  //! @param MALS               set to false to use ALS, true for MALS
+  //! @param nMALS              number of sub-tensors to combine as one local problem (1 for ALS, 2 for MALS, nDim for global GMRES)
+  //! @param nOverlap           overlap (number of sub-tensors) of two consecutive local problems in one sweep (0 for ALS 1 for MALS, must be < nMALS)
   //! @return                   residual norm of the result (||Ax - b||)
   //!
   template<typename T>
@@ -320,7 +321,7 @@ namespace PITTS
               int nSweeps,
               T residualTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
               int maxRank = std::numeric_limits<int>::max(),
-              bool MALS = true)
+              int nMALS = 2, int nOverlap = 1)
   {
     using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
@@ -331,12 +332,17 @@ namespace PITTS
 
     // check that dimensions match
     if( TTb.dimensions() != TTOpA.row_dimensions() )
-      throw std::invalid_argument("TensorTrain solveMALS dimension mismatch!");
+      throw std::invalid_argument("TensorTrain solveMALS: operator and rhs dimensions mismatch!");
     if( TTx.dimensions() != TTOpA.column_dimensions() )
-      throw std::invalid_argument("TensorTrain solveMALS dimension mismatch!");
+      throw std::invalid_argument("TensorTrain solveMALS: operator and x dimensions mismatch!");
 
     const int nDim = TTx.subTensors().size();
-    const bool useMALS = nDim > 1 && MALS;
+    nMALS = std::min(nMALS, nDim);
+    nOverlap = std::min(nOverlap, nMALS-1);
+    if( nMALS < 1 || nMALS > nDim )
+      throw std::invalid_argument("Tensortrain solveMALS: invalid parameter nMALS (1 <= nMALS)!");
+    if( nOverlap < 0 || nOverlap >= nMALS )
+      throw std::invalid_argument("Tensortrain solveMALS: invalid parameter nOverlap (1 <= nOverlap < nMALS)!");
 
     // first left-normalize x
     rightNormalize(TTx, residualTolerance/nDim, maxRank);
@@ -422,7 +428,7 @@ namespace PITTS
       if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
-      if( useMALS )
+      for(int iDim = 1; iDim < nMALS; iDim++)
       {
         right_xTb.pop_back();
         right_xTAx.pop_back();
@@ -431,16 +437,20 @@ namespace PITTS
       // sweep left to right
       for(int iDim = 0; iDim < nDim; iDim++)
       {
-        if( iDim + useMALS < nDim )
+        if( iDim + nMALS <= nDim )
         {
           right_xTb.pop_back();
           right_xTAx.pop_back();
+        }
 
+        if( iDim + nMALS <= nDim && iDim % (nMALS-nOverlap) == 0 )
+        {
+          std::cout << " (M)ALS setup local problem for sub-tensors " << iDim << " to " << iDim+nMALS-1 << "\n";
 
           // prepare operator and right-hand side
-          TensorTrain<T> tt_x = calculate_local_x(iDim, useMALS, TTx);
-          const TensorTrain<T> tt_b = calculate_local_rhs(iDim, useMALS, left_xTb.back(), effTTb, right_xTb.back());
-          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, useMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
+          TensorTrain<T> tt_x = calculate_local_x(iDim, nMALS, TTx);
+          const TensorTrain<T> tt_b = calculate_local_rhs(iDim, nMALS, left_xTb.back(), effTTb, right_xTb.back());
+          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // GMRES with dense vectors...
@@ -460,7 +470,6 @@ namespace PITTS
             std::swap(new_tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i]);
           if( iDim+1 != nDim )
             internal::leftNormalize_range(TTx, iDim, iDim+1);
-
         }
 
         // prepare left/right xTb for the next iteration
@@ -494,7 +503,7 @@ namespace PITTS
       if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
-      if( useMALS )
+      for(int iDim = nDim-1; iDim > nDim-nMALS; iDim--)
       {
         left_xTb.pop_back();
         left_xTAx.pop_back();
@@ -503,16 +512,20 @@ namespace PITTS
       // sweep right to left
       for(int iDim = nDim-1; iDim >= 0; iDim--)
       {
-        if( iDim - useMALS >= 0 )
+        if( iDim+1 - nMALS >= 0 )
         {
           left_xTb.pop_back();
           left_xTAx.pop_back();
+        }
 
+        if( iDim+1 - nMALS >= 0 && (nDim-iDim-1) % (nMALS-nOverlap) == 0 )
+        {
+          std::cout << " (M)ALS setup local problem for sub-tensors " << iDim << " to " << iDim+1-nMALS << "\n";
 
           // prepare operator and right-hand side
-          TensorTrain<T> tt_x = calculate_local_x(iDim-useMALS, useMALS, TTx);
-          const TensorTrain<T> tt_b = calculate_local_rhs(iDim-useMALS, useMALS, left_xTb.back(), effTTb, right_xTb.back());
-          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim-useMALS, useMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
+          TensorTrain<T> tt_x = calculate_local_x(iDim+1-nMALS, nMALS, TTx);
+          const TensorTrain<T> tt_b = calculate_local_rhs(iDim+1-nMALS, nMALS, left_xTb.back(), effTTb, right_xTb.back());
+          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim+1-nMALS, nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
           // GMRES with dense vectors...
@@ -527,11 +540,10 @@ namespace PITTS
           const auto r_right = tt_x.subTensors().back().r2();
           TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, -1, false, r_left, r_right);
 
-          for(int i = 0; i < new_tt_x.dimensions().size(); i++)
-            std::swap(new_tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i-useMALS]);
+          for(int i = 0; i < nMALS; i++)
+            std::swap(new_tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i+1-nMALS]);
           if( iDim != 0 )
             internal::rightNormalize_range(TTx, iDim-1, iDim);
-
         }
 
         // prepare left/right xTb for the next iteration
