@@ -454,33 +454,12 @@ namespace PITTS
           // use mv_rhs as work array
           const auto r_left = tt_x.subTensors().front().r1();
           const auto r_right = tt_x.subTensors().back().r2();
-          TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, -1, false, r_left, r_right);
+          TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, maxRank, false, r_left, r_right);
 
-          if( !useMALS )
-          {
-            auto& subTx = TTx.editableSubTensors()[iDim];
-            std::swap(new_tt_x.editableSubTensors()[0], subTx);
-
-            if( iDim+1 != nDim )
-            {
-              Tensor2<T> t2;
-              unfold_left(subTx, t2);
-              const auto [Q,B] = internal::normalize_qb(t2, true, residualTolerance/nDim, maxRank);
-              fold_left(Q, subTx.n(), subTx);
-
-              // now contract B(:,*) * subT(*,:,:)
-              Tensor3<T> subTx_next;
-              internal::normalize_contract1(B, TTx.subTensors()[iDim+1], subTx_next);
-              std::swap(TTx.editableSubTensors()[iDim+1], subTx_next);
-            }
-          }
-          else // useMALS
-          {
-            T alpha = leftNormalize(new_tt_x, residualTolerance/nDim);
-            internal::t3_scale(alpha, new_tt_x.editableSubTensors().back());
-            std::swap(new_tt_x.editableSubTensors()[0], TTx.editableSubTensors()[iDim]);
-            std::swap(new_tt_x.editableSubTensors()[1], TTx.editableSubTensors()[iDim+1]);
-          }
+          for(int i = 0; i < new_tt_x.dimensions().size(); i++)
+            std::swap(new_tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i]);
+          if( iDim+1 != nDim )
+            internal::leftNormalize_range(TTx, iDim, iDim+1);
 
         }
 
@@ -548,32 +527,11 @@ namespace PITTS
           const auto r_right = tt_x.subTensors().back().r2();
           TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, -1, false, r_left, r_right);
 
+          for(int i = 0; i < new_tt_x.dimensions().size(); i++)
+            std::swap(new_tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i-useMALS]);
+          if( iDim != 0 )
+            internal::rightNormalize_range(TTx, iDim-1, iDim);
 
-          if( !useMALS )
-          {
-            auto& subTx = TTx.editableSubTensors()[iDim];
-            std::swap(new_tt_x.editableSubTensors()[0], subTx);
-
-            if( iDim != 0 )
-            {
-              Tensor2<T> t2;
-              unfold_right(subTx, t2);
-              const auto [B,Qt] = internal::normalize_qb(t2, false, residualTolerance/nDim, maxRank);
-              fold_right(Qt, subTx.n(), subTx);
-
-              // now contract: subT(:,:,*) * B(:,*)
-              Tensor3<T> subTx_prev;
-              internal::dot_contract1(TTx.subTensors()[iDim-1], B, subTx_prev);
-              std::swap(TTx.editableSubTensors()[iDim-1], subTx_prev);
-            }
-          }
-          else // useMALS
-          {
-            T alpha = rightNormalize(new_tt_x, residualTolerance/nDim);
-            internal::t3_scale(alpha, new_tt_x.editableSubTensors().front());
-            std::swap(new_tt_x.editableSubTensors()[0], TTx.editableSubTensors()[iDim-1]);
-            std::swap(new_tt_x.editableSubTensors()[1], TTx.editableSubTensors()[iDim]);
-          }
         }
 
         // prepare left/right xTb for the next iteration
