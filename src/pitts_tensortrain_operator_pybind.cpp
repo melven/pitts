@@ -160,9 +160,9 @@ namespace PITTS
             "Apply a transposed TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA^T * TTOpB");
 
         m.def("solveMALS",
-            py::overload_cast< const TensorTrainOperator<T>&, bool, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, bool >(&solveMALS<T>),
+            py::overload_cast< const TensorTrainOperator<T>&, bool, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int >(&solveMALS<T>),
             py::arg("TTOpA"), py::arg("symmetricA"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
-            py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("MALS")=true,
+            py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("nMALS")=2, py::arg("nOverlap")=1,
             "Solve a linear system using the MALS (or ALS) algorithm\n\nApproximate TTx with TTOpA * TTx = TTb");
       }
     }
