@@ -31,6 +31,7 @@
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
+#include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_axpby.hpp"
 #include "pitts_multivector_norm.hpp"
@@ -47,6 +48,7 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+    
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
@@ -448,26 +450,23 @@ namespace PITTS
 
           // absolute tolerance is not invariant wrt. #dimensions
           GMRES<arr>(localTTOp, true, mv_rhs, mv_x, 50, arr::Constant(1, 0), arr::Constant(1, 1.e-4), " (M)ALS local problem: ", true);
-          const vec x = ConstEigenMap(mv_x);
+
+          // use mv_rhs as work array
+          const auto r_left = tt_x.subTensors().front().r1();
+          const auto r_right = tt_x.subTensors().back().r2();
+          TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, -1, false, r_left, r_right);
 
           if( !useMALS )
           {
             auto& subTx = TTx.editableSubTensors()[iDim];
-            const auto r1 = subTx.r1();
-            const auto n = subTx.n();
-            const auto r2 = subTx.r2();
+            std::swap(new_tt_x.editableSubTensors()[0], subTx);
 
-            if( iDim+1 == nDim )
+            if( iDim+1 != nDim )
             {
-              fold(x, r1, n, r2, subTx);
-            }
-            else
-            {
-              Tensor2<T> t2x(r1*n,r2);
-              EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1*n, r2);
-
-              const auto [Q,B] = internal::normalize_qb(t2x, true, residualTolerance/nDim, maxRank);
-              fold_left(Q, n, subTx);
+              Tensor2<T> t2;
+              unfold_left(subTx, t2);
+              const auto [Q,B] = internal::normalize_qb(t2, true, residualTolerance/nDim, maxRank);
+              fold_left(Q, subTx.n(), subTx);
 
               // now contract B(:,*) * subT(*,:,:)
               Tensor3<T> subTx_next;
@@ -477,15 +476,10 @@ namespace PITTS
           }
           else // useMALS
           {
-            const int r1 = TTx.subTensors()[iDim].r1();
-            const int n1 = TTx.dimensions()[iDim];
-            const int n2 = TTx.dimensions()[iDim+1];
-            const int r2 = TTx.subTensors()[iDim+1].r2();
-            Tensor3<T> t3x;
-            fold(x, r1, n1*n2, r2, t3x);
-            auto [xk,xk_next] = split(t3x, n1, n2, true, residualTolerance/nDim, maxRank);
-            std::swap(TTx.editableSubTensors()[iDim], xk);
-            std::swap(TTx.editableSubTensors()[iDim+1], xk_next);
+            T alpha = leftNormalize(new_tt_x, residualTolerance/nDim);
+            internal::t3_scale(alpha, new_tt_x.editableSubTensors().back());
+            std::swap(new_tt_x.editableSubTensors()[0], TTx.editableSubTensors()[iDim]);
+            std::swap(new_tt_x.editableSubTensors()[1], TTx.editableSubTensors()[iDim+1]);
           }
 
         }
@@ -549,30 +543,25 @@ namespace PITTS
 
           // absolute tolerance is not invariant wrt. #dimensions
           GMRES<arr>(localTTOp, true, mv_rhs, mv_x, 50, arr::Constant(1, 0), arr::Constant(1, 1.e-4), " (M)ALS local problem: ", true);
-          const vec x = ConstEigenMap(mv_x);
+
+          const auto r_left = tt_x.subTensors().front().r1();
+          const auto r_right = tt_x.subTensors().back().r2();
+          TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, -1, false, r_left, r_right);
 
 
           if( !useMALS )
           {
             auto& subTx = TTx.editableSubTensors()[iDim];
-            const auto r1 = subTx.r1();
-            const auto n = subTx.n();
-            const auto r2 = subTx.r2();
+            std::swap(new_tt_x.editableSubTensors()[0], subTx);
 
-            if( iDim == 0 )
+            if( iDim != 0 )
             {
-              fold(x, r1, n, r2, subTx);
-            }
-            else
-            {
-              Tensor2<T> t2x(r1,r2*n);
-              EigenMap(t2x) = Eigen::Map<const mat>(x.data(), r1, n*r2);
+              Tensor2<T> t2;
+              unfold_right(subTx, t2);
+              const auto [B,Qt] = internal::normalize_qb(t2, false, residualTolerance/nDim, maxRank);
+              fold_right(Qt, subTx.n(), subTx);
 
-              const auto [B,Qt] = internal::normalize_qb(t2x, false, residualTolerance/nDim, maxRank);
-              fold_right(Qt, n, subTx);
-
-              // first contract subT(:,:,*) * B(*,:)
-              // now contract: subT(:,:,*) * B^T(:,*)
+              // now contract: subT(:,:,*) * B(:,*)
               Tensor3<T> subTx_prev;
               internal::dot_contract1(TTx.subTensors()[iDim-1], B, subTx_prev);
               std::swap(TTx.editableSubTensors()[iDim-1], subTx_prev);
@@ -580,15 +569,10 @@ namespace PITTS
           }
           else // useMALS
           {
-            const int r1 = TTx.subTensors()[iDim-1].r1();
-            const int n1 = TTx.dimensions()[iDim-1];
-            const int n2 = TTx.dimensions()[iDim];
-            const int r2 = TTx.subTensors()[iDim].r2();
-            Tensor3<T> t3x;
-            fold(x, r1, n1*n2, r2, t3x);
-            auto [xk_prev,xk] = split(t3x, n1, n2, false, residualTolerance/nDim, maxRank);
-            std::swap(TTx.editableSubTensors()[iDim-1], xk_prev);
-            std::swap(TTx.editableSubTensors()[iDim], xk);
+            T alpha = rightNormalize(new_tt_x, residualTolerance/nDim);
+            internal::t3_scale(alpha, new_tt_x.editableSubTensors().front());
+            std::swap(new_tt_x.editableSubTensors()[0], TTx.editableSubTensors()[iDim-1]);
+            std::swap(new_tt_x.editableSubTensors()[1], TTx.editableSubTensors()[iDim]);
           }
         }
 
