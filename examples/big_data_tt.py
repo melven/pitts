@@ -96,7 +96,7 @@ def distribute(nElems, mpiComm):
 
 
 @timer
-def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=None, discreteCosineTransform=False):
+def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=None, discreteCosineTransform=False, normalize=False):
 
     first, last = distribute(n_samples, MPI.COMM_WORLD)
     nlocal_samples = last - first
@@ -120,6 +120,8 @@ def read_data(file_template, n_samples, n_features, padWithZero=False, reorder=N
             continue
         if img is None:
             raise FileNotFoundError('Could not find: ' + file_name)
+        if normalize:
+            img /= np.linalg.norm(img)
         if reorder is not None:
             X[i,reorder] = img.reshape(reorder.shape, order='F')
         else:
@@ -156,7 +158,7 @@ def tensortrain_to_dict(Xtt):
 
 @timer
 def calculate_TT_SVD(Xm, work, dims):
-    Xtt = pitts_py.fromDense(Xm, work, dims, rankTolerance=0.001, maxRank=1000, mpiGlobal=True)
+    Xtt = pitts_py.fromDense(Xm, work, dims, rankTolerance=0.001, maxRank=100, mpiGlobal=True)
     return Xtt
 
 
@@ -172,7 +174,7 @@ if __name__ == '__main__':
     d = 0
     while 2**d*nProcs < n_samples:
         d = d+1
-    sample_dims = [nProcs,] + [2**d,]
+    sample_dims = [nProcs,] + [2,]*d
     n_features = (192,1024,3)
     #reorder_features = hierarchicalOrdering([2,]*6+[3], [4,]*5, [3,])
     reorder_features = hierarchicalOrdering([192,], [1024,], [3,])
@@ -187,9 +189,10 @@ if __name__ == '__main__':
                   n_features=(192,1024,3),
                   padWithZero=True,
                   reorder=reorder_features,
-                  discreteCosineTransform=True)
+                  discreteCosineTransform=True,
+                  normalize=True)
 
-    local_dims = sample_dims[1:] + feature_dims
+    local_dims = [1,] + sample_dims[1:] + feature_dims
     Xm = copy_to_multivector(X, local_dims, batchSize=1)
     del X
 
@@ -201,6 +204,7 @@ if __name__ == '__main__':
     if MPI.COMM_WORLD.Get_rank() == 0:
         print(Xtt)
         np.savez(file='Xtt_reorder.npz', reorder_features=reorder_features)
+        np.savez(file='Xtt_dims.npz', sample_dims=sample_dims, feature_dims=feature_dims)
 
     xtt_dict = tensortrain_to_dict(Xtt)
     np.savez(file='Xtt%d.npz'%iProc, **xtt_dict)
