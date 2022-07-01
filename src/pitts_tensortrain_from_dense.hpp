@@ -74,7 +74,7 @@ namespace PITTS
     {
       std::cout << "Warning: sub-optimal input dimension to fromDense, performing and additional copy...";
       std::swap(X, work);
-      reshape(work, totalSize/dimensions[nDims-1]*rd, dimensions[nDims-1]*rd, X);
+      reshape(work, totalSize/(dimensions[nDims-1]*rd), dimensions[nDims-1]*rd, X);
     }
 
     if( X.rows() != totalSize/(dimensions[nDims-1]*rd) || X.cols() != dimensions[nDims-1]*rd )
