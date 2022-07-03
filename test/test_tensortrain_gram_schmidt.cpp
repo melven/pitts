@@ -84,3 +84,78 @@ TEST(PITTS_TensorTrain_gram_schmidt, random_vectors)
   mat Q_H = Q * H;
   EXPECT_NEAR(X, Q_H, eps);
 }
+
+namespace
+{
+  // helper function to test different sets of parameters
+  void check_gram_schmidt_with_random_vectors(int nIter, bool pivoting, bool modified, bool skipDirs)
+  {
+    std::vector<TensorTrain_double> V;
+    mat H = mat::Zero(5,5);
+    mat X = mat::Zero(7*7*7,5);
+
+    for(int i = 0; i < 5; i++)
+    {
+      TensorTrain_double w(std::vector<int>{7,7,7});
+      w.setTTranks({3,3});
+      randomize(w);
+
+      toDense(w, &X(0,i), &X(7*7*7-1,i)+1);
+      const arr h = PITTS::gram_schmidt(V, w, eps, 999, " MGS test ", true, nIter, pivoting, modified, skipDirs);
+      H.col(i).segment(0, i+1) = h;
+    }
+
+    ASSERT_EQ(5, V.size());
+    mat Q = mat::Zero(7*7*7,5);
+    for(int i = 0; i < 5; i++)
+    {
+      toDense(V[i], &Q(0,i), &Q(7*7*7-1,i)+1);
+    }
+    mat QtQ = Q.transpose() * Q;
+    mat I = mat::Identity(5,5);
+    EXPECT_NEAR(I, QtQ, eps);
+
+    mat Q_H = Q * H;
+    EXPECT_NEAR(X, Q_H, eps);
+  }
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_no_pivoting_classical_no_skipDirs)
+{
+  check_gram_schmidt_with_random_vectors(3, false, false, false);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_no_pivoting_classical)
+{
+  check_gram_schmidt_with_random_vectors(3, false, false, true);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_no_pivoting_modified_no_skipDirs)
+{
+  check_gram_schmidt_with_random_vectors(2, false, true, false);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_no_pivoting)
+{
+  check_gram_schmidt_with_random_vectors(2, false, true, true);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_pivoting_classical_no_skipDirs)
+{
+  check_gram_schmidt_with_random_vectors(3, true, false, false);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_pivoting_classical)
+{
+  check_gram_schmidt_with_random_vectors(3, true, false, true);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_pivoting_modified_no_skipDirs)
+{
+  check_gram_schmidt_with_random_vectors(2, true, true, false);
+}
+
+TEST(PITTS_TensorTrain_gram_schmidt, random_vectors_pivoting_modified)
+{
+  check_gram_schmidt_with_random_vectors(2, true, true, true);
+}

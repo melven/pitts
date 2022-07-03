@@ -120,6 +120,8 @@ namespace PITTS
         if( pivoting )
           pivot = internal::argmaxabs(Vtw);
         T beta = Vtw(pivot);
+        if( (!pivoting) && modified )
+          beta = dot(V[pivot], w);
 
         if( skipDirs && std::abs(beta) < rankTolerance )
         {
@@ -129,7 +131,7 @@ namespace PITTS
             continue;
         }
 
-        if( modified && i > 0 )
+        if( pivoting && modified && i > 0 )
           beta = dot(V[pivot], w);
         
         h(pivot) += alpha * beta;
