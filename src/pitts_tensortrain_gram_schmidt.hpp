@@ -79,7 +79,7 @@ namespace PITTS
   //! @return                 dot-products <v_1,w> ... <v_k,w> and norm of w after orthog. wrt. V (||w-VV^Tw||)
   //!
   template<typename T>
-  auto gram_schmidt(std::vector<TensorTrain<T>>& V, TensorTrain<T>& w,
+  auto gramSchmidt(std::vector<TensorTrain<T>>& V, TensorTrain<T>& w,
                     T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max(),
                     const std::string& outputPrefix = "", bool verbose = false,
                     int nIter = 4, bool pivoting = true, bool modified = true, bool skipDirs = true)
