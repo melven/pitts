@@ -191,6 +191,13 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
   TensorTrainOperator_double TTOpA(2,5,5);
   TTOpA.setTTranks(1);
   randomize(TTOpA);
+  // make it diagonally dominant to obtain a well-posed problem
+  for(int iDim = 0; iDim < 2; iDim++)
+  {
+    auto& subT = TTOpA.tensorTrain().editableSubTensors()[iDim];
+    for(int i = 0; i < 5; i++)
+      subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+  }
   TensorTrain_double TTx(2,5), TTb(2,5);
   TTb.setTTranks(1);
   randomize(TTb);
@@ -203,8 +210,12 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
 
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
-  double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, 10*eps);
+  TensorTrain_double TTAtAx(TTb.dimensions());
+  applyT(TTOpA, TTAx, TTAtAx);
+  TensorTrain_double TTAtb(TTb.dimensions());
+  applyT(TTOpA, TTb, TTAtb);
+  double error_ref = axpby(-1., TTAtb, 1., TTAtAx);
+  EXPECT_NEAR(error_ref, error, 0.01*eps);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2)
@@ -391,7 +402,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6_rank1)
   copy(TTx, TTdx);
   double error = axpby(-1., TTx_ref, 1., TTdx);
   std::cout << "initialError: " << initialError << ", newError: " << error << "\n";
-  EXPECT_NEAR(0, error/initialError, 0.01);
+  EXPECT_NEAR(0, error/initialError, 0.02);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim6)
