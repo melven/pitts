@@ -315,8 +315,32 @@ class TestTensorTrain(unittest.TestCase):
         np.testing.assert_array_almost_equal(t1_ref, tt.getSubTensor(0))
         np.testing.assert_array_almost_equal(t2_ref, tt.getSubTensor(1))
         np.testing.assert_array_almost_equal(t3_ref, tt.getSubTensor(2))
+    
+    def test_gramSchmidt(self):
+        V = list()
+        H = np.zeros([5,5])
+        X = np.zeros([5*5*5,5])
+        Q = np.zeros([5*5*5,5])
+        for i in range(5):
+            w = pitts_py.TensorTrain_double([5,5,5])
+            w.setTTranks(3);
+            pitts_py.randomize(w)
 
+            X[:,i] = pitts_py.toDense(w).reshape([5*5*5], order='F')
 
+            H[0:i+1,i] = pitts_py.gramSchmidt(V, w)
+
+            self.assertEqual(i+1, len(V))
+            Q[:,i] = pitts_py.toDense(V[i]).reshape([5*5*5], order='F')
+        
+        I = np.eye(5,5)
+        QtQ = Q.T @ Q
+        np.testing.assert_array_almost_equal(I, QtQ)
+
+        QH = Q @ H
+        np.testing.assert_array_almost_equal(X, QH)
+
+    
 if __name__ == '__main__':
     unittest.main()
 

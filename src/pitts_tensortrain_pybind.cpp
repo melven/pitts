@@ -11,6 +11,7 @@
 #include <pybind11/stl.h>
 //#include <pybind11/complex.h>
 #include <pybind11/numpy.h>
+#include <pybind11/eigen.h>
 #include <string>
 #include <exception>
 #include "pitts_tensortrain.hpp"
@@ -23,6 +24,7 @@
 #include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_from_dense_twosided.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
+#include "pitts_tensortrain_gram_schmidt.hpp"
 #include "pitts_tensortrain_pybind.hpp"
 #include "pitts_scope_info.hpp"
 
@@ -121,6 +123,25 @@ namespace PITTS
         return result;
       }
 
+      //! wrapper function to allow modifying the list argument V
+      template<typename T>
+      auto gramSchmidt(py::list V, TensorTrain<T>& w,
+                       T rankTolerance, int maxRank,
+                       const std::string& outputPrefix, bool verbose,
+                       int nIter, bool pivoting, bool modified, bool skipDirs)
+      {
+        std::vector<TensorTrain<T>> Vtmp;
+        for(int i = 0; i < V.size(); i++)
+          Vtmp.emplace_back(std::move(V[i].cast<TensorTrain<T>&>()));
+          //Vtmp.emplace_back(V[i].cast<TensorTrain<T>>());
+        V.attr("clear")();
+        auto result = PITTS::gramSchmidt(Vtmp, w, rankTolerance, maxRank, outputPrefix, verbose, nIter, pivoting, modified, skipDirs);
+        for(int i = 0; i < Vtmp.size(); i++)
+          V.append(std::move(Vtmp[i]));
+        return result;
+      }
+
+
       //! provide all TensorTrain<T> related classes and functions
       template<typename T>
       void init_TensorTrain_helper(py::module& m, const std::string& type_name)
@@ -199,6 +220,14 @@ namespace PITTS
             &TensorTrain_toDense<T>,
             py::arg("TT"),
             "calculate fully dense tensor from a tensor-train decomposition");
+        
+        m.def("gramSchmidt",
+            &pybind::gramSchmidt<T>,
+            py::arg("V"), py::arg("w"),
+            py::arg("rankTolerance") = std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::arg("outputPrefix")="", py::arg("verbose")=false,
+            py::arg("nIter")=4, py::arg("pivoting")=true, py::arg("modified")=true, py::arg("skipDirs")=true,
+            "Modified Gram-Schmidt orthogonalization algorithm in Tensor-Train format");
       }
     }
 
