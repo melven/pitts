@@ -87,7 +87,7 @@ namespace PITTS
   //! Approximates x with OpA* x = b
   //!
   //! @tparam LinearOperator  type of the linear operator (e.g. matrix), required for calling apply(Op, x, y)
-  //! @tparam Vector          type for vectors, must support dot(x,y), norm2(x,y), axpy(x,y), scale(alpha,x)
+  //! @tparam Vector          type for vectors, must support axpy(alpha, x, y), dot(x,y), axpy_dot(alpha, x, y, z), norm2(x), axpy_norm2(alpha, x, y), scale(alpha,x)
   //! @tparam T               underlying data type (defines the precision)
   //!
   //! @param OpA              linear operator, can be applied to a vector
