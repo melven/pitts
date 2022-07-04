@@ -182,8 +182,12 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2_rank1)
 
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
-  double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, eps);
+  TensorTrain_double TTAtAx(TTb.dimensions());
+  applyT(TTOpA, TTAx, TTAtAx);
+  TensorTrain_double TTAtb(TTb.dimensions());
+  applyT(TTOpA, TTb, TTAtb);
+  double error_ref = axpby(-1., TTAtb, 1., TTAtAx);
+  EXPECT_NEAR(error_ref, error, 0.01*eps);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
