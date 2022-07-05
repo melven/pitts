@@ -37,6 +37,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_from_itensor.hpp
   pitts_tensortrain_to_itensor.hpp
   pitts_tensortrain_gram_schmidt.hpp
+  pitts_tensortrain_solve_gmres.hpp
   pitts_tensortrain_operator.hpp
   pitts_tensortrain_operator_apply.hpp
   pitts_tensortrain_operator_apply_transposed.hpp
