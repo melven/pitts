@@ -32,6 +32,7 @@
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
+#include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_axpby.hpp"
 #include "pitts_multivector_norm.hpp"
@@ -52,33 +53,6 @@ namespace PITTS
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
-      //! helper function for converting an array to a string
-      template<typename T>
-      std::string to_string(const std::vector<T>& v)
-      {
-        std::string result = "[";
-        for(int i = 0; i < v.size(); i++)
-        {
-          if( i > 0 )
-            result += ", ";
-          result += std::to_string(v[i]);
-        }
-        result += "]";
-        return result;
-      }
-
-      ////! Tensor3 as vector
-      //template<typename T>
-      //auto flatten(const Tensor3<T>& t3)
-      //{
-      //  Eigen::Matrix<T, Eigen::Dynamic, 1> v(t3.r1()*t3.n()*t3.r2());
-      //  for(int i = 0; i < t3.r1(); i++)
-      //    for(int j = 0; j < t3.n(); j++)
-      //      for(int k = 0; k < t3.r2(); k++)
-      //        v(i + j*t3.r1() + k*t3.n()*t3.r1()) = t3(i,j,k);
-      //  return v;
-      //};
-
       //! calculate next part of x^Tb from right to left (like TT dot product bug allows to store all intermediate results)
       template<typename T>
       Tensor2<T> calculate_next_right_xTb(const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
@@ -420,7 +394,7 @@ namespace PITTS
     // calculate the error norm
     copy(effTTb, residualVector);
     auto residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
-    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
@@ -499,7 +473,7 @@ namespace PITTS
       // check error
       copy(effTTb, residualVector);
       residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
       if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
@@ -573,7 +547,7 @@ namespace PITTS
       // check error
       copy(effTTb, residualVector);
       residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
-      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << to_string(TTx.getTTranks()) << "\n";
+      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 
 

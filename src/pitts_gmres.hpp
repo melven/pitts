@@ -107,6 +107,8 @@ namespace PITTS
     using vec = Eigen::Matrix<T,Eigen::Dynamic,1>;
     using mat = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
 
+    const auto timer = PITTS::timing::createScopedTimer();
+
     std::vector<Vector> v;
     auto r0 = Vector();
     apply(OpA, x, r0);

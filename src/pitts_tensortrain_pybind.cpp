@@ -133,7 +133,6 @@ namespace PITTS
         std::vector<TensorTrain<T>> Vtmp;
         for(int i = 0; i < V.size(); i++)
           Vtmp.emplace_back(std::move(V[i].cast<TensorTrain<T>&>()));
-          //Vtmp.emplace_back(V[i].cast<TensorTrain<T>>());
         V.attr("clear")();
         auto result = PITTS::gramSchmidt(Vtmp, w, rankTolerance, maxRank, outputPrefix, verbose, nIter, pivoting, modified, skipDirs);
         for(int i = 0; i < Vtmp.size(); i++)
