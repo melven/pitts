@@ -14,6 +14,7 @@
 #include <string>
 #include <exception>
 #include "pitts_tensortrain_solve_mals.hpp"
+#include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_tensortrain_solve_pybind.hpp"
 
 namespace py = pybind11;
@@ -36,6 +37,14 @@ namespace PITTS
             py::arg("TTOpA"), py::arg("symmetricA"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
             py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("nMALS")=2, py::arg("nOverlap")=1,
             "Solve a linear system using the MALS (or ALS) algorithm\n\nApproximate TTx with TTOpA * TTx = TTb");
+        
+        m.def("solveGMRES",
+            &solveGMRES<T>,
+            py::arg("TTOpA"), py::arg("TTb"), py::arg("TTx"),
+            py::arg("maxIter"), py::arg("absResTol"), py::arg("relResTol"),
+            py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("adaptiveTolerance")=true,
+            py::arg("outputPrefix")="", py::arg("verbose")=false,
+            "TT-GMRES: iterative solver for linear systems in tensor-train format");
       }
     }
 
