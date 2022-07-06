@@ -18,7 +18,6 @@
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
-#include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_scope_info.hpp"
 
@@ -158,12 +157,6 @@ namespace PITTS
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&applyT<T>),
             py::arg("TTOpA"), py::arg("TTOpB"), py::arg("TTOpC"),
             "Apply a transposed TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA^T * TTOpB");
-
-        m.def("solveMALS",
-            py::overload_cast< const TensorTrainOperator<T>&, bool, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int >(&solveMALS<T>),
-            py::arg("TTOpA"), py::arg("symmetricA"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
-            py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("nMALS")=2, py::arg("nOverlap")=1,
-            "Solve a linear system using the MALS (or ALS) algorithm\n\nApproximate TTx with TTOpA * TTx = TTb");
       }
     }
 
