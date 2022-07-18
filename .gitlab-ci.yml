@@ -40,7 +40,9 @@ build_debug_with_coverage:
   artifacts:
     reports:
       junit: build_coverage/test/pitts_tests*.xml
-      cobertura: build_coverage/test/coverage.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: build_coverage/test/coverage.xml
     paths:
       - build_coverage/test/coverage*.html
 
