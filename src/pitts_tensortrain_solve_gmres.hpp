@@ -80,7 +80,7 @@ namespace PITTS
 
     std::vector<TensorTrain<T>> V;
     // calculate the initial residual
-    V.emplace_back(TensorTrain<T>{TTOpA.row_dimensions()});
+    V.emplace_back(TensorTrain<T>{TTb.dimensions()});
     apply(TTOpA, TTx, V[0]);
     const T beta = axpby(T(-1), TTb, T(1), V[0]);
     // RHS norm for the relative error
@@ -88,11 +88,12 @@ namespace PITTS
 
     if( verbose )
       std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / nrm_b << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+    
+    if( beta <= absResTol )
+      return beta;
 
     // relative residual tolerance used below also for calculating the required TT rankTolerance
-    const T residualTolerance = std::max(relResTol, absResTol/nrm_b);
-    if( beta <= residualTolerance * nrm_b )
-      return beta;
+    const T residualTolerance = std::max(relResTol, absResTol/beta);
 
     vec b_hat = vec::Zero(maxIter+1);
     b_hat(0) = beta;
@@ -106,7 +107,7 @@ namespace PITTS
 
     for(int i = 0; i < maxIter; i++)
     {
-      TensorTrain<T> w(TTOpA.row_dimensions());
+      TensorTrain<T> w(TTb.dimensions());
       apply(TTOpA, V[i], w);
 
       T rankTolerance = residualTolerance / maxIter;
@@ -134,7 +135,7 @@ namespace PITTS
         std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / nrm_b << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
       // check convergence
-      if( rho <= residualTolerance * nrm_b )
+      if( rho/beta <= residualTolerance )
         break;
     }
 
