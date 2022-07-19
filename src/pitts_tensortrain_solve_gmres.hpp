@@ -153,6 +153,14 @@ namespace PITTS
     }
     internal::t3_scale(nrm_x, TTx.editableSubTensors()[0]);
 
+    /*
+    // check accuracy of the result (for debugging problems with the rank tolerances...)
+    apply(TTOpA, TTx, V[0]);
+    T rho_ref = axpby(T(-1), TTb, nrm_x, V[0], T(0));
+    if( verbose )
+      std::cout << outputPrefix << "Real residual norm: " << rho << " (abs), " << rho / beta << " (rel), x norm: " << nrm_x << ", ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+    */
+
     return rho;
   }
 
