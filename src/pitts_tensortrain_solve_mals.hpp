@@ -445,7 +445,7 @@ namespace PITTS
             // use mv_rhs as work array
             const auto r_left = tt_x.subTensors().front().r1();
             const auto r_right = tt_x.subTensors().back().r2();
-            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance / nDim, maxRank, false, r_left, r_right);
+            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), T(0.5)*residualTolerance/nDim, maxRank, false, r_left, r_right);
             std::swap(tt_x, new_tt_x);
           }
 
@@ -527,7 +527,7 @@ namespace PITTS
 
             const auto r_left = tt_x.subTensors().front().r1();
             const auto r_right = tt_x.subTensors().back().r2();
-            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), residualTolerance/nDim, -1, false, r_left, r_right);
+            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), T(0.5)*residualTolerance/nDim, maxRank, false, r_left, r_right);
             std::swap(tt_x, new_tt_x);
           }
 
