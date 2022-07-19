@@ -87,7 +87,7 @@ namespace PITTS
     const T nrm_b = norm2(TTb);
 
     if( verbose )
-      std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / nrm_b << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+      std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / beta << " (rel), rhs norm: " << nrm_b << ", ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
     
     if( beta <= absResTol )
       return beta;
@@ -132,7 +132,7 @@ namespace PITTS
       b_hat(i) = c(i)*b_hat(i);
       rho = std::abs(b_hat(i+1));
       if( verbose )
-        std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / nrm_b << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+        std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / beta << " (rel), ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
 
       // check convergence
       if( rho/beta <= residualTolerance )
