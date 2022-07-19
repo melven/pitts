@@ -78,14 +78,15 @@ namespace PITTS
 
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
+    // RHS norm (just for information, might be useful to adjust tolerances...)
+    const T nrm_b = norm2(TTb);
+    const T r0_rankTol = relResTol / maxIter * T(0.1);
+
     std::vector<TensorTrain<T>> V;
     // calculate the initial residual
     V.emplace_back(TensorTrain<T>{TTb.dimensions()});
     apply(TTOpA, TTx, V[0]);
-    const T beta = axpby(T(-1), TTb, T(1), V[0]);
-    // RHS norm for the relative error
-    const T nrm_b = norm2(TTb);
-
+    const T beta = axpby(T(-1), TTb, T(1), V[0], r0_rankTol, maxRank);
     if( verbose )
       std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / beta << " (rel), rhs norm: " << nrm_b << ", ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
     
@@ -110,7 +111,7 @@ namespace PITTS
       TensorTrain<T> w(TTb.dimensions());
       apply(TTOpA, V[i], w);
 
-      T rankTolerance = residualTolerance / maxIter;
+      T rankTolerance = residualTolerance / maxIter / T(1.1);
       if( adaptiveTolerance )
         rankTolerance *= beta / rho;
 
@@ -147,7 +148,7 @@ namespace PITTS
     T nrm_x = 1;
     for(int j = 0; j < m; j++)
     {
-      const T rankTolerance = residualTolerance / m;
+      const T rankTolerance = residualTolerance / m / T(1.1) * std::min(T(1), beta/nrm_b);
       nrm_x = axpby(T(-y(j)), V[j], nrm_x, TTx, rankTolerance, maxRank);
     }
     internal::t3_scale(nrm_x, TTx.editableSubTensors()[0]);
