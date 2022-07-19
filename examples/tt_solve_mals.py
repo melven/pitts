@@ -35,7 +35,7 @@ if __name__ == '__main__':
     x = pitts_py.TensorTrain_double(TTOp.col_dimensions())
     pitts_py.copy(b, x)
 
-    resNorm = pitts_py.solveMALS(TTOp, True, b, x, nSweeps=4, residualTolerance=1.e-7, maxRank=150, nMALS=4, nOverlap=3, useTTgmres=True, gmresMaxIter=100, gmresRelTol=1.e-9)
+    resNorm = pitts_py.solveMALS(TTOp, True, b, x, nSweeps=4, residualTolerance=1.e-7, maxRank=100, nMALS=8, nOverlap=1, useTTgmres=True, gmresMaxIter=100, gmresRelTol=1.e-9)
 
     print("resNorm %g" % resNorm)
     r = pitts_py.TensorTrain_double(b.dimensions())

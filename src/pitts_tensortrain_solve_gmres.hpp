@@ -133,7 +133,7 @@ namespace PITTS
       b_hat(i) = c(i)*b_hat(i);
       rho = std::abs(b_hat(i+1));
       if( verbose )
-        std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / beta << " (rel), ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
+        std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / beta << " (rel), ranks: " << internal::to_string(V[i+1].getTTranks()) << "\n";
 
       // check convergence
       if( rho/beta <= residualTolerance )
