@@ -16,7 +16,7 @@ namespace PITTS
 namespace PITTS
 {
     template <typename T>
-    void unfold_left(const Tensor3<T>& T3, Tensor2<T>& T2)
+    void munfold_left(const Tensor3<T>& T3, Tensor2<T>& T2)
     {
         const int r1 = T3.r1();
         const int n = T3.n();
@@ -32,7 +32,7 @@ namespace PITTS
     }
 
     template <typename T>
-    void unfold_right(Tensor3<T> T3, Tensor2<T> T2)
+    void munfold_right(Tensor3<T> T3, Tensor2<T> T2)
     {
         const int r1 = T3.r1();
         const int n = T3.n();
@@ -96,10 +96,10 @@ namespace PITTS
 
         Tensor3<T> Tyt;     // temporary 3Tensor y
         Tensor3<T> Txt;     // temporary 3Tensor x
-        Tensor2<T> Mtemp;   // temporary 2Tensor to hold result (Txt(:,: x :)^tr * Tyt(:,: x :)
-        Tensor2<T> Mtemp1;  // temporary 2Tensor to hold result Tyt(:,: x :) - Txt(:,: x :) * Mtemp(: x :)
-        Tensor3<T> Ttempu;  // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
-        Tensor3<T> Ttempl;  // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
+        Tensor2<T> Mtmp;    // temporary 2Tensor to hold result (Txt(:,: x :)^tr * Tyt(:,: x :)
+        Tensor2<T> Mtmp1;   // temporary 2Tensor to hold result Tyt(:,: x :) - Txt(:,: x :) * Mtmp(: x :)
+        Tensor3<T> Ttmpu;   // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
+        Tensor3<T> Ttmpl;   // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
         
         // initialize Txt and Tyt for k = 0
         copy(x_cores[0], Txt);
@@ -113,24 +113,24 @@ namespace PITTS
             const Tensor3<T>& Tx = x_cores[k];
             const Tensor3<T>& Tx1 = x_cores[k+1];
 
-            // Mtemp <- (Txt(:,: x :)^tr * Tyt(:,: x :)
+            // Mtmp <- (Txt(:,: x :)^tr * Tyt(:,: x :)
             {
                 int r2x = Txt.r2();  // r2 of x
                 int r2y = Tyt.r2();  // r2 of y
                 int r1s = Txt.r1();  // shared dimension r1
                 int ns = Txt.n();    // shared dimenion n
 
-                Mtemp.resize(r2x, r2y);
+                Mtmp.resize(r2x, r2y);
                 for (int j = 0; j < r2y; j++)
                 {
                     for (int i = 0; i < r2x; i++)
                     {
-                        Mtemp(i, j) = 0;
+                        Mtmp(i, j) = 0;
                         for (int k = 0; k < r1s; k++)
                         {
                             for (int l = 0; l < ns; l++)
                             {
-                                Mtemp(i,j) += Txt(k, l, i) * Tyt(k, l, j);
+                                Mtmp(i,j) += Txt(k, l, i) * Tyt(k, l, j);
                             }
                         }
                     }
@@ -138,14 +138,14 @@ namespace PITTS
             }
             
 
-            // Mtemp1 <- Tyt(:,: x :) - Txt(:,: x :) * Mtemp(: x :)
+            // Mtmp1 <- Tyt(:,: x :) - Txt(:,: x :) * Mtmp(: x :)
             {
                 int r1s = Txt.r1();  // shared dimension r1
                 int ns = Txt.n();    // shared dimenion n
                 int r2y = Tyt.r2();  // r2 of y
                 int r2x = Txt.r2();  // r2 of x
 
-                Mtemp1.resize(r1s * ns, r2y);
+                Mtmp1.resize(r1s * ns, r2y);
 
                 for (int j = 0; j < r2y; j++)
                 {
@@ -153,33 +153,33 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1s; i1++)
                         {
-                            Mtemp1(i1 + i2*r1s, j) = Tyt(i1, i2, j);
+                            Mtmp1(i1 + i2*r1s, j) = Tyt(i1, i2, j);
                             for (int k = 0; k < r2x; k++)
                             {
-                                Mtemp1(i1 + i2*r1s, j) -= Txt(i1, i2, k) * Mtemp(k, j);
+                                Mtmp1(i1 + i2*r1s, j) -= Txt(i1, i2, k) * Mtmp(k, j);
                             }
                         }
                     }
                 }
             }
 
-            // [Q, B] <- QR(Mtemp1)
-            const std::pair<Tensor2<T>,Tensor2<T>> [Q,B] = internal::normalize_qb(Mtemp1);
+            // [Q, B] <- QR(Mtmp1)
+            const auto [Q,B] = internal::normalize_qb(Mtmp1);
 
-            // save result into y_cores[k] = Ty <- concat(Txt, B, dim=3)
+            // save result into y_cores[k] = Ty <- concat(Txt, Q, dim=3)
             {
-                int r1x = Txt.r1();
-                int nx  = Txt.n();
+                int r1 = Txt.r1();
+                int n  = Txt.n();
                 int r2x = Txt.r2();
                 int r2Q = Q.r2();
 
-                Ty.resize(r1x, nx, r2x + r2B);
+                Ty.resize(r1, n, r2x + r2Q);
 
-                for (i2 = 0; i2 < r2x; i2++)
+                for (int i2 = 0; i2 < r2x; i2++)
                 {
-                    for (int j = 0; j < nx; j++)
+                    for (int j = 0; j < n; j++)
                     {
-                        for (int i1 = 0; i1 < r1x; i1++)
+                        for (int i1 = 0; i1 < r1; i1++)
                         {
                             Ty(i1, j, i2) = Txt(i1, j, i2);
                         }
@@ -187,25 +187,25 @@ namespace PITTS
                 }
                 for (int i2 = 0; i2 < r2Q; i2++)
                 {
-                    for (int j = 0; j < nx; j++)
+                    for (int j = 0; j < n; j++)
                     {
-                        for (int i1 = 0; i1 < r1x; i1++)
+                        for (int i1 = 0; i1 < r1; i1++)
                         {
-                            Ty(i1, j, i2 + r2x) = Q(i1 + j*r1x, i2);
+                            Ty(i1, j, i2 + r2x) = Q(i1 + j*r1, i2);
                         }
                     }
                 }
             }
 
-            // calculate upper half of new Tyt: Ttempu <- Mtemp *1 Ty1
-            //can be either in parallel with next one or next one can reuse Ttemp mem buffer
+            // calculate upper half of new Tyt: Ttmpu <- Mtmp *1 Ty1
+            //can be either in parallel with next one or next one can reuse Ttmp mem buffer
             {
-                int r1 = Mtemp.r1();
-                int s  = Ty1.r1();  // = Mtemp.r2();
-                int n  = Ty1.n()
+                int r1 = Mtmp.r1();
+                int s  = Ty1.r1();  // = Mtmp.r2();
+                int n  = Ty1.n();
                 int r2 = Ty1.r2();
 
-                Ttempu.resize(r1, n, r2);
+                Ttmpu.resize(r1, n, r2);
 
                 for (int i2 = 0; i2 < r2; i2++)
                 {
@@ -213,24 +213,24 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1; i1++)
                         {
-                            Ttempu(i1, n, i2) = 0;
+                            Ttmpu(i1, n, i2) = 0;
                             for (int k = 0; k < s; k++)
                             {
-                                Ttempu(i1, n, i2) += Mtemp(i1, k) * Ty1(k, j, i2);
+                                Ttmpu(i1, n, i2) += Mtmp(i1, k) * Ty1(k, j, i2);
                             }
                         }
                     }
                 }
             }
 
-            // calculate upper half of new Tyt: Ttempl <- B *1 Ty1
+            // calculate upper half of new Tyt: Ttmpl <- B *1 Ty1
             {
                 int r1 = B.r1();
                 int s  = Ty1.r1();  // = B.r2();
-                int n  = Ty1.n()
+                int n  = Ty1.n();
                 int r2 = Ty1.r2();
 
-                Ttempl.resize(r1, n, r2);
+                Ttmpl.resize(r1, n, r2);
 
                 for (int i2 = 0; i2 < r2; i2++)
                 {
@@ -238,22 +238,22 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1; i1++)
                         {
-                            Ttempl(i1, n, i2) = 0;
+                            Ttmpl(i1, n, i2) = 0;
                             for (int k = 0; k < s; k++)
                             {
-                                Ttempl(i1, n, i2) += B(i1, k) * Ty1(k, j, i2);
+                                Ttmpl(i1, n, i2) += B(i1, k) * Ty1(k, j, i2);
                             }
                         }
                     }
                 }
             }
 
-            // concatinate Tyt <- concat(Ttempu, Ttempl, dim=1)
+            // concatinate Tyt <- concat(Ttmpu, Ttmpl, dim=1)
             {
-                int r1u = Ttempu.r1();
-                int r1l = Ttempl.r1();
-                int ns = Ttempu.n();
-                int r2s = Ttempu.r2();
+                int r1u = Ttmpu.r1();
+                int r1l = Ttmpl.r1();
+                int ns = Ttmpu.n();
+                int r2s = Ttmpu.r2();
 
                 Tyt.resize(r1u + r1l, ns, r2s);
                 
@@ -263,24 +263,24 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1u; i1++)
                         {
-                            Tyt(i1, j, i2) = Ttempu(i1, j, i2);
+                            Tyt(i1, j, i2) = Ttmpu(i1, j, i2);
                         }
                         for (int i1 = 0; i1 < r1l; i1++)
                         {
-                            Tyt(i1 + r1u, j, i2) = Ttempl(i1, j, i2);
+                            Tyt(i1 + r1u, j, i2) = Ttmpl(i1, j, i2);
                         }
                     }
                 }
             }
             
-            // calculate new Txt: Txt <- concat(Tx, 0, dim=1), 0 of dimension B.r1 x Tx.n x Tx.r2
+            // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension B.r1 x Tx1.n x Tx1.r2
             // set's a bunch of values to 0
-            // those could be left away, and the loops that calculate Mtemp and Mtemp1 accordingly updated (cuts on the flops there too)
+            // those could be left away, and the loops that calculate Mtmp and Mtmp1 accordingly updated (cuts on the flops there too)
             {
-                int r1u = Tx.r1();
-                int r1l = B.r1(); // = Ttempl.r1()
-                int ns = Tx.n();
-                int r2s = Tx.r2();
+                int r1u = Tx1.r1();
+                int r1l = B.r1(); // = Ttmpl.r1()
+                int ns = Tx1.n();
+                int r2s = Tx1.r2();
 
                 Txt.resize(r1u + r1l, ns, r2s);
                 
@@ -290,7 +290,7 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1u; i1++)
                         {
-                            Txt(i1, j, i2) = Tx(i1, j, i2);
+                            Txt(i1, j, i2) = Tx1(i1, j, i2);
                         }
                         for (int i1 = 0; i1 < r1l; i1++)
                         {
@@ -301,41 +301,35 @@ namespace PITTS
             }
         }
 
-        // concatinate y_cores[d-1] <- concat(Txt, Tyt, dim=3)
+        // calculate y_cores[d-1] <- Txt + Tyt (componentwise)
         {
             int r1 = Txt.r1();
             int n = Txt.n();
-            int r2x = Txt.r2();
-            int r2y = Tyt.r2();
+            int r2 = Txt.r2();
+            // should all be equal
 
-            y_cores[d-1].resize(r1x, nx, r2x + r2B);
+            y_cores[d-1].resize(r1, n, r2);
 
-            for (i2 = 0; i2 < r2x; i2++)
+            for (int i2 = 0; i2 < r2; i2++)
             {
-                for (int j = 0; j < nx; j++)
+                for (int j = 0; j < n; j++)
                 {
-                    for (int i1 = 0; i1 < r1x; i1++)
+                    for (int i1 = 0; i1 < r1; i1++)
                     {
-                        y_cores[d-1](i1, j, i2) = Txt(i1, j, i2);
+                        y_cores[d-1](i1, j, i2) = Txt(i1, j, i2) + Tyt(i1, j, i2);
                     }
                 }
             }
-            for (int i2 = 0; i2 < r2Q; i2++)
-            {
-                for (int j = 0; j < nx; j++)
-                {
-                    for (int i1 = 0; i1 < r1x; i1++)
-                    {
-                        y_cores[d-1](i1, j, i2 + r2x) = Tyt(i1 + j*r1x, i2);
-                    }
-                }
-            }
+
         }
 
 
         //
         // compression sweep right to left
         //
+
+        for (const auto& core : TTy.subTensors())
+           std::cout << "dimensions: " << core.r1() << " x " << core.n() << " x "<< core.r2() << std::endl;
 
         T gamma = rightNormalize(TTy, rankTolerance, maxRank);
         
