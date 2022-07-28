@@ -15,19 +15,23 @@
 #include <string_view>
 
 
-//! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+//! dummy namespace for PITTS for obtaining compile-time names
+namespace PITTS_internal
 {
-  //! namespace for helper functionality
-  namespace internal
-  {
     //! helper function, returns something like "list_of_namespaces::wrapped_type_name<Type>()" and we want to extract "Type"
     template<typename Type>
     static consteval std::string_view wrapped_type_name()
     {
       return std::source_location::current().function_name();
     }
+}
 
+//! namespace for the library PITTS (parallel iterative tensor train solvers)
+namespace PITTS
+{
+  //! namespace for helper functionality
+  namespace internal
+  {
     //! Helper type to obtain the name (as string) of a type
     //!
     //! Example: `TypeName::name<const int>()` returns "const int"
@@ -43,7 +47,7 @@ namespace PITTS
         template<typename Type>
         static consteval std::string_view name()
         {
-          auto wrapped = wrapped_type_name<Type>();
+          auto wrapped = PITTS_internal::wrapped_type_name<Type>();
           return {wrapped.begin()+prefix_size, wrapped.end()-suffix_size};
         }
 
@@ -55,7 +59,7 @@ namespace PITTS
         static constexpr std::string_view probe_type_name{"PITTS::internal::TypeName::ProbeType"};
 
         //! compiler-generated "wrapped" string of a template function containing probe_type_name
-        static constexpr auto wrapped_probe_type_name = wrapped_type_name<ProbeType>();
+        static constexpr auto wrapped_probe_type_name = PITTS_internal::wrapped_type_name<ProbeType>();
 
         //! offset of probe_type_name in wrapped_probe_type_name
         static constexpr auto prefix_size = wrapped_probe_type_name.find(probe_type_name);
