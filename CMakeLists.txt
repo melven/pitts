@@ -75,7 +75,7 @@ endif()
 
 # cereal for for data (de-)serialization
 find_package(cereal REQUIRED NO_MODULE)
-link_libraries(cereal)
+link_libraries(cereal::cereal)
 
 # likwid for performance measurements
 option(PITTS_USE_LIKWID_MARKER_API "Uses the likwid-perfctr marker api for performance measurements." False)
