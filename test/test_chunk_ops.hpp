@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <memory>
 #include <complex>
 #include <random>
 #include <sstream>

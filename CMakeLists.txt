@@ -75,7 +75,12 @@ endif()
 
 # cereal for for data (de-)serialization
 find_package(cereal REQUIRED NO_MODULE)
-link_libraries(cereal)
+# old cereal versions provide cereal, newer cereal::cereal
+if(TARGET cereal)
+  link_libraries(cereal)
+else()
+  link_libraries(cereal::cereal)
+endif()
 
 # likwid for performance measurements
 option(PITTS_USE_LIKWID_MARKER_API "Uses the likwid-perfctr marker api for performance measurements." False)
