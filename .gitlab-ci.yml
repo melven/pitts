@@ -1,16 +1,11 @@
 before_script:
-  - export MODULEPATH=/scratch/spack-22.1/share/spack/modules/linux-ubuntu18.04-skylake_avx512:/scratch/spack-22.1/share/spack/modules/linux-ubuntu18.04-x86_64
+  - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
   - module load PrgEnv/gcc11-openmpi-python
-  - module load itensor/itensor-3.1.10/itensor-3.1.10-gcc-11.2.0-openmpi-mkl-t6r65sm
-  - export CCACHE_DIR="/var/tmp/$USER/ccache_PITTS/"
+  - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited
   - export OMP_STACKSIZE=20M
-  - export CXX="ccache g++"
-  - ccache -z
-
-after_script:
-  - CCACHE_DIR="/var/tmp/$USER/ccache_PITTS/" ccache -s
+  - export CXX=g++
 
 build_release:
   stage: build
@@ -18,10 +13,12 @@ build_release:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
   needs: []
   script:
+    - ccache -z
     - mkdir build_release && cd build_release
-    - cmake .. -DCMAKE_BUILD_TYPE=Release
-    - cmake --build . -- -j 8
-    - cmake --build . --target check -j 8
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+    - cmake --build . -- -j 28
+    - cmake --build . --target check -j 28
+    - ccache -s
   artifacts:
     reports:
       junit: build_release/test/pitts_tests*.xml
@@ -32,10 +29,12 @@ build_debug_with_coverage:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:15:00"
   needs: []
   script:
+    - ccache -z
     - mkdir build_coverage && cd build_coverage
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On
-    - cmake --build . -- -j 8
-    - cmake --build . --target check -j 8
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+    - cmake --build . -- -j 28
+    - cmake --build . --target check -j 28
+    - ccache -s
   coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
   artifacts:
     reports:
@@ -52,11 +51,13 @@ build_debug_no_itensor:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
   needs: []
   script:
-    - module unload itensor
+    - ccache -z
+    - module unload -f itensor
     - mkdir build_debug && cd build_debug
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug
-    - cmake --build . -- -j 8
-    - cmake --build . --target check -j 8
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+    - cmake --build . -- -j 28
+    - cmake --build . --target check -j 28
+    - ccache -s
   artifacts:
     reports:
       junit: build_debug/test/pitts_tests*.xml
