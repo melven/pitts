@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_tensor2_random.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
-#include <Eigen/Dense>
 
 namespace
 {

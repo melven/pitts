@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 #include "test_complex_helper.hpp"
 #include "pitts_fixed_tensor3_apply.hpp"
-#include <Eigen/Dense>
 #include <complex>
+#pragma GCC push_options
+#pragma GCC optimize("no-unsafe-math-optimizations")
+#include <Eigen/Dense>
+#pragma GCC pop_options
 
 template<typename T>
 class PITTS_FixedTensor3_apply : public ::testing::Test

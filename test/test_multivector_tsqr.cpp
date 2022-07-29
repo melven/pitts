@@ -5,7 +5,6 @@
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
-#include <Eigen/Dense>
 #include "eigen_test_helper.hpp"
 
 

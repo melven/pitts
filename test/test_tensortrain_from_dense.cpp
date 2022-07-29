@@ -7,7 +7,6 @@
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor3_combine.hpp"
-#include <Eigen/Dense>
 
 namespace
 {
