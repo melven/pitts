@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
-#include <Eigen/Dense>
 
 namespace
 {

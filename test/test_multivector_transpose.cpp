@@ -3,7 +3,6 @@
 #include "pitts_multivector_transpose.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
-#include <Eigen/Dense>
 #include "eigen_test_helper.hpp"
 
 
