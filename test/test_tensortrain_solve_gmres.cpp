@@ -165,7 +165,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_rank1)
 
   apply(TTOpA, TTx, TTr);
   double residualNorm_ref = axpby(-1., TTb, 1., TTr);
-  EXPECT_NEAR(residualNorm_ref, residualNorm, 0.001*initialResidualNorm);
+  EXPECT_NEAR(residualNorm_ref, residualNorm, 0.01*initialResidualNorm);
 
   std::cout << "initialResidualNorm: " << initialResidualNorm << ", newResidualNorm: " << residualNorm << "\n";
 
