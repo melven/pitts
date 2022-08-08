@@ -15,36 +15,117 @@ namespace PITTS
 
 namespace PITTS
 {
-    template <typename T>
-    void munfold_left(const Tensor3<T>& T3, Tensor2<T>& T2)
+
+    namespace internal
     {
-        const int r1 = T3.r1();
-        const int n = T3.n();
-        const int r2 = T3.r2();
 
-        T2.resize(r1 * n, r2);
+        #define FIXED_FLOAT(f) std::fixed << std::setprecision(4) << (f < 0 ? "" : " ") << f
 
-        // have to copy because memory layout is chunked up
-        for (int i1 = 0; i1 < r1; i1++)
-            for (int j = 0; j < n; j++)
-                for (int i2 = 0; i2 < n; i2++)
-                    T2(i1 + j*r1, i2) = T3(i1, j, i2);
-    }
+        /*
+        * print the 2-tensor to command line (very ruggity)
+        */
+        template <typename T>
+        static void quickndirty_visualizeMAT(const Tensor2<T>& G)
+        {
+            std::cout << "dimensions: " << G.r1() << " x "<< G.r2() << std::endl;
+            for (int i1  = 0; i1 < G.r1(); i1++)
+            {
+                for (int i2 = 0; i2 < G.r2(); i2++)
+                {
+                    std::cout << FIXED_FLOAT(G(i1, i2)) << '\t';
+                }
+                std::cout << std::endl;
+            }
+            std::cout << "\n";
+        }
 
-    template <typename T>
-    void munfold_right(Tensor3<T> T3, Tensor2<T> T2)
-    {
-        const int r1 = T3.r1();
-        const int n = T3.n();
-        const int r2 = T3.r2();
+        /*
+        * print the 3-tensor to command line (very ruggity)
+        * 
+        * @param fold    if fold == 1, combine r1 and n dimensions
+        *                if fold == 2, combine n and r2 dimensions
+        *                if fold == 0, don't fold, show depth (n) to the side
+        *                if fold == -1, only show cross-section n == 0
+        */
+        template <typename T>
+        static void quickndirty_visualizeCORE(const Tensor3<T>& G, int fold = 0)
+        {
+            std::cout << "dimensions: " << G.r1() << " x " << G.n() << " x "<< G.r2() << std::endl;
+            if (fold == 1) // combine r1 and n dimension
+            {
+                for (int j = 0; j < G.n(); j++)
+                {
+                    for (int i1  = 0; i1 < G.r1(); i1++)
+                    {
+                        for (int i2 = 0; i2 < G.r2(); i2++)
+                        {
+                            std::cout << FIXED_FLOAT(G(i1, j, i2)) << '\t';
+                        }
+                        std::cout << std::endl;
+                    }
+                }
+            }
+            if (fold == 2) // combine n and r2 dimension
+            {
+                for (int i1  = 0; i1 < G.r1(); i1++)
+                {
+                    for (int i2 = 0; i2 < G.r2(); i2++)
+                    {
+                        for (int j = 0; j < G.n(); j++)
+                        {
+                            std::cout << FIXED_FLOAT(G(i1, j, i2)) << '\t';
+                        }
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            if (fold == 0)
+            {
+                for (int i1  = 0; i1 < G.r1(); i1++)
+                {
+                    for (int i2 = 0; i2 < G.r2(); i2++)
+                    {
+                        for (int j = 0; j < G.n(); j++)
+                        {
+                            std::cout << FIXED_FLOAT(G(i1, j, i2)) << '\t';
+                        }
+                        std::cout << '\t';
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            if (fold == -1)
+            {
+                for (int i1  = 0; i1 < G.r1(); i1++)
+                {
+                    for (int i2 = 0; i2 < G.r2(); i2++)
+                    {
+                        std::cout << FIXED_FLOAT(G(i1, 0, i2)) << '\t';
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            std::cout << "\n";
+        }
 
-        T2.resize(r1, n * r2);
+        /*
+        * print the complete tensor to command line (very ruggity)
+        * 
+        * @param fold    if fold == 1, combine r1 and n dimensions
+        *                if fold == 2, combine n and r2 dimensions
+        *                if fold == 0, don't fold, show depth (n) to the side
+        *                if fold == -1, only show cross-section n == 0
+        */
+        template <typename T>
+        static void quickndirty_visualizeTT(const TensorTrain<T>& TT, int fold = 0)
+        {
+            for (const auto& core : TT.subTensors())
+            {
+                quickndirty_visualizeCORE(core, fold);
+            }
+        }
 
-        // have to copy because memory layout is chunked up
-        for (int i1 = 0; i1 < r1; i1++)
-            for (int j = 0; j < n; j++)
-                for (int i2 = 0; i2 < n; i2++)
-                    T2(i1, j + i2*n) = T3(i1,j,i2);
+
     }
 
 
@@ -89,93 +170,133 @@ namespace PITTS
             copy(TTx, TTy); // TTx -> TTy
             return alpha;
         }
+
+        // scale last tensor cores
+        Tensor3<T> x_last_core;
+        copy(x_cores[d-1], x_last_core);
+        {
+            Tensor3<T>& xc = x_last_core;
+            const int xr1 = xc.r1();
+            const int xn  = xc.n();
+            for (int j = 0; j < xn; j++)
+                for (int i1 = 0; i1 < xr1; i1++)
+                    xc(i1, j, 0) *= alpha;
+
+            Tensor3<T>& yc = y_cores[d-1];
+            const int yr1 = yc.r1();
+            const int yn  = yc.n();
+            for (int j = 0; j < yn; j++)
+                for (int i1 = 0; i1 < yr1; i1++)
+                    yc(i1, j, 0) *= beta;
+        }
+        
         
         //
         // orthogonalization sweep left to right
         //
 
-        Tensor3<T> Tyt;     // temporary 3Tensor y
-        Tensor3<T> Txt;     // temporary 3Tensor x
-        Tensor2<T> Mtmp;    // temporary 2Tensor to hold result (Txt(:,: x :)^tr * Tyt(:,: x :)
-        Tensor2<T> Mtmp1;   // temporary 2Tensor to hold result Tyt(:,: x :) - Txt(:,: x :) * Mtmp(: x :)
-        Tensor3<T> Ttmpu;   // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
-        Tensor3<T> Ttmpl;   // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
+        Tensor3<T> Tyt;   // temporary 3Tensor y (Y tilde)
+        Tensor3<T> Txt;   // temporary 3Tensor x (X tilde)
+        Tensor2<T> Mzt;   // temporary 2Tensor to hold result (Txt(:,: x :)^tr * Tyt(:,: x :)
+
+        Tensor2<T> Mtmp;  // temporary 2Tensor to hold result Tyt(:,: x :) - Txt(:,: x :) * Mzt(: x :)
+        Tensor3<T> Ttmpu; // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
+        Tensor3<T> Ttmpl; // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
         
-        // initialize Txt and Tyt for k = 0
+        // initialize Txt and Tyt for k == 0
         copy(x_cores[0], Txt);
         copy(y_cores[0], Tyt);
+
+        printf("\n------------------ Before: -----------------\n\n");
+        printf("X:\n\n");
+        internal::quickndirty_visualizeTT(TTx);
+        printf("\nY:\n\n");
+        internal::quickndirty_visualizeTT(TTy);
+
+        printf("\n------------------ During: -----------------\n");
         
         for (int k = 0; k < d - 1; k++)
         {
             // convenience references
             Tensor3<T>& Ty = y_cores[k];
             const Tensor3<T>& Ty1 = y_cores[k+1];
-            const Tensor3<T>& Tx = x_cores[k];
-            const Tensor3<T>& Tx1 = x_cores[k+1];
+            const Tensor3<T>& Tx1 = (k == d-1) ? x_last_core : x_cores[k+1];
 
-            // Mtmp <- (Txt(:,: x :)^tr * Tyt(:,: x :)
+            const int c = Txt.r1();    // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
+            const int n_k = Txt.n();   // n_k (n of Txt and Tyt)
+            const int r_k = Txt.r2();  // r_k (r2 of Txt)
+            const int s_k = Tyt.r2();  // s_k (r2 ot Tyt)
+            const int n_k1 = Tx1.n();  // n_{k+1} (n of Txt and Tyt)
+            const int r_k1 = Tx1.r2(); // r_{k+1} (r2 of Tx1)
+            const int s_k1 = Ty1.r2(); // s_{k+1} (r2 of Ty1)
+
+            // Mzt <- (Txt(:,: x :))^tr * Tyt(:,: x :)
             {
-                int r2x = Txt.r2();  // r2 of x
-                int r2y = Tyt.r2();  // r2 of y
-                int r1s = Txt.r1();  // shared dimension r1
-                int ns = Txt.n();    // shared dimenion n
+                Mzt.resize(r_k, s_k);
 
-                Mtmp.resize(r2x, r2y);
-                for (int j = 0; j < r2y; j++)
+                for (int j = 0; j < s_k; j++)
                 {
-                    for (int i = 0; i < r2x; i++)
+                    for (int i = 0; i < r_k; i++)
                     {
-                        Mtmp(i, j) = 0;
-                        for (int k = 0; k < r1s; k++)
+                        Mzt(i, j) = 0;
+                        for (int l = 0; l < n_k; l++)
                         {
-                            for (int l = 0; l < ns; l++)
+                            for (int k = 0; k < c; k++)
                             {
-                                Mtmp(i,j) += Txt(k, l, i) * Tyt(k, l, j);
+                                Mzt(i,j) += Txt(k, l, i) * Tyt(k, l, j);
                             }
                         }
                     }
                 }
             }
+
+            printf("\n _____ Round %d _____:\n\n", k);
+            printf("Matrix Z tilde:\n");
+            internal::quickndirty_visualizeMAT(Mzt);
             
-
-            // Mtmp1 <- Tyt(:,: x :) - Txt(:,: x :) * Mtmp(: x :)
+            // Mtmp <- Tyt(:,: x :) - Txt(:,: x :) * Mzt(: x :)
             {
-                int r1s = Txt.r1();  // shared dimension r1
-                int ns = Txt.n();    // shared dimenion n
-                int r2y = Tyt.r2();  // r2 of y
-                int r2x = Txt.r2();  // r2 of x
+                Mtmp.resize(c * n_k, s_k);
 
-                Mtmp1.resize(r1s * ns, r2y);
-
-                for (int j = 0; j < r2y; j++)
+                for (int j = 0; j < s_k; j++)
                 {
-                    for (int i2 = 0; i2 < ns; i2++)
+                    for (int i2 = 0; i2 < n_k; i2++)
                     {
-                        for (int i1 = 0; i1 < r1s; i1++)
+                        for (int i1 = 0; i1 < c; i1++)
                         {
-                            Mtmp1(i1 + i2*r1s, j) = Tyt(i1, i2, j);
-                            for (int k = 0; k < r2x; k++)
+                            Mtmp(i1 + i2*c, j) = Tyt(i1, i2, j);
+                            for (int k = 0; k < r_k; k++)
                             {
-                                Mtmp1(i1 + i2*r1s, j) -= Txt(i1, i2, k) * Mtmp(k, j);
+                                Mtmp(i1 + i2*c, j) -= Txt(i1, i2, k) * Mzt(k, j);
                             }
                         }
                     }
                 }
             }
 
-            // [Q, B] <- QR(Mtmp1)
-            const auto [Q,B] = internal::normalize_qb(Mtmp1);
+            printf("Matrix Mtmp (taking QR of):\n");
+            internal::quickndirty_visualizeMAT(Mtmp);
 
-            // save result into y_cores[k] = Ty <- concat(Txt, Q, dim=3)
+            // [Q, B] <- QR(Mtmp)
+            const auto [Q,B] = internal::normalize_qb(Mtmp);
+
+            printf("Matrix Q:\n");
+            internal::quickndirty_visualizeMAT(Q);
+            printf("Matrix R:\n");
+            internal::quickndirty_visualizeMAT(B);
+
+            const int st_k = Q.r2();   // s^tilde_k (new s_k after QR)
+
+            // save result into y_cores[k] = Ty <- concat(Txt, Q, dim=3), unfolding Q: c*n_k x st_k -> c x n_k x st_k
             {
-                int r1 = Txt.r1();
-                int n  = Txt.n();
-                int r2x = Txt.r2();
-                int r2Q = Q.r2();
+                const int r1  = c;
+                const int n   = n_k;
+                const int r2r = r_k;
+                const int r2l = st_k;
 
-                Ty.resize(r1, n, r2x + r2Q);
+                Ty.resize(r1, n, r2r + r2l);
 
-                for (int i2 = 0; i2 < r2x; i2++)
+                for (int i2 = 0; i2 < r2r; i2++)
                 {
                     for (int j = 0; j < n; j++)
                     {
@@ -185,25 +306,28 @@ namespace PITTS
                         }
                     }
                 }
-                for (int i2 = 0; i2 < r2Q; i2++)
+                for (int i2 = 0; i2 < r2l; i2++)
                 {
                     for (int j = 0; j < n; j++)
                     {
                         for (int i1 = 0; i1 < r1; i1++)
                         {
-                            Ty(i1, j, i2 + r2x) = Q(i1 + j*r1, i2);
+                            Ty(i1, j, i2 + r2r) = Q(i1 + j*c, i2);
                         }
                     }
                 }
             }
 
-            // calculate upper half of new Tyt: Ttmpu <- Mtmp *1 Ty1
-            //can be either in parallel with next one or next one can reuse Ttmp mem buffer
+            printf("result core %d:\n", k);
+            internal::quickndirty_visualizeCORE(Ty);
+
+            // calculate upper half of new Tyt: Ttmpu <- Mzt *1 Ty1 (mode-1 contraction)
+            //can be either in parallel with next one or next one can reuse Mzt mem buffer
             {
-                int r1 = Mtmp.r1();
-                int s  = Ty1.r1();  // = Mtmp.r2();
-                int n  = Ty1.n();
-                int r2 = Ty1.r2();
+                const int r1 = r_k;   // r1 of result (= #rows of matrix)
+                const int s = s_k;    // shared dimension (= r1 of tensor = #cols of matrix)
+                const int n = n_k1;   // n of result (= n of tensor)
+                const int r2 = s_k1;  // r2 of result (= r2 of tensor)
 
                 Ttmpu.resize(r1, n, r2);
 
@@ -213,22 +337,22 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1; i1++)
                         {
-                            Ttmpu(i1, n, i2) = 0;
+                            Ttmpu(i1, j, i2) = 0;
                             for (int k = 0; k < s; k++)
                             {
-                                Ttmpu(i1, n, i2) += Mtmp(i1, k) * Ty1(k, j, i2);
+                                Ttmpu(i1, j, i2) += Mzt(i1, k) * Ty1(k, j, i2);
                             }
                         }
                     }
                 }
             }
 
-            // calculate upper half of new Tyt: Ttmpl <- B *1 Ty1
+            // calculate lower half of new Tyt: Ttmpl <- B *1 Ty1
             {
-                int r1 = B.r1();
-                int s  = Ty1.r1();  // = B.r2();
-                int n  = Ty1.n();
-                int r2 = Ty1.r2();
+                const int r1 = st_k;  // r1 of result (= #rows of matrix)
+                const int s = s_k;    // shared dimension (= r1 of tensor = #cols of matrix)
+                const int n = n_k1;   // n of result (= n of tensor)
+                const int r2 = s_k1;  // r2 of result (= r2 of tensor)
 
                 Ttmpl.resize(r1, n, r2);
 
@@ -241,7 +365,7 @@ namespace PITTS
                             Ttmpl(i1, n, i2) = 0;
                             for (int k = 0; k < s; k++)
                             {
-                                Ttmpl(i1, n, i2) += B(i1, k) * Ty1(k, j, i2);
+                                Ttmpl(i1, j, i2) += B(i1, k) * Ty1(k, j, i2);
                             }
                         }
                     }
@@ -250,16 +374,16 @@ namespace PITTS
 
             // concatinate Tyt <- concat(Ttmpu, Ttmpl, dim=1)
             {
-                int r1u = Ttmpu.r1();
-                int r1l = Ttmpl.r1();
-                int ns = Ttmpu.n();
-                int r2s = Ttmpu.r2();
+                const int r1u = r_k;
+                const int r1l = st_k;
+                const int n = n_k1;
+                const int r2 = s_k1;
 
-                Tyt.resize(r1u + r1l, ns, r2s);
+                Tyt.resize(r1u + r1l, n, r2);
                 
-                for (int i2 = 0; i2 < r2s; i2++)
+                for (int i2 = 0; i2 < r2; i2++)
                 {
-                    for (int j = 0; j < ns; j++)
+                    for (int j = 0; j < n; j++)
                     {
                         for (int i1 = 0; i1 < r1u; i1++)
                         {
@@ -272,21 +396,24 @@ namespace PITTS
                     }
                 }
             }
+
+            printf("Y tilde (of next round):\n");
+            internal::quickndirty_visualizeCORE(Tyt);
             
             // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension B.r1 x Tx1.n x Tx1.r2
             // set's a bunch of values to 0
-            // those could be left away, and the loops that calculate Mtmp and Mtmp1 accordingly updated (cuts on the flops there too)
+            // those could be left away, and the loops that calculate Mzt and Mtmp accordingly updated (cuts on the flops there too)
             {
-                int r1u = Tx1.r1();
-                int r1l = B.r1(); // = Ttmpl.r1()
-                int ns = Tx1.n();
-                int r2s = Tx1.r2();
+                const int r1u = r_k;
+                const int r1l = st_k;
+                const int n = n_k1;
+                const int r2 = r_k1;
 
-                Txt.resize(r1u + r1l, ns, r2s);
+                Txt.resize(r1u + r1l, n, r2);
                 
-                for (int i2 = 0; i2 < r2s; i2++)
+                for (int i2 = 0; i2 < r2; i2++)
                 {
-                    for (int j = 0; j < ns; j++)
+                    for (int j = 0; j < n; j++)
                     {
                         for (int i1 = 0; i1 < r1u; i1++)
                         {
@@ -299,14 +426,17 @@ namespace PITTS
                     }
                 }
             }
+
+            printf("X tilde (of next round):\n");
+            internal::quickndirty_visualizeCORE(Txt);
+            printf("\n");
         }
 
         // calculate y_cores[d-1] <- Txt + Tyt (componentwise)
         {
-            int r1 = Txt.r1();
-            int n = Txt.n();
-            int r2 = Txt.r2();
-            // should all be equal
+            const int r1 = Txt.r1(); // = Tyt.r2
+            const int n = Txt.n();   // = Tyt.r2
+            const int r2 = 1; // = Txt.r2 = Tyt.r2
 
             y_cores[d-1].resize(r1, n, r2);
 
@@ -323,13 +453,13 @@ namespace PITTS
 
         }
 
+        printf("\n----------------- After: -----------------\n\n");
+        internal::quickndirty_visualizeTT(TTy);
+
 
         //
         // compression sweep right to left
         //
-
-        for (const auto& core : TTy.subTensors())
-           std::cout << "dimensions: " << core.r1() << " x " << core.n() << " x "<< core.r2() << std::endl;
 
         T gamma = rightNormalize(TTy, rankTolerance, maxRank);
         
