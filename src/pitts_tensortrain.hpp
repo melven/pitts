@@ -50,7 +50,12 @@ namespace PITTS
       {
         // create all sub-tensors
         subTensors_.resize(dimensions.size());
-        setTTranks(initial_TTrank);
+        for(int i = 0; i < dimensions_.size(); i++)
+        {
+          const int r1 = (i == 0) ? 1 : initial_TTrank;
+          const int r2 = (i+1 == dimensions_.size()) ? 1 : initial_TTrank;
+          subTensors_[i].resize(r1, dimensions_[i], r2);
+        }
       }
 
       //! explicit copy construction is ok
@@ -78,20 +83,34 @@ namespace PITTS
       {
         if( tt_ranks.size() != dimensions_.size() - 1 )
           throw std::invalid_argument("TensorTrain: wrong number of TTranks!");
-        // set first and last individually
-        subTensors_.front().resize(1, dimensions_.front(), tt_ranks.front());
-        for(int i = 1; i < dimensions_.size()-1; i++)
-          subTensors_[i].resize(tt_ranks[i-1], dimensions_[i], tt_ranks[i]);
-        subTensors_.back().resize(tt_ranks.back(), dimensions_.back(), 1);
+        // Usually r0 = rd = 1 but...
+        // there are some special cases where we use r0,rd != 1
+        // ("boundary rank" which behaves like an additional dimension to avoid
+        // appending a unit matrices as first and last subtensors)
+        const auto r0 = subTensors_.front().r1();
+        const auto rd = subTensors_.back().r2();
+
+        for(int i = 0; i < dimensions_.size(); i++)
+        {
+          const int r1 = (i == 0) ? r0 : tt_ranks[i-1];
+          const int r2 = (i+1 == dimensions_.size()) ? rd : tt_ranks[i];
+          subTensors_[i].resize(r1, dimensions_[i], r2);
+        }
       }
 
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
       void setTTranks(int tt_rank)
       {
-        subTensors_.front().resize(1, dimensions_.front(), tt_rank);
-        for(int i = 1; i < dimensions_.size()-1; i++)
-          subTensors_[i].resize(tt_rank, dimensions_[i], tt_rank);
-        subTensors_.back().resize(tt_rank, dimensions_.back(), 1);
+        // preserve boundary ranks (see above)
+        const auto r0 = subTensors_.front().r1();
+        const auto rd = subTensors_.back().r2();
+
+        for(int i = 0; i < dimensions_.size(); i++)
+        {
+          const int r1 = (i == 0) ? r0 : tt_rank;
+          const int r2 = (i+1 == dimensions_.size()) ? rd : tt_rank;
+          subTensors_[i].resize(r1, dimensions_[i], r2);
+        }
       }
 
       //! get current sub-tensor dimensions (TT-ranks)
