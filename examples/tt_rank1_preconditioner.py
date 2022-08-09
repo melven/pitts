@@ -16,7 +16,7 @@ from tt_convection_operator import ConvectionOperator
 class TT_Rank1_preconditioner:
     """ Takes the rank-1 approximation of the TT operator and inverts it """
 
-    def __init__(self, TTOp):
+    def __init__(self, TTOp, twosided=False):
         assert(TTOp.row_dimensions() == TTOp.col_dimensions())
         dims = TTOp.row_dimensions()
 
@@ -34,7 +34,10 @@ class TT_Rank1_preconditioner:
             U, S, Vt = np.linalg.svd(subT[0,:,:,0])
             rank = np.sum(S/S[0] > 1.e-8)
             invS = np.ones(len(S))
-            invS[0:rank] = 1/S[0:rank]
+            if twosided:
+                invS[0:rank] = 1/np.sqrt(S[0:rank])
+            else:
+                invS[0:rank] = 1/S[0:rank]
             subT[0,:,:,0] = Vt.T @ np.diag(invS) @ U.T
             #S = np.sqrt(np.abs(S)) / S
             #subT[0,:,:,0] = U @ np.diag(S) @ Vt
