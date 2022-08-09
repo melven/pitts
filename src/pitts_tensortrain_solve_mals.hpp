@@ -430,6 +430,9 @@ namespace PITTS
           const TensorTrain<T> tt_b = calculate_local_rhs(iDim, nMALS, left_xTb.back(), effTTb, right_xTb.back());
           const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
+          // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
+          if( iSweep == 0 )
+            tt_x.setZero();
 
           if( useTTgmres )
           {
