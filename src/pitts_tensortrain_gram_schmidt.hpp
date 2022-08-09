@@ -49,7 +49,7 @@ namespace PITTS
     int maxRank(const TensorTrain<T>& TT)
     {
       int max_r = 0;
-      for(auto r: TT.dimensions())
+      for(auto r: TT.getTTranks())
         max_r = std::max(r, max_r);
       return max_r;
     }
