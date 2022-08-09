@@ -111,7 +111,7 @@ namespace PITTS
       TensorTrain<T> w(TTb.dimensions());
       apply(TTOpA, V[i], w);
 
-      T rankTolerance = residualTolerance / maxIter / T(1.1);
+      T rankTolerance = residualTolerance / maxIter / T(2.0);
       if( adaptiveTolerance )
         rankTolerance *= beta / rho;
 
@@ -151,7 +151,7 @@ namespace PITTS
       // first add up the delta x (better accuracy as it is probably much smaller than the old x)
       auto& TTdelta_x = V[m-1];
       T nrm_delta_x = T(-y(m-1));
-      const T rankTolerance = residualTolerance / m / T(1.1) * std::min(T(1), beta/nrm_b);
+      const T rankTolerance = residualTolerance / m / T(2.0) * std::min(T(1), beta/nrm_b);
       for(int j = m-2; j >= 0; j--)
         nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTolerance, maxRank);
 
