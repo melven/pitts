@@ -64,7 +64,8 @@ static void rand_init_and_ortho(TensorTrain<double>& tt, double max = 1.0, int f
 }
 
 
-TEST(PITTS_TensorTrain_axpby_imp, one_dimensional)
+
+TEST(PITTS_TensorTrain_axpby_imp, DISABLED_dim1)
 {
     // TTx, TTy, of the form:
     //  o
@@ -73,13 +74,30 @@ TEST(PITTS_TensorTrain_axpby_imp, one_dimensional)
 
     TensorTrain<double> TTx(1, 2, 2), TTy(1, 2, 2);
     const auto& G = TTx.subTensors()[0];
-    std::cout << "dimensions: " << G.r1() << " x "<< G.r2() << std::endl;
 
     const double m_max = 1.0;
     rand_init_and_ortho(TTx, m_max);
     rand_init_and_ortho(TTy, m_max);
 
-    std::cout << "dimensions: " << G.r1() << " x "<< G.r2() << std::endl;
+    check_axpby(1.0, TTx, 1.0, TTy);
+    check_axpby(-1.0, TTx, 1.0, TTy);
+    check_axpby(1.0, TTx, -2.0, TTy);
+    check_axpby(-4.0, TTx, -5.0, TTy);
+}
+
+TEST(PITTS_TensorTrain_axpby_imp, dim2)
+{
+    // TTx, TTy, of the form:
+    //  o -- o
+    //  |    |
+    // where all entries are random (initially), but then left-orthogonalized
+
+    TensorTrain<double> TTx(2, 4, 3), TTy(2, 4, 4);
+    const auto& G = TTx.subTensors()[0];
+
+    const double m_max = 1.0;
+    rand_init_and_ortho(TTx, m_max);
+    rand_init_and_ortho(TTy, m_max);
 
     check_axpby(1.0, TTx, 1.0, TTy);
     check_axpby(-1.0, TTx, 1.0, TTy);

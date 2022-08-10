@@ -242,7 +242,7 @@ namespace PITTS
         if( x_dim != y_dim )
             throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
         
-        // handle corner cases
+        // special cases
         if( std::abs(alpha) == 0 )
             return beta;
         
@@ -269,6 +269,12 @@ namespace PITTS
             for (int j = 0; j < yn; j++)
                 for (int i1 = 0; i1 < yr1; i1++)
                     yc(i1, j, 0) *= beta;
+        }
+
+        // special case
+        if (d == 1)
+        {
+            add(y_cores[0], x_last_core, y_cores[0]);
         }
         
         
@@ -570,12 +576,6 @@ namespace PITTS
         //
         // compression sweep right to left
         //
-        if (d == 1)
-        {
-            printf("heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeelp\n");
-            // componentwise addition y <- x + y
-            add(y_cores[0], x_last_core, y_cores[0]);
-        }
 
         T gamma = rightNormalize(TTy, rankTolerance, maxRank);
         
