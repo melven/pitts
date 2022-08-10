@@ -191,6 +191,34 @@ namespace PITTS
           for(int k = 0; k < r2; k++)
             b(i,j,k) = a(i,j,k);
   }
+
+  //! add two Tensor3 objects, c <- a + b. c can be alias for a or b
+  template<typename T>
+  void add(const Tensor3<T>& a, const Tensor3<T>& b, Tensor3<T>& c)
+  {
+    assert(a.r1() == b.r1());
+    assert(a.n() == b.n());
+    assert(a.r2() == b.r2());
+
+    const auto r1 = a.r1();
+    const auto n = a.n();
+    const auto nChunk = a.nChunks();
+    const auto r2 = a.r2();
+
+    //const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+    //    {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
+    //    {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+    //     {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
+    //    );
+
+    c.resize(r1, n, r2);
+
+    #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
+    for(int i = 0; i < r1; i++)
+      for(int jChunk = 0; jChunk < nChunk; jChunk++)
+        for(int k = 0; k < r2; k++)
+          c(i, jChunk, k) = a(i, jChunk, k) + b(i, jChunk, k);
+  }
 }
 
 

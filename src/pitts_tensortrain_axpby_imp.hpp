@@ -1,8 +1,11 @@
 #pragma once
 
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
+
+#define VERBOSE
 
 namespace PITTS
 {
@@ -16,39 +19,127 @@ namespace PITTS
 namespace PITTS
 {
 
+            /*
+            // get norm of M
+            T nrm;// = internal::t2_nrm(M);
+            for (int j = 0; j < M.r2(); j++)
+                for (int i = 0; i < M.r1(); i++)
+                    nrm += M(i, j) * M(i, j);
+            nrm = std::sqrt(nrm);
+
+            #ifdef VERBOSE
+            std::cout << "* QR properties *\n";
+            std::cout << "Norm of Mtemp: \t\t" << FIXED_FLOAT(nrm, 20) << std::endl;
+            std::cout << "Mtmp == 0 tolerance: \t" << FIXED_FLOAT(rankTolerance, 20) << std::endl;     
+            #endif
+
+            // return empty matrices if M is approx 0
+            if (nrm < rankTolerance)
+            {
+                #ifdef VERBOSE
+                std::cout << "Skipping QR decomposition\n\n";
+                #endif
+                return result;
+            }
+            */
+
     namespace internal
     {
+        #define FIXED_FLOAT(f, prec) std::fixed << std::setprecision(prec) << (f < 0 ? "" : " ") << f
 
-        #define FIXED_FLOAT(f) std::fixed << std::setprecision(4) << (f < 0 ? "" : " ") << f
+        //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
+        template<typename T>
+        auto m_normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, int maxRank = std::numeric_limits<int>::max(), T rankTolerance = 0)
+        {
+            const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
+            // get reasonable rank tolerance (ignoring passed value for now)        // was min(M.r1(), M.r2())
+            const T rankTol = std::numeric_limits<decltype(rankTolerance)>::epsilon() * (M.r1() + M.r2()) / 2;
+            rankTolerance = 16 * rankTol;
+
+            // calculate QR decomposition
+            using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+            const auto mapM = ConstEigenMap(M);
+            auto qr = leftOrthog ?
+                Eigen::ColPivHouseholderQR<EigenMatrix>(mapM) :
+                Eigen::ColPivHouseholderQR<EigenMatrix>(mapM.transpose());
+
+            //update rankTolerance (in case all pivot elements are tiny)
+            rankTolerance = std::max(rankTolerance, rankTol / abs(qr.maxPivot()));
+            // set threshold (which pivots to consider 0) for Eigen
+            qr.setThreshold(rankTolerance);
+            // rank of matrix
+            const Eigen::Index rk = std::min(qr.rank(), Eigen::Index(maxRank));
+
+            #ifdef VERBOSE
+            std::cout << "threshold: \t\t" << FIXED_FLOAT(qr.threshold(), 20) << " is " << FIXED_FLOAT(qr.threshold()/std::numeric_limits<T>::epsilon(), 1) << " * machine_eps";
+            (qr.threshold() == 16 * rankTol) ? std::cout << ", used RELATIVE rank tolerance\n" : std::cout << ", used ABSOLUTE rank tolerance\n";
+            std::cout << "treshold * |maxpivot|: \t" << FIXED_FLOAT(qr.threshold() * abs(qr.maxPivot()), 20) << std::endl;
+            std::cout << "biggest pivot element: \t" << FIXED_FLOAT(qr.maxPivot(), 20) << std::endl;
+            std::cout << "matrix rank: " << qr.rank() << ", cut off at maxrank -> " << rk << std::endl;
+            const EigenMatrix R_ = qr.matrixR();
+            std::cout << "all pivot elements: ";
+            for (int i = 0; i < std::min(R_.rows(), R_.cols()); i++)
+                std::cout << FIXED_FLOAT(R_(i,i), 20) << '\t';
+            std::cout << "\n\n";
+            #endif
+
+            // return result
+            
+            std::pair<Tensor2<T>,Tensor2<T>> result;
+            result.first.resize(M.r1(), rk);
+            result.second.resize(rk, M.r2());
+
+            qr.householderQ().setLength(rk);
+            const EigenMatrix R = qr.matrixR().topRows(rk).template triangularView<Eigen::Upper>();
+            if( leftOrthog )
+            {
+                // return QR
+                EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), rk);
+                EigenMap(result.second) = R * qr.colsPermutation().inverse();
+            }
+            else
+            {
+                // return LQ
+                EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
+                EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
+            }
+
+            return result;
+        }
+
 
         /*
         * print the 2-tensor to command line (very ruggity)
         */
         template <typename T>
-        static void quickndirty_visualizeMAT(const Tensor2<T>& G)
+        static void quickndirty_visualizeMAT(const Tensor2<T>& G, int prec = 4)
         {
             std::cout << "dimensions: " << G.r1() << " x "<< G.r2() << std::endl;
+            if (G.r1() == 0 || G.r2() == 0) goto _return;
             for (int i1  = 0; i1 < G.r1(); i1++)
             {
                 for (int i2 = 0; i2 < G.r2(); i2++)
                 {
-                    std::cout << FIXED_FLOAT(G(i1, i2)) << '\t';
+                    std::cout << FIXED_FLOAT(G(i1, i2), prec) << '\t';
                 }
                 std::cout << std::endl;
             }
+        _return:
             std::cout << "\n";
         }
 
         /*
         * print the 3-tensor to command line (very ruggity)
         * 
+        * @param prec    digits after decimal point to be displayed
+        * 
         * @param fold    if fold == 1, combine r1 and n dimensions
         *                if fold == 2, combine n and r2 dimensions
         *                if fold == 0, don't fold, show depth (n) to the side
-        *                if fold == -1, only show cross-section n == 0
         */
         template <typename T>
-        static void quickndirty_visualizeCORE(const Tensor3<T>& G, int fold = 0)
+        static void quickndirty_visualizeCORE(const Tensor3<T>& G, int prec = 4, int fold = 0)
         {
             std::cout << "dimensions: " << G.r1() << " x " << G.n() << " x "<< G.r2() << std::endl;
             if (fold == 1) // combine r1 and n dimension
@@ -59,7 +150,7 @@ namespace PITTS
                     {
                         for (int i2 = 0; i2 < G.r2(); i2++)
                         {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2)) << '\t';
+                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
                         }
                         std::cout << std::endl;
                     }
@@ -73,7 +164,7 @@ namespace PITTS
                     {
                         for (int j = 0; j < G.n(); j++)
                         {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2)) << '\t';
+                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
                         }
                     }
                     std::cout << std::endl;
@@ -83,24 +174,13 @@ namespace PITTS
             {
                 for (int i1  = 0; i1 < G.r1(); i1++)
                 {
-                    for (int i2 = 0; i2 < G.r2(); i2++)
+                    for (int j = 0; j < G.n(); j++)
                     {
-                        for (int j = 0; j < G.n(); j++)
+                        for (int i2 = 0; i2 < G.r2(); i2++)
                         {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2)) << '\t';
+                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
                         }
                         std::cout << '\t';
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            if (fold == -1)
-            {
-                for (int i1  = 0; i1 < G.r1(); i1++)
-                {
-                    for (int i2 = 0; i2 < G.r2(); i2++)
-                    {
-                        std::cout << FIXED_FLOAT(G(i1, 0, i2)) << '\t';
                     }
                     std::cout << std::endl;
                 }
@@ -111,17 +191,18 @@ namespace PITTS
         /*
         * print the complete tensor to command line (very ruggity)
         * 
+        * @param prec    digits after decimal point to be displayed
+        * 
         * @param fold    if fold == 1, combine r1 and n dimensions
         *                if fold == 2, combine n and r2 dimensions
         *                if fold == 0, don't fold, show depth (n) to the side
-        *                if fold == -1, only show cross-section n == 0
         */
         template <typename T>
-        static void quickndirty_visualizeTT(const TensorTrain<T>& TT, int fold = 0)
+        static void quickndirty_visualizeTT(const TensorTrain<T>& TT, int prec = 4, int fold = 0)
         {
             for (const auto& core : TT.subTensors())
             {
-                quickndirty_visualizeCORE(core, fold);
+                quickndirty_visualizeCORE(core, prec, fold);
             }
         }
 
@@ -195,6 +276,10 @@ namespace PITTS
         // orthogonalization sweep left to right
         //
 
+        //
+        // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
+        //
+
         Tensor3<T> Tyt;   // temporary 3Tensor y (Y tilde)
         Tensor3<T> Txt;   // temporary 3Tensor x (X tilde)
         Tensor2<T> Mzt;   // temporary 2Tensor to hold result (Txt(:,: x :)^tr * Tyt(:,: x :)
@@ -207,20 +292,24 @@ namespace PITTS
         copy(x_cores[0], Txt);
         copy(y_cores[0], Tyt);
 
+        #ifdef VERBOSE
         printf("\n------------------ Before: -----------------\n\n");
+        printf("alpha: %f\n", alpha);
+        printf("beta:  %f\n\n", beta);
         printf("X:\n\n");
         internal::quickndirty_visualizeTT(TTx);
         printf("\nY:\n\n");
         internal::quickndirty_visualizeTT(TTy);
 
         printf("\n------------------ During: -----------------\n");
+        #endif
         
         for (int k = 0; k < d - 1; k++)
         {
             // convenience references
             Tensor3<T>& Ty = y_cores[k];
             const Tensor3<T>& Ty1 = y_cores[k+1];
-            const Tensor3<T>& Tx1 = (k == d-1) ? x_last_core : x_cores[k+1];
+            const Tensor3<T>& Tx1 = (k == d-2) ? x_last_core : x_cores[k+1];
 
             const int c = Txt.r1();    // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
             const int n_k = Txt.n();   // n_k (n of Txt and Tyt)
@@ -229,6 +318,10 @@ namespace PITTS
             const int n_k1 = Tx1.n();  // n_{k+1} (n of Txt and Tyt)
             const int r_k1 = Tx1.r2(); // r_{k+1} (r2 of Tx1)
             const int s_k1 = Ty1.r2(); // s_{k+1} (r2 of Ty1)
+
+            //
+            // Note: If Txt is square matrix once unfolded, most of the calculation (especially QR) can be skipped
+            //
 
             // Mzt <- (Txt(:,: x :))^tr * Tyt(:,: x :)
             {
@@ -249,10 +342,11 @@ namespace PITTS
                     }
                 }
             }
-
+            #ifdef VERBOSE
             printf("\n _____ Round %d _____:\n\n", k);
             printf("Matrix Z tilde:\n");
             internal::quickndirty_visualizeMAT(Mzt);
+            #endif
             
             // Mtmp <- Tyt(:,: x :) - Txt(:,: x :) * Mzt(: x :)
             {
@@ -273,19 +367,22 @@ namespace PITTS
                     }
                 }
             }
-
+            #ifdef VERBOSE
             printf("Matrix Mtmp (taking QR of):\n");
-            internal::quickndirty_visualizeMAT(Mtmp);
+            internal::quickndirty_visualizeMAT(Mtmp, 20);
+            #endif
 
             // [Q, B] <- QR(Mtmp)
-            const auto [Q,B] = internal::normalize_qb(Mtmp);
-
-            printf("Matrix Q:\n");
-            internal::quickndirty_visualizeMAT(Q);
-            printf("Matrix R:\n");
-            internal::quickndirty_visualizeMAT(B);
+            const auto& [Q, B] = internal::m_normalize_qb(Mtmp, true, c*n_k - r_k);
 
             const int st_k = Q.r2();   // s^tilde_k (new s_k after QR)
+
+            #ifdef VERBOSE
+            printf("Matrix Q:\n");
+            internal::quickndirty_visualizeMAT(Q);
+            printf("Matrix B:\n");
+            internal::quickndirty_visualizeMAT(B, 20);
+            #endif
 
             // save result into y_cores[k] = Ty <- concat(Txt, Q, dim=3), unfolding Q: c*n_k x st_k -> c x n_k x st_k
             {
@@ -317,12 +414,16 @@ namespace PITTS
                     }
                 }
             }
-
+            #ifdef VERBOSE
             printf("result core %d:\n", k);
             internal::quickndirty_visualizeCORE(Ty);
+            #endif
+
+            //
+            // Note: Ttmpu and Mzt can be independently calculated (in parallel)
+            //
 
             // calculate upper half of new Tyt: Ttmpu <- Mzt *1 Ty1 (mode-1 contraction)
-            //can be either in parallel with next one or next one can reuse Mzt mem buffer
             {
                 const int r1 = r_k;   // r1 of result (= #rows of matrix)
                 const int s = s_k;    // shared dimension (= r1 of tensor = #cols of matrix)
@@ -362,7 +463,7 @@ namespace PITTS
                     {
                         for (int i1 = 0; i1 < r1; i1++)
                         {
-                            Ttmpl(i1, n, i2) = 0;
+                            Ttmpl(i1, j, i2) = 0;
                             for (int k = 0; k < s; k++)
                             {
                                 Ttmpl(i1, j, i2) += B(i1, k) * Ty1(k, j, i2);
@@ -371,6 +472,10 @@ namespace PITTS
                     }
                 }
             }
+            #ifdef VERBOSE
+            printf("Ttmpl:\n");
+            internal::quickndirty_visualizeCORE(Ttmpl);
+            #endif
 
             // concatinate Tyt <- concat(Ttmpu, Ttmpl, dim=1)
             {
@@ -396,13 +501,16 @@ namespace PITTS
                     }
                 }
             }
-
+            #ifdef VERBOSE
             printf("Y tilde (of next round):\n");
             internal::quickndirty_visualizeCORE(Tyt);
+            #endif
+
+            //
+            // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mzt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
+            //
             
             // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension B.r1 x Tx1.n x Tx1.r2
-            // set's a bunch of values to 0
-            // those could be left away, and the loops that calculate Mzt and Mtmp accordingly updated (cuts on the flops there too)
             {
                 const int r1u = r_k;
                 const int r1l = st_k;
@@ -426,11 +534,13 @@ namespace PITTS
                     }
                 }
             }
-
+            #ifdef VERBOSE
             printf("X tilde (of next round):\n");
             internal::quickndirty_visualizeCORE(Txt);
             printf("\n");
-        }
+            #endif
+
+        } // end loop
 
         // calculate y_cores[d-1] <- Txt + Tyt (componentwise)
         {
@@ -450,16 +560,22 @@ namespace PITTS
                     }
                 }
             }
-
         }
 
+        #ifdef VERBOSE
         printf("\n----------------- After: -----------------\n\n");
         internal::quickndirty_visualizeTT(TTy);
-
+        #endif
 
         //
         // compression sweep right to left
         //
+        if (d == 1)
+        {
+            printf("heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeelp\n");
+            // componentwise addition y <- x + y
+            add(y_cores[0], x_last_core, y_cores[0]);
+        }
 
         T gamma = rightNormalize(TTy, rankTolerance, maxRank);
         
