@@ -200,24 +200,27 @@ namespace PITTS
     assert(a.n() == b.n());
     assert(a.r2() == b.r2());
 
-    const auto r1 = a.r1();
-    const auto n = a.n();
-    const auto nChunk = a.nChunks();
-    const auto r2 = a.r2();
+    const int r1 = a.r1();
+    const int n = a.n();
+    const int nChunk = a.nChunks();
+    const int r2 = a.r2();
 
-    //const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-    //    {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-    //    {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
-    //     {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
-    //    );
+    /*
+    const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+        {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
+        {{r1*n*r2*kernel_info::Add<T>()},    // flops
+         {r1*n*r2*kernel_info::Store<T>() + 2*r1*n*r2*kernel_info::Load<T>()}}  // data
+          / or one load + 1 update if a == c
+        );
+    */
 
     c.resize(r1, n, r2);
 
     #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
-    for(int i = 0; i < r1; i++)
-      for(int jChunk = 0; jChunk < nChunk; jChunk++)
-        for(int k = 0; k < r2; k++)
-          c(i, jChunk, k) = a(i, jChunk, k) + b(i, jChunk, k);
+    for(int i2 = 0; i2 < r2; i2++)
+      for (int j = 0; j < n; j++) //for(int jChunk = 0; jChunk < nChunk; jChunk++)
+        for(int i1 = 0; i1 < r1; i1++)
+          c(i1, j, i2) = a(i1, j, i2) + b(i1, j, i2); //c.chunk(i1, jChunk, i2) = a.chunk(i1, jChunk, i2) + b.chunk(i1, jChunk, i2);
   }
 }
 

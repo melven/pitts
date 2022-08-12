@@ -5,7 +5,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
 
-#define VERBOSE
+//#define VERBOSE
 
 namespace PITTS
 {
@@ -65,7 +65,7 @@ namespace PITTS
                 Eigen::ColPivHouseholderQR<EigenMatrix>(mapM.transpose());
 
             //update rankTolerance (in case all pivot elements are tiny)
-            rankTolerance = std::max(rankTolerance, rankTol / abs(qr.maxPivot()));
+            rankTolerance = std::max(rankTolerance, rankTol / std::abs(qr.maxPivot()));
             // set threshold (which pivots to consider 0) for Eigen
             qr.setThreshold(rankTolerance);
             // rank of matrix
@@ -74,7 +74,7 @@ namespace PITTS
             #ifdef VERBOSE
             std::cout << "threshold: \t\t" << FIXED_FLOAT(qr.threshold(), 20) << " is " << FIXED_FLOAT(qr.threshold()/std::numeric_limits<T>::epsilon(), 1) << " * machine_eps";
             (qr.threshold() == 16 * rankTol) ? std::cout << ", used RELATIVE rank tolerance\n" : std::cout << ", used ABSOLUTE rank tolerance\n";
-            std::cout << "treshold * |maxpivot|: \t" << FIXED_FLOAT(qr.threshold() * abs(qr.maxPivot()), 20) << std::endl;
+            std::cout << "treshold * |maxpivot|: \t" << FIXED_FLOAT(qr.threshold() * std::abs(qr.maxPivot()), 20) << std::endl;
             std::cout << "biggest pivot element: \t" << FIXED_FLOAT(qr.maxPivot(), 20) << std::endl;
             std::cout << "matrix rank: " << qr.rank() << ", cut off at maxrank -> " << rk << std::endl;
             const EigenMatrix R_ = qr.matrixR();
@@ -275,6 +275,7 @@ namespace PITTS
         if (d == 1)
         {
             add(y_cores[0], x_last_core, y_cores[0]);
+            // then: calculate norm, scale by norm, return
         }
         
         
@@ -549,24 +550,7 @@ namespace PITTS
         } // end loop
 
         // calculate y_cores[d-1] <- Txt + Tyt (componentwise)
-        {
-            const int r1 = Txt.r1(); // = Tyt.r2
-            const int n = Txt.n();   // = Tyt.r2
-            const int r2 = 1; // = Txt.r2 = Tyt.r2
-
-            y_cores[d-1].resize(r1, n, r2);
-
-            for (int i2 = 0; i2 < r2; i2++)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    for (int i1 = 0; i1 < r1; i1++)
-                    {
-                        y_cores[d-1](i1, j, i2) = Txt(i1, j, i2) + Tyt(i1, j, i2);
-                    }
-                }
-            }
-        }
+        add(Txt, Tyt, y_cores[d-1]);
 
         #ifdef VERBOSE
         printf("\n----------------- After: -----------------\n\n");
