@@ -17,6 +17,7 @@
 #include <limits>
 #include <cassert>
 #include <iostream>
+#include <utility>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_combine.hpp"
@@ -322,7 +323,7 @@ namespace PITTS
     if( nOverlap < 0 || nOverlap >= nMALS )
       throw std::invalid_argument("Tensortrain solveMALS: invalid parameter nOverlap (1 <= nOverlap < nMALS)!");
 
-    // first left-normalize x
+    // first right-normalize x
     rightNormalize(TTx, residualTolerance/nDim, maxRank);
 
 
@@ -401,6 +402,7 @@ namespace PITTS
     std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
     // now everything is prepared, perform the sweeps
+    std::pair<int,int> lastStep = {-1,-1};
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
       if( residualNorm / sqrt_bTb < residualTolerance )
@@ -421,8 +423,10 @@ namespace PITTS
           right_xTAx.pop_back();
         }
 
-        if( iDim + nMALS <= nDim && iDim % (nMALS-nOverlap) == 0 )
+        if( iDim + nMALS <= nDim && iDim % (nMALS-nOverlap) == 0 && (iDim != lastStep.first || nMALS == nDim) )
         {
+          // skip iteration in next right-to-left sweep if it would be the same dims as this one
+          lastStep = {iDim, iDim+nMALS-1};
           std::cout << " (M)ALS setup local problem for sub-tensors " << iDim << " to " << iDim+nMALS-1 << "\n";
 
           // prepare operator and right-hand side
@@ -457,9 +461,11 @@ namespace PITTS
 
           for (int i = 0; i < tt_x.dimensions().size(); i++)
             std::swap(tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim + i]);
-          if (iDim + 1 != nDim)
-            internal::leftNormalize_range(TTx, iDim, iDim + 1, T(0), maxRank);
         }
+
+        // prepare current approximation for the next iteration
+        if (iDim + 1 != nDim)
+          internal::leftNormalize_range(TTx, iDim, iDim + 1, T(0), maxRank);
 
         // prepare left/right xTb for the next iteration
         left_xTb.emplace_back( calculate_next_left_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], left_xTb.back()) );
@@ -507,8 +513,10 @@ namespace PITTS
           left_xTAx.pop_back();
         }
 
-        if( iDim+1 - nMALS >= 0 && (nDim-iDim-1) % (nMALS-nOverlap) == 0 )
+        if( iDim+1 - nMALS >= 0 && (nDim-iDim-1) % (nMALS-nOverlap) == 0 && (iDim != lastStep.second || nMALS == nDim) )
         {
+          // skip iteration in next right-to-left sweep if it would be the same dims as this one
+          lastStep = {iDim+1-nMALS, iDim};
           std::cout << " (M)ALS setup local problem for sub-tensors " << iDim << " to " << iDim+1-nMALS << "\n";
 
           // prepare operator and right-hand side
@@ -539,9 +547,11 @@ namespace PITTS
 
           for(int i = 0; i < nMALS; i++)
             std::swap(tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i+1-nMALS]);
-          if( iDim != 0 )
-            internal::rightNormalize_range(TTx, iDim-1, iDim, T(0), maxRank);
         }
+
+        // prepare current approximation for the next iteration
+        if( iDim != 0 )
+          internal::rightNormalize_range(TTx, iDim-1, iDim, T(0), maxRank);
 
         // prepare left/right xTb for the next iteration
         right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], right_xTb.back()) );
