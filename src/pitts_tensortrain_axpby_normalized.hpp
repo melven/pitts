@@ -1,19 +1,23 @@
-#pragma once
+/*! @file pitts_tensortrain_axpby_normalized.hpp
+* @brief addition for simple tensor train format where one of the tensors is normalized
+* @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+* @date 2019-11-07
+* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
+*
+**/
 
-#include "pitts_tensortrain.hpp"
-#include "pitts_tensortrain_norm.hpp"
-#include "pitts_tensor2.hpp"
-#include "pitts_tensor3_split.hpp"
+// include guard
+#ifndef PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
+#define PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
 
 //#define VERBOSE
 
-namespace PITTS
-{
-
-    template <typename T>
-    T _axpby_(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, 
-        T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = 0x7fffffff);
-}
+// includes
+#include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_normalize.hpp"
+#include "pitts_tensor2.hpp"
+#include "pitts_tensor3_split.hpp"
 
 
 namespace PITTS
@@ -109,8 +113,37 @@ namespace PITTS
         }
 
 
+        //! add two Tensor3 objects, c <- a + b. c can be alias for a or b
+        template<typename T>
+        void t3_axpy(const T a, const Tensor3<T>& x, Tensor3<T>& y)
+        {
+            assert(x.r1() == y.r1());
+            assert(x.n()  == y.n());
+            assert(x.r2() == y.r2());
+
+            const int r1 = x.r1();
+            const int n = x.n();
+            const int nChunk = x.nChunks();
+            const int r2 = x.r2();
+
+            /*
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
+                {{r1*n*r2*kernel_info::Add<T>()},    // flops
+                {r1*n*r2*kernel_info::Store<T>() + 2*r1*n*r2*kernel_info::Load<T>()}}  // data
+                );
+            */
+           
+            #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
+            for(int i2 = 0; i2 < r2; i2++)
+                for(int jChunk = 0; jChunk < nChunk; jChunk++)
+                    for(int i1 = 0; i1 < r1; i1++)
+                        fmadd(a, x.chunk(i1, jChunk, i2), y.chunk(i1, jChunk, i2));               
+        }
+
+
         /*
-        * print the 2-tensor to command line (very ruggity)
+        * print the 2-tensor to command line
         */
         template <typename T>
         static void quickndirty_visualizeMAT(const Tensor2<T>& G, int prec = 4)
@@ -130,7 +163,7 @@ namespace PITTS
         }
 
         /*
-        * print the 3-tensor to command line (very ruggity)
+        * print the 3-tensor to command line
         * 
         * @param prec    digits after decimal point to be displayed
         * 
@@ -189,7 +222,7 @@ namespace PITTS
         }
 
         /*
-        * print the complete tensor to command line (very ruggity)
+        * print the complete tensor to command line
         * 
         * @param prec    digits after decimal point to be displayed
         * 
@@ -211,11 +244,11 @@ namespace PITTS
 
 
     /**
-     * @brief Add scaled tensor trains
+     * @brief Add scaled tensor trains, where one of them is left-orthogonal.
      * 
      * Calculate gamma * y <- alpha * x + beta * y, such that for the result ||gamma * y|| = gamma
      * 
-     * @warning Both tensors must already be left-orthogonal.
+     * @warning Tensor x (TTx) must already be left-orthogonal.
      * 
      * @tparam T underlying data type (double, complex, ...)
      * 
@@ -228,7 +261,7 @@ namespace PITTS
      * @return              norm of the result tensor
      */
     template <typename T>
-    T _axpby_(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance, int maxRank)
+    T axpby_normalized(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = 0x7fffffff)
     {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -255,27 +288,14 @@ namespace PITTS
         // scale last tensor cores
         Tensor3<T> x_last_core;
         copy(x_cores[d-1], x_last_core);
-        {
-            Tensor3<T>& xc = x_last_core;
-            const int xr1 = xc.r1();
-            const int xn  = xc.n();
-            for (int j = 0; j < xn; j++)
-                for (int i1 = 0; i1 < xr1; i1++)
-                    xc(i1, j, 0) *= alpha;
-
-            Tensor3<T>& yc = y_cores[d-1];
-            const int yr1 = yc.r1();
-            const int yn  = yc.n();
-            for (int j = 0; j < yn; j++)
-                for (int i1 = 0; i1 < yr1; i1++)
-                    yc(i1, j, 0) *= beta;
-        }
+        internal::t3_scale(alpha, x_last_core);
+        internal::t3_scale(beta, y_cores[d-1]);
 
         // special case
         if (d == 1)
         {
-            add(y_cores[0], x_last_core, y_cores[0]);
-            // then: calculate norm, scale by norm, return
+            internal::t3_axpy((T)1, x_last_core, y_cores[0]);
+            (y_cores[0], x_last_core, y_cores[0]);
         }
         
         
@@ -550,7 +570,8 @@ namespace PITTS
         } // end loop
 
         // calculate y_cores[d-1] <- Txt + Tyt (componentwise)
-        add(Txt, Tyt, y_cores[d-1]);
+        internal::t3_axpy((T)1, Txt, Tyt);
+        std::swap(Tyt, y_cores[d-1]);
 
         #ifdef VERBOSE
         printf("\n----------------- After: -----------------\n\n");
@@ -566,8 +587,6 @@ namespace PITTS
         return gamma;
     }
 
-
-
-
-    template double _axpby_(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double rankTolerance, int maxRank);
 }
+
+#endif // PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP

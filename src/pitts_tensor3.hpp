@@ -191,37 +191,6 @@ namespace PITTS
           for(int k = 0; k < r2; k++)
             b(i,j,k) = a(i,j,k);
   }
-
-  //! add two Tensor3 objects, c <- a + b. c can be alias for a or b
-  template<typename T>
-  void add(const Tensor3<T>& a, const Tensor3<T>& b, Tensor3<T>& c)
-  {
-    assert(a.r1() == b.r1());
-    assert(a.n() == b.n());
-    assert(a.r2() == b.r2());
-
-    const int r1 = a.r1();
-    const int n = a.n();
-    const int nChunk = a.nChunks();
-    const int r2 = a.r2();
-
-    /*
-    const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-        {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-        {{r1*n*r2*kernel_info::Add<T>()},    // flops
-         {r1*n*r2*kernel_info::Store<T>() + 2*r1*n*r2*kernel_info::Load<T>()}}  // data
-          / or one load + 1 update if a == c
-        );
-    */
-
-    c.resize(r1, n, r2);
-
-    #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
-    for(int i2 = 0; i2 < r2; i2++)
-      for (int j = 0; j < n; j++) //for(int jChunk = 0; jChunk < nChunk; jChunk++)
-        for(int i1 = 0; i1 < r1; i1++)
-          c(i1, j, i2) = a(i1, j, i2) + b(i1, j, i2); //c.chunk(i1, jChunk, i2) = a.chunk(i1, jChunk, i2) + b.chunk(i1, jChunk, i2);
-  }
 }
 
 
