@@ -244,7 +244,7 @@ namespace PITTS
 
 
     /**
-     * @brief Add scaled tensor trains, where one of them is left-orthogonal.
+     * @brief Add scaled tensor trains, where one of them is left-normalized.
      * 
      * Calculate gamma * y <- alpha * x + beta * y, such that for the result ||gamma * y|| = gamma
      * 
@@ -255,16 +255,17 @@ namespace PITTS
      * @param alpha         coefficient of tensor x, scalar value
      * @param TTx           tensor x in tensor train format, left-orthogonal
      * @param beta          coefficient of tensor y, scalar value
-     * @param TTy           tensor y in tensor train format, left-orthogonal
+     * @param TTy           tensor y in tensor train format
      * @param rankTolerance approxiamtion accuracy that is used to reduce the TTranks of the result
      * @param maxRank       maximal allowed TT-rank, enforced even if this violates the rankTolerance
      * @return              norm of the result tensor
      */
     template <typename T>
-    T axpby_normalized(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = 0x7fffffff)
+    T axpby_normalized(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = 0x7fffffff)
     {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
+        
+        const auto& TTx = TTx_ortho;
         std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
         const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
         const std::vector<int>& x_dim = TTx.dimensions();
