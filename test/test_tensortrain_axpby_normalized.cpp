@@ -106,7 +106,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, DISABLED_order1)
     rand_init(TTx, m_max);
     rand_init(TTy, m_max);
     ortho(TTx);
-    //ortho(TTy);
 
     check_axpby(1.0, TTx, 1.0, TTy);
     check_axpby(1.0, TTx, -2.0, TTy);

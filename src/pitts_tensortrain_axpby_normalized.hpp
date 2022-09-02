@@ -142,6 +142,37 @@ namespace PITTS
         }
 
 
+        /**
+         * @brief Returns if the tensor train A is (left or right)-orthogonal (up to some tolerance).
+         * 
+         * @tparam T        underlying type
+         * @param A         TensorTrain<T> object
+         * @param left      whether to check for left-orthogonality or right-orthogonality
+         * @return true     if A passes the orthogonality test
+         * @return false    if A fails the orthogonality test
+         */
+        template<typename T>
+        bool is_normalized(const TensorTrain<T>& A /*,bool left = true*/)
+        {
+            Tensor2<T> core;
+            for (int i = 0; i < A.subTensors().size() - 1; i++)
+            {
+                unfold_left(A.subTensors()[i], core);
+
+                using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+                Matrix mat = Eigen::Map<Matrix>(&core(0, 0), core.r1(), core.r2());
+                Matrix orth;
+                //if (left)
+                    orth = mat.transpose() * mat;
+                //else
+                //    orth = mat * mat.transpose();
+                if ((orth - Matrix::Identity(orth.cols(), orth.rows())).norm() > std::sqrt(std::numeric_limits<T>::epsilon()))
+                    return false;
+            }
+            return true;
+        }
+
+
         /*
         * print the 2-tensor to command line
         */
@@ -271,6 +302,8 @@ namespace PITTS
         const std::vector<int>& x_dim = TTx.dimensions();
         const std::vector<int>& y_dim = TTy.dimensions();
         const int d = x_dim.size(); // order d
+
+        assert(internal::is_normalized(TTx) == true);
 
         // check that dimensions match
         if( x_dim != y_dim )
