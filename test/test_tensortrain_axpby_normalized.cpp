@@ -21,23 +21,27 @@ using namespace internal;
  */
 static void check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double accuracy = std::sqrt(std::numeric_limits<double>::epsilon()))
 {
-    accuracy = accuracy * (abs(alpha) * norm2(TTx) + abs(beta) * norm2(TTy)); // upper bound for norm of result tensor
-
     TensorTrain<double> _TTy_(TTy);
     copy(TTy, _TTy_);
 
-    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_);
-    const double gamma = axpby(alpha, TTx, beta, TTy);
+    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy);
+    const double gamma = axpby(alpha, TTx, beta, TTy, accuracy);
     EXPECT_NEAR(_gamma_, gamma, accuracy);
 
+    double absolute_accuracy = accuracy * norm2(TTy); // scale by norm of "correct" result
+    
     const double _norm_ = norm2(_TTy_);
     const double norm = norm2(TTy);
-    EXPECT_NEAR(_norm_, norm, accuracy);
+    EXPECT_NEAR(_norm_, norm, absolute_accuracy);
     
     MultiVector<double> _y_, y;
     toDense(TTy, y);
     toDense(_TTy_, _y_);
-    EXPECT_NEAR(ConstEigenMap(_y_), ConstEigenMap(y), accuracy);
+    EXPECT_NEAR(ConstEigenMap(_y_), ConstEigenMap(y), absolute_accuracy);
+
+    // add some testing that ranks are
+    // actually reduced maybe
+    // ehh idk, the svd didn't change
 }
 
 
