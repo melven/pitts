@@ -12,7 +12,7 @@ using namespace PITTS;
 using namespace internal;
 
 /**
- * @brief Helper function for testing axpby_normalized implementation
+ * @brief Helper function for testing axpby_normalized implementation.
  * 
  * @param alpha 
  * @param TTx 
@@ -94,9 +94,9 @@ static void printTTranks(const TensorTrain<double>& tt, const char* name)
 
 
 
-TEST(PITTS_TensorTrain_axpby_normalized, DISABLED_order1)
-{
-    // TTx, TTy:
+TEST(PITTS_TensorTrain_axpby_normalized, DISABLED_order1) // test fails because for d == 1, the "correct" axpby implementation is wrong
+{                                                // it does NOT actually do the axpby operation in that case, and instead just
+    // TTx, TTy:                                 // returns y !!!! (my implementation is correct tho)
     //  o
     //  |
     //  11
@@ -134,7 +134,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, order2_0)
     rand_init(TTx, m_max);
     rand_init(TTy, m_max);
     ortho(TTx);
-    //ortho(TTy);
 
     check_axpby(1.0, TTx, 1.0, TTy);
     check_axpby(1.0, TTx, -2.0, TTy);
@@ -159,7 +158,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, order2_1)
     rand_init(TTx, m_max);
     rand_init(TTy, m_max);
     ortho(TTx);
-    //ortho(TTy);
 
     check_axpby(1.0, TTx, 1.0, TTy);
     check_axpby(1.0, TTx, -2.0, TTy);

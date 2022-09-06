@@ -19,39 +19,23 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
 
+#define FIXED_FLOAT(f, prec) std::fixed << std::setprecision(prec) << (f < 0 ? "" : " ") << f
 
 namespace PITTS
 {
-
-            /*
-            // get norm of M
-            T nrm;// = internal::t2_nrm(M);
-            for (int j = 0; j < M.r2(); j++)
-                for (int i = 0; i < M.r1(); i++)
-                    nrm += M(i, j) * M(i, j);
-            nrm = std::sqrt(nrm);
-
-            #ifdef VERBOSE
-            std::cout << "* QR properties *\n";
-            std::cout << "Norm of Mtemp: \t\t" << FIXED_FLOAT(nrm, 20) << std::endl;
-            std::cout << "Mtmp == 0 tolerance: \t" << FIXED_FLOAT(rankTolerance, 20) << std::endl;     
-            #endif
-
-            // return empty matrices if M is approx 0
-            if (nrm < rankTolerance)
-            {
-                #ifdef VERBOSE
-                std::cout << "Skipping QR decomposition\n\n";
-                #endif
-                return result;
-            }
-            */
-
     namespace internal
     {
-        #define FIXED_FLOAT(f, prec) std::fixed << std::setprecision(prec) << (f < 0 ? "" : " ") << f
-
-        //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
+        
+        /**
+         * @brief my version of wrapper for QB
+         * 
+         * @tparam T                underlying data type
+         * @param M                 Tensor2 that is being decomposed
+         * @param leftOrthog        true -> QR decomposition, false -> LQ decomposition
+         * @param maxRank           maximal rank of Q (further cols are cut off)
+         * @param rankTolerance     is IGNORED
+         * @return                  [Q, R] resp. [L, Q]
+         */
         template<typename T>
         auto m_normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, int maxRank = std::numeric_limits<int>::max(), T rankTolerance = 0)
         {
@@ -113,7 +97,14 @@ namespace PITTS
         }
 
 
-        //! add two Tensor3 objects, c <- a + b. c can be alias for a or b
+        /**
+         * @brief Componentwise axpy for Tensor3 objects
+         * 
+         * @tparam T    underlying data type
+         * @param a     scalar a
+         * @param x     [in] Tensor3 x
+         * @param y     [in,out] Tensor3 y
+         */
         template<typename T>
         void t3_axpy(const T a, const Tensor3<T>& x, Tensor3<T>& y)
         {
@@ -126,14 +117,12 @@ namespace PITTS
             const int nChunk = x.nChunks();
             const int r2 = x.r2();
 
-            /*
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
                 {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-                {{r1*n*r2*kernel_info::Add<T>()},    // flops
-                {r1*n*r2*kernel_info::Store<T>() + 2*r1*n*r2*kernel_info::Load<T>()}}  // data
-                );
-            */
-           
+                {{r1*n*r2*kernel_info::FMA<T>()},    // flops
+                {r1*n*r2*kernel_info::Load<T>() + r1*n*r2*kernel_info::Update<T>()}}  // data
+            );
+            
             #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
             for(int i2 = 0; i2 < r2; i2++)
                 for(int jChunk = 0; jChunk < nChunk; jChunk++)
@@ -154,6 +143,7 @@ namespace PITTS
         template<typename T>
         bool is_normalized(const TensorTrain<T>& A /*,bool left = true*/)
         {
+            // no timer because this function is only used in in an assert
             Tensor2<T> core;
             for (int i = 0; i < A.subTensors().size() - 1; i++)
             {
@@ -271,7 +261,205 @@ namespace PITTS
         }
 
 
-    }
+        /**
+         * @brief Compute z(:,:) <- x(:,: x :)^tr * y(:,: x :). 
+         * "X TRanspose * Y"
+         * 
+         * @tparam T 
+         * @param x [in] Tensor3
+         * @param y [in] Tensor3
+         * @param z [out] Tensor2
+         */
+        template <typename T>
+        inline void xtry(const Tensor3<T>& x, const Tensor3<T>& y, Tensor2<T>& z)
+        {
+            const int r1  = x.r1(); // c
+            const int n   = x.n();  // n_k
+            const int xr2 = x.r2(); // r_k
+            const int yr2 = y.r2(); // s_k
+
+            assert(r1 == y.r1());
+            assert(n  == y.n());
+
+            z.resize(xr2, yr2);
+
+            for (int j = 0; j < yr2; j++)
+            {
+                for (int i = 0; i < xr2; i++)
+                {
+                    z(i, j) = 0;
+                    for (int l = 0; l < n; l++)
+                    {
+                        for (int k = 0; k < r1; k++)
+                        {
+                            z(i,j) += x(k, l, i) * y(k, l, j);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * @brief Compute D <- C(:,: x :) - A(:,: x :) * B(: x :).
+         * "fnmadd of Tensor2's, left-folding Tensor3's"
+         * 
+         * @tparam T 
+         * @param A [in] Tensor3
+         * @param B [in] Tensor3
+         * @param C [in] Tensor2
+         * @param D [out] Tensor2
+         */
+        template<typename T>
+        inline void t3232_fnmadd(const Tensor3<T>& A, const Tensor2<T>& B, const Tensor3<T>& C, Tensor2<T>& D)
+        {
+            const int r1 = C.r1(); // c
+            const int n  = C.n();  // n_k
+            const int r2 = C.r2(); // s_k
+            const int c  = A.r2(); // r_k
+
+            assert(r1 == A.r1());
+            assert(n == A.n());
+            assert(r2 == B.r2());
+            assert(c == A.r2() && c == B.r1());
+
+            D.resize(r1 * n, r2);
+
+            for (int j = 0; j < r2; j++)
+            {
+                for (int i2 = 0; i2 < n; i2++)
+                {
+                    for (int i1 = 0; i1 < r1; i1++)
+                    {
+                        D(i1 + i2*r1, j) = C(i1, i2, j);
+                        for (int k = 0; k < c; k++)
+                        {
+                            D(i1 + i2*r1, j) -= A(i1, i2, k) * B(k, j);
+                        }
+                    }
+                }
+            }
+        }
+
+        
+        /**
+         * @brief Compute C <- concat(Le, Ri, dim=3), 
+         * the concationation of Le and Ri along the third dimension - regarding Ri as a Tensor3 of fitting dimension (Le.r1 x Le.n x Ri.r2).
+         * 
+         * @tparam T 
+         * @param Le [in] Tensor3
+         * @param Ri [in] Tensor2
+         * @param C [out] Tensor3
+         */
+        template <typename T>
+        inline void t32_concat3(const Tensor3<T>& Le, const Tensor2<T>& Ri, Tensor3<T>& C)
+        {
+            const int r1  = Le.r1(); //c;
+            const int n   = Le.n(); //n_k;
+            const int r2l = Le.r2(); // r_k; actually left
+            const int r2r = Ri.r2(); // st_k; actually right
+
+            assert(r1 * n == Ri.r1());
+
+            C.resize(r1, n, r2l + r2r);
+
+            for (int i2 = 0; i2 < r2l; i2++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    for (int i1 = 0; i1 < r1; i1++)
+                    {
+                        C(i1, j, i2) = Le(i1, j, i2);
+                    }
+                }
+            }
+            for (int i2 = 0; i2 < r2r; i2++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    for (int i1 = 0; i1 < r1; i1++)
+                    {
+                        C(i1, j, i2 + r2l) = Ri(i1 + j*r1, i2);
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * @brief Compute C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
+         * 
+         * @tparam T 
+         * @param Up [in]
+         * @param Lo [in]
+         * @param C  [out]
+         */
+        template <typename T>
+        inline void t3_concat1(const Tensor3<T>& Up, const Tensor3<T>& Lo, Tensor3<T>& C)
+        {
+            const int r1u = Up.r1(); //r_k;
+            const int r1l = Lo.r1(); //st_k;
+            const int n   = Up.n();  //n_k1;
+            const int r2  = Up.r2(); //s_k1;
+
+            assert(n  == Lo.n());
+            assert(r2 == Lo.r2());
+
+            C.resize(r1u + r1l, n, r2);
+            
+            for (int i2 = 0; i2 < r2; i2++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    for (int i1 = 0; i1 < r1u; i1++)
+                    {
+                        C(i1, j, i2) = Up(i1, j, i2);
+                    }
+                    for (int i1 = 0; i1 < r1l; i1++)
+                    {
+                        C(i1 + r1u, j, i2) = Lo(i1, j, i2);
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * @brief Compute C <- concat(Up, 0, dim=1), 
+         * the concationation of Up and a 0-Tensor3 along the first dimension, 0 of dimension r1Lo x Up.n x Up.r2
+         * 
+         * @tparam T 
+         * @param Up    [in] Tensor3
+         * @param r1Lo  r1-dimension of 0-Tensor3
+         * @param C     [out] Tensor3
+         */
+        template <typename T>
+        inline void t3_concat1_w0(const Tensor3<T>& Up, const int r1Lo, Tensor3<T>& C)
+        {
+            const int r1u = Up.r1();
+            const int r1l = r1Lo;
+            const int n   = Up.n();
+            const int r2  = Up.r2();
+
+            C.resize(r1u + r1l, n, r2);
+            
+            for (int i2 = 0; i2 < r2; i2++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    for (int i1 = 0; i1 < r1u; i1++)
+                    {
+                        C(i1, j, i2) = Up(i1, j, i2);
+                    }
+                    for (int i1 = 0; i1 < r1l; i1++)
+                    {
+                        C(i1 + r1u, j, i2) = (T)0;
+                    }
+                }
+            }
+        }
+
+    } // namespace internal
 
 
     /**
@@ -306,36 +494,40 @@ namespace PITTS
         assert(internal::is_normalized(TTx) == true);
 
         // check that dimensions match
-        if( x_dim != y_dim )
-            throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
+        if (x_dim != y_dim)
+            throw std::invalid_argument("TensorTrain axpby_normalized dimension mismatch!");
         
+        if (x_cores[0].r1() != 1 || y_cores[0].r1() != 1 || x_cores[d-1].r2() != 1 || y_cores[d-1].r2() != 1)
+            throw std::invalid_argument("TensorTrain axpby_normalized boundary ranks not equal to 1!");
+
         // special cases
-        if( std::abs(alpha) == 0 )
+        if (std::abs(alpha) == 0)
             return beta;
         
-        if( std::abs(beta) == 0 )
+        if (std::abs(beta) == 0)
         {
             copy(TTx, TTy); // TTx -> TTy
             return alpha;
         }
 
+        //
         // scale last tensor cores
+        //
         Tensor3<T> x_last_core;
         copy(x_cores[d-1], x_last_core);
         internal::t3_scale(alpha, x_last_core);
         internal::t3_scale(beta, y_cores[d-1]);
-
-        // special case
-        if (d == 1)
-        {
-            internal::t3_axpy((T)1, x_last_core, y_cores[0]);
-            (y_cores[0], x_last_core, y_cores[0]);
-        }
         
         
         //
         // orthogonalization sweep left to right
         //
+
+        // special case
+        if (d == 1)
+        {
+            internal::t3_axpy((T)1, x_last_core, y_cores[0]);
+        }
 
         //
         // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
@@ -355,9 +547,9 @@ namespace PITTS
 
         #ifdef VERBOSE
         printf("\n------------------ Before: -----------------\n\n");
-        printf("alpha: %f\n", alpha);
-        printf("beta:  %f\n\n", beta);
-        printf("X:\n\n");
+        //printf("alpha: %f\n", alpha);
+        //printf("beta:  %f\n", beta);
+        printf("\nX:\n\n");
         internal::quickndirty_visualizeTT(TTx);
         printf("\nY:\n\n");
         internal::quickndirty_visualizeTT(TTy);
@@ -368,41 +560,16 @@ namespace PITTS
         for (int k = 0; k < d - 1; k++)
         {
             // convenience references
-            Tensor3<T>& Ty = y_cores[k];
             const Tensor3<T>& Ty1 = y_cores[k+1];
             const Tensor3<T>& Tx1 = (k == d-2) ? x_last_core : x_cores[k+1];
-
-            const int c = Txt.r1();    // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
-            const int n_k = Txt.n();   // n_k (n of Txt and Tyt)
-            const int r_k = Txt.r2();  // r_k (r2 of Txt)
-            const int s_k = Tyt.r2();  // s_k (r2 ot Tyt)
-            const int n_k1 = Tx1.n();  // n_{k+1} (n of Txt and Tyt)
-            const int r_k1 = Tx1.r2(); // r_{k+1} (r2 of Tx1)
-            const int s_k1 = Ty1.r2(); // s_{k+1} (r2 of Ty1)
 
             //
             // Note: If Txt is square matrix once unfolded, most of the calculation (especially QR) can be skipped
             //
 
             // Mzt <- (Txt(:,: x :))^tr * Tyt(:,: x :)
-            {
-                Mzt.resize(r_k, s_k);
+            internal::xtry(Txt, Tyt, Mzt);
 
-                for (int j = 0; j < s_k; j++)
-                {
-                    for (int i = 0; i < r_k; i++)
-                    {
-                        Mzt(i, j) = 0;
-                        for (int l = 0; l < n_k; l++)
-                        {
-                            for (int k = 0; k < c; k++)
-                            {
-                                Mzt(i,j) += Txt(k, l, i) * Tyt(k, l, j);
-                            }
-                        }
-                    }
-                }
-            }
             #ifdef VERBOSE
             printf("\n _____ Round %d _____:\n\n", k);
             printf("Matrix Z tilde:\n");
@@ -410,34 +577,19 @@ namespace PITTS
             #endif
             
             // Mtmp <- Tyt(:,: x :) - Txt(:,: x :) * Mzt(: x :)
-            {
-                Mtmp.resize(c * n_k, s_k);
+            internal::t3232_fnmadd(Txt, Mzt, Tyt, Mtmp);
 
-                for (int j = 0; j < s_k; j++)
-                {
-                    for (int i2 = 0; i2 < n_k; i2++)
-                    {
-                        for (int i1 = 0; i1 < c; i1++)
-                        {
-                            Mtmp(i1 + i2*c, j) = Tyt(i1, i2, j);
-                            for (int k = 0; k < r_k; k++)
-                            {
-                                Mtmp(i1 + i2*c, j) -= Txt(i1, i2, k) * Mzt(k, j);
-                            }
-                        }
-                    }
-                }
-            }
             #ifdef VERBOSE
             printf("Matrix Mtmp (taking QR of):\n");
             internal::quickndirty_visualizeMAT(Mtmp, 20);
             #endif
 
             // [Q, B] <- QR(Mtmp)
+            const int c = Txt.r1();   // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
+            const int n_k = Txt.n();  // n_k (n of Txt and Tyt)
+            const int r_k = Txt.r2(); // r_k (r2 of Txt)
             const auto& [Q, B] = internal::m_normalize_qb(Mtmp, true, c*n_k - r_k);
-
-            const int st_k = Q.r2();   // s^tilde_k (new s_k after QR)
-
+            
             #ifdef VERBOSE
             printf("Matrix Q:\n");
             internal::quickndirty_visualizeMAT(Q);
@@ -445,39 +597,12 @@ namespace PITTS
             internal::quickndirty_visualizeMAT(B, 20);
             #endif
 
-            // save result into y_cores[k] = Ty <- concat(Txt, Q, dim=3), unfolding Q: c*n_k x st_k -> c x n_k x st_k
-            {
-                const int r1  = c;
-                const int n   = n_k;
-                const int r2r = r_k;
-                const int r2l = st_k;
-
-                Ty.resize(r1, n, r2r + r2l);
-
-                for (int i2 = 0; i2 < r2r; i2++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        for (int i1 = 0; i1 < r1; i1++)
-                        {
-                            Ty(i1, j, i2) = Txt(i1, j, i2);
-                        }
-                    }
-                }
-                for (int i2 = 0; i2 < r2l; i2++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        for (int i1 = 0; i1 < r1; i1++)
-                        {
-                            Ty(i1, j, i2 + r2r) = Q(i1 + j*c, i2);
-                        }
-                    }
-                }
-            }
+            // save result into y_cores[k] <- concat(Txt, Q, dim=3), unfolding Q: c*n_k x st_k -> c x n_k x st_k
+            internal::t32_concat3(Txt, Q, y_cores[k]);
+            
             #ifdef VERBOSE
             printf("result core %d:\n", k);
-            internal::quickndirty_visualizeCORE(Ty);
+            internal::quickndirty_visualizeCORE(y_cores[k]);
             #endif
 
             //
@@ -485,83 +610,19 @@ namespace PITTS
             //
 
             // calculate upper half of new Tyt: Ttmpu <- Mzt *1 Ty1 (mode-1 contraction)
-            {
-                const int r1 = r_k;   // r1 of result (= #rows of matrix)
-                const int s = s_k;    // shared dimension (= r1 of tensor = #cols of matrix)
-                const int n = n_k1;   // n of result (= n of tensor)
-                const int r2 = s_k1;  // r2 of result (= r2 of tensor)
-
-                Ttmpu.resize(r1, n, r2);
-
-                for (int i2 = 0; i2 < r2; i2++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        for (int i1 = 0; i1 < r1; i1++)
-                        {
-                            Ttmpu(i1, j, i2) = 0;
-                            for (int k = 0; k < s; k++)
-                            {
-                                Ttmpu(i1, j, i2) += Mzt(i1, k) * Ty1(k, j, i2);
-                            }
-                        }
-                    }
-                }
-            }
+            internal::normalize_contract1(Mzt, Ty1, Ttmpu);
 
             // calculate lower half of new Tyt: Ttmpl <- B *1 Ty1
-            {
-                const int r1 = st_k;  // r1 of result (= #rows of matrix)
-                const int s = s_k;    // shared dimension (= r1 of tensor = #cols of matrix)
-                const int n = n_k1;   // n of result (= n of tensor)
-                const int r2 = s_k1;  // r2 of result (= r2 of tensor)
-
-                Ttmpl.resize(r1, n, r2);
-
-                for (int i2 = 0; i2 < r2; i2++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        for (int i1 = 0; i1 < r1; i1++)
-                        {
-                            Ttmpl(i1, j, i2) = 0;
-                            for (int k = 0; k < s; k++)
-                            {
-                                Ttmpl(i1, j, i2) += B(i1, k) * Ty1(k, j, i2);
-                            }
-                        }
-                    }
-                }
-            }
+            internal::normalize_contract1(B, Ty1, Ttmpl);
+            
             #ifdef VERBOSE
             printf("Ttmpl:\n");
             internal::quickndirty_visualizeCORE(Ttmpl);
             #endif
 
             // concatinate Tyt <- concat(Ttmpu, Ttmpl, dim=1)
-            {
-                const int r1u = r_k;
-                const int r1l = st_k;
-                const int n = n_k1;
-                const int r2 = s_k1;
-
-                Tyt.resize(r1u + r1l, n, r2);
-                
-                for (int i2 = 0; i2 < r2; i2++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        for (int i1 = 0; i1 < r1u; i1++)
-                        {
-                            Tyt(i1, j, i2) = Ttmpu(i1, j, i2);
-                        }
-                        for (int i1 = 0; i1 < r1l; i1++)
-                        {
-                            Tyt(i1 + r1u, j, i2) = Ttmpl(i1, j, i2);
-                        }
-                    }
-                }
-            }
+            internal::t3_concat1(Ttmpu, Ttmpl, Tyt);
+            
             #ifdef VERBOSE
             printf("Y tilde (of next round):\n");
             internal::quickndirty_visualizeCORE(Tyt);
@@ -572,29 +633,9 @@ namespace PITTS
             //
             
             // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension B.r1 x Tx1.n x Tx1.r2
-            {
-                const int r1u = r_k;
-                const int r1l = st_k;
-                const int n = n_k1;
-                const int r2 = r_k1;
-
-                Txt.resize(r1u + r1l, n, r2);
-                
-                for (int i2 = 0; i2 < r2; i2++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        for (int i1 = 0; i1 < r1u; i1++)
-                        {
-                            Txt(i1, j, i2) = Tx1(i1, j, i2);
-                        }
-                        for (int i1 = 0; i1 < r1l; i1++)
-                        {
-                            Txt(i1 + r1u, j, i2) = 0;
-                        }
-                    }
-                }
-            }
+            const int st_k = Q.r2();   // s^tilde_k (new s_k after QR)
+            internal::t3_concat1_w0(Tx1, st_k, Txt);
+            
             #ifdef VERBOSE
             printf("X tilde (of next round):\n");
             internal::quickndirty_visualizeCORE(Txt);
