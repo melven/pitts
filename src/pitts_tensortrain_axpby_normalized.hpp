@@ -1,7 +1,7 @@
 /*! @file pitts_tensortrain_axpby_normalized.hpp
 * @brief addition for simple tensor train format where one of the tensors is normalized
-* @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
-* @date 2019-11-07
+* @author Manuel Joey Becklas <Manuel.Becklas@DLR.de>
+* @date 2022-09-06
 * @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
@@ -57,7 +57,7 @@ namespace PITTS
         {
             const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
-            // get reasonable rank tolerance (ignoring passed value for now)        // was min(M.r1(), M.r2())
+            // get reasonable rank tolerance (ignoring passed value)        // was min(M.r1(), M.r2())
             const T rankTol = std::numeric_limits<decltype(rankTolerance)>::epsilon() * (M.r1() + M.r2()) / 2;
             rankTolerance = 16 * rankTol;
 
