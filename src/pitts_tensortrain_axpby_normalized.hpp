@@ -118,9 +118,9 @@ namespace PITTS
             const int r2 = x.r2();
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-                {{r1*n*r2*kernel_info::FMA<T>()},    // flops
-                {r1*n*r2*kernel_info::Load<T>() + r1*n*r2*kernel_info::Update<T>()}}  // data
+                {{"r1", "n", "r2"}, {r1, n, r2}},                                     // arguments
+                {{r1*n*r2*kernel_info::FMA<T>()},                                     // flops
+                 {r1*n*r2*kernel_info::Load<T>() + r1*n*r2*kernel_info::Update<T>()}} // data: load x ; update y
             );
             
             #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
@@ -263,7 +263,7 @@ namespace PITTS
 
         /**
          * @brief Compute z(:,:) <- x(:,: x :)^tr * y(:,: x :). 
-         * "X TRanspose * Y"
+         * "Z <- X TRanspose * Y"
          * 
          * @tparam T 
          * @param x [in] Tensor3
@@ -271,15 +271,21 @@ namespace PITTS
          * @param z [out] Tensor2
          */
         template <typename T>
-        inline void xtry(const Tensor3<T>& x, const Tensor3<T>& y, Tensor2<T>& z)
+        inline void zxtry(const Tensor3<T>& x, const Tensor3<T>& y, Tensor2<T>& z)
         {
-            const int r1  = x.r1(); // c
-            const int n   = x.n();  // n_k
-            const int xr2 = x.r2(); // r_k
-            const int yr2 = y.r2(); // s_k
+            const int r1  = x.r1();
+            const int n   = x.n();
+            const int xr2 = x.r2();
+            const int yr2 = y.r2();
 
             assert(r1 == y.r1());
             assert(n  == y.n());
+
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1", "n", "x.r2", "y.r2"}, {r1, n, xr2, yr2}},                                  // arguments
+                {{r1*n*xr2*yr2*kernel_info::FMA<T>()},                                             // flops
+                 {(r1*n*xr2 + r1*n*yr2)*kernel_info::Load<T>() + xr2*yr2*kernel_info::Store<T>()}} // data: load x,y ; store z
+            );
 
             z.resize(xr2, yr2);
 
@@ -313,15 +319,21 @@ namespace PITTS
         template<typename T>
         inline void t3232_fnmadd(const Tensor3<T>& A, const Tensor2<T>& B, const Tensor3<T>& C, Tensor2<T>& D)
         {
-            const int r1 = C.r1(); // c
-            const int n  = C.n();  // n_k
-            const int r2 = C.r2(); // s_k
-            const int c  = A.r2(); // r_k
+            const int r1 = C.r1();
+            const int n  = C.n();
+            const int r2 = C.r2();
+            const int c  = A.r2();
 
             assert(r1 == A.r1());
             assert(n == A.n());
             assert(r2 == B.r2());
-            assert(c == A.r2() && c == B.r1());
+            assert(c == B.r1());
+
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1", "n", "r2", "c"}, {r1, n, r2, c}},                                              // arguments
+                {{r1*n*r2*c*kernel_info::FMA<T>()},                                                    // flops
+                 {(r1*n*c + c*r2 + r1*n*r2)*kernel_info::Load<T>() + r1*n*r2*kernel_info::Store<T>()}} // data: load A,B,C ; store D
+            );
 
             D.resize(r1 * n, r2);
 
@@ -361,6 +373,12 @@ namespace PITTS
 
             assert(r1 * n == Ri.r1());
 
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                                    // arguments
+                {{(r1*n*r2l + r1*n*r2r)*kernel_info::NoOp<T>()},                                          // flops
+                 {(r1*n*r2l + r1*n*r2r)*kernel_info::Load<T>() + r1*n*(r2l+r2r)*kernel_info::Store<T>()}} // data: load Le,Ri ; store C
+            );
+
             C.resize(r1, n, r2l + r2r);
 
             for (int i2 = 0; i2 < r2l; i2++)
@@ -397,13 +415,19 @@ namespace PITTS
         template <typename T>
         inline void t3_concat1(const Tensor3<T>& Up, const Tensor3<T>& Lo, Tensor3<T>& C)
         {
-            const int r1u = Up.r1(); //r_k;
-            const int r1l = Lo.r1(); //st_k;
-            const int n   = Up.n();  //n_k1;
-            const int r2  = Up.r2(); //s_k1;
+            const int r1u = Up.r1();
+            const int r1l = Lo.r1();
+            const int n   = Up.n();
+            const int r2  = Up.r2();
 
             assert(n  == Lo.n());
             assert(r2 == Lo.r2());
+
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                                       // arguments
+                {{(r1u*n*r2 + r1l*n*r2)*kernel_info::NoOp<T>()},                                          // flops
+                 {(r1u*n*r2 + r1l*n*r2)*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up,Lo ; store C
+            );
 
             C.resize(r1u + r1l, n, r2);
             
@@ -440,6 +464,12 @@ namespace PITTS
             const int r1l = r1Lo;
             const int n   = Up.n();
             const int r2  = Up.r2();
+
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                          // arguments
+                {{r1u*n*r2*kernel_info::NoOp<T>()},                                          // flops
+                 {r1u*n*r2*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up ; store C
+            );
 
             C.resize(r1u + r1l, n, r2);
             
@@ -568,7 +598,7 @@ namespace PITTS
             //
 
             // Mzt <- (Txt(:,: x :))^tr * Tyt(:,: x :)
-            internal::xtry(Txt, Tyt, Mzt);
+            internal::zxtry(Txt, Tyt, Mzt);
 
             #ifdef VERBOSE
             printf("\n _____ Round %d _____:\n\n", k);
