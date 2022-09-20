@@ -324,7 +324,7 @@ namespace PITTS
       throw std::invalid_argument("Tensortrain solveMALS: invalid parameter nOverlap (1 <= nOverlap < nMALS)!");
 
     // first right-normalize x
-    rightNormalize(TTx, residualTolerance/nDim, maxRank);
+    internal::rightNormalize_range(TTx, 0, nDim-1, T(0), maxRank);
 
 
     // for the non-symmetric case, we solve the normal equations, so calculate A^T*b and A^T*A
@@ -435,12 +435,12 @@ namespace PITTS
           const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
           // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
-          if( iSweep == 0 )
+          if( iSweep == 0 && residualNorm / sqrt_bTb > 0.5 )
             tt_x.setZero();
 
           if( useTTgmres )
           {
-            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, T(0.1)*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, " (M)ALS local problem: ", true);
+            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, " (M)ALS local problem: ", true);
           }
           else
           {
@@ -450,12 +450,12 @@ namespace PITTS
             toDense(tt_b, mv_rhs);
 
             // absolute tolerance is not invariant wrt. #dimensions
-            const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, T(0.1)*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
+            const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, gmresRelTol*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
 
             // use mv_rhs as work array
             const auto r_left = tt_x.subTensors().front().r1();
             const auto r_right = tt_x.subTensors().back().r2();
-            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), T(0.1)*residualTolerance/nDim, maxRank, false, r_left, r_right);
+            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), gmresRelTol*residualTolerance/nDim, maxRank, false, r_left, r_right);
             std::swap(tt_x, new_tt_x);
           }
 
@@ -527,7 +527,7 @@ namespace PITTS
 
           if( useTTgmres )
           {
-            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, T(0.1)*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, " (M)ALS local problem: ", true);
+            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, " (M)ALS local problem: ", true);
           }
           else
           {
@@ -537,11 +537,11 @@ namespace PITTS
             toDense(tt_b, mv_rhs);
 
             // absolute tolerance is not invariant wrt. #dimensions
-            const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, T(0.1)*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
+            const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, gmresRelTol*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
 
             const auto r_left = tt_x.subTensors().front().r1();
             const auto r_right = tt_x.subTensors().back().r2();
-            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), T(0.1)*residualTolerance/nDim, maxRank, false, r_left, r_right);
+            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), gmresRelTol*residualTolerance/nDim, maxRank, false, r_left, r_right);
             std::swap(tt_x, new_tt_x);
           }
 
