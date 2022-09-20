@@ -41,6 +41,19 @@ namespace PITTS
     }
   }
 
+  //! A tensor-train can be left- or right-orthogonal (or none of both)
+  enum class TT_Orthogonality
+  {
+    //! Currently not orthogonal or unknown
+    none = 0,
+
+    //! left-orthogonal (for all subtensors X_i: fold_left(X_i)^T fold_left(X_i) = I)
+    left,
+
+    //! right-orthogonal (for all subtensors X_i: fold_right(X_i)^T fold_right(X_i) = I)
+    right
+  };
+
 
   //! tensor train class
   //!
@@ -50,6 +63,16 @@ namespace PITTS
   class TensorTrain
   {
     public:
+      //! current orthogonality state of the tensor-train
+      //!
+      //! This is set to none by editableSubTensors.
+      //!
+      //! \warning All parts of an algorithm must handle this to be correct.
+      //!          If some code holds a reference to a subtensor through editableSubTensors,
+      //!          it can modify the tensor-train without resetting this flag!
+      //!
+      TT_Orthogonality isOrthogonal = TT_Orthogonality::none;
+
       //! create a new tensor train that represents a n^d tensor
       TensorTrain(int d, int n, int initial_TTrank = 1) : TensorTrain(std::vector<int>(d,n), initial_TTrank) {}
 
@@ -117,6 +140,9 @@ namespace PITTS
           throw std::invalid_argument("Invalid subtensor rank (r1)!");
         if( i+1 < dimensions_.size() && newSubTensor.r2() != subTensors_[i].r2() )
           throw std::invalid_argument("Invalid subtensor rank (r2)!");
+
+        isOrthogonal = TT_Orthogonality::none;
+
         // similar to std::swap
         Tensor3<T> oldSubTensor(std::move(subTensors_[i]));
         subTensors_[i] = std::move(newSubTensor);
@@ -150,6 +176,8 @@ namespace PITTS
             if( newSubTensors[i].r2() != subTensors_[offset+i].r2() )
               throw std::invalid_argument("Invalid subtensor rank (r2)!");
         }
+
+        isOrthogonal = TT_Orthogonality::none;
 
         std::vector<Tensor3<T>> tmp(std::move(newSubTensors));
         for(int i = 0; i < tmp.size(); i++)
