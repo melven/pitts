@@ -26,21 +26,6 @@ namespace PITTS
   class TensorTrain
   {
     public:
-      //! tensor dimensions
-      //!
-      //! These are constant as one usually only changes the ranks of the individual sub-tensors in the tensor train.
-      //!
-      const auto& dimensions() const {return dimensions_;}
-
-      //! allow const access to all sub-tensors
-      const auto& subTensors() const {return subTensors_;}
-
-      //! allow non-const access to all sub-tensors
-      //!
-      //! \warning Do not modify sub-tensor dimensions here, only their values!
-      //!
-      auto& editableSubTensors() {return subTensors_;}
-
       //! create a new tensor train that represents a n^d tensor
       TensorTrain(int d, int n, int initial_TTrank = 1) : TensorTrain(std::vector<int>(d,n), initial_TTrank) {}
 
@@ -76,6 +61,22 @@ namespace PITTS
 
       //! move assignment is ok
       TensorTrain<T>& operator=(TensorTrain<T>&&) = default;
+
+
+      //! tensor dimensions
+      //!
+      //! These are constant as one usually only changes the ranks of the individual sub-tensors in the tensor train.
+      //!
+      const auto& dimensions() const {return dimensions_;}
+
+      //! allow const access to all sub-tensors
+      const auto& subTensors() const {return subTensors_;}
+
+      //! allow non-const access to all sub-tensors
+      //!
+      //! \warning Do not modify sub-tensor dimensions here, only their values!
+      //!
+      auto& editableSubTensors() {return subTensors_;}
 
 
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
