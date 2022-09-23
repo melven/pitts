@@ -18,13 +18,16 @@ using namespace internal;
  * @param TTx 
  * @param beta 
  * @param TTy  
+ * @param leftOrtho
  */
-static void check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double accuracy = std::sqrt(std::numeric_limits<double>::epsilon()))
+static void check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy,  const char ortho, double accuracy = std::sqrt(std::numeric_limits<double>::epsilon()))
 {
     TensorTrain<double> _TTy_(TTy);
     copy(TTy, _TTy_);
 
-    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy);
+    bool leftOrtho = (ortho == 'l') ? true : false;
+
+    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff, leftOrtho);
     const double gamma = axpby(alpha, TTx, beta, TTy, accuracy);
     EXPECT_NEAR(_gamma_, gamma, accuracy);
 
@@ -128,10 +131,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, DISABLED_order1) // test fails because 
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_order2_0)
@@ -152,10 +155,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order2_0)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_order2_1)
@@ -176,10 +179,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order2_1)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_order2_2)
@@ -200,10 +203,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order2_2)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_order3)
@@ -224,10 +227,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order3)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_order4)
@@ -248,10 +251,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order4)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_order5)
@@ -272,10 +275,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order5)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_special_cases)
@@ -301,15 +304,15 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_special_cases)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(0.0, TTx, 0.0, TTy);
+    check_axpby(0.0, TTx, 0.0, TTy, 'l');
 
-    check_axpby(0.0, TTx, 1.0, TTy);
-    check_axpby(0.0, TTx, -1.0, TTy);
-    check_axpby(0.0, TTx, 2.0, TTy);
+    check_axpby(0.0, TTx, 1.0, TTy, 'l');
+    check_axpby(0.0, TTx, -1.0, TTy, 'l');
+    check_axpby(0.0, TTx, 2.0, TTy, 'l');
 
-    check_axpby(1.0, TTx, 0.0, TTy);
-    check_axpby(-1.0, TTx, 0.0, TTy);
-    check_axpby(2.0, TTx, 0.0, TTy);
+    check_axpby(1.0, TTx, 0.0, TTy, 'l');
+    check_axpby(-1.0, TTx, 0.0, TTy, 'l');
+    check_axpby(2.0, TTx, 0.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_highrank)
@@ -337,10 +340,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_highrank)
     //printTTranks(TTx, "X");
     //printTTranks(TTy, "Y");
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_lowrank)
@@ -364,10 +367,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_lowrank)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_equal)
@@ -391,12 +394,12 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_equal)
     left_ortho(TTx);
 
     // addition
-    check_axpby(1.0, TTx, 1.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
     // --> 0 tensor
-    check_axpby(-1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -1.0, TTy);
+    check_axpby(-1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -1.0, TTy, 'l');
     // axpby
-    check_axpby(2.0, TTx, -3.0, TTy);
+    check_axpby(2.0, TTx, -3.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_large_tensors)
@@ -420,10 +423,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_large_tensors)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_long_tensors)
@@ -447,10 +450,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_long_tensors)
     rand_init(TTy, m_max);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'l');
+    check_axpby(1.0, TTx, -2.0, TTy, 'l');
+    check_axpby(3.0, TTx, 1.0, TTy, 'l');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'l');
 }
 
 
@@ -477,10 +480,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order2_0)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_order2_1)
@@ -501,10 +504,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order2_1)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_order2_2)
@@ -525,10 +528,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order2_2)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_order3)
@@ -549,10 +552,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order3)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_order4)
@@ -573,10 +576,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order4)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_order5)
@@ -597,10 +600,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order5)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_special_cases)
@@ -626,15 +629,15 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_special_cases)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(0.0, TTx, 0.0, TTy);
+    check_axpby(0.0, TTx, 0.0, TTy, 'r');
 
-    check_axpby(0.0, TTx, 1.0, TTy);
-    check_axpby(0.0, TTx, -1.0, TTy);
-    check_axpby(0.0, TTx, 2.0, TTy);
+    check_axpby(0.0, TTx, 1.0, TTy, 'r');
+    check_axpby(0.0, TTx, -1.0, TTy, 'r');
+    check_axpby(0.0, TTx, 2.0, TTy, 'r');
 
-    check_axpby(1.0, TTx, 0.0, TTy);
-    check_axpby(-1.0, TTx, 0.0, TTy);
-    check_axpby(2.0, TTx, 0.0, TTy);
+    check_axpby(1.0, TTx, 0.0, TTy, 'r');
+    check_axpby(-1.0, TTx, 0.0, TTy, 'r');
+    check_axpby(2.0, TTx, 0.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_highrank)
@@ -662,10 +665,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_highrank)
     //printTTranks(TTx, "X");
     //printTTranks(TTy, "Y");
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_lowrank)
@@ -689,10 +692,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_lowrank)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_equal)
@@ -716,12 +719,12 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_equal)
     right_ortho(TTx);
 
     // addition
-    check_axpby(1.0, TTx, 1.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
     // --> 0 tensor
-    check_axpby(-1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -1.0, TTy);
+    check_axpby(-1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -1.0, TTy, 'r');
     // axpby
-    check_axpby(2.0, TTx, -3.0, TTy);
+    check_axpby(2.0, TTx, -3.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_large_tensors)
@@ -745,10 +748,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_large_tensors)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
@@ -772,10 +775,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
     rand_init(TTy, m_max);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 'r');
+    check_axpby(1.0, TTx, -2.0, TTy, 'r');
+    check_axpby(3.0, TTx, 1.0, TTy, 'r');
+    check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
 
 
