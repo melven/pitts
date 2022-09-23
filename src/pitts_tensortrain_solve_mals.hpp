@@ -275,6 +275,46 @@ namespace PITTS
 
   }
 
+  //! Different variants for defining the sub-problem in MALS-like algorithms for solving linear systems in TT format
+  //!
+  //! The sub-problem in each step is constructed using an orthogonal projection of the form W^T A V x = W^T b .
+  //! This defines different choices for W.
+  //!
+  enum class MALS_projection
+  {
+    //! standard choice
+    //!
+    //! uses W = V, minimizes an energy functional for symmetric positive definite operators.
+    //! Might still work for slightly non-symmetric operators.
+    //!
+    RitzGalerkin = 0,
+
+    //! normal equations
+    //!
+    //! uses W = A^T V resulting in the Ritz-Galerkin approach for the normal equations: V^T A^TA V x = V^T A^T b.
+    //! Suitable for non-symmetric operators.
+    //! But squares the condition number and doubles the TT ranks in the calculation.
+    //! Can be interpreted as a Petrov-Galerkin approach with W = A^T V.
+    //!
+    NormalEquations,
+
+    //! transposed (bi-conjugate) approach
+    //!
+    //! successively builds W from solving V^T A^T W y = V^T b and V from solving W^T A V x = W^T b.
+    //! Similar to the idea of the BiCG iterative method.
+    //! Twice the amount of work but preserves the condition number and the TT ranks in the calculation.
+    //!
+    PetrovGalerkin_transposedOperator,
+
+    //! inverse transposed approach
+    //!
+    //! similar to the idea above but builds W from solving V^T A^T W y = V^T (V x) and V from solving W^T A V x = W^T b.
+    //! The idea is to approximate A^(-T) V with W.
+    //! Twice the amount of work but should improve the condition number while possibly doubling the TT ranks in the calculation.
+    //! 
+    PetrovGalerkin_inverseTransposedOperator
+  };
+
 
   //! Solve a linear system using the MALS algorithm
   //!
