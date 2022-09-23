@@ -14,8 +14,10 @@ TEST(PITTS_TensorTrain_random, randomize)
 
   // we expect different values between -1 and 1
   std::set<double> values;
-  for(const auto& subT: TT.subTensors())
+  for(int i = 0; i < 3; i++)
   {
+    const auto& subT = TT.subTensor(i);
+
     for(int i = 0; i < subT.r1(); i++)
       for(int j = 0; j < subT.n(); j++)
         for(int k = 0; k < subT.r2(); k++)

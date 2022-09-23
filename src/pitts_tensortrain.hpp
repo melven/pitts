@@ -18,6 +18,17 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  // forward declarations
+  template<typename T>
+  class TensorTrain;
+
+  template<typename T>
+  void copy(const TensorTrain<T>&, TensorTrain<T>&);
+
+  template<typename T>
+  void randomize(TensorTrain<T>&);
+
+
   //! tensor train class
   //!
   //! @tparam T  underlying data type (double, complex, ...)
@@ -219,6 +230,19 @@ namespace PITTS
           subTensors_[i].setUnit(0, index[i], 0);
       }
 
+    protected:
+      //! internal low-level sub-tensor access function
+      //!
+      //! Provided to a few selected friend functions to allow an optimized implementation.
+      //!
+      Tensor3<T>& editableSubTensor(int i) {return subTensors_.at(i);}
+
+      //! copy function can circumvent checks in setSubTensor for a faster implementation.
+      friend void copy<T>(const TensorTrain<T>&, TensorTrain<T>&);
+
+      //! randomize function can circumvent setting setSubTensor and modify the entries directly
+      friend void randomize<T>(TensorTrain<T>&);
+
     private:
       //! tensor dimensions
       //!
@@ -247,7 +271,7 @@ namespace PITTS
       throw std::invalid_argument("TensorTrain copy dimension mismatch!");
 
     for(int i = 0; i < a.dimensions().size(); i++)
-      copy(a.subTensors()[i], b.editableSubTensors()[i]);
+      copy(a.subTensor(i), b.editableSubTensor(i));
   }
 }
 
