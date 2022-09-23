@@ -87,10 +87,9 @@ namespace PITTS
       root = iProc == 0;
     }
 
-    TensorTrain<T> result(dimensions);
-
     // actually convert to tensor train format
     Tensor2<T> tmpR;
+    std::vector<Tensor3<T>> subTensors(nDims);
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     Eigen::BDCSVD<EigenMatrix> svd;
     for(int iDim = nDims-1; iDim > 0; iDim--)
@@ -113,8 +112,7 @@ namespace PITTS
       int rank = svd.rank();
       if( maxRank > 0 )
         rank = std::min(maxRank, rank);
-      auto& subT = result.editableSubTensors()[iDim];
-      fold_right(svd.matrixV().leftCols(rank).transpose(), dimensions[iDim], subT);
+      fold_right(svd.matrixV().leftCols(rank).transpose(), dimensions[iDim], subTensors[iDim]);
 
       tmpR.resize(X.cols(), rank);
       EigenMap(tmpR) = svd.matrixV().leftCols(rank);
@@ -124,8 +122,10 @@ namespace PITTS
       std::swap(X, work);
     }
     // last sub-tensor is now in X
-    auto& lastSubT = result.editableSubTensors()[0];
-    fold_right(X, dimensions[0], lastSubT);
+    fold_right(X, dimensions[0], subTensors[0]);
+
+    TensorTrain<T> result(dimensions);
+    result.setSubTensors(0, std::move(subTensors));
 
     // make sure we swap X and work back: prevents problems where the reserved space in X is used again later AND the data does only fit into memory once ;)
     if( nDims % 2 == 0 )

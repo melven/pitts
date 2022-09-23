@@ -45,9 +45,9 @@ namespace PITTS
       return;
     }
 
-    const int r0 = TT.subTensors().front().r1();
-    const int rd = TT.subTensors().back().r2();
     const int nDim = TT.dimensions().size();
+    const int r0 = TT.subTensor(     0).r1();
+    const int rd = TT.subTensor(nDim-1).r2();
 
     const auto totalSize = r0 * rd * std::accumulate(begin(TT.dimensions()), end(TT.dimensions()), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
 
@@ -55,7 +55,7 @@ namespace PITTS
     // as in most cases the calculation becomes memory bound and requires lots of reshaping
     if( nDim == 1 )
     {
-      const auto& subT = TT.subTensors()[0];
+      const auto& subT = TT.subTensor(0);
       X.resize(subT.r1() * subT.n() * subT.r2(), 1);
       for(int k = 0; k < subT.r2(); k++)
         for(int j = 0; j < subT.n(); j++)
@@ -64,7 +64,7 @@ namespace PITTS
     }
     else // nDim > 1
     {
-      const auto& subT = TT.subTensors()[0];
+      const auto& subT = TT.subTensor(0);
       unfold_left(subT, X);
     }
 
@@ -73,7 +73,7 @@ namespace PITTS
     for(int iDim = 1; iDim < nDim; iDim++)
     {
       // copy sub-tensor to Tensor2 to pass it to transform later
-      const auto& subT = TT.subTensors()[iDim];
+      const auto& subT = TT.subTensor(iDim);
       unfold_right(subT, M);
 
       if( iDim+1 == nDim )
@@ -113,8 +113,9 @@ namespace PITTS
       return;
     }
 
-    const int r0 = TT.subTensors().front().r1();
-    const int rd = TT.subTensors().back().r2();
+    const int nDim = TT.dimensions().size();
+    const int r0 = TT.subTensor(     0).r1();
+    const int rd = TT.subTensor(nDim-1).r2();
 
     const auto totalSize = r0 * rd * std::accumulate(begin(TT.dimensions()), end(TT.dimensions()), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
     if( totalSize != last - first )

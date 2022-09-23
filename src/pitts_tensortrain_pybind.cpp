@@ -59,7 +59,7 @@ namespace PITTS
       template<typename T>
       py::array_t<T> TensorTrain_getSubTensor(const TensorTrain<T>& TT, int d)
       {
-        const auto& subT = TT.subTensors().at(d);
+        const auto& subT = TT.subTensor(d);
         py::array_t<T> array({subT.r1(), subT.n(), subT.r2()});
 
         for(int i2 = 0; i2 < subT.r2(); i2++)
