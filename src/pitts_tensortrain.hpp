@@ -69,13 +69,71 @@ namespace PITTS
       //!
       const auto& dimensions() const {return dimensions_;}
 
+      //! get i'th sub-tensor
+      const Tensor3<T>& subTensor(int i) const {return subTensors_.at(i);}
+
+      //! set i'th sub-tensor
+      //!
+      //! Intentionally moves from the input argument and returns the old sub-tensor.
+      //! This allows to call this method without allocating or copying data and to reuse the old memory.
+      //!
+      Tensor3<T> setSubTensor(int i, Tensor3<T>&& newSubTensor)
+      {
+        if( newSubTensor.n() != dimensions_.at(i) )
+          throw std::invalid_argument("Invalid subtensor dimension!");
+        if( i > 0 && newSubTensor.r1() != subTensors_[i].r1() )
+          throw std::invalid_argument("Invalid subtensor rank (r1)!");
+        if( i+1 < dimensions_.size() && newSubTensor.r2() != subTensors_[i].r2() )
+          throw std::invalid_argument("Invalid subtensor rank (r2)!");
+        // similar to std::swap
+        Tensor3<T> oldSubTensor(std::move(subTensors_[i]));
+        subTensors_[i] = std::move(newSubTensor);
+        return oldSubTensor;
+      }
+
+      //! set a range of sub-tensors
+      //!
+      //! similar to setSubTensor but replaces several sub-tensors at once allowing to change the intermediate TT ranks.
+      //!
+      //! Intentionally moves from the input argument and returns the old sub-tensors.
+      //! This allows to call this method without allocating or copying data and to reuse the old memory.
+      //!
+      std::vector<Tensor3<T>> setSubTensors(int offset, std::vector<Tensor3<T>>&& newSubTensors)
+      {
+        for(int i = 0; i < newSubTensors.size(); i++)
+        {
+          // check dimensions
+          if( newSubTensors[i].n() != dimensions_.at(offset+i) )
+            throw std::invalid_argument("Invalid subtensor dimension!");
+          // check first TT rank
+          if( i == 0 && offset > 0 )
+            if( newSubTensors[i].r1() != subTensors_[offset+i].r1() )
+              throw std::invalid_argument("Invalid subtensor rank (r1)!");
+          // check intermediate TT ranks
+          if( i+1 < newSubTensors.size() )
+            if( newSubTensors[i].r2() != newSubTensors[i+1].r1() )
+              throw std::invalid_argument("Invalid subtensors intermediate rank (r1!=r2)!");
+          // check last TT rank
+          if( i+1 == newSubTensors.size() && offset+i+1 < subTensors_.size() )
+            if( newSubTensors[i].r2() != subTensors_[offset+i].r2() )
+              throw std::invalid_argument("Invalid subtensor rank (r2)!");
+        }
+
+        std::vector<Tensor3<T>> tmp(std::move(newSubTensors));
+        for(int i = 0; i < tmp.size(); i++)
+          std::swap(subTensors_[offset+i], tmp[i]);
+        return tmp;
+      }
+
       //! allow const access to all sub-tensors
+      [[deprecated]]
       const auto& subTensors() const {return subTensors_;}
 
       //! allow non-const access to all sub-tensors
       //!
       //! \warning Do not modify sub-tensor dimensions here, only their values!
       //!
+      [[deprecated]]
       auto& editableSubTensors() {return subTensors_;}
 
 
