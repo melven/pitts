@@ -83,6 +83,62 @@ TEST(PITTS_TensorTrain, create_generic)
   ASSERT_THROW(TT.subTensor(5), std::out_of_range);
 }
 
+TEST(PITTS_TensorTrain, create_fromSubTensors)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+
+  // create some reference tensor train
+  TensorTrain_double TTref({2, 3, 4, 5, 6});
+  TTref.setTTranks({2, 3, 3, 2});
+  for(int iDim = 0; iDim < TTref.dimensions().size(); iDim++)
+  {
+    const int r1 = TTref.subTensor(iDim).r1();
+    const int n = TTref.subTensor(iDim).n();
+    const int r2 = TTref.subTensor(iDim).r2();
+    Tensor3_double subT(r1, n, r2);
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+          subT(i,j,k) = iDim*1000 + i + j*10 + k*100;
+    TTref.setSubTensor(iDim, std::move(subT));
+  }
+
+  // copy subTensors
+  std::vector<Tensor3_double> subTensors(TTref.dimensions().size());
+  for(int iDim = 0; iDim < TTref.dimensions().size(); iDim++)
+  {
+    const auto& subTref = TTref.subTensor(iDim);
+    const int r1 = subTref.r1();
+    const int n = subTref.n();
+    const int r2 = subTref.r2();
+    subTensors[iDim].resize(r1, n, r2);
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+          subTensors[iDim](i,j,k) = subTref(i,j,k);
+  }
+
+  // generate new TT from it
+  TensorTrain_double TT(std::move(subTensors));
+
+  ASSERT_EQ(TTref.dimensions(), TT.dimensions());
+  for(int iDim = 0; iDim < TTref.dimensions().size(); iDim++)
+  {
+    const auto& subTref = TTref.subTensor(iDim);
+    const auto& subT = TT.subTensor(iDim);
+    ASSERT_EQ(subTref.r1(), subT.r1());
+    ASSERT_EQ(subTref.n(), subT.n());
+    ASSERT_EQ(subTref.r2(), subT.r2());
+    for(int i = 0; i < subT.r1(); i++)
+      for(int j = 0; j < subT.n(); j++)
+        for(int k = 0; k < subT.r2(); k++)
+        {
+          ASSERT_EQ(subTref(i,j,k), subT(i,j,k));
+        }
+  }
+}
+
 TEST(PITTS_TensorTrain, setSubTensor)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;

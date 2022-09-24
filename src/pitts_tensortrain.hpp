@@ -28,6 +28,19 @@ namespace PITTS
   template<typename T>
   void randomize(TensorTrain<T>&);
 
+  //! namespace for helper functionality
+  namespace internal
+  {
+    template<typename T>
+    std::vector<int> dimensionsFromSubTensors(const std::vector<Tensor3<T>>& subTensors)
+    {
+      std::vector<int> dims(subTensors.size());
+      for(int i = 0; i < dims.size(); i++)
+        dims[i] = subTensors[i].n();
+      return dims;
+    }
+  }
+
 
   //! tensor train class
   //!
@@ -62,6 +75,14 @@ namespace PITTS
         subTensors_.resize(dimensions_.size());
         for(int i = 0; i < dimensions_.size(); i++)
           copy(other.subTensors()[i], subTensors_[i]);
+      }
+
+      //! construct from given sub-tensors, dimensions are obtained from the sub-tensor dimensions
+      TensorTrain(std::vector<Tensor3<T>>&& subTensors) :
+        dimensions_(internal::dimensionsFromSubTensors(subTensors))
+      {
+        subTensors_.resize(dimensions_.size());
+        setSubTensors(0, std::move(subTensors));
       }
 
       //! no implicit copy assignment
