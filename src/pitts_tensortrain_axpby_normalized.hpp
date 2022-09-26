@@ -90,9 +90,11 @@ namespace PITTS
             {
                 // return LQ
                 EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
+                printf("\n\n before error \n\n");
                 EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
+                printf("\n\n after error \n\n");
             }
-
+            
             return result;
         }
 
@@ -834,7 +836,16 @@ namespace PITTS
         }
 
         // regular case
-
+/*
+        printf("\n------------------ Before: -----------------\n\n");
+        //printf("alpha: %f\n", alpha);
+        //printf("beta:  %f\n", beta);
+        printf("\nX:\n\n");
+        internal::quickndirty_visualizeTT(TTx);
+        printf("\nY:\n\n");
+        internal::quickndirty_visualizeTT(TTy);
+        printf("\n------------------ During: -----------------\n");
+*/
         T gamma;
         if (leftOrtho)
         {
