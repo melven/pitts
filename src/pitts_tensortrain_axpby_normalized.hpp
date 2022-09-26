@@ -726,9 +726,9 @@ namespace PITTS
             Tensor2<T> Mxt;   // 2Tensor copy of Txt
             Tensor3<T> TQ;    // 3Tensor copy of Q
             
-            // initialize Txt and Tyt for k == 0
-            copy(x_cores[0], Txt);
-            copy(y_cores[0], Tyt);
+            // initialize Txt and Tyt for k == d-1
+            copy(x_cores[d-1], Txt);
+            copy(y_cores[d-1], Tyt);
 
             for (int k = d - 1; k > 0; k--)
             {
