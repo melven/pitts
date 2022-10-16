@@ -59,27 +59,15 @@ namespace PITTS
             // rank of matrix
             const Eigen::Index rk = std::min(qr.rank(), Eigen::Index(maxRank));
 
-            #ifdef VERBOSE
-            std::cout << "threshold: \t\t" << FIXED_FLOAT(qr.threshold(), 20) << " is " << FIXED_FLOAT(qr.threshold()/std::numeric_limits<T>::epsilon(), 1) << " * machine_eps";
-            (qr.threshold() == 16 * rankTol) ? std::cout << ", used RELATIVE rank tolerance\n" : std::cout << ", used ABSOLUTE rank tolerance\n";
-            std::cout << "treshold * |maxpivot|: \t" << FIXED_FLOAT(qr.threshold() * std::abs(qr.maxPivot()), 20) << std::endl;
-            std::cout << "biggest pivot element: \t" << FIXED_FLOAT(qr.maxPivot(), 20) << std::endl;
-            std::cout << "matrix rank: " << qr.rank() << ", cut off at maxrank -> " << rk << std::endl;
-            const EigenMatrix R_ = qr.matrixR();
-            std::cout << "all pivot elements: ";
-            for (int i = 0; i < std::min(R_.rows(), R_.cols()); i++)
-                std::cout << FIXED_FLOAT(R_(i,i), 20) << '\t';
-            std::cout << "\n\n";
-            #endif
-
             // return result
             
             std::pair<Tensor2<T>,Tensor2<T>> result;
             result.first.resize(M.r1(), rk);
             result.second.resize(rk, M.r2());
 
-            std::cout << "matrix rank: " << qr.rank() << ", cut off at maxrank -> " << rk << std::endl;
-            
+            // avoid "Intel MKL ERROR: Parameter 6 was incorrect on entry to DGEMV ." in Eigen that occurs rightOrtho case when rk == 0
+            // the "error" doesn't actually cause any issues, but ain't nice to have
+            if (rk == 0) return result;
 
             qr.householderQ().setLength(rk);
             const EigenMatrix R = qr.matrixR().topRows(rk).template triangularView<Eigen::Upper>();
@@ -93,9 +81,7 @@ namespace PITTS
             {
                 // return LQ
                 EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
-                //printf("\n\n before error \n\n");
                 EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
-                //printf("\n\n after error \n\n");
             }
 
             return result;
