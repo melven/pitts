@@ -78,6 +78,9 @@ namespace PITTS
             result.first.resize(M.r1(), rk);
             result.second.resize(rk, M.r2());
 
+            std::cout << "matrix rank: " << qr.rank() << ", cut off at maxrank -> " << rk << std::endl;
+            
+
             qr.householderQ().setLength(rk);
             const EigenMatrix R = qr.matrixR().topRows(rk).template triangularView<Eigen::Upper>();
             if( leftOrthog )
@@ -90,11 +93,11 @@ namespace PITTS
             {
                 // return LQ
                 EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
-                printf("\n\n before error \n\n");
+                //printf("\n\n before error \n\n");
                 EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
-                printf("\n\n after error \n\n");
+                //printf("\n\n after error \n\n");
             }
-            
+
             return result;
         }
 
@@ -836,7 +839,8 @@ namespace PITTS
         }
 
         // regular case
-/*
+
+        #ifdef VERBOSE
         printf("\n------------------ Before: -----------------\n\n");
         //printf("alpha: %f\n", alpha);
         //printf("beta:  %f\n", beta);
@@ -845,7 +849,8 @@ namespace PITTS
         printf("\nY:\n\n");
         internal::quickndirty_visualizeTT(TTy);
         printf("\n------------------ During: -----------------\n");
-*/
+        #endif
+
         T gamma;
         if (leftOrtho)
         {
