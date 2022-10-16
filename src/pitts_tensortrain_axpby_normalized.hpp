@@ -560,18 +560,19 @@ namespace PITTS
         }
 
 
-
+        
         /**
-         * @brief 
+         * @brief Left to right orthogonalization sweep for axpby_normalized function.
+         * This performs the axbpy operation as well as the orthogonalization.
          * 
-         * @tparam T 
-         * @param alpha 
-         * @param TTx_ortho 
-         * @param beta 
-         * @param TTy 
+         * @tparam T            underlying data type
+         * @param alpha         coefficient of tensor x, scalar value
+         * @param TTx_ortho     tensor x in tensor train format, left-orthogonal
+         * @param beta          coefficient of tensor y, scalar value
+         * @param TTy           tensor y in tensor train format
          */
         template <typename T>
-        void axpby_orthogonalization_left(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
+        void axpby_leftOrthogonalize(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
         {
             const auto& TTx = TTx_ortho;
             std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
@@ -670,18 +671,19 @@ namespace PITTS
             std::swap(Tyt, y_cores[d-1]);
         }
 
-
+        
         /**
-         * @brief TOOOOOOOOOOOOOOOOOOOOOOOOODOOOOOOOOOOO
+         * @brief Right to left orthogonalization sweep for axpby_normalized function.
+         * This performs the axbpy operation as well as the orthogonalization.
          * 
-         * @tparam T 
-         * @param alpha 
-         * @param TTx_ortho 
-         * @param beta 
-         * @param TTy 
+         * @tparam T            underlying data type
+         * @param alpha         coefficient of tensor x, scalar value
+         * @param TTx_ortho     tensor x in tensor train format, right-orthogonal
+         * @param beta          coefficient of tensor y, scalar value
+         * @param TTy           tensor y in tensor train format
          */
         template <typename T>
-        void axpby_orthogonalization_right(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
+        void axpby_rightOrthogonalize(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
         {
             const auto& TTx = TTx_ortho;
             std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
@@ -825,28 +827,16 @@ namespace PITTS
         }
 
         // regular case
-
-        #ifdef VERBOSE
-        printf("\n------------------ Before: -----------------\n\n");
-        //printf("alpha: %f\n", alpha);
-        //printf("beta:  %f\n", beta);
-        printf("\nX:\n\n");
-        internal::quickndirty_visualizeTT(TTx);
-        printf("\nY:\n\n");
-        internal::quickndirty_visualizeTT(TTy);
-        printf("\n------------------ During: -----------------\n");
-        #endif
-
         T gamma;
         if (leftOrtho)
         {
-            internal::axpby_orthogonalization_left(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep left to right
-            gamma = rightNormalize(TTy, rankTolerance, maxRank);                 // compression sweep right to left
+            internal::axpby_leftOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep left to right
+            gamma = rightNormalize(TTy, rankTolerance, maxRank);      // compression sweep right to left
         }
         else
         {
-            internal::axpby_orthogonalization_right(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep right to left
-            gamma = leftNormalize(TTy, rankTolerance, maxRank);                   // compression sweep left to right
+            internal::axpby_rightOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep right to left
+            gamma = leftNormalize(TTy, rankTolerance, maxRank);        // compression sweep left to right
         }
 
         return gamma;
