@@ -74,7 +74,7 @@ namespace PITTS
         // create and copy all subtensors
         subTensors_.resize(dimensions_.size());
         for(int i = 0; i < dimensions_.size(); i++)
-          copy(other.subTensors()[i], subTensors_[i]);
+          copy(other.subTensor(i), subTensors_[i]);
       }
 
       //! construct from given sub-tensors, dimensions are obtained from the sub-tensor dimensions

@@ -142,12 +142,12 @@ namespace PITTS
 
       // auxiliary matrix / tensor
       Tensor2<T> t2;
-      Tensor3<T> t3;
+      std::vector<Tensor3<T>> newSubT(2);
 
       for(int iDim = firstIdx; iDim < lastIdx; iDim++)
       {
-        auto& subT = TT.editableSubTensors()[iDim];
-        auto& subT_next = TT.editableSubTensors()[iDim+1];
+        const auto& subT = TT.subTensor(iDim);
+        const auto& subT_next = TT.subTensor(iDim+1);
 
         // calculate the SVD or QR of subT(: : x :)
         unfold_left(subT, t2);
@@ -156,11 +156,11 @@ namespace PITTS
           internal::normalize_svd(t2, true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
           internal::normalize_qb(t2, true);
 
-        fold_left(U, subT.n(), subT);
+        fold_left(U, subT.n(), newSubT[0]);
 
         // now contract Vt(:,*) * subT_next(*,:,:)
-        internal::normalize_contract1(Vt, subT_next, t3);
-        std::swap(subT_next, t3);
+        internal::normalize_contract1(Vt, subT_next, newSubT[1]);
+        newSubT = TT.setSubTensors(iDim, std::move(newSubT));
       }
     }
 
@@ -186,12 +186,12 @@ namespace PITTS
 
       // auxiliary matrix / tensor
       Tensor2<T> t2;
-      Tensor3<T> t3;
+      std::vector<Tensor3<T>> newSubT(2);
 
       for(int iDim = lastIdx; iDim > firstIdx; iDim--)
       {
-        auto& subT_prev = TT.editableSubTensors()[iDim-1];
-        auto& subT = TT.editableSubTensors()[iDim];
+        const auto& subT_prev = TT.subTensor(iDim-1);
+        const auto& subT = TT.subTensor(iDim);
 
         // calculate the SVD or QR of ( subT(: x : :) )^T
         unfold_right(subT, t2);
@@ -200,11 +200,11 @@ namespace PITTS
           internal::normalize_svd(t2, false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
           internal::normalize_qb(t2, false);
 
-        fold_right(Vt, subT.n(), subT);
+        fold_right(Vt, subT.n(), newSubT[1]);
 
         // now contract subT_prev(:,:,*) * U(*,:)
-        internal::normalize_contract2(subT_prev, U, t3);
-        std::swap(subT_prev, t3);
+        internal::normalize_contract2(subT_prev, U, newSubT[0]);
+        newSubT = TT.setSubTensors(iDim-1, std::move(newSubT));
       }
     }
   }
@@ -228,10 +228,13 @@ namespace PITTS
     internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
-    auto& subT = TT.editableSubTensors()[nDim-1];
+    const auto& subT = TT.subTensor(nDim-1);
+    Tensor3<T> t3;
     const T nrm = internal::t3_nrm(subT);
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    internal::t3_scale(invNrm, subT);
+    copy(subT, t3);
+    internal::t3_scale(invNrm, t3);
+    TT.setSubTensor(nDim-1, std::move(t3));
     return nrm;
   }
 
@@ -249,7 +252,7 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    const int nDim = TT.subTensors().size();
+    const int nDim = TT.dimensions().size();
     if( nDim <= 0)
       throw std::invalid_argument("TensorTrain #dimensions < 1!");
 
@@ -268,10 +271,13 @@ namespace PITTS
     internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
-    auto& subT = TT.editableSubTensors()[nDim-1];
+    const auto& subT = TT.subTensor(nDim-1);
+    Tensor3<T> t3;
     const T nrm = internal::t3_nrm(subT);
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    internal::t3_scale(invNrm, subT);
+    copy(subT, t3);
+    internal::t3_scale(invNrm, t3);
+    TT.setSubTensor(nDim-1, std::move(t3));
     return nrm;
   }
 
@@ -290,17 +296,20 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    const int nDim = TT.subTensors().size();
+    const int nDim = TT.dimensions().size();
     if( nDim <= 0)
       throw std::invalid_argument("TensorTrain #dimensions < 1!");
 
     internal::rightNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
-    auto& subT = TT.editableSubTensors()[0];
+    const auto& subT = TT.subTensor(0);
+    Tensor3<T> t3;
     const T nrm = internal::t3_nrm(subT);
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    internal::t3_scale(invNrm, subT);
+    copy(subT, t3);
+    internal::t3_scale(invNrm, t3);
+    TT.setSubTensor(0, std::move(t3));
     return nrm;
   }
 
