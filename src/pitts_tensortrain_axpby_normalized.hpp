@@ -577,39 +577,38 @@ namespace PITTS
         {
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
+            std::vector<Tensor3<T>> temp(2); // temporary tensor train holding result
 
             // scale last tensor cores
-            // (I'm using z_cores[0] as a temporary buffer for TTy[d-1])
             Tensor3<T> x_last_core;
             copy(TTx.subTensor(d-1), x_last_core);
             internal::t3_scale(alpha, x_last_core);
             //internal::t3_scale(beta, y_cores[d-1]);
-            copy(TTy.subTensor(d-1), z_cores[0]);
-            internal::t3_scale(beta, z_cores[0]);
+            copy(TTy.subTensor(d-1), temp[0]);
+            internal::t3_scale(beta, temp[0]);
             if (d == 1) // special case
             {
-                internal::t3_axpy((T)1, x_last_core, z_cores[0]);
-                TTy.setSubTensor(d-1, std::move(z_cores[0]));
+                internal::t3_axpy((T)1, x_last_core, temp[0]);
+                TTy.setSubTensor(d-1, std::move(temp[0]));
                 return;
             }
-            z_cores[0] = TTy.setSubTensor(d-1, std::move(z_cores[0]));
+            temp[0] = TTy.setSubTensor(d-1, std::move(temp[0]));
 
             //
             // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
             //
+            Tensor3<T>& Tzt = temp[0];
+            Tensor3<T>& Tyt = temp[1];   // temporary 3Tensor y (Y tilde)
+            Tensor3<T>  Txt;   // temporary 3Tensor x (X tilde)
+            Tensor2<T>  Mzt;   // temporary 2Tensor to hold result Mxt^tr * Myt
 
-            Tensor3<T> Tyt;   // temporary 3Tensor y (Y tilde)
-            Tensor3<T> Txt;   // temporary 3Tensor x (X tilde)
-            Tensor2<T> Mzt;   // temporary 2Tensor to hold result Mxt^tr * Myt
+            Tensor2<T>  Mtmp;  // temporary 2Tensor to hold result Myt - Mxt * Mzt
+            Tensor3<T>  Ttmpu; // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
+            Tensor3<T>  Ttmpl; // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
 
-            Tensor2<T> Mtmp;  // temporary 2Tensor to hold result Myt - Mxt * Mzt
-            Tensor3<T> Ttmpu; // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
-            Tensor3<T> Ttmpl; // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
-
-            Tensor2<T> Myt;   // 2Tensor copy of Tyt 
-            Tensor2<T> Mxt;   // 2Tensor copy of Txt
-            Tensor3<T> TQ;    // 3Tensor copy of Q
+            Tensor2<T>  Myt;   // 2Tensor copy of Tyt 
+            Tensor2<T>  Mxt;   // 2Tensor copy of Txt
+            Tensor3<T>  TQ;    // 3Tensor copy of Q
             
             // initialize Txt and Tyt for k == 0
             copy(TTx.subTensor(0), Txt);
@@ -644,8 +643,8 @@ namespace PITTS
                 // TQ <- fold(Q)
                 fold_left(Q, n_k, TQ);
 
-                // save result into z_cores[k] <- concat(Txt, TQ, dim=3)
-                internal::t3_concat3(Txt, TQ, z_cores[k]);
+                // Tzt <- concat(Txt, TQ, dim=3)
+                internal::t3_concat3(Txt, TQ, Tzt);
 
                 //
                 // Note: Ttmpu and Mzt can be independently calculated (in parallel)
@@ -660,6 +659,10 @@ namespace PITTS
                 // concatinate Tyt <- concat(Ttmpu, Ttmpl, dim=1)
                 internal::t3_concat1(Ttmpu, Ttmpl, Tyt);
 
+                // save result into TTy
+                temp = TTy.setSubTensors(k, std::move(temp));
+                copy(TTy.subTensor(k+1), Tyt);
+
                 //
                 // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mzt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
                 //
@@ -669,12 +672,9 @@ namespace PITTS
 
             } // end loop
 
-            // calculate z_cores[d-1] <- Txt + Tyt (componentwise)
+            // calculate TTy[d-1] <- Txt + Tyt (componentwise)
             internal::t3_axpy((T)1, Txt, Tyt);
-            std::swap(Tyt, z_cores[d-1]);
-
-            // save result into TTy
-            TTy.setSubTensors(0, std::move(z_cores));
+            TTy.setSubTensor(d-1, std::move(Tyt));
         }
 
         
