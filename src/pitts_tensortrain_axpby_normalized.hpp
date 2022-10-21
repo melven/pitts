@@ -577,12 +577,10 @@ namespace PITTS
         {
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            //std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
-            //const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
             std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
 
             // scale last tensor cores
-            // (I'm using z_cores[0] as a temporary "container for TTy[d-1]")
+            // (I'm using z_cores[0] as a temporary buffer for TTy[d-1])
             Tensor3<T> x_last_core;
             copy(TTx.subTensor(d-1), x_last_core);
             internal::t3_scale(alpha, x_last_core);
@@ -695,8 +693,6 @@ namespace PITTS
         {
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            //std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
-            //const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
             std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
 
             // scale first tensor cores
@@ -815,8 +811,6 @@ namespace PITTS
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
         
         const auto& TTx = TTx_ortho;
-        //std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
-        //const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
         const std::vector<int>& x_dim = TTx.dimensions();
         const std::vector<int>& y_dim = TTy.dimensions();
         const int& d = x_dim.size(); // order d
