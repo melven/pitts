@@ -62,11 +62,12 @@ static void rand_init(TensorTrain<double>& tt, double max = 1.0, int first_idx =
    // initialize TT with (pseudo-)random numbers in range [0, max]
     for (int k = first_idx; k < last_idx; k++)
     {
-        auto& core = tt.editableSubTensors()[k];
+        Tensor3<double> core(tt.subTensor(k).r1(), tt.subTensor(k).n(), tt.subTensor(k).r2());
         for (int i2 = 0; i2 < core.r2(); i2++)
             for (int j = 0; j < core.n(); j++)
                 for (int i1  = 0; i1 < core.r1(); i1++)
                     core(i1, j, i2) = (double)std::rand() / RAND_MAX * max;
+        core = tt.setSubTensor(k, std::move(core));
     }
     
 }
@@ -780,52 +781,3 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
     check_axpby(3.0, TTx, 1.0, TTy, 'r');
     check_axpby(-4.0, TTx, -5.0, TTy, 'r');
 }
-
-
-
-/*
-// test is not very conclusive (false positive common), just keeping it in case...
-TEST(PITTS_TensorTrain_axpby_normalized, unit_vectors)
-{
-    // TTx = TTy, of the form:
-    //  o -- o -- o 
-    //  |    |    |
-    // with n, r = 2 for all n's and r's (except r0 = r3 = 1)
-    //
-    // core 0 (1 x n1 x r1)        core 1 (r1 x n2 x r2)        core 2 (r2 x n3 x 1)
-    //  1 x | [ 1  0 ]                  | [ 1  0 ]                   | [ 1 ]
-    //   n1 | [ 0  1 ]          r1 x n2 | [ 0  1 ]           r2 x n3 | [ 0 ]
-    //        --------                  | [ 0  0 ]                   | [ 0 ]
-    //           r2                     | [ 0  0 ]                   | [ 0 ]
-    //                                    --------                     -----
-    //                                       r2                          1
-    //
-    // The left-unfolded core-matrices are the canonical projection matrices diag(1,1,...)
-    // ==> they are left-orthogonal
-
-    TensorTrain<double> TTx(3, 2, 2), TTy(3, 2, 2);
-
-    std::vector<Tensor3<double>>& x_cores = TTx.editableSubTensors();
-
-    // 0 init needed?
-    for (auto& core : x_cores)
-        for (int i2 = 0; i2 < core.r2(); i2++)
-            for (int j = 0; j < core.n(); j++)
-                for (int i1 = 0; i1 < core.r1(); i1++)
-                    core(i1, j, i2) = 0.0;
-
-    x_cores[0](0,0,0) = 1.0;
-    x_cores[0](0,1,1) = 1.0;
-    x_cores[1](0,0,0) = 1.0;
-    x_cores[1](1,0,1) = 1.0;
-    x_cores[2](0,0,0) = 1.0;
-
-    copy(TTx, TTy);
-
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(3.1, TTx, 5.7, TTy);
-    check_axpby(-1.0, TTx, 1.0, TTy);
-    check_axpby(-1.0, TTx, -1.0, TTy);
-    check_axpby(-1.5, TTx, -2.0, TTy);
-}
-*/
