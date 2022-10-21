@@ -63,8 +63,10 @@ namespace
     EXPECT_NEAR(1., norm2(TT), eps);
 
     // check orthogonality of subtensors
-    for(const auto& subT: TT.subTensors())
+    const int nDim = TT.dimensions().size();
+    for(int iDim = 0; iDim < nDim; iDim++)
     {
+      const auto& subT = TT.subTensor(iDim);
       const mat orthogErr = ConstEigenMap(leftContract(subT)) - mat::Identity(subT.r2(),subT.r2());
       EXPECT_NEAR(0., orthogErr.norm(), eps);
     }
@@ -111,7 +113,7 @@ namespace
     const int nDim = TT.dimensions().size();
     for(int iDim = 0; iDim < nDim; iDim++)
     {
-      const auto& subT = TT.subTensors()[iDim];
+      const auto& subT = TT.subTensor(iDim);
       
       if( iDim != nDim-1 )
       {
@@ -148,7 +150,7 @@ namespace
     const int nDim = TT.dimensions().size();
     for(int iDim = 0; iDim < nDim; iDim++)
     {
-      const auto& subT = TT.subTensors()[iDim];
+      const auto& subT = TT.subTensor(iDim);
       
       if( iDim != 0 )
       {
@@ -256,8 +258,16 @@ TEST(PITTS_TensorTrain_normalize, rank_1_random_matrix)
 TEST(PITTS_TensorTrain_normalize, rank_3_ones_matrix)
 {
   TensorTrain_double TT(2,5,3);
-  for(auto& subT: TT.editableSubTensors())
-    subT.setConstant(1.);
+
+  const int nDim = TT.dimensions().size();
+  Tensor3_double t3;
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    t3.resize(TT.subTensor(iDim).r1(), TT.subTensor(iDim).n(), TT.subTensor(iDim).r2());
+    t3.setConstant(1.);
+    t3 = TT.setSubTensor(iDim, std::move(t3));
+  }
+
   check_normalize(TT);
   EXPECT_EQ(std::vector<int>({1}), TT.getTTranks());
 }
@@ -287,8 +297,16 @@ TEST(PITTS_TensorTrain_normalize, larger_ones_tensor)
 {
   TensorTrain_double TT({4,3,2,5});
   TT.setTTranks({2,3,4});
-  for(auto& subT: TT.editableSubTensors())
-    subT.setConstant(1.);
+
+  const int nDim = TT.dimensions().size();
+  Tensor3_double t3;
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    t3.resize(TT.subTensor(iDim).r1(), TT.subTensor(iDim).n(), TT.subTensor(iDim).r2());
+    t3.setConstant(1.);
+    t3 = TT.setSubTensor(iDim, std::move(t3));
+  }
+
   check_normalize(TT);
   EXPECT_EQ(std::vector<int>({1,1,1}), TT.getTTranks());
 }
@@ -305,8 +323,16 @@ TEST(PITTS_TensorTrain_normalize, even_larger_ones_tensor)
 {
   TensorTrain_double TT({50,30,10}, 1);
   TT.setTTranks({5,10});
-  for(auto& subT: TT.editableSubTensors())
-    subT.setConstant(1.);
+
+  const int nDim = TT.dimensions().size();
+  Tensor3_double t3;
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    t3.resize(TT.subTensor(iDim).r1(), TT.subTensor(iDim).n(), TT.subTensor(iDim).r2());
+    t3.setConstant(1.);
+    t3 = TT.setSubTensor(iDim, std::move(t3));
+  }
+
   check_normalize(TT);
   EXPECT_EQ(std::vector<int>({1,1}), TT.getTTranks());
 }
@@ -342,12 +368,16 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d2)
     squaredTruncationError[i] = squaredTruncationError[i+1] + std::pow(sigma_sqrt(i),4);
 
   // set Tensor-Train cores
+  Tensor3_double subT0(1, 50, 50);
+  Tensor3_double subT1(50, 50, 1);
   for(int i = 0; i < 50; i++)
     for(int j = 0; j < 50; j++)
     {
-      TT.editableSubTensors()[0](0,i,j) = t1(i,j);
-      TT.editableSubTensors()[1](i,j,0) = t2(i,j);
+      subT0(0,i,j) = t1(i,j);
+      subT1(i,j,0) = t2(i,j);
     }
+  TT.setSubTensor(0, std::move(subT0));
+  TT.setSubTensor(1, std::move(subT1));
 
   // calculate the norm for checking relative errors
   double nrm_ref = PITTS::norm2(TT);
@@ -404,14 +434,22 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d10)
     PITTS::rightNormalize(TT);
     PITTS::copy(TT, tmp);
     PITTS::leftNormalize(tmp);
-    auto& subT = TT.editableSubTensors()[5];
-    for(int i = 0; i < subT.r1(); i++)
-      for(int j = 0; j < subT.n(); j++)
-        for(int k = 0; k < subT.r2(); k++)
-          subT(i,j,k) = subT(i,j,k) * std::pow(0.1, i);
-    ASSERT_EQ(tmp.subTensors()[4].r2(), TT.subTensors()[5].r1());
-    for(int iDim = 0; iDim < 5; iDim++)
-      std::swap(tmp.editableSubTensors()[iDim], TT.editableSubTensors()[iDim]);
+    {
+      const auto& subT = TT.subTensor(5);
+      Tensor3_double t3(subT.r1(), subT.n(), subT.r2());
+      for(int i = 0; i < subT.r1(); i++)
+        for(int j = 0; j < subT.n(); j++)
+          for(int k = 0; k < subT.r2(); k++)
+            t3(i,j,k) = subT(i,j,k) * std::pow(0.1, i);
+      TT.setSubTensor(5, std::move(t3));
+    }
+    ASSERT_EQ(tmp.subTensor(4).r2(), TT.subTensor(5).r1());
+    {
+      std::vector<Tensor3_double> leftHalf(5);;
+      for(int iDim = 0; iDim < 5; iDim++)
+        copy(tmp.subTensor(iDim), leftHalf[iDim]);
+      TT.setSubTensors(0, std::move(leftHalf));
+    }
   }
 
   // try different truncation accuracies...
@@ -466,9 +504,6 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_same_as_leftNormalize_reversed)
   TT.setTTranks({5,4,4});
   randomize(TT);
 
-  TensorTrain_double TT_reversed({7,8,9,10});
-  TT_reversed.setTTranks({4,4,5});
-
   constexpr auto transpose = [](const Tensor3_double& A, Tensor3_double& B)
   {
     B.resize(A.r2(),A.n(),A.r1());
@@ -479,16 +514,18 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_same_as_leftNormalize_reversed)
   };
 
   const auto nDim = TT.dimensions().size();
+  std::vector<Tensor3_double> reversed_subT(nDim);
   for(int iDim = 0; iDim < nDim; iDim++)
-    transpose(TT.subTensors()[iDim], TT_reversed.editableSubTensors()[nDim-1-iDim]);
+    transpose(TT.subTensor(iDim), reversed_subT[nDim-1-iDim]);
+  TensorTrain_double TT_reversed(std::move(reversed_subT));
 
   const double nrm = rightNormalize(TT, 0.1, 3);
   const double nrm_ref = leftNormalize(TT_reversed, 0.1, 3);
   EXPECT_NEAR(nrm_ref, nrm, eps);
   for(int iDim = 0; iDim < nDim; iDim++)
   {
-    const auto& subT = TT.subTensors()[iDim];
-    const auto& subT_reversed = TT_reversed.subTensors()[nDim-1-iDim];
+    const auto& subT = TT.subTensor(iDim);
+    const auto& subT_reversed = TT_reversed.subTensor(nDim-1-iDim);
     Tensor3_double subT_ref;
     transpose(subT_reversed, subT_ref);
     ASSERT_EQ(subT_ref.r1(), subT.r1());
@@ -509,15 +546,17 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1)
   using PITTS::internal::t3_nrm;
 
   TensorTrain_double TT(1,5);
-  auto& subT = TT.editableSubTensors()[0];
-  subT.resize(7,5,3);
-
-  subT.setConstant(1);
+  {
+    Tensor3_double subT(7,5,3);
+    subT.setConstant(1);
+    TT.setSubTensor(0, std::move(subT));
+  }
 
   double nrm = leftNormalize(TT);
 
   double nrm_ref = std::sqrt(7*5*3);
   EXPECT_NEAR(nrm_ref, nrm, eps);
+  const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
@@ -526,12 +565,12 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1)
         EXPECT_NEAR(1./nrm_ref, subT(i,j,k), eps);
       }
 
-  randomize(subT);
-  nrm_ref = t3_nrm(subT);
+  randomize(TT);
+  nrm_ref = t3_nrm(TT.subTensor(0));
 
   nrm = leftNormalize(TT);
   EXPECT_NEAR(nrm_ref, nrm, eps);
-  EXPECT_NEAR(1., t3_nrm(subT), eps);
+  EXPECT_NEAR(1., t3_nrm(TT.subTensor(0)), eps);
 }
 
 TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
@@ -539,15 +578,17 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
   using PITTS::internal::t3_nrm;
 
   TensorTrain_double TT(1,5);
-  auto& subT = TT.editableSubTensors()[0];
-  subT.resize(7,5,3);
-
-  subT.setConstant(1);
+  {
+    Tensor3_double subT(7,5,3);
+    subT.setConstant(1);
+    TT.setSubTensor(0, std::move(subT));
+  }
 
   double nrm = rightNormalize(TT);
 
   double nrm_ref = std::sqrt(7*5*3);
   EXPECT_NEAR(nrm_ref, nrm, eps);
+  const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
@@ -556,8 +597,8 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
         EXPECT_NEAR(1./nrm_ref, subT(i,j,k), eps);
       }
 
-  randomize(subT);
-  nrm_ref = t3_nrm(subT);
+  randomize(TT);
+  nrm_ref = t3_nrm(TT.subTensor(0));
 
   nrm = rightNormalize(TT);
   EXPECT_NEAR(nrm_ref, nrm, eps);
@@ -567,9 +608,11 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
 TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1_random)
 {
   TensorTrain_double TT(1,5);
-  auto& subT = TT.editableSubTensors()[0];
-  subT.resize(7,5,3);
-  randomize(subT);
+  {
+    Tensor3_double subT(7,5,3);
+    randomize(subT);
+    TT.setSubTensor(0, std::move(subT));
+  }
 
   check_leftNormalize_boundaryRank(TT);
 }
@@ -578,10 +621,12 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim4_random)
 {
   TensorTrain_double TT({3,4,5,6});
   TT.setTTranks(2);
-  auto& subTl = TT.editableSubTensors()[0];
-  auto& subTr = TT.editableSubTensors()[3];
-  subTl.resize(7,3,2);
-  subTr.resize(2,6,3);
+  {
+    Tensor3_double subTl(7,3,2);
+    Tensor3_double subTr(2,6,3);
+    TT.setSubTensor(0, std::move(subTl));
+    TT.setSubTensor(3, std::move(subTr));
+  }
   randomize(TT);
 
   check_leftNormalize_boundaryRank(TT);
@@ -590,9 +635,11 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim4_random)
 TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1_random)
 {
   TensorTrain_double TT(1,5);
-  auto& subT = TT.editableSubTensors()[0];
-  subT.resize(7,5,3);
-  randomize(subT);
+  {
+    Tensor3_double subT(7,5,3);
+    randomize(subT);
+    TT.setSubTensor(0, std::move(subT));
+  }
 
   check_rightNormalize_boundaryRank(TT);
 }
@@ -601,10 +648,12 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim4_random)
 {
   TensorTrain_double TT({3,4,5,6});
   TT.setTTranks(2);
-  auto& subTl = TT.editableSubTensors()[0];
-  auto& subTr = TT.editableSubTensors()[3];
-  subTl.resize(7,3,2);
-  subTr.resize(2,6,3);
+  {
+    Tensor3_double subTl(7,3,2);
+    Tensor3_double subTr(2,6,3);
+    TT.setSubTensor(0, std::move(subTl));
+    TT.setSubTensor(3, std::move(subTr));
+  }
   randomize(TT);
 
   check_rightNormalize_boundaryRank(TT);

@@ -18,6 +18,30 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  // forward declarations
+  template<typename T>
+  class TensorTrain;
+
+  template<typename T>
+  void copy(const TensorTrain<T>&, TensorTrain<T>&);
+
+  template<typename T>
+  void randomize(TensorTrain<T>&);
+
+  //! namespace for helper functionality
+  namespace internal
+  {
+    template<typename T>
+    std::vector<int> dimensionsFromSubTensors(const std::vector<Tensor3<T>>& subTensors)
+    {
+      std::vector<int> dims(subTensors.size());
+      for(int i = 0; i < dims.size(); i++)
+        dims[i] = subTensors[i].n();
+      return dims;
+    }
+  }
+
+
   //! tensor train class
   //!
   //! @tparam T  underlying data type (double, complex, ...)
@@ -26,21 +50,6 @@ namespace PITTS
   class TensorTrain
   {
     public:
-      //! tensor dimensions
-      //!
-      //! These are constant as one usually only changes the ranks of the individual sub-tensors in the tensor train.
-      //!
-      const auto& dimensions() const {return dimensions_;}
-
-      //! allow const access to all sub-tensors
-      const auto& subTensors() const {return subTensors_;}
-
-      //! allow non-const access to all sub-tensors
-      //!
-      //! \warning Do not modify sub-tensor dimensions here, only their values!
-      //!
-      auto& editableSubTensors() {return subTensors_;}
-
       //! create a new tensor train that represents a n^d tensor
       TensorTrain(int d, int n, int initial_TTrank = 1) : TensorTrain(std::vector<int>(d,n), initial_TTrank) {}
 
@@ -65,7 +74,15 @@ namespace PITTS
         // create and copy all subtensors
         subTensors_.resize(dimensions_.size());
         for(int i = 0; i < dimensions_.size(); i++)
-          copy(other.subTensors()[i], subTensors_[i]);
+          copy(other.subTensor(i), subTensors_[i]);
+      }
+
+      //! construct from given sub-tensors, dimensions are obtained from the sub-tensor dimensions
+      TensorTrain(std::vector<Tensor3<T>>&& subTensors) :
+        dimensions_(internal::dimensionsFromSubTensors(subTensors))
+      {
+        subTensors_.resize(dimensions_.size());
+        setSubTensors(0, std::move(subTensors));
       }
 
       //! no implicit copy assignment
@@ -76,6 +93,80 @@ namespace PITTS
 
       //! move assignment is ok
       TensorTrain<T>& operator=(TensorTrain<T>&&) = default;
+
+
+      //! tensor dimensions
+      //!
+      //! These are constant as one usually only changes the ranks of the individual sub-tensors in the tensor train.
+      //!
+      const auto& dimensions() const {return dimensions_;}
+
+      //! get i'th sub-tensor
+      const Tensor3<T>& subTensor(int i) const {return subTensors_.at(i);}
+
+      //! set i'th sub-tensor
+      //!
+      //! Intentionally moves from the input argument and returns the old sub-tensor.
+      //! This allows to call this method without allocating or copying data and to reuse the old memory.
+      //!
+      Tensor3<T> setSubTensor(int i, Tensor3<T>&& newSubTensor)
+      {
+        if( newSubTensor.n() != dimensions_.at(i) )
+          throw std::invalid_argument("Invalid subtensor dimension!");
+        if( i > 0 && newSubTensor.r1() != subTensors_[i].r1() )
+          throw std::invalid_argument("Invalid subtensor rank (r1)!");
+        if( i+1 < dimensions_.size() && newSubTensor.r2() != subTensors_[i].r2() )
+          throw std::invalid_argument("Invalid subtensor rank (r2)!");
+        // similar to std::swap
+        Tensor3<T> oldSubTensor(std::move(subTensors_[i]));
+        subTensors_[i] = std::move(newSubTensor);
+        return oldSubTensor;
+      }
+
+      //! set a range of sub-tensors
+      //!
+      //! similar to setSubTensor but replaces several sub-tensors at once allowing to change the intermediate TT ranks.
+      //!
+      //! Intentionally moves from the input argument and returns the old sub-tensors.
+      //! This allows to call this method without allocating or copying data and to reuse the old memory.
+      //!
+      std::vector<Tensor3<T>> setSubTensors(int offset, std::vector<Tensor3<T>>&& newSubTensors)
+      {
+        for(int i = 0; i < newSubTensors.size(); i++)
+        {
+          // check dimensions
+          if( newSubTensors[i].n() != dimensions_.at(offset+i) )
+            throw std::invalid_argument("Invalid subtensor dimension!");
+          // check first TT rank
+          if( i == 0 && offset > 0 )
+            if( newSubTensors[i].r1() != subTensors_[offset+i].r1() )
+              throw std::invalid_argument("Invalid subtensor rank (r1)!");
+          // check intermediate TT ranks
+          if( i+1 < newSubTensors.size() )
+            if( newSubTensors[i].r2() != newSubTensors[i+1].r1() )
+              throw std::invalid_argument("Invalid subtensors intermediate rank (r1!=r2)!");
+          // check last TT rank
+          if( i+1 == newSubTensors.size() && offset+i+1 < subTensors_.size() )
+            if( newSubTensors[i].r2() != subTensors_[offset+i].r2() )
+              throw std::invalid_argument("Invalid subtensor rank (r2)!");
+        }
+
+        std::vector<Tensor3<T>> tmp(std::move(newSubTensors));
+        for(int i = 0; i < tmp.size(); i++)
+          std::swap(subTensors_[offset+i], tmp[i]);
+        return tmp;
+      }
+
+      //! allow const access to all sub-tensors
+      [[deprecated]]
+      const auto& subTensors() const {return subTensors_;}
+
+      //! allow non-const access to all sub-tensors
+      //!
+      //! \warning Do not modify sub-tensor dimensions here, only their values!
+      //!
+      [[deprecated]]
+      auto& editableSubTensors() {return subTensors_;}
 
 
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
@@ -160,6 +251,19 @@ namespace PITTS
           subTensors_[i].setUnit(0, index[i], 0);
       }
 
+    protected:
+      //! internal low-level sub-tensor access function
+      //!
+      //! Provided to a few selected friend functions to allow an optimized implementation.
+      //!
+      Tensor3<T>& editableSubTensor(int i) {return subTensors_.at(i);}
+
+      //! copy function can circumvent checks in setSubTensor for a faster implementation.
+      friend void copy<T>(const TensorTrain<T>&, TensorTrain<T>&);
+
+      //! randomize function can circumvent setting setSubTensor and modify the entries directly
+      friend void randomize<T>(TensorTrain<T>&);
+
     private:
       //! tensor dimensions
       //!
@@ -188,7 +292,7 @@ namespace PITTS
       throw std::invalid_argument("TensorTrain copy dimension mismatch!");
 
     for(int i = 0; i < a.dimensions().size(); i++)
-      copy(a.subTensors()[i], b.editableSubTensors()[i]);
+      copy(a.subTensor(i), b.editableSubTensor(i));
   }
 }
 

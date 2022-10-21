@@ -107,9 +107,8 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
     if( X.rows() != totalSize/dimensions[nDims-1] || X.cols() != dimensions[nDims-1] )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
-    TensorTrain<T> result(dimensions);
-
     // actually convert to tensor train format
+    std::vector<Tensor3<T>> subTensors(nDims);
     Tensor2<T> M;
     for(int ii = 0; ii < nDims; ii++)
     {
@@ -119,7 +118,7 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
         const auto iDim = nDims - 1 - ii/2;
         if( ii > 0 )
         {
-          const auto r1 = result.subTensors()[iDim+1].r1();
+          const auto r1 = subTensors[iDim+1].r1();
           const auto n = dimensions[iDim];
           transpose(work, X, {(work.rows()*work.cols())/(n*r1), n*r1}, true);
         }
@@ -133,7 +132,7 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
           EigenMap(M) = ConstEigenMap(X).transpose();
         }
 
-        auto& subT = result.editableSubTensors()[iDim];
+        auto& subT = subTensors[iDim];
         const int rank = M.r2();
         subT.resize(rank, dimensions[iDim], X.cols()/dimensions[iDim]);
         for(int i = 0; i < rank; i++)
@@ -146,7 +145,7 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
         // left part
         const auto iDim = ii / 2;
         {
-          const auto r2 = (iDim == 0 ) ? 1 : result.subTensors()[iDim-1].r2();
+          const auto r2 = (iDim == 0 ) ? 1 : subTensors[iDim-1].r2();
           const auto n = dimensions[iDim];
           transpose(work, X, {(work.cols()*work.rows())/(n*r2), n*r2}, false);
         }
@@ -160,7 +159,7 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
           EigenMap(M) = ConstEigenMap(X).transpose();
         }
 
-        auto& subT = result.editableSubTensors()[iDim];
+        auto& subT = subTensors[iDim];
         const int rank = M.r2();
         subT.resize(X.cols()/dimensions[iDim], dimensions[iDim], rank);
         for(int i = 0; i < rank; i++)
@@ -169,6 +168,9 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
               subT(k,j,i) = M(k+j*subT.r1(), i);
       }
     }
+
+    TensorTrain<T> result(dimensions);
+    result.setSubTensors(0, std::move(subTensors));
 
     return result;
   }

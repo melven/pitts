@@ -42,27 +42,16 @@ namespace PITTS
       return dims;
     }();
 
-    TensorTrain<T> tt(dims);
-
-    // get ranks from the itensor mps
-    const auto ranks = [&mps]()
-    {
-      std::vector<int> ranks(length(mps)-1);
-      for(int iLink = 0; iLink < ranks.size(); iLink++)
-        ranks[iLink] = dim(linkIndex(mps, iLink+1));
-      return ranks;
-    }();
-
-    tt.setTTranks(ranks);
-
+    std::vector<Tensor3<T>> subTensors(dims.size());
     for(int iDim = 0; iDim < dims.size(); iDim++)
     {
-      auto& subT = tt.editableSubTensors()[iDim];
+      auto& subT = subTensors[iDim];
       
       if( iDim == 0 )
       {
         const auto idx_j = siteIndex(mps, iDim+1);
         const auto idx_k = rightLinkIndex(mps, iDim+1);
+        subT.resize(1, dim(idx_j), dim(idx_k));
 
         for(int j = 0; j < subT.n(); j++)
           for(int k = 0; k < subT.r2(); k++)
@@ -73,6 +62,7 @@ namespace PITTS
         const auto idx_i = leftLinkIndex(mps, iDim+1);
         const auto idx_j = siteIndex(mps, iDim+1);
         const auto idx_k = rightLinkIndex(mps, iDim+1);
+        subT.resize(dim(idx_i), dim(idx_j), dim(idx_k));
 
         for(int i = 0; i < subT.r1(); i++)
           for(int j = 0; j < subT.n(); j++)
@@ -83,12 +73,16 @@ namespace PITTS
       {
         const auto idx_i = leftLinkIndex(mps, iDim+1);
         const auto idx_j = siteIndex(mps, iDim+1);
+        subT.resize(dim(idx_i), dim(idx_j), 1);
 
         for(int i = 0; i < subT.r1(); i++)
           for(int j = 0; j < subT.n(); j++)
             subT(i, j, 0) = elt(mps(iDim+1), idx_i=i+1, idx_j=j+1);
       }
     }
+
+    TensorTrain<T> tt(dims);
+    tt.setSubTensors(0, std::move(subTensors));
 
     return tt;
   }
