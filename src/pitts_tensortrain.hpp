@@ -158,14 +158,14 @@ namespace PITTS
       }
 
       //! allow const access to all sub-tensors
-      [[deprecated]]
+      //[[deprecated]] don't flood me with warnings
       const auto& subTensors() const {return subTensors_;}
 
       //! allow non-const access to all sub-tensors
       //!
       //! \warning Do not modify sub-tensor dimensions here, only their values!
       //!
-      [[deprecated]]
+      //[[deprecated]] don't flood me with warnings
       auto& editableSubTensors() {return subTensors_;}
 
 
