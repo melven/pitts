@@ -89,7 +89,8 @@ namespace PITTS
 
 
         /**
-         * @brief Componentwise axpy for Tensor3 objects
+         * @brief Componentwise axpy for Tensor3 objects.
+         * y <- a*x + y
          * 
          * @tparam T    underlying data type
          * @param a     scalar a
@@ -439,14 +440,14 @@ namespace PITTS
             // no timer because this function is only used in in an assert
 
             Tensor2<T> core;
-            for (int i = 0; i < A.subTensors().size() - 1; i++)
+            for (int i = 0; i < A.dimensions().size() - 1; i++)
             {
                 int i_ = left ? i : i + 1; // shift range by one for rigth orthogonality
 
                 if (left)
-                    unfold_left(A.subTensors()[i_], core);
+                    unfold_left(A.subTensor(i_), core);
                 else
-                    unfold_right(A.subTensors()[i_], core);
+                    unfold_right(A.subTensor(i_), core);
 
                 using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
                 Matrix mat = Eigen::Map<Matrix>(&core(0, 0), core.r1(), core.r2());
@@ -575,22 +576,26 @@ namespace PITTS
         void axpby_leftOrthogonalize(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
         {
             const auto& TTx = TTx_ortho;
-            std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
-            const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
             const int d = TTx.dimensions().size(); // order d
+            //std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
+            //const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
+            std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
 
             // scale last tensor cores
+            // (I'm using z_cores[0] as a temporary "container for TTy[d-1]")
             Tensor3<T> x_last_core;
-            copy(x_cores[d-1], x_last_core);
+            copy(TTx.subTensor(d-1), x_last_core);
             internal::t3_scale(alpha, x_last_core);
-            internal::t3_scale(beta, y_cores[d-1]);
-
-            // special case
-            if (d == 1)
+            //internal::t3_scale(beta, y_cores[d-1]);
+            copy(TTy.subTensor(d-1), z_cores[0]);
+            internal::t3_scale(beta, z_cores[0]);
+            if (d == 1) // special case
             {
-                internal::t3_axpy((T)1, x_last_core, y_cores[0]);
+                internal::t3_axpy((T)1, x_last_core, z_cores[0]);
+                TTy.setSubTensor(d-1, std::move(z_cores[0]));
                 return;
             }
+            z_cores[0] = TTy.setSubTensor(d-1, std::move(z_cores[0]));
 
             //
             // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
@@ -609,14 +614,14 @@ namespace PITTS
             Tensor3<T> TQ;    // 3Tensor copy of Q
             
             // initialize Txt and Tyt for k == 0
-            copy(x_cores[0], Txt);
-            copy(y_cores[0], Tyt);
+            copy(TTx.subTensor(0), Txt);
+            copy(TTy.subTensor(0), Tyt);
 
             for (int k = 0; k < d - 1; k++)
             {
                 // convenience references
-                const Tensor3<T>& Ty1 = y_cores[k+1];
-                const Tensor3<T>& Tx1 = (k == d-2) ? x_last_core : x_cores[k+1];
+                const Tensor3<T>& Ty1 = TTy.subTensor(k+1);
+                const Tensor3<T>& Tx1 = (k == d-2) ? x_last_core : TTx.subTensor(k+1);
 
                 //
                 // Note: If Mxt is square matrix, most of the calculation (especially QR) can be skipped
@@ -641,8 +646,8 @@ namespace PITTS
                 // TQ <- fold(Q)
                 fold_left(Q, n_k, TQ);
 
-                // save result into y_cores[k] <- concat(Txt, TQ, dim=3)
-                internal::t3_concat3(Txt, TQ, y_cores[k]);
+                // save result into z_cores[k] <- concat(Txt, TQ, dim=3)
+                internal::t3_concat3(Txt, TQ, z_cores[k]);
 
                 //
                 // Note: Ttmpu and Mzt can be independently calculated (in parallel)
@@ -666,9 +671,12 @@ namespace PITTS
 
             } // end loop
 
-            // calculate y_cores[d-1] <- Txt + Tyt (componentwise)
+            // calculate z_cores[d-1] <- Txt + Tyt (componentwise)
             internal::t3_axpy((T)1, Txt, Tyt);
-            std::swap(Tyt, y_cores[d-1]);
+            std::swap(Tyt, z_cores[d-1]);
+
+            // save result into TTy
+            TTy.setSubTensors(0, std::move(z_cores));
         }
 
         
@@ -686,22 +694,25 @@ namespace PITTS
         void axpby_rightOrthogonalize(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
         {
             const auto& TTx = TTx_ortho;
-            std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
-            const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
             const int d = TTx.dimensions().size(); // order d
+            //std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
+            //const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
+            std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
 
             // scale first tensor cores
             Tensor3<T> x_first_core;
-            copy(x_cores[0], x_first_core);
+            copy(TTx.subTensor(0), x_first_core);
             internal::t3_scale(alpha, x_first_core);
-            internal::t3_scale(beta, y_cores[0]);
-
-            // special case
-            if (d == 1)
+            //internal::t3_scale(beta, y_cores[0]);
+            copy(TTy.subTensor(0), z_cores[0]);
+            internal::t3_scale(beta, z_cores[0]);
+            if (d == 1) // special case
             {
-                internal::t3_axpy((T)1, x_first_core, y_cores[0]);
+                internal::t3_axpy((T)1, x_first_core, z_cores[0]);
+                TTy.setSubTensor(0, std::move(z_cores[0]));
                 return;
             }
+            z_cores[0] = TTy.setSubTensor(0, std::move(z_cores[0]));
 
             //
             // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
@@ -720,14 +731,14 @@ namespace PITTS
             Tensor3<T> TQ;    // 3Tensor copy of Q
             
             // initialize Txt and Tyt for k == d-1
-            copy(x_cores[d-1], Txt);
-            copy(y_cores[d-1], Tyt);
+            copy(TTx.subTensor(d-1), Txt);
+            copy(TTy.subTensor(d-1), Tyt);
 
             for (int k = d - 1; k > 0; k--)
             {
                 // convenience references
-                const Tensor3<T>& Ty1 = y_cores[k-1];
-                const Tensor3<T>& Tx1 = (k == 1) ? x_first_core : x_cores[k-1];
+                const Tensor3<T>& Ty1 = TTy.subTensor(k-1);
+                const Tensor3<T>& Tx1 = (k == 1) ? x_first_core : TTx.subTensor(k-1);
 
                 // Mxt <- Txt(: x :,:), Myt <- Tyt(: x :,:)
                 unfold_right(Txt, Mxt);
@@ -748,8 +759,8 @@ namespace PITTS
                 // TQ <- fold(Q)
                 fold_right(Q, n_k, TQ);
 
-                // save result into y_cores[k] <- concat(Txt, TQ, dim=1)
-                internal::t3_concat1(Txt, TQ, y_cores[k]);
+                // save result into z_cores[k] <- concat(Txt, TQ, dim=1)
+                internal::t3_concat1(Txt, TQ, z_cores[k]);
 
                 // calculate left half of new Tyt: Ttmpl <- Ty1 *3 Mzt (mode-3 contraction)
                 internal::normalize_contract2(Ty1, Mzt, Ttmpl);
@@ -769,9 +780,12 @@ namespace PITTS
 
             } // end loop
 
-            // calculate y_cores[0] <- Txt + Tyt (componentwise)
+            // calculate z_cores[0] <- Txt + Tyt (componentwise)
             internal::t3_axpy(T(1), Txt, Tyt);
-            std::swap(Tyt, y_cores[0]);
+            std::swap(Tyt, z_cores[0]);
+
+            // save result into TTy
+            TTy.setSubTensors(0, std::move(z_cores));
         }
 
     } // namespace internal
@@ -801,11 +815,11 @@ namespace PITTS
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
         
         const auto& TTx = TTx_ortho;
-        std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
-        const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
+        //std::vector<Tensor3<T>>& y_cores = TTy.editableSubTensors();
+        //const std::vector<Tensor3<T>>& x_cores = TTx.subTensors();
         const std::vector<int>& x_dim = TTx.dimensions();
         const std::vector<int>& y_dim = TTy.dimensions();
-        const int d = x_dim.size(); // order d
+        const int& d = x_dim.size(); // order d
 
         assert(internal::is_normalized(TTx, leftOrtho) == true);
 
@@ -813,7 +827,7 @@ namespace PITTS
         if (x_dim != y_dim)
             throw std::invalid_argument("TensorTrain axpby_normalized dimension mismatch!");
         
-        if (x_cores[0].r1() != 1 || y_cores[0].r1() != 1 || x_cores[d-1].r2() != 1 || y_cores[d-1].r2() != 1)
+        if (TTx.subTensor(0).r1() != 1 || TTy.subTensor(0).r1() != 1 || TTx.subTensor(d-1).r2() != 1 || TTy.subTensor(d-1).r2() != 1)
             throw std::invalid_argument("TensorTrain axpby_normalized boundary ranks not equal to 1!");
 
         // special cases
