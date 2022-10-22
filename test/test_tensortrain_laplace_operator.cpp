@@ -22,22 +22,22 @@ TEST(PITTS_TensorTrain_laplace_operator, rank_1_vector)
 
   TT.setOnes();
   norm = laplaceOperator(TT);
-  EXPECT_NEAR(-1./6, norm*TT.subTensors()[0](0,0,0), eps);
-  EXPECT_NEAR(0., norm*TT.subTensors()[0](0,1,0), eps);
-  EXPECT_NEAR(0., norm*TT.subTensors()[0](0,2,0), eps);
-  EXPECT_NEAR(0., norm*TT.subTensors()[0](0,3,0), eps);
-  EXPECT_NEAR(-1./6, norm*TT.subTensors()[0](0,4,0), eps);
+  EXPECT_NEAR(-1./6, norm*TT.subTensor(0)(0,0,0), eps);
+  EXPECT_NEAR(0., norm*TT.subTensor(0)(0,1,0), eps);
+  EXPECT_NEAR(0., norm*TT.subTensor(0)(0,2,0), eps);
+  EXPECT_NEAR(0., norm*TT.subTensor(0)(0,3,0), eps);
+  EXPECT_NEAR(-1./6, norm*TT.subTensor(0)(0,4,0), eps);
 
   randomize(TT);
   std::array<double, 7> oldVec;
   oldVec[0] = 0.;
   for(int i = 0; i < 5; i++)
-    oldVec[i+1] = TT.subTensors()[0](0,i,0);
+    oldVec[i+1] = TT.subTensor(0)(0,i,0);
   oldVec[6] = 0.;
   norm = laplaceOperator(TT);
   for(int i = 0; i < 5; i++)
   {
-    EXPECT_NEAR(1./6*oldVec[i]-2./6*oldVec[i+1]+1./6*oldVec[i+2], norm*TT.subTensors()[0](0,i,0), eps);
+    EXPECT_NEAR(1./6*oldVec[i]-2./6*oldVec[i+1]+1./6*oldVec[i+2], norm*TT.subTensor(0)(0,i,0), eps);
   }
 }
 
@@ -52,23 +52,23 @@ TEST(PITTS_TensorTrain_laplace_operator, large_rank_1_vector)
 
   TT.setOnes();
   norm = laplaceOperator(TT);
-  EXPECT_NEAR(-1./(n+1), norm*TT.subTensors()[0](0,0,0), eps);
+  EXPECT_NEAR(-1./(n+1), norm*TT.subTensor(0)(0,0,0), eps);
   for(int i = 1; i < n-1; i++)
   {
-    EXPECT_NEAR(0., norm * TT.subTensors()[0](0, i, 0), eps);
+    EXPECT_NEAR(0., norm * TT.subTensor(0)(0, i, 0), eps);
   }
-  EXPECT_NEAR(-1./(n+1), norm*TT.subTensors()[0](0,n-1,0), eps);
+  EXPECT_NEAR(-1./(n+1), norm*TT.subTensor(0)(0,n-1,0), eps);
 
   randomize(TT);
   std::array<double, n+2> oldVec;
   oldVec[0] = 0.;
   for(int i = 0; i < n; i++)
-    oldVec[i+1] = TT.subTensors()[0](0,i,0);
+    oldVec[i+1] = TT.subTensor(0)(0,i,0);
   oldVec[n+1] = 0.;
   norm = laplaceOperator(TT);
   for(int i = 0; i < n; i++)
   {
-    EXPECT_NEAR(1./(n+1)*oldVec[i]-2./(n+1)*oldVec[i+1]+1./(n+1)*oldVec[i+2], norm*TT.subTensors()[0](0,i,0), eps);
+    EXPECT_NEAR(1./(n+1)*oldVec[i]-2./(n+1)*oldVec[i+1]+1./(n+1)*oldVec[i+2], norm*TT.subTensor(0)(0,i,0), eps);
   }
 }
 
