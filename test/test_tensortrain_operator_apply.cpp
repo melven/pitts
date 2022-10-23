@@ -24,8 +24,10 @@ TEST(PITTS_TensorTrainOperator_apply, zero)
   apply(TTOp, TTx, TTy);
 
   ASSERT_EQ(TTx.getTTranks(), TTy.getTTranks());
-  for(const auto& subTy: TTy.subTensors())
+  const int nDim = TTy.dimensions().size();
+  for(int iDim = 0; iDim < nDim; iDim++)
   {
+    const auto& subTy = TTy.subTensor(iDim);
     for(int i = 0; i < subTy.r1(); i++)
       for(int j = 0; j < subTy.n(); j++)
         for(int k = 0; k < subTy.r2(); k++)
@@ -48,10 +50,10 @@ TEST(PITTS_TensorTrainOperator_apply, eye)
   apply(TTOp, TTx, TTy);
 
   ASSERT_EQ(TTx.getTTranks(), TTy.getTTranks());
-  for(int iDim = 0; iDim < TTx.subTensors().size(); iDim++)
+  for(int iDim = 0; iDim < TTx.dimensions().size(); iDim++)
   {
-    const auto& subTx = TTx.subTensors()[iDim];
-    const auto& subTy = TTy.subTensors()[iDim];
+    const auto& subTx = TTx.subTensor(iDim);
+    const auto& subTy = TTy.subTensor(iDim);
     for(int i = 0; i < subTy.r1(); i++)
       for(int j = 0; j < subTy.n(); j++)
         for(int k = 0; k < subTy.r2(); k++)
@@ -106,10 +108,9 @@ TEST(PITTS_TensorTrainOperator_apply, laplace_operator)
     }
   for(int iDim = 0; iDim < 4; iDim++)
   {
-    auto& subT = TTOpDummy.tensorTrain().editableSubTensors()[iDim];
-    std::swap(subT, tridi);
+    Tensor3_double subT = TTOpDummy.tensorTrain().setSubTensor(iDim, std::move(tridi));
     axpby(1., TTOpDummy, 1., TTOpLaplace);
-    std::swap(subT, tridi);
+    tridi = TTOpDummy.tensorTrain().setSubTensor(iDim, std::move(subT));
   }
 
 
@@ -127,23 +128,27 @@ TEST(PITTS_TensorTrainOperator_apply, eye_boundaryRank)
 {
   using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
   using TensorTrain_double = PITTS::TensorTrain<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
   constexpr auto eps = 1.e-10;
 
   TensorTrainOperator_double TTOp({3,4,2,5}, {3,4,2,5});
   TTOp.setEye();
 
   TensorTrain_double TTx(std::vector<int>{4,2}), TTy(std::vector<int>{4,2});
-  TTx.editableSubTensors()[0].resize(3,4,2);
-  TTx.editableSubTensors()[1].resize(2,2,5);
+  TTx.setTTranks(2);
+  Tensor3_double subT_l(3,4,2);
+  Tensor3_double subT_r(2,2,5);
+  TTx.setSubTensor(0, std::move(subT_l));
+  TTx.setSubTensor(1, std::move(subT_r));
   randomize(TTx);
 
   apply(TTOp, TTx, TTy);
 
   ASSERT_EQ(TTx.getTTranks(), TTy.getTTranks());
-  for(int iDim = 0; iDim < TTx.subTensors().size(); iDim++)
+  for(int iDim = 0; iDim < TTx.dimensions().size(); iDim++)
   {
-    const auto& subTx = TTx.subTensors()[iDim];
-    const auto& subTy = TTy.subTensors()[iDim];
+    const auto& subTx = TTx.subTensor(iDim);
+    const auto& subTy = TTy.subTensor(iDim);
     for(int i = 0; i < subTy.r1(); i++)
       for(int j = 0; j < subTy.n(); j++)
         for(int k = 0; k < subTy.r2(); k++)
@@ -156,6 +161,7 @@ TEST(PITTS_TensorTrainOperator_apply, random_boundaryRank_rank1)
   using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
   using TensorTrain_double = PITTS::TensorTrain<double>;
   using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
   constexpr auto eps = 1.e-10;
 
   TensorTrainOperator_double TTOp({3,4,2,5}, {2,4,2,3});
@@ -163,14 +169,16 @@ TEST(PITTS_TensorTrainOperator_apply, random_boundaryRank_rank1)
   randomize(TTOp);
 
   TensorTrain_double TTx(std::vector<int>{4,2}), TTy(std::vector<int>{4,2});
-  TTx.editableSubTensors()[0].resize(2,4,1);
-  TTx.editableSubTensors()[1].resize(1,2,3);
+  Tensor3_double subT_l(2,4,1);
+  Tensor3_double subT_r(1,2,3);
+  TTx.setSubTensor(0, std::move(subT_l));
+  TTx.setSubTensor(1, std::move(subT_r));
   randomize(TTx);
 
   apply(TTOp, TTx, TTy);
 
-  ASSERT_EQ(3, TTy.subTensors()[0].r1());
-  ASSERT_EQ(5, TTy.subTensors()[1].r2());
+  ASSERT_EQ(3, TTy.subTensor(0).r1());
+  ASSERT_EQ(5, TTy.subTensor(1).r2());
 
   // calculate a reference solution using TTOp * dense and toDense
   MultiVector_double MVx, MVy_ref, MVy;
@@ -186,6 +194,7 @@ TEST(PITTS_TensorTrainOperator_apply, random_boundaryRank)
   using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
   using TensorTrain_double = PITTS::TensorTrain<double>;
   using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
   constexpr auto eps = 1.e-10;
 
   TensorTrainOperator_double TTOp({3,4,2,5}, {2,4,2,3});
@@ -193,14 +202,17 @@ TEST(PITTS_TensorTrainOperator_apply, random_boundaryRank)
   randomize(TTOp);
 
   TensorTrain_double TTx(std::vector<int>{4,2}), TTy(std::vector<int>{4,2});
-  TTx.editableSubTensors()[0].resize(2,4,6);
-  TTx.editableSubTensors()[1].resize(6,2,3);
+  TTx.setTTranks(6);
+  Tensor3_double subT_l(2,4,6);
+  Tensor3_double subT_r(6,2,3);
+  TTx.setSubTensor(0, std::move(subT_l));
+  TTx.setSubTensor(1, std::move(subT_r));
   randomize(TTx);
 
   apply(TTOp, TTx, TTy);
 
-  ASSERT_EQ(3, TTy.subTensors()[0].r1());
-  ASSERT_EQ(5, TTy.subTensors()[1].r2());
+  ASSERT_EQ(3, TTy.subTensor(0).r1());
+  ASSERT_EQ(5, TTy.subTensor(1).r2());
 
   // calculate a reference solution using TTOp * dense and toDense
   MultiVector_double MVx, MVy_ref, MVy;
