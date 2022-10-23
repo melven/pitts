@@ -124,12 +124,14 @@ namespace PITTS
       void setEye()
       {
         tensorTrain_.setTTranks(1);
+        Tensor3<T> newSubT;
         for(int iDim = 0; iDim < row_dimensions_.size(); iDim++)
         {
-          auto& subT = tensorTrain_.editableSubTensors()[iDim];
-          subT.setConstant(T(0));
+          newSubT.resize(1, tensorTrain_.dimensions()[iDim], 1);
+          newSubT.setConstant(T(0));
           for(int i = 0; i < std::min(row_dimensions_[iDim], column_dimensions_[iDim]); i++)
-            subT(0,index(iDim,i,i),0) = 1;
+            newSubT(0,index(iDim,i,i),0) = T(1);
+          newSubT = tensorTrain_.setSubTensor(iDim, std::move(newSubT));
         }
       }
 
@@ -196,13 +198,13 @@ namespace PITTS
       throw std::invalid_argument("TensorTrainOperator axpby column dimension mismatch!");
 
     const auto gamma = axpby(alpha, TTOpx.tensorTrain(), beta, TTOpy.tensorTrain(), rankTolerance);
-    if( TTOpy.tensorTrain().subTensors().size() > 0 )
+    const int nDim = TTOpy.tensorTrain().dimensions().size();
+    if( nDim > 0 )
     {
-      auto& subT = TTOpy.tensorTrain().editableSubTensors().back();
-      for(int i = 0; i < subT.r1(); i++)
-        for(int j = 0; j < subT.n(); j++)
-          for(int k = 0; k < subT.r2(); k++)
-            subT(i,j,k) = subT(i,j,k) * gamma;
+      Tensor3<T> newSubT;
+      copy(TTOpy.tensorTrain().subTensor(nDim-1), newSubT);
+      internal::t3_scale(gamma, newSubT);
+      TTOpy.tensorTrain().setSubTensor(nDim-1, std::move(newSubT));
     }
   }
 
