@@ -93,14 +93,16 @@ namespace PITTS
       throw std::invalid_argument("TensorTrainOperator: output tensor train dimension mismatch!");
 
     // perform actual calculation
-    for(int iDim = 0; iDim < TTOp.tensorTrain().subTensors().size(); iDim++)
+    const int nDim = TTOp.tensorTrain().dimensions().size();
+    std::vector<Tensor3<T>> subTy(nDim);
+    for(int iDim = 0; iDim < nDim; iDim++)
     {
-      const auto& subTOp = TTOp.tensorTrain().subTensors()[iDim];
-      const auto& subTx = TTx.subTensors()[iDim];
-      auto& subTy = TTy.editableSubTensors()[iDim];
+      const auto& subTOp = TTOp.tensorTrain().subTensor(iDim);
+      const auto& subTx = TTx.subTensor(iDim);
 
-      internal::applyT_contract(TTOp, iDim, subTOp, subTx, subTy);
+      internal::applyT_contract(TTOp, iDim, subTOp, subTx, subTy[iDim]);
     }
+    TTy.setSubTensors(0, std::move(subTy));
   }
 
 }
