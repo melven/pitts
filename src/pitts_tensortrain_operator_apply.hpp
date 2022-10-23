@@ -210,7 +210,7 @@ namespace PITTS
       if( inner_row_dims != TTy.dimensions() )
         throw std::invalid_argument("TensorTrainOperator: output tensor train dimension mismatch (middle)!");
 
-      if( TTx.subTensors()[0].r1() != TTOp.column_dimensions()[0] || TTx.subTensors()[nDim-1].r2() != TTOp.column_dimensions()[nDimOp-1] )
+      if( TTx.subTensor(0).r1() != TTOp.column_dimensions()[0] || TTx.subTensor(nDim-1).r2() != TTOp.column_dimensions()[nDimOp-1] )
         throw std::invalid_argument("TensorTrainOperator: input tensor train dimension mismatch (boundary rank)!");
     }
 
@@ -218,7 +218,7 @@ namespace PITTS
     // perform actual calculation
     {
       std::vector<Tensor3<T>> newSubTy(TTy.dimensions().size());
-      for(int iDim = 0; iDim < TTx.subTensors().size(); iDim++)
+      for(int iDim = 0; iDim < TTx.dimensions().size(); iDim++)
       {
         const auto& subTOp = TTOp.tensorTrain().subTensor(iDim+boundaryRank);
         const auto& subTx = TTx.subTensor(iDim);
@@ -236,7 +236,7 @@ namespace PITTS
     // left-most sub-tensor
     Tensor3<T> tmp;
     {
-      const auto &subTOp0 = TTOp.tensorTrain().subTensors().front();
+      const auto &subTOp0 = TTOp.tensorTrain().subTensor(0);
       const auto &subTy = TTy.subTensor(0);
 
       // contract A(0,:,*,*) * y(*,:,:)
@@ -248,7 +248,7 @@ namespace PITTS
     {
       const int nDimOp = TTOp.row_dimensions().size();
       const int nDimy = TTy.dimensions().size();
-      const auto &subTOpd = TTOp.tensorTrain().subTensors().back();
+      const auto &subTOpd = TTOp.tensorTrain().subTensor(nDimOp-1);
       const auto &subTy = TTy.subTensor(nDimy-1);
 
       // contract y(:,:,*) * A(*,:,*,0)
