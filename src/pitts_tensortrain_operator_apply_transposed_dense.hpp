@@ -102,7 +102,7 @@ namespace PITTS
     const int nDim = TTOp.row_dimensions().size();
     for(int iDim = 0; iDim < nDim; iDim++)
     {
-      const auto& subTOp = TTOp.tensorTrain().subTensors()[iDim];
+      const auto& subTOp = TTOp.tensorTrain().subTensor(iDim);
       const auto& x = (iDim == 0) ? MVx : MVy;
       auto& y = mv_tmp;
 

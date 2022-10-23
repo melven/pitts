@@ -59,7 +59,7 @@ TEST(PITTS_TensorTrainOperator_apply_transposed_dense, random_nDim1)
 {
   TensorTrainOperator_double TTOp(1, 5, 7);
   randomize(TTOp);
-  const auto& subT = TTOp.tensorTrain().subTensors()[0];
+  const auto& subT = TTOp.tensorTrain().subTensor(0);
 
   MultiVector_double MVx(5,1), MVy;
   randomize(MVx);
