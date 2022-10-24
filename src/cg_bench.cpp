@@ -75,21 +75,22 @@ int main(int argc, char* argv[])
   std::cout << "r TTranks: " << r.getTTranks() << std::endl;
   
   // try "transpose" + normalize
-  PITTS::TensorTrain<Type> xT(x.dimensions());
   const auto nDim = x.dimensions().size();
+  std::vector<PITTS::Tensor3<Type>> subT_xT(nDim);
   for(int iDim = 0; iDim < nDim; iDim++)
   {
-    auto& subT = xT.editableSubTensors()[nDim-1-iDim];
-    const auto& oldSubT = x.subTensors()[iDim];
+    const int jDim = nDim - 1 - iDim;
+    const auto& oldSubT = x.subTensor(iDim);
     const auto r1 = oldSubT.r2();
     const auto n = oldSubT.n();
     const auto r2 = oldSubT.r1();
-    subT.resize(r1,n,r2);
+    subT_xT[jDim].resize(r1,n,r2);
     for(int j = 0; j < r2; j++)
       for(int k = 0; k < n; k++)
         for(int i = 0; i < r1; i++)
-          subT(i,k,j) = oldSubT(j,k,i);
+          subT_xT[jDim](i,k,j) = oldSubT(j,k,i);
   }
+  PITTS::TensorTrain<Type> xT(std::move(subT_xT));
   const auto xTnorm = normalize(xT, rankTol);
   std::cout << "xTnorm: " << xTnorm << std::endl;
   std::cout << "xT TTranks: " << xT.getTTranks() << std::endl;
