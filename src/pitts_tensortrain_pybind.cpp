@@ -73,7 +73,7 @@ namespace PITTS
       template<typename T>
       void TensorTrain_setSubTensor(TensorTrain<T>& TT, int d, py::array_t<T> array)
       {
-        auto& subT = TT.editableSubTensors().at(d);
+        PITTS::Tensor3<T> subT(TT.subTensor(d).r1(), TT.subTensor(d).n(), TT.subTensor(d).r2());
         if( array.ndim() != 3 )
           throw std::invalid_argument("array must have 3 dimensions");
         if( array.shape(0) != subT.r1() || array.shape(1) != subT.n() || array.shape(2) != subT.r2() )
@@ -83,6 +83,8 @@ namespace PITTS
           for(int j = 0; j < subT.n(); j++)
             for(int i1 = 0; i1 < subT.r1(); i1++)
               subT(i1,j,i2) = *array.data(i1,j,i2);
+
+        TT.setSubTensor(d, std::move(subT));
       }
 
       //! helper function for fromDense -> TensorTrain

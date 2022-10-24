@@ -52,7 +52,7 @@ namespace PITTS
       template<typename T>
       py::array_t<T> TensorTrainOperator_getSubTensor(const TensorTrainOperator<T>& TTOp, int d)
       {
-        const auto& subT = TTOp.tensorTrain().subTensors().at(d);
+        const auto& subT = TTOp.tensorTrain().subTensor(d);
         py::array_t<T> array({subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()});
 
         for(int i = 0; i < subT.r1(); i++)
@@ -67,7 +67,7 @@ namespace PITTS
       template<typename T>
       void TensorTrainOperator_setSubTensor(TensorTrainOperator<T>& TTOp, int d, py::array_t<T> array)
       {
-        auto& subT = TTOp.tensorTrain().editableSubTensors().at(d);
+        Tensor3<T> subT(TTOp.tensorTrain().subTensor(d).r1(), TTOp.tensorTrain().subTensor(d).n(), TTOp.tensorTrain().subTensor(d).r2());
         if( array.ndim() != 4 )
           throw std::invalid_argument("array must have 4 dimensions");
         const std::vector<int> required_shape = {subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()};
@@ -80,6 +80,7 @@ namespace PITTS
             for(int k = 0; k < shape[2]; k++)
               for(int l = 0; l < shape[3]; l++)
                 subT(i,TTOp.index(d, j, k), l) = *array.data(i,j,k,l);
+        TTOp.tensorTrain().setSubTensor(d, std::move(subT));
       }
 
       //! helper function to print the attributes of the TensorTrainOperator object nicely
