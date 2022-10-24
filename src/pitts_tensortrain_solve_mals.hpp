@@ -167,21 +167,20 @@ namespace PITTS
       template<typename T>
       TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_xTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_xTb)
       {
-        std::vector<int> dims(nMALS);
-        copy_n(TTb.dimensions().begin() + iDim, nMALS, dims.begin());
-  
-        TensorTrain<T> tt_b(dims);
+        std::vector<Tensor3<T>> subT_b(nMALS);
         for(int i = 0; i < nMALS; i++)
-          copy(TTb.subTensors()[iDim+i], tt_b.editableSubTensors()[i]);
+          copy(TTb.subTensor(iDim+i), subT_b[i]);
 
         // first contract: tt_b_right(:,:,*) * right_xTb(:,*)
         Tensor3<T> t3_tmp;
-        std::swap(tt_b.editableSubTensors().back(), t3_tmp);
-        internal::dot_contract1(t3_tmp, right_xTb, tt_b.editableSubTensors().back());
+        std::swap(subT_b.back(), t3_tmp);
+        internal::dot_contract1(t3_tmp, right_xTb, subT_b.back());
 
         // then contract: left_xTb(*,:) * tt_b_left(*,:,:)
-        std::swap(tt_b.editableSubTensors().front(), t3_tmp);
-        internal::reverse_dot_contract1(left_xTb, t3_tmp, tt_b.editableSubTensors().front());
+        std::swap(subT_b.front(), t3_tmp);
+        internal::reverse_dot_contract1(left_xTb, t3_tmp, subT_b.front());
+
+        TensorTrain<T> tt_b(std::move(subT_b));
 
         return tt_b;
       }
@@ -190,12 +189,11 @@ namespace PITTS
       template<typename T>
       TensorTrain<T> calculate_local_x(int iDim, int nMALS, const TensorTrain<T>& TTx)
       {
-        std::vector<int> dims(nMALS);
-        copy_n(TTx.dimensions().begin() + iDim, nMALS, dims.begin());
-  
-        TensorTrain<T> tt_x(dims);
+        std::vector<Tensor3<T>> subT_x(nMALS);
         for(int i = 0; i < nMALS; i++)
-          copy(TTx.subTensors()[iDim+i], tt_x.editableSubTensors()[i]);
+          copy(TTx.subTensor(iDim+i), subT_x[i]);
+
+        TensorTrain<T> tt_x(std::move(subT_x));
 
         return tt_x;
       }
@@ -258,11 +256,14 @@ namespace PITTS
         }
         localRowDims.back()  = localColDims.back()  = nd;
 
-        TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
-        copy_op_left(left_xTAx, localTTOp.tensorTrain().editableSubTensors().front());
+        std::vector<Tensor3<T>> subT_localOp(nMALS+2);
+        copy_op_left(left_xTAx, subT_localOp.front());
         for(int i = 0; i < nMALS; i++)
-          copy(TTOp.tensorTrain().subTensors()[iDim+i], localTTOp.tensorTrain().editableSubTensors()[1+i]);
-        copy_op_right(right_xTAx, localTTOp.tensorTrain().editableSubTensors().back());
+          copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[1+i]);
+        copy_op_right(right_xTAx, subT_localOp.back());
+
+        TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
+        localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));
 
         return localTTOp;
       }
@@ -315,7 +316,7 @@ namespace PITTS
     if( TTx.dimensions() != TTOpA.column_dimensions() )
       throw std::invalid_argument("TensorTrain solveMALS: operator and x dimensions mismatch!");
 
-    const int nDim = TTx.subTensors().size();
+    const int nDim = TTx.dimensions().size();
     nMALS = std::min(nMALS, nDim);
     nOverlap = std::min(nOverlap, nMALS-1);
     if( nMALS < 1 || nMALS > nDim )
@@ -364,7 +365,7 @@ namespace PITTS
     
     // like TT dot product and store all intermediate results
     for(int iDim = nDim-1; iDim >= 0; iDim--)
-      right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], right_xTb.back()) );
+      right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensor(iDim), TTx.subTensor(iDim), right_xTb.back()) );
 
     assert(right_xTb.size() == nDim+1);
     assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
@@ -379,8 +380,12 @@ namespace PITTS
 
     // this includes a calculation of Ax, so reuse it
     TensorTrain<T> TTAx(effTTOpA.row_dimensions()), residualVector(effTTOpA.row_dimensions());
-    for(int iDim = nDim-1; iDim >= 0; iDim--)
-      right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], right_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
+    {
+      std::vector<Tensor3<T>> TTAx_subT(nDim);
+      for(int iDim = nDim-1; iDim >= 0; iDim--)
+        right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), right_xTAx.back(), TTAx_subT[iDim]) );
+      TTAx.setSubTensors(0, std::move(TTAx_subT));
+    }
 
     assert(right_xTAx.size() == nDim+1);
     assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
@@ -403,6 +408,7 @@ namespace PITTS
 
     // now everything is prepared, perform the sweeps
     std::pair<int,int> lastStep = {-1,-1};
+    std::vector<Tensor3<T>> subT_Ax_tmp(2);
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
       if( residualNorm / sqrt_bTb < residualTolerance )
@@ -453,8 +459,8 @@ namespace PITTS
             const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, gmresRelTol*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
 
             // use mv_rhs as work array
-            const auto r_left = tt_x.subTensors().front().r1();
-            const auto r_right = tt_x.subTensors().back().r2();
+            const auto r_left = tt_x.subTensor(0).r1();
+            const auto r_right = tt_x.subTensor(nMALS-1).r2();
             TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), gmresRelTol*residualTolerance/nDim, maxRank, false, r_left, r_right);
             std::swap(tt_x, new_tt_x);
           }
@@ -468,15 +474,19 @@ namespace PITTS
           internal::leftNormalize_range(TTx, iDim, iDim + 1, T(0), maxRank);
 
         // prepare left/right xTb for the next iteration
-        left_xTb.emplace_back( calculate_next_left_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], left_xTb.back()) );
-        left_xTAx.emplace_back( calculate_next_left_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], left_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
+        left_xTb.emplace_back( calculate_next_left_xTb(effTTb.subTensor(iDim), TTx.subTensor(iDim), left_xTb.back()) );
+        left_xTAx.emplace_back( calculate_next_left_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), left_xTAx.back(), subT_Ax_tmp[0]) );
 
-        if( iDim+1 < nDim )
+        if( iDim+1 == nDim )
         {
-          const auto& Ak_next = effTTOpA.tensorTrain().subTensors()[iDim+1];
-          const auto& xk_next = TTx.subTensors()[iDim+1];
-          auto& Axk_next = TTAx.editableSubTensors()[iDim+1];
-          internal::apply_contract(effTTOpA, iDim+1, Ak_next, xk_next, Axk_next);
+          subT_Ax_tmp[0] = TTAx.setSubTensor(iDim, std::move(subT_Ax_tmp[0]));
+        }
+        else // iDim+1 < nDim
+        {
+          const auto& Ak_next = effTTOpA.tensorTrain().subTensor(iDim+1);
+          const auto& xk_next = TTx.subTensor(iDim+1);
+          internal::apply_contract(effTTOpA, iDim+1, Ak_next, xk_next, subT_Ax_tmp[1]);
+          subT_Ax_tmp = TTAx.setSubTensors(iDim, std::move(subT_Ax_tmp));
         }
 
         assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
@@ -539,8 +549,8 @@ namespace PITTS
             // absolute tolerance is not invariant wrt. #dimensions
             const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, gmresRelTol*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
 
-            const auto r_left = tt_x.subTensors().front().r1();
-            const auto r_right = tt_x.subTensors().back().r2();
+            const auto r_left = tt_x.subTensor(0).r1();
+            const auto r_right = tt_x.subTensor(nMALS-1).r2();
             TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), gmresRelTol*residualTolerance/nDim, maxRank, false, r_left, r_right);
             std::swap(tt_x, new_tt_x);
           }
@@ -554,15 +564,18 @@ namespace PITTS
           internal::rightNormalize_range(TTx, iDim-1, iDim, T(0), maxRank);
 
         // prepare left/right xTb for the next iteration
-        right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensors()[iDim], TTx.subTensors()[iDim], right_xTb.back()) );
-        right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensors()[iDim], TTx.subTensors()[iDim], right_xTAx.back(), TTAx.editableSubTensors()[iDim]) );
-
-        if( iDim > 0 )
+        right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensor(iDim), TTx.subTensor(iDim), right_xTb.back()) );
+        right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), right_xTAx.back(), subT_Ax_tmp[1]) );
+        if( iDim == 0 )
         {
-          const auto& Ak_prev = effTTOpA.tensorTrain().subTensors()[iDim-1];
-          const auto& xk_prev = TTx.subTensors()[iDim-1];
-          auto& Axk_prev = TTAx.editableSubTensors()[iDim-1];
-          internal::apply_contract(effTTOpA, iDim-1, Ak_prev, xk_prev, Axk_prev);
+          subT_Ax_tmp[1] = TTAx.setSubTensor(iDim, std::move(subT_Ax_tmp[1]));
+        }
+        else // iDim > 0
+        {
+          const auto& Ak_prev = effTTOpA.tensorTrain().subTensor(iDim-1);
+          const auto& xk_prev = TTx.subTensor(iDim-1);
+          internal::apply_contract(effTTOpA, iDim-1, Ak_prev, xk_prev, subT_Ax_tmp[0]);
+          subT_Ax_tmp = TTAx.setSubTensors(iDim-1, std::move(subT_Ax_tmp));
         }
 
         assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
