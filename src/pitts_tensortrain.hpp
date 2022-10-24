@@ -157,6 +157,20 @@ namespace PITTS
         return tmp;
       }
 
+      //! set a range of sub-tensors
+      //!
+      //! Intentionally moves from the input argument and returns the old sub-tensors.
+      //! This allows to call this method without allocating or copying data and to reuse the old memory.
+      //!
+      TensorTrain<T> setSubTensors(int offset, TensorTrain<T>&& other)
+      {
+        // careful for correct behavior even for exceptions
+        other.subTensors_ = setSubTensors(offset, std::move(other.subTensors_));
+
+        TensorTrain<T> tmp(std::move(other));
+        return tmp;
+      }
+
       //! allow const access to all sub-tensors
       [[deprecated]]
       const auto& subTensors() const {return subTensors_;}

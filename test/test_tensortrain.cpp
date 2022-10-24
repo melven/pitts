@@ -178,6 +178,161 @@ TEST(PITTS_TensorTrain, setSubTensor)
       }
 }
 
+TEST(PITTS_TensorTrain, setSubTensors_vector)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+
+  const std::vector<int> dims = {2,5,3};
+  TensorTrain_double TT(dims, 3);
+
+  ASSERT_EQ(3, TT.subTensor(1).r1());
+  ASSERT_EQ(5, TT.subTensor(1).n());
+  ASSERT_EQ(3, TT.subTensor(1).r2());
+
+  ASSERT_EQ(3, TT.subTensor(2).r1());
+  ASSERT_EQ(3, TT.subTensor(2).n());
+  ASSERT_EQ(1, TT.subTensor(2).r2());
+
+  std::vector<Tensor3_double> newSubT(2);
+  newSubT[0].resize(3, 5, 2);
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 2; k++)
+        newSubT[0](i,j,k) = i + 100*j + 10000*k;
+  newSubT[1].resize(2, 3, 4);
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 4; k++)
+        newSubT[1](i,j,k) = - (i + 100*j + 10000*k);
+
+  // store pointer addresses
+  const double* oldSubT1_address = &TT.subTensor(1)(0,0,0);
+  const double* newSubT0_address = &newSubT[0](0,0,0);
+  const double* oldSubT2_address = &TT.subTensor(2)(0,0,0);
+  const double* newSubT1_address = &newSubT[1](0,0,0);
+
+  std::vector<Tensor3_double> oldSubT = TT.setSubTensors(1, std::move(newSubT));
+
+  // check pointer addresses
+  ASSERT_EQ(newSubT0_address, &TT.subTensor(1)(0,0,0));
+  ASSERT_EQ(newSubT1_address, &TT.subTensor(2)(0,0,0));
+  ASSERT_EQ(2, oldSubT.size());
+  ASSERT_EQ(oldSubT1_address, &oldSubT[0](0,0,0));
+  ASSERT_EQ(oldSubT2_address, &oldSubT[1](0,0,0));
+
+  ASSERT_EQ(3, TT.subTensor(1).r1());
+  ASSERT_EQ(5, TT.subTensor(1).n());
+  ASSERT_EQ(2, TT.subTensor(1).r2());
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 2; k++)
+      {
+        EXPECT_EQ(i + 100*j + 10000*k, TT.subTensor(1)(i,j,k));
+      }
+
+  ASSERT_EQ(2, TT.subTensor(2).r1());
+  ASSERT_EQ(3, TT.subTensor(2).n());
+  ASSERT_EQ(4, TT.subTensor(2).r2());
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 4; k++)
+      {
+        EXPECT_EQ(-(i + 100*j + 10000*k), TT.subTensor(2)(i,j,k));
+      }
+}
+
+TEST(PITTS_TensorTrain, setSubTensors_vector_invalidDims)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+
+  const std::vector<int> dims = {2,5,3};
+  TensorTrain_double TT(dims, 3);
+
+  std::vector<Tensor3_double> newSubT(2);
+
+  // wrong dimension
+  newSubT[0].resize(3, 5, 2);
+  newSubT[1].resize(2, 4, 1);
+  EXPECT_THROW(TT.setSubTensors(1, std::move(newSubT)), std::invalid_argument);
+
+  // wrong rank
+  newSubT[0].resize(2, 5, 2);
+  newSubT[1].resize(2, 3, 1);
+  EXPECT_THROW(TT.setSubTensors(1, std::move(newSubT)), std::invalid_argument);
+
+  // inconsistent inner rank
+  newSubT[0].resize(3, 5, 7);
+  newSubT[1].resize(2, 3, 1);
+  EXPECT_THROW(TT.setSubTensors(1, std::move(newSubT)), std::invalid_argument);
+}
+
+TEST(PITTS_TensorTrain, setSubTensors_otherTT)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+
+  const std::vector<int> dims = {2,5,3};
+  TensorTrain_double TT(dims, 3);
+
+  ASSERT_EQ(3, TT.subTensor(1).r1());
+  ASSERT_EQ(5, TT.subTensor(1).n());
+  ASSERT_EQ(3, TT.subTensor(1).r2());
+
+  ASSERT_EQ(3, TT.subTensor(2).r1());
+  ASSERT_EQ(3, TT.subTensor(2).n());
+  ASSERT_EQ(1, TT.subTensor(2).r2());
+
+  std::vector<Tensor3_double> newSubT(2);
+  newSubT[0].resize(3, 5, 2);
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 2; k++)
+        newSubT[0](i,j,k) = i + 100*j + 10000*k;
+  newSubT[1].resize(2, 3, 4);
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 4; k++)
+        newSubT[1](i,j,k) = - (i + 100*j + 10000*k);
+  TensorTrain_double otherTT(std::move(newSubT));
+
+  // store pointer addresses
+  const double* oldSubT1_address = &TT.subTensor(1)(0,0,0);
+  const double* newSubT0_address = &otherTT.subTensor(0)(0,0,0);
+  const double* oldSubT2_address = &TT.subTensor(2)(0,0,0);
+  const double* newSubT1_address = &otherTT.subTensor(1)(0,0,0);
+
+  TensorTrain_double oldTT = TT.setSubTensors(1, std::move(otherTT));
+
+  // check pointer addresses
+  ASSERT_EQ(newSubT0_address, &TT.subTensor(1)(0,0,0));
+  ASSERT_EQ(newSubT1_address, &TT.subTensor(2)(0,0,0));
+  ASSERT_EQ(oldSubT1_address, &oldTT.subTensor(0)(0,0,0));
+  ASSERT_EQ(oldSubT2_address, &oldTT.subTensor(1)(0,0,0));
+
+  ASSERT_EQ(3, TT.subTensor(1).r1());
+  ASSERT_EQ(5, TT.subTensor(1).n());
+  ASSERT_EQ(2, TT.subTensor(1).r2());
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 2; k++)
+      {
+        EXPECT_EQ(i + 100*j + 10000*k, TT.subTensor(1)(i,j,k));
+      }
+
+  ASSERT_EQ(2, TT.subTensor(2).r1());
+  ASSERT_EQ(3, TT.subTensor(2).n());
+  ASSERT_EQ(4, TT.subTensor(2).r2());
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 4; k++)
+      {
+        EXPECT_EQ(-(i + 100*j + 10000*k), TT.subTensor(2)(i,j,k));
+      }
+}
+
+
 TEST(PITTS_TensorTrain, setTTranks)
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
