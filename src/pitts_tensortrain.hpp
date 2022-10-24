@@ -171,18 +171,6 @@ namespace PITTS
         return tmp;
       }
 
-      //! allow const access to all sub-tensors
-      [[deprecated]]
-      const auto& subTensors() const {return subTensors_;}
-
-      //! allow non-const access to all sub-tensors
-      //!
-      //! \warning Do not modify sub-tensor dimensions here, only their values!
-      //!
-      [[deprecated]]
-      auto& editableSubTensors() {return subTensors_;}
-
-
       //! set sub-tensor dimensions (TT-ranks), destroying all existing data
       void setTTranks(const std::vector<int>& tt_ranks)
       {
