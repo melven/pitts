@@ -61,8 +61,7 @@ namespace PITTS
     if( totalSize != last - first )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
-    TensorTrain<T> result(dimensions);
-
+    std::vector<Tensor3<T>> subTensors(dimensions.size());
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     EigenMatrix tmp = Eigen::Map<const EigenMatrix>(&(*first), 1, totalSize);
     for(int iDim = 0; iDim+1 < dimensions.size(); iDim++)
@@ -74,16 +73,18 @@ namespace PITTS
       if( maxRank > 0 )
         rank = std::min(rank, maxRank);
 
-      auto& subT = result.editableSubTensors()[iDim];
-      fold_left(svd.matrixU().leftCols(rank), dimensions[iDim], subT);
+      fold_left(svd.matrixU().leftCols(rank), dimensions[iDim], subTensors[iDim]);
 
       tmp.resize(rank, tmp.cols());
       tmp = svd.singularValues().topRows(rank).asDiagonal() * svd.matrixV().leftCols(rank).adjoint();
     }
     int lastDim = dimensions.size()-1;
-    auto& lastSubT = result.editableSubTensors()[lastDim];
     tmp.resize(tmp.rows()*dimensions[lastDim], tmp.cols()/dimensions[lastDim]);
-    fold_left(tmp, dimensions[lastDim], lastSubT);
+    fold_left(tmp, dimensions[lastDim], subTensors[lastDim]);
+
+    TensorTrain<T> result(dimensions);
+
+    result.setSubTensors(0, std::move(subTensors));
 
     return result;
   }

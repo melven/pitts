@@ -77,16 +77,20 @@ namespace PITTS
     ttOp.setTTranks(ranks);
 
 
+    Tensor3<T> newSubT;
     for(int iDim = 0; iDim < row_dims.size(); iDim++)
     {
-      auto& subT = ttOp.tensorTrain().editableSubTensors()[iDim];
+      {
+        const auto& subT = ttOp.tensorTrain().subTensor(iDim);
+        newSubT.resize(subT.r1(), subT.n(), subT.r2());
+      }
       
       if( iDim == 0 )
       {
           for(int j = 0; j < row_dims[iDim]; j++)
             for(int k = 0; k < col_dims[iDim]; k++)
               for(int l = 0; l < ranks[iDim]; l++)
-                subT(0, ttOp.index(iDim, j, k), l) = elt(mpo(iDim+1), row_idx[iDim]=j+1, col_idx[iDim]=k+1, link_idx[iDim]=l+1);
+                newSubT(0, ttOp.index(iDim, j, k), l) = elt(mpo(iDim+1), row_idx[iDim]=j+1, col_idx[iDim]=k+1, link_idx[iDim]=l+1);
       }
       else if( iDim+1 < row_dims.size() )
       {
@@ -94,15 +98,17 @@ namespace PITTS
           for(int j = 0; j < row_dims[iDim]; j++)
             for(int k = 0; k < col_dims[iDim]; k++)
               for(int l = 0; l < ranks[iDim]; l++)
-                subT(i, ttOp.index(iDim, j, k), l) = elt(mpo(iDim+1), link_idx[iDim-1]=i+1, row_idx[iDim]=j+1, col_idx[iDim]=k+1, link_idx[iDim]=l+1);
+                newSubT(i, ttOp.index(iDim, j, k), l) = elt(mpo(iDim+1), link_idx[iDim-1]=i+1, row_idx[iDim]=j+1, col_idx[iDim]=k+1, link_idx[iDim]=l+1);
       }
       else
       {
         for(int i = 0; i < ranks[iDim-1]; i++)
           for(int j = 0; j < row_dims[iDim]; j++)
             for(int k = 0; k < col_dims[iDim]; k++)
-                subT(i, ttOp.index(iDim, j, k), 0) = elt(mpo(iDim+1), link_idx[iDim-1]=i+1, row_idx[iDim]=j+1, col_idx[iDim]=k+1);
+                newSubT(i, ttOp.index(iDim, j, k), 0) = elt(mpo(iDim+1), link_idx[iDim-1]=i+1, row_idx[iDim]=j+1, col_idx[iDim]=k+1);
       }
+
+      newSubT = ttOp.tensorTrain().setSubTensor(iDim, std::move(newSubT));
     }
 
     return ttOp;

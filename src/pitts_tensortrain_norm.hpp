@@ -145,7 +145,7 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    const int nDim = TT.subTensors().size();
+    const int nDim = TT.dimensions().size();
     if( nDim <= 0)
       throw std::invalid_argument("TensorTrain #dimensions < 1!");
 
@@ -161,7 +161,7 @@ namespace PITTS
 
     if( nDim == 1 )
     {
-      const auto& subT = TT.subTensors()[0];
+      const auto& subT = TT.subTensor(0);
 
       const T result = internal::t3_nrm(subT);
       return result;
@@ -173,7 +173,7 @@ namespace PITTS
 
     // first iteration / last subtensors
     {
-      const auto& subT = TT.subTensors()[nDim-1];
+      const auto& subT = TT.subTensor(nDim-1);
 
       // only contract: subT(:,*,*) * subT(:,*,*)
       internal::norm2_contract2(subT, subT, t2);
@@ -182,7 +182,7 @@ namespace PITTS
     // iterate from left to right (middle)
     for(int iDim = nDim-2; iDim >= 1; iDim--)
     {
-      const auto& subT = TT.subTensors()[iDim];
+      const auto& subT = TT.subTensor(iDim);
       
       // first contraction: subT(:,:,*) * t2(:,*)
       internal::norm2_contract1(subT, t2, t3);
@@ -194,7 +194,7 @@ namespace PITTS
     // last iteration / first subtensors
     T result;
     {
-      const auto& subT = TT.subTensors()[0];
+      const auto& subT = TT.subTensor(0);
 
       // first contraction: subT(:,:,*) * t2(:,*)
       internal::norm2_contract1(subT, t2, t3);

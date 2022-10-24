@@ -157,7 +157,10 @@ namespace PITTS
 
       // now add it to the initial guess
       const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTolerance, maxRank);
-      internal::t3_scale(nrm_x, TTx.editableSubTensors()[0]);
+      Tensor3<T> tmp;
+      copy(TTx.subTensor(0), tmp);
+      internal::t3_scale(nrm_x, tmp);
+      TTx.setSubTensor(0, std::move(tmp));
     }
 
     return rho;

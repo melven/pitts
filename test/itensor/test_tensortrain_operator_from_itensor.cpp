@@ -76,14 +76,14 @@ TEST(PITTS_TensorTrainOperator_fromITensor, 2x2_unit)
   for(int j = 0; j < ttOp.getTTranks()[0]; j++)
   {
     for(int i = 0; i < 4; i++)
-      std::cout << " " << ttOp.tensorTrain().subTensors()[0](0,i,j);
+      std::cout << " " << ttOp.tensorTrain().subTensor(0)(0,i,j);
     std::cout << "\n";
   }
   std::cout << "TTOp subT(1):\n";
   for(int j = 0; j < ttOp.getTTranks()[0]; j++)
   {
     for(int i = 0; i < 4; i++)
-      std::cout << " " << ttOp.tensorTrain().subTensors()[1](j,i,0);
+      std::cout << " " << ttOp.tensorTrain().subTensor(1)(j,i,0);
     std::cout << "\n";
   }
   */

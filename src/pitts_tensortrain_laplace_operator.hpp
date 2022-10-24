@@ -48,40 +48,42 @@ namespace PITTS
     //
 
     // stupid implementation
-    Tensor3<T> oldSubT;
+    Tensor3<T> newSubT, oldSubT;
     TensorTrain<T> tmpTT = TT;
     T norm = T(0);
-    for(int iSubTensor = 0; iSubTensor < TT.subTensors().size(); iSubTensor++)
+    for(int iDim = 0; iDim < TT.dimensions().size(); iDim++)
     {
-      auto& subT = tmpTT.editableSubTensors()[iSubTensor];
-      const auto r1 = subT.r1();
-      const auto r2 = subT.r2();
-      const auto n = subT.n();
-      std::swap(subT, oldSubT);
-      subT.resize(r1,n,r2);
+      copy(tmpTT.subTensor(iDim), oldSubT);
+      const auto r1 = oldSubT.r1();
+      const auto r2 = oldSubT.r2();
+      const auto n = oldSubT.n();
+      newSubT.resize(r1,n,r2);
       // central part
       for(int k = 0; k < n; k++)
         for(int j = 0; j < r2; j++)
           for(int i = 0; i < r1; i++)
-            subT(i,k,j) = -2 * oldSubT(i,k,j) / (n+1);
+            newSubT(i,k,j) = -2 * oldSubT(i,k,j) / (n+1);
+      newSubT = tmpTT.setSubTensor(iDim, std::move(newSubT));
       norm = axpby(T(1), tmpTT, norm, TT, rankTolerance);
       
       // left part
       for(int k = n-1; k >= 0; k--)
         for(int j = 0; j < r2; j++)
           for(int i = 0; i < r1; i++)
-            subT(i,k,j) = (k-1) >= 0 ? oldSubT(i,k-1,j) / (n+1) : T(0);
+            newSubT(i,k,j) = (k-1) >= 0 ? oldSubT(i,k-1,j) / (n+1) : T(0);
+      newSubT = tmpTT.setSubTensor(iDim, std::move(newSubT));
       norm = axpby(T(1), tmpTT, norm, TT, rankTolerance);
 
       // right part
       for(int k = 0; k < n; k++)
         for(int j = 0; j < r2; j++)
           for(int i = 0; i < r1; i++)
-            subT(i,k,j) = (k+1) < subT.n() ? oldSubT(i,k+1,j) / (n+1) : T(0);
+            newSubT(i,k,j) = (k+1) < n ? oldSubT(i,k+1,j) / (n+1) : T(0);
+      newSubT = tmpTT.setSubTensor(iDim, std::move(newSubT));
       norm = axpby(T(1), tmpTT, norm, TT, rankTolerance);
       
       // revert
-      std::swap(subT, oldSubT);
+      oldSubT = tmpTT.setSubTensor(iDim, std::move(oldSubT));
     }
 
     return norm;

@@ -198,9 +198,11 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
   // make it diagonally dominant to obtain a well-posed problem
   for(int iDim = 0; iDim < 2; iDim++)
   {
-    auto& subT = TTOpA.tensorTrain().editableSubTensors()[iDim];
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
     for(int i = 0; i < 5; i++)
       subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
   }
   TensorTrain_double TTx(2,5), TTb(2,5);
   TTb.setTTranks(1);
@@ -383,9 +385,11 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6_rank1)
   // make it diagonally dominant to obtain a well-posed problem
   for(int iDim = 0; iDim < 6; iDim++)
   {
-    auto& subT = TTOpA.tensorTrain().editableSubTensors()[iDim];
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
     for(int i = 0; i < 4; i++)
       subT(0, TTOpA.index(iDim, i, i), 0) += 2;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
   }
 
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);

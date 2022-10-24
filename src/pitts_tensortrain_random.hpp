@@ -25,7 +25,7 @@ namespace PITTS
   template<typename T>
   void randomize(TensorTrain<T>& TT)
   {
-    for(auto& subT: TT.editableSubTensors())
+    for(auto& subT: TT.subTensors_)
       randomize(subT);
   }
 

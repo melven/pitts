@@ -226,13 +226,13 @@ namespace PITTS
     if( TT1.dimensions() != TT2.dimensions() )
       throw std::invalid_argument("TensorTrain dot dimensions mismatch!");
 
-    const int nDim = TT1.subTensors().size();
+    const int nDim = TT1.dimensions().size();
     if( nDim <= 0)
       throw std::invalid_argument("TensorTrain #dimensions < 1!");
 
     // we can handle first r1 != 1 and last r2 != 1 but the ranks have to match...
-    if( TT1.subTensors()[     0].r1() != TT2.subTensors()[     0].r1() ||
-        TT1.subTensors()[nDim-1].r2() != TT2.subTensors()[nDim-1].r2()  )
+    if( TT1.subTensor(     0).r1() != TT2.subTensor(     0).r1() ||
+        TT1.subTensor(nDim-1).r2() != TT2.subTensor(nDim-1).r2()  )
       throw std::invalid_argument("TensorTrain boundary ranks mismatch!");
 
     // Computes the contractions
@@ -246,8 +246,8 @@ namespace PITTS
 
     if( nDim == 1 )
     {
-      const auto& subT1 = TT1.subTensors()[0];
-      const auto& subT2 = TT2.subTensors()[0];
+      const auto& subT1 = TT1.subTensor(0);
+      const auto& subT2 = TT2.subTensor(0);
 
       const T result = internal::t3_dot(subT1, subT2);
       return result;
@@ -259,8 +259,8 @@ namespace PITTS
 
     // first iteration / last subtensors
     {
-      const auto& subT1 = TT1.subTensors()[nDim-1];
-      const auto& subT2 = TT2.subTensors()[nDim-1];
+      const auto& subT1 = TT1.subTensor(nDim-1);
+      const auto& subT2 = TT2.subTensor(nDim-1);
 
       // only contract: subT2(:,*,*) * subT1(:,*,*)
       internal::dot_contract2(subT2, subT1, t2);
@@ -269,8 +269,8 @@ namespace PITTS
     // iterate from left to right (middle)
     for(int iDim = nDim-2; iDim >= 1; iDim--)
     {
-      const auto& subT1 = TT1.subTensors()[iDim];
-      const auto& subT2 = TT2.subTensors()[iDim];
+      const auto& subT1 = TT1.subTensor(iDim);
+      const auto& subT2 = TT2.subTensor(iDim);
       
       // first contraction: subT1(:,:,*) * t2(:,*)
       internal::dot_contract1(subT1, t2, t3);
@@ -282,8 +282,8 @@ namespace PITTS
     // last iteration / first subtensors
     T result;
     {
-      const auto& subT1 = TT1.subTensors()[0];
-      const auto& subT2 = TT2.subTensors()[0];
+      const auto& subT1 = TT1.subTensor(0);
+      const auto& subT2 = TT2.subTensor(0);
 
       // first contraction: subT1(:,:,*) * t2(:,*)
       internal::dot_contract1(subT1, t2, t3);

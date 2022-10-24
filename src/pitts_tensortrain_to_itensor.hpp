@@ -65,7 +65,7 @@ namespace PITTS
 
     for(int iDim = 0; iDim < tt.dimensions().size(); iDim++)
     {
-      const auto& subT = tt.subTensors()[iDim];
+      const auto& subT = tt.subTensor(iDim);
       
       if( iDim == 0 )
       {

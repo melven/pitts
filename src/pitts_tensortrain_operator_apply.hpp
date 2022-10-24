@@ -210,18 +210,23 @@ namespace PITTS
       if( inner_row_dims != TTy.dimensions() )
         throw std::invalid_argument("TensorTrainOperator: output tensor train dimension mismatch (middle)!");
 
-      if( TTx.subTensors()[0].r1() != TTOp.column_dimensions()[0] || TTx.subTensors()[nDim-1].r2() != TTOp.column_dimensions()[nDimOp-1] )
+      if( TTx.subTensor(0).r1() != TTOp.column_dimensions()[0] || TTx.subTensor(nDim-1).r2() != TTOp.column_dimensions()[nDimOp-1] )
         throw std::invalid_argument("TensorTrainOperator: input tensor train dimension mismatch (boundary rank)!");
     }
 
-    // perform actual calculation
-    for(int iDim = 0; iDim < TTx.subTensors().size(); iDim++)
-    {
-      const auto& subTOp = TTOp.tensorTrain().subTensors()[iDim+boundaryRank];
-      const auto& subTx = TTx.subTensors()[iDim];
-      auto& subTy = TTy.editableSubTensors()[iDim];
 
-      internal::apply_contract(TTOp, iDim+boundaryRank, subTOp, subTx, subTy);
+    // perform actual calculation
+    {
+      std::vector<Tensor3<T>> newSubTy(TTy.dimensions().size());
+      for(int iDim = 0; iDim < TTx.dimensions().size(); iDim++)
+      {
+        const auto& subTOp = TTOp.tensorTrain().subTensor(iDim+boundaryRank);
+        const auto& subTx = TTx.subTensor(iDim);
+        const auto& subTy = TTy.subTensor(iDim);
+
+        internal::apply_contract(TTOp, iDim+boundaryRank, subTOp, subTx, newSubTy[iDim]);
+      }
+      TTy.setSubTensors(0, std::move(newSubTy));
     }
 
     // special handling for first/last subtensor if TTx and TTy have first/last dimension as r0 and rn
@@ -229,26 +234,26 @@ namespace PITTS
       return;
 
     // left-most sub-tensor
+    Tensor3<T> tmp;
     {
-      const auto &subTOp0 = TTOp.tensorTrain().subTensors().front();
-      auto &subTy = TTy.editableSubTensors().front();
+      const auto &subTOp0 = TTOp.tensorTrain().subTensor(0);
+      const auto &subTy = TTy.subTensor(0);
 
       // contract A(0,:,*,*) * y(*,:,:)
-      Tensor3<T> tmp;
       internal::apply_contract_leftBoundaryRank(TTOp, 0, subTOp0, subTy, tmp);
-      std::swap(tmp, subTy);
+      tmp = TTy.setSubTensor(0, std::move(tmp));
     }
 
     // right-most sub-tensor
     {
       const int nDimOp = TTOp.row_dimensions().size();
-      const auto &subTOpd = TTOp.tensorTrain().subTensors().back();
-      auto &subTy = TTy.editableSubTensors().back();
+      const int nDimy = TTy.dimensions().size();
+      const auto &subTOpd = TTOp.tensorTrain().subTensor(nDimOp-1);
+      const auto &subTy = TTy.subTensor(nDimy-1);
 
       // contract y(:,:,*) * A(*,:,*,0)
-      Tensor3<T> tmp;
       internal::apply_contract_rightBoundaryRank(subTy, TTOp, nDimOp-1, subTOpd, tmp);
-      std::swap(tmp, subTy);
+      tmp = TTy.setSubTensor(nDimy-1, std::move(tmp));
     }
   }
 

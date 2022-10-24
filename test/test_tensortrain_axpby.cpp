@@ -62,7 +62,7 @@ namespace
       // check orthogonality of subtensors
       for(int iDim = 0; iDim < nDim; iDim++)
       {
-        const auto& subT = TTresult.subTensors()[iDim];
+        const auto& subT = TTresult.subTensor(iDim);
 
         if( iDim != nDim-1 )
         {
@@ -80,7 +80,7 @@ namespace
     // check that the result is correct
     TensorTrain_double testTT(TTresult.dimensions());
     copy(TTb, testTT);
-    if( nDim == 1 && testTT.subTensors()[0].r1() == 1 && testTT.subTensors()[nDim-1].r2() == 1 )
+    if( nDim == 1 && testTT.subTensor(0).r1() == 1 && testTT.subTensor(nDim-1).r2() == 1 )
     {
       for(int i = 0; i < TTresult.dimensions()[0]; i++)
       {
@@ -88,7 +88,7 @@ namespace
         EXPECT_NEAR(alpha*dot(TTa,testTT)+beta*dot(TTb,testTT), gamma*dot(TTresult,testTT), eps);
       }
     }
-    else if( nDim == 2 && testTT.subTensors()[0].r1() == 1 && testTT.subTensors()[nDim-1].r2() == 1 )
+    else if( nDim == 2 && testTT.subTensor(0).r1() == 1 && testTT.subTensor(nDim-1).r2() == 1 )
     {
       for(int i = 0; i < TTresult.dimensions()[0]; i++)
         for(int j = 0; j < TTresult.dimensions()[1]; j++)
@@ -196,10 +196,20 @@ TEST(PITTS_TensorTrain_axpby, even_larger_ones_tensor)
   TensorTrain_double TTx({50,30,10}, 1), TTy({50,30,10}, 1);
   TTx.setTTranks({5,10});
   TTy.setTTranks({3,2});
-  for(auto& subT: TTx.editableSubTensors())
-    subT.setConstant(1.);
-  for(auto& subT: TTy.editableSubTensors())
-    subT.setConstant(1.);
+  Tensor3_double newSubT;
+  const int nDim = TTx.dimensions().size();
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    newSubT.resize(TTx.subTensor(iDim).r1(), TTx.subTensor(iDim).n(), TTx.subTensor(iDim).r2());
+    newSubT.setConstant(1.);
+    newSubT = TTx.setSubTensor(iDim, std::move(newSubT));
+  }
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    newSubT.resize(TTy.subTensor(iDim).r1(), TTy.subTensor(iDim).n(), TTy.subTensor(iDim).r2());
+    newSubT.setConstant(1.);
+    newSubT = TTy.setSubTensor(iDim, std::move(newSubT));
+  }
   
   auto [gamma,TTc] = check_axpby(0.005, TTx, -0.00015, TTy);
   EXPECT_EQ(std::vector<int>({1,1}), TTc.getTTranks());
@@ -223,18 +233,25 @@ TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
   TTy.setTTranks({10});
 
   // construct some interesting subtensors that are orthogonal
+  std::vector<Tensor3_double> subTx(2), subTy(2);
+  subTx[0].resize(1, 20, 10);
+  subTy[0].resize(1, 20, 10);
   for(int i = 0; i < 20; i++)
     for(int j = 0; j < 10; j++)
     {
-      TTx.editableSubTensors()[0](0,i,j) = i==j ? 1 : 0;
-      TTy.editableSubTensors()[0](0,i,j) = i==j+10 ? 1 : 0;
+      subTx[0](0,i,j) = i==j ? 1 : 0;
+      subTy[0](0,i,j) = i==j+10 ? 1 : 0;
     }
+  subTx[1].resize(10, 30, 1);
+  subTy[1].resize(10, 30, 1);
   for(int i = 0; i < 10; i++)
     for(int j = 0; j < 30; j++)
     {
-      TTx.editableSubTensors()[1](i,j,0) = 2*i==j ? std::pow(0.5,i) : 0;
-      TTy.editableSubTensors()[1](i,j,0) = 2*i+1==j ? std::pow(0.5,i) : 0;
+      subTx[1](i,j,0) = 2*i==j ? std::pow(0.5,i) : 0;
+      subTy[1](i,j,0) = 2*i+1==j ? std::pow(0.5,i) : 0;
     }
+  TTx.setSubTensors(0, std::move(subTx));
+  TTy.setSubTensors(0, std::move(subTy));
 
   TensorTrain_double TTz({20,30},1);
 
@@ -283,19 +300,24 @@ TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
 TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_constant)
 {
   TensorTrain_double TTx(1, 5), TTy(1, 5);
-  auto& subTx = TTx.editableSubTensors()[0];
-  auto& subTy = TTy.editableSubTensors()[0];
 
-  subTx.resize(3,5,4);
-  subTy.resize(3,5,4);
+  {
+    Tensor3_double subTx(3,5,4);
+    Tensor3_double subTy(3,5,4);
 
-  subTx.setConstant(1);
-  subTy.setConstant(2);
+    subTx.setConstant(1);
+    subTy.setConstant(2);
+
+    TTx.setSubTensor(0, std::move(subTx));
+    TTy.setSubTensor(0, std::move(subTy));
+  }
+
 
   const double nrm = axpby(0.7, TTx, 0.3, TTy);
   const double nrm_ref = std::sqrt(1.3*1.3*3*5*4);
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const double v_ref = 1/std::sqrt(3*5*4.);
+  const auto& subTy = TTy.subTensor(0);
   for(int i = 0; i < subTy.r1(); i++)
     for(int j = 0; j < subTy.n(); j++)
       for(int k = 0; k < subTy.r2(); k++)
@@ -307,10 +329,13 @@ TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_constant)
 TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_random)
 {
   TensorTrain_double TTx(1, 5), TTy(1, 5);
-  TTx.editableSubTensors()[0].resize(3,5,4);
-  TTy.editableSubTensors()[0].resize(3,5,4);
-  randomize(TTx);
-  randomize(TTy);
+  Tensor3_double subTx(3,5,4);
+  Tensor3_double subTy(3,5,4);
+  randomize(subTx);
+  randomize(subTy);
+
+  TTx.setSubTensor(0, std::move(subTx));
+  TTy.setSubTensor(0, std::move(subTy));
 
   check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -320,10 +345,10 @@ TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim3_random)
   TensorTrain_double TTx({5,3,2}, 2), TTy({5,3,2}, 2);
   TTx.setTTranks({5,3});
   TTy.setTTranks({1,4});
-  TTx.editableSubTensors()[0].resize(3,5,5);
-  TTx.editableSubTensors()[2].resize(3,2,3);
-  TTy.editableSubTensors()[0].resize(3,5,1);
-  TTy.editableSubTensors()[2].resize(4,2,3);
+  TTx.setSubTensor(0, Tensor3_double(3,5,5));
+  TTx.setSubTensor(2, Tensor3_double(3,2,3));
+  TTy.setSubTensor(0, Tensor3_double(3,5,1));
+  TTy.setSubTensor(2, Tensor3_double(4,2,3));
   randomize(TTx);
   randomize(TTy);
 

@@ -14,7 +14,7 @@ TEST(PITTS_TensorTrain_fromDense_classical, scalar)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(scalar), end(scalar), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_NEAR(5., TT.subTensors()[0](0,0,0), eps);
+  ASSERT_NEAR(5., TT.subTensor(0)(0,0,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, dimension_mismatch)
@@ -41,16 +41,16 @@ TEST(PITTS_TensorTrain_fromDense_classical, vector_1d)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(scalar), end(scalar), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_EQ(1, TT.subTensors()[0].r1());
-  ASSERT_EQ(7, TT.subTensors()[0].n());
-  ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,1,0), eps);
-  ASSERT_NEAR(3., TT.subTensors()[0](0,2,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,3,0), eps);
-  ASSERT_NEAR(5., TT.subTensors()[0](0,4,0), eps);
-  ASSERT_NEAR(6., TT.subTensors()[0](0,5,0), eps);
-  ASSERT_NEAR(7., TT.subTensors()[0](0,6,0), eps);
+  ASSERT_EQ(1, TT.subTensor(0).r1());
+  ASSERT_EQ(7, TT.subTensor(0).n());
+  ASSERT_EQ(1, TT.subTensor(0).r2());
+  ASSERT_NEAR(1., TT.subTensor(0)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,1,0), eps);
+  ASSERT_NEAR(3., TT.subTensor(0)(0,2,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,3,0), eps);
+  ASSERT_NEAR(5., TT.subTensor(0)(0,4,0), eps);
+  ASSERT_NEAR(6., TT.subTensor(0)(0,5,0), eps);
+  ASSERT_NEAR(7., TT.subTensor(0)(0,6,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_1x1)
@@ -64,14 +64,14 @@ TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_1x1)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(M), end(M), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_EQ(1, TT.subTensors()[0].r1());
-  ASSERT_EQ(1, TT.subTensors()[0].n());
-  ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0), eps);
-  ASSERT_EQ(1, TT.subTensors()[1].r1());
-  ASSERT_EQ(1, TT.subTensors()[1].n());
-  ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(7., TT.subTensors()[1](0,0,0), eps);
+  ASSERT_EQ(1, TT.subTensor(0).r1());
+  ASSERT_EQ(1, TT.subTensor(0).n());
+  ASSERT_EQ(1, TT.subTensor(0).r2());
+  ASSERT_NEAR(1., TT.subTensor(0)(0,0,0), eps);
+  ASSERT_EQ(1, TT.subTensor(1).r1());
+  ASSERT_EQ(1, TT.subTensor(1).n());
+  ASSERT_EQ(1, TT.subTensor(1).r2());
+  ASSERT_NEAR(7., TT.subTensor(1)(0,0,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_1x5)
@@ -85,17 +85,17 @@ TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_1x5)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(M), end(M), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_EQ(1, TT.subTensors()[0].r1());
-  ASSERT_EQ(1, TT.subTensors()[0].n());
-  ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_EQ(1, TT.subTensors()[1].r1());
-  ASSERT_EQ(5, TT.subTensors()[1].n());
-  ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(3., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,2,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,3,0), eps);
-  ASSERT_NEAR(5., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,4,0), eps);
+  ASSERT_EQ(1, TT.subTensor(0).r1());
+  ASSERT_EQ(1, TT.subTensor(0).n());
+  ASSERT_EQ(1, TT.subTensor(0).r2());
+  ASSERT_EQ(1, TT.subTensor(1).r1());
+  ASSERT_EQ(5, TT.subTensor(1).n());
+  ASSERT_EQ(1, TT.subTensor(1).r2());
+  ASSERT_NEAR(1., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(3., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,2,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,3,0), eps);
+  ASSERT_NEAR(5., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,4,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_5x1)
@@ -109,17 +109,17 @@ TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_5x1)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(M), end(M), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_EQ(1, TT.subTensors()[0].r1());
-  ASSERT_EQ(5, TT.subTensors()[0].n());
-  ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_EQ(1, TT.subTensors()[1].r1());
-  ASSERT_EQ(1, TT.subTensors()[1].n());
-  ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(3., TT.subTensors()[0](0,2,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,3,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(5., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,0,0), eps);
+  ASSERT_EQ(1, TT.subTensor(0).r1());
+  ASSERT_EQ(5, TT.subTensor(0).n());
+  ASSERT_EQ(1, TT.subTensor(0).r2());
+  ASSERT_EQ(1, TT.subTensor(1).r1());
+  ASSERT_EQ(1, TT.subTensor(1).n());
+  ASSERT_EQ(1, TT.subTensor(1).r2());
+  ASSERT_NEAR(1., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(3., TT.subTensor(0)(0,2,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,3,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(5., TT.subTensor(0)(0,4,0)*TT.subTensor(1)(0,0,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_5x2_rank1)
@@ -133,22 +133,22 @@ TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_5x2_rank1)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(M), end(M), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_EQ(1, TT.subTensors()[0].r1());
-  ASSERT_EQ(5, TT.subTensors()[0].n());
-  ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_EQ(1, TT.subTensors()[1].r1());
-  ASSERT_EQ(2, TT.subTensors()[1].n());
-  ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(3., TT.subTensors()[0](0,2,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,3,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(5., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(6., TT.subTensors()[0](0,2,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(8., TT.subTensors()[0](0,3,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(10., TT.subTensors()[0](0,4,0)*TT.subTensors()[1](0,1,0), eps);
+  ASSERT_EQ(1, TT.subTensor(0).r1());
+  ASSERT_EQ(5, TT.subTensor(0).n());
+  ASSERT_EQ(1, TT.subTensor(0).r2());
+  ASSERT_EQ(1, TT.subTensor(1).r1());
+  ASSERT_EQ(2, TT.subTensor(1).n());
+  ASSERT_EQ(1, TT.subTensor(1).r2());
+  ASSERT_NEAR(1., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(3., TT.subTensor(0)(0,2,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,3,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(5., TT.subTensor(0)(0,4,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(6., TT.subTensor(0)(0,2,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(8., TT.subTensor(0)(0,3,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(10., TT.subTensor(0)(0,4,0)*TT.subTensor(1)(0,1,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_2x5_rank1)
@@ -162,22 +162,22 @@ TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_2x5_rank1)
   TensorTrain_double TT = PITTS::fromDense_classical(begin(M), end(M), dimensions);
 
   ASSERT_EQ(TT.dimensions(), dimensions);
-  ASSERT_EQ(1, TT.subTensors()[0].r1());
-  ASSERT_EQ(2, TT.subTensors()[0].n());
-  ASSERT_EQ(1, TT.subTensors()[0].r2());
-  ASSERT_EQ(1, TT.subTensors()[1].r1());
-  ASSERT_EQ(5, TT.subTensors()[1].n());
-  ASSERT_EQ(1, TT.subTensors()[1].r2());
-  ASSERT_NEAR(1., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,0,0), eps);
-  ASSERT_NEAR(2., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,1,0), eps);
-  ASSERT_NEAR(3., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,2,0), eps);
-  ASSERT_NEAR(6., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,2,0), eps);
-  ASSERT_NEAR(4., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,3,0), eps);
-  ASSERT_NEAR(8., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,3,0), eps);
-  ASSERT_NEAR(5., TT.subTensors()[0](0,0,0)*TT.subTensors()[1](0,4,0), eps);
-  ASSERT_NEAR(10., TT.subTensors()[0](0,1,0)*TT.subTensors()[1](0,4,0), eps);
+  ASSERT_EQ(1, TT.subTensor(0).r1());
+  ASSERT_EQ(2, TT.subTensor(0).n());
+  ASSERT_EQ(1, TT.subTensor(0).r2());
+  ASSERT_EQ(1, TT.subTensor(1).r1());
+  ASSERT_EQ(5, TT.subTensor(1).n());
+  ASSERT_EQ(1, TT.subTensor(1).r2());
+  ASSERT_NEAR(1., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,0,0), eps);
+  ASSERT_NEAR(2., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,1,0), eps);
+  ASSERT_NEAR(3., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,2,0), eps);
+  ASSERT_NEAR(6., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,2,0), eps);
+  ASSERT_NEAR(4., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,3,0), eps);
+  ASSERT_NEAR(8., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,3,0), eps);
+  ASSERT_NEAR(5., TT.subTensor(0)(0,0,0)*TT.subTensor(1)(0,4,0), eps);
+  ASSERT_NEAR(10., TT.subTensor(0)(0,1,0)*TT.subTensor(1)(0,4,0), eps);
 }
 
 TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_4x5)

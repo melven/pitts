@@ -22,8 +22,10 @@ TEST(PITTS_TensorTrainOperator_apply_transposed_op, zero)
   applyT(TTOpA, TTOpB, TTOpC);
 
   ASSERT_EQ(TTOpA.getTTranks(), TTOpC.getTTranks());
-  for(const auto& subTOpC: TTOpC.tensorTrain().subTensors())
+  const int nDim = TTOpC.tensorTrain().dimensions().size();
+  for(int iDim = 0; iDim < nDim; iDim++)
   {
+    const auto& subTOpC = TTOpC.tensorTrain().subTensor(iDim);
     for(int i = 0; i < subTOpC.r1(); i++)
       for(int j = 0; j < subTOpC.n(); j++)
         for(int k = 0; k < subTOpC.r2(); k++)
@@ -46,10 +48,10 @@ TEST(PITTS_TensorTrainOperator_apply_transposed_op, eyeA)
   applyT(TTOpA, TTOpB, TTOpC);
 
   ASSERT_EQ(TTOpB.getTTranks(), TTOpC.getTTranks());
-  for(int iDim = 0; iDim < TTOpB.tensorTrain().subTensors().size(); iDim++)
+  for(int iDim = 0; iDim < TTOpB.tensorTrain().dimensions().size(); iDim++)
   {
-    const auto& subTOpB = TTOpB.tensorTrain().subTensors()[iDim];
-    const auto& subTOpC = TTOpC.tensorTrain().subTensors()[iDim];
+    const auto& subTOpB = TTOpB.tensorTrain().subTensor(iDim);
+    const auto& subTOpC = TTOpC.tensorTrain().subTensor(iDim);
     for(int i = 0; i < subTOpC.r1(); i++)
       for(int j = 0; j < 4; j++)
         for(int k = 0; k < 7; k++)

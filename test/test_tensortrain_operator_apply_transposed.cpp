@@ -19,8 +19,10 @@ TEST(PITTS_TensorTrainOperator_apply_transposed, zero)
   applyT(TTOp, TTx, TTy);
 
   ASSERT_EQ(TTx.getTTranks(), TTy.getTTranks());
-  for(const auto& subTy: TTy.subTensors())
+  const int nDim = TTy.dimensions().size();
+  for(int iDim = 0; iDim < nDim; iDim++)
   {
+    const auto& subTy = TTy.subTensor(iDim);
     for(int i = 0; i < subTy.r1(); i++)
       for(int j = 0; j < subTy.n(); j++)
         for(int k = 0; k < subTy.r2(); k++)
@@ -43,10 +45,10 @@ TEST(PITTS_TensorTrainOperator_apply_transposed, eye)
   applyT(TTOp, TTx, TTy);
 
   ASSERT_EQ(TTx.getTTranks(), TTy.getTTranks());
-  for(int iDim = 0; iDim < TTx.subTensors().size(); iDim++)
+  for(int iDim = 0; iDim < TTx.dimensions().size(); iDim++)
   {
-    const auto& subTx = TTx.subTensors()[iDim];
-    const auto& subTy = TTy.subTensors()[iDim];
+    const auto& subTx = TTx.subTensor(iDim);
+    const auto& subTy = TTy.subTensor(iDim);
     for(int i = 0; i < subTy.r1(); i++)
       for(int j = 0; j < subTy.n(); j++)
         for(int k = 0; k < subTy.r2(); k++)
@@ -101,10 +103,9 @@ TEST(PITTS_TensorTrainOperator_apply_transposed, laplace_operator)
     }
   for(int iDim = 0; iDim < 4; iDim++)
   {
-    auto& subT = TTOpDummy.tensorTrain().editableSubTensors()[iDim];
-    std::swap(subT, tridi);
+    Tensor3_double subT = TTOpDummy.tensorTrain().setSubTensor(iDim, std::move(tridi));
     axpby(1., TTOpDummy, 1., TTOpLaplace);
-    std::swap(subT, tridi);
+    tridi = TTOpDummy.tensorTrain().setSubTensor(iDim, std::move(subT));
   }
 
 
