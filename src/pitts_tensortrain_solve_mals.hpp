@@ -465,8 +465,7 @@ namespace PITTS
             std::swap(tt_x, new_tt_x);
           }
 
-          for (int i = 0; i < tt_x.dimensions().size(); i++)
-            std::swap(tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim + i]);
+          TTx.setSubTensors(iDim, std::move(tt_x));
         }
 
         // prepare current approximation for the next iteration
@@ -555,8 +554,7 @@ namespace PITTS
             std::swap(tt_x, new_tt_x);
           }
 
-          for(int i = 0; i < nMALS; i++)
-            std::swap(tt_x.editableSubTensors()[i], TTx.editableSubTensors()[iDim+i+1-nMALS]);
+          TTx.setSubTensors(iDim+1-nMALS, std::move(tt_x));
         }
 
         // prepare current approximation for the next iteration
