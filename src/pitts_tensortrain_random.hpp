@@ -25,6 +25,7 @@ namespace PITTS
   template<typename T>
   void randomize(TensorTrain<T>& TT)
   {
+    TT.setOrthogonal(TT_Orthogonality::none);
     for(auto& subT: TT.subTensors_)
       randomize(subT);
   }

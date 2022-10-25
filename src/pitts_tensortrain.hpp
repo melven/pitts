@@ -63,16 +63,6 @@ namespace PITTS
   class TensorTrain
   {
     public:
-      //! current orthogonality state of the tensor-train
-      //!
-      //! This is set to none by editableSubTensors.
-      //!
-      //! \warning All parts of an algorithm must handle this to be correct.
-      //!          If some code holds a reference to a subtensor through editableSubTensors,
-      //!          it can modify the tensor-train without resetting this flag!
-      //!
-      TT_Orthogonality isOrthogonal = TT_Orthogonality::none;
-
       //! create a new tensor train that represents a n^d tensor
       TensorTrain(int d, int n, int initial_TTrank = 1) : TensorTrain(std::vector<int>(d,n), initial_TTrank) {}
 
@@ -141,7 +131,7 @@ namespace PITTS
         if( i+1 < dimensions_.size() && newSubTensor.r2() != subTensors_[i].r2() )
           throw std::invalid_argument("Invalid subtensor rank (r2)!");
 
-        isOrthogonal = TT_Orthogonality::none;
+        isOrthogonal_ = TT_Orthogonality::none;
 
         // similar to std::swap
         Tensor3<T> oldSubTensor(std::move(subTensors_[i]));
@@ -177,7 +167,7 @@ namespace PITTS
               throw std::invalid_argument("Invalid subtensor rank (r2)!");
         }
 
-        isOrthogonal = TT_Orthogonality::none;
+        isOrthogonal_ = TT_Orthogonality::none;
 
         std::vector<Tensor3<T>> tmp(std::move(newSubTensors));
         for(int i = 0; i < tmp.size(); i++)
@@ -243,12 +233,23 @@ namespace PITTS
         return tt_ranks;
       }
 
+      //! current orthogonality state of the tensor-train
+      //!
+      //! This flag is resetted automatically whenever the tensor-train is modified.
+      //! To adjust this flag, call setOrthogonal.
+      //!
+      TT_Orthogonality isOrthogonal() const {return isOrthogonal_;}
+
+      //! set the current orthogonality state of the tensor-train
+      void setOrthogonal(TT_Orthogonality newState) {isOrthogonal_ = newState;}
+
       //! make this a tensor of zeros
       //!
       //! \warning intended for testing purposes
       //!
       void setZero()
       {
+        isOrthogonal_ = TT_Orthogonality::none;
         // we use a rank of one...
         setTTranks(1);
         for(auto& M: subTensors_)
@@ -261,6 +262,7 @@ namespace PITTS
       //!
       void setOnes()
       {
+        isOrthogonal_ = TT_Orthogonality::none;
         // we use a rank of one...
         setTTranks(1);
         for(auto& M: subTensors_)
@@ -279,12 +281,17 @@ namespace PITTS
         setTTranks(1);
         for(int i = 0; i < dimensions_.size(); i++)
           subTensors_[i].setUnit(0, index[i], 0);
+
+        // it's also right-orthogonal but we don't support combinations of flags (yet)
+        isOrthogonal_ = TT_Orthogonality::left;
       }
 
     protected:
       //! internal low-level sub-tensor access function
       //!
       //! Provided to a few selected friend functions to allow an optimized implementation.
+      //!
+      //! \warning you must call setOrthogonal when using this method!
       //!
       Tensor3<T>& editableSubTensor(int i) {return subTensors_.at(i);}
 
@@ -311,6 +318,12 @@ namespace PITTS
       //! where each "o" denotes a tensor of rank 3, respectively rank 2 on the boundaries
       //!
       std::vector<Tensor3<T>> subTensors_;
+
+      //! current orthogonality state of the tensor-train
+      //!
+      //! This is set to none by e.g. setSubTensor and setSubTensors.
+      //!
+      TT_Orthogonality isOrthogonal_ = TT_Orthogonality::none;
   };
 
   //! explicitly copy a TensorTrain object
@@ -323,6 +336,8 @@ namespace PITTS
 
     for(int i = 0; i < a.dimensions().size(); i++)
       copy(a.subTensor(i), b.editableSubTensor(i));
+
+    b.setOrthogonal(a.isOrthogonal());
   }
 }
 

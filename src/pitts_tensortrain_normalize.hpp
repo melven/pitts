@@ -164,7 +164,7 @@ namespace PITTS
       }
 
       if( firstIdx == 0 && lastIdx == nDim-1 )
-        TT.isOrthogonal = TT_Orthogonality::left;
+        TT.setOrthogonal(TT_Orthogonality::left);
     }
 
     //! Make a subset of sub-tensors right-orthogonal sweeping the given index range (right to left)
@@ -211,7 +211,7 @@ namespace PITTS
       }
 
       if( firstIdx == 0 && lastIdx == nDim-1 )
-        TT.isOrthogonal = TT_Orthogonality::right;
+        TT.setOrthogonal(TT_Orthogonality::right);
     }
   }
 
@@ -242,7 +242,7 @@ namespace PITTS
     internal::t3_scale(invNrm, t3);
     TT.setSubTensor(nDim-1, std::move(t3));
 
-    TT.isOrthogonal = TT_Orthogonality::left;
+    TT.setOrthogonal(TT_Orthogonality::left);
 
     return nrm;
   }
@@ -288,7 +288,7 @@ namespace PITTS
     internal::t3_scale(invNrm, t3);
     TT.setSubTensor(nDim-1, std::move(t3));
 
-    TT.isOrthogonal = TT_Orthogonality::left;
+    TT.setOrthogonal(TT_Orthogonality::left);
 
     return nrm;
   }
@@ -323,7 +323,7 @@ namespace PITTS
     internal::t3_scale(invNrm, t3);
     TT.setSubTensor(0, std::move(t3));
 
-    TT.isOrthogonal = TT_Orthogonality::right;
+    TT.setOrthogonal(TT_Orthogonality::right);
 
     return nrm;
   }
