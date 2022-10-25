@@ -61,6 +61,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
+    EXPECT_NE(PITTS::TT_Orthogonality::none, TT.isOrthogonal());
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -108,6 +109,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
+    EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -145,6 +147,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
+    EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -558,6 +561,7 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1)
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
       for(int k = 0; k < subT.r2(); k++)
@@ -590,6 +594,7 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
       for(int k = 0; k < subT.r2(); k++)
@@ -657,4 +662,21 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim4_random)
   randomize(TT);
 
   check_rightNormalize_boundaryRank(TT);
+}
+
+TEST(PITTS_TensorTrain_normalize, isOrthogonal)
+{
+  TensorTrain_double TT({3,3,3,3});
+  TT.setOnes();
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthogonal());
+  leftNormalize(TT);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
+  Tensor3_double subT(1,3,1);
+  subT.setConstant(2.0);
+  TT.setSubTensor(0, std::move(subT));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthogonal());
+  rightNormalize(TT);
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
+  leftNormalize(TT);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
 }

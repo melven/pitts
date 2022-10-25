@@ -162,6 +162,9 @@ namespace PITTS
         internal::normalize_contract1(Vt, subT_next, newSubT[1]);
         newSubT = TT.setSubTensors(iDim, std::move(newSubT));
       }
+
+      if( firstIdx == 0 && lastIdx == nDim-1 )
+        TT.setOrthogonal(TT_Orthogonality::left);
     }
 
     //! Make a subset of sub-tensors right-orthogonal sweeping the given index range (right to left)
@@ -206,6 +209,9 @@ namespace PITTS
         internal::normalize_contract2(subT_prev, U, newSubT[0]);
         newSubT = TT.setSubTensors(iDim-1, std::move(newSubT));
       }
+
+      if( firstIdx == 0 && lastIdx == nDim-1 )
+        TT.setOrthogonal(TT_Orthogonality::right);
     }
   }
 
@@ -235,6 +241,9 @@ namespace PITTS
     copy(subT, t3);
     internal::t3_scale(invNrm, t3);
     TT.setSubTensor(nDim-1, std::move(t3));
+
+    TT.setOrthogonal(TT_Orthogonality::left);
+
     return nrm;
   }
 
@@ -278,6 +287,9 @@ namespace PITTS
     copy(subT, t3);
     internal::t3_scale(invNrm, t3);
     TT.setSubTensor(nDim-1, std::move(t3));
+
+    TT.setOrthogonal(TT_Orthogonality::left);
+
     return nrm;
   }
 
@@ -310,6 +322,9 @@ namespace PITTS
     copy(subT, t3);
     internal::t3_scale(invNrm, t3);
     TT.setSubTensor(0, std::move(t3));
+
+    TT.setOrthogonal(TT_Orthogonality::right);
+
     return nrm;
   }
 
