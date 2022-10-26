@@ -10,8 +10,8 @@ int main(int argc, char* argv[])
 {
     PITTS::initialize(&argc, &argv);
     
-    if(argc != 5)
-        throw std::invalid_argument("Requires exactly 4 arguments (d, n, r, iter)");
+    if(argc != 6)
+        throw std::invalid_argument("Requires exactly 4 arguments (d, n, xr, yr, iter)");
 
     std::size_t d, n, xr, yr, iter;
     std::from_chars(argv[1], argv[2], d);   // dimension
@@ -22,13 +22,13 @@ int main(int argc, char* argv[])
     
     using Type = double;
     PITTS::TensorTrain<Type> TTx(d, n, xr), TTy(d, n, yr);
-    randomize(TTx);
-    randomize(TTy);
-    PITTS::internal::leftNormalize_range<Type>(TTx, 0, d-1, 0);
     
     for(int i = 0; i < iter; i++)
     {
-        PITTS::internal::axpby_leftOrthogonalize(0.00001, TTx, 0.9, TTy);
+        randomize(TTx);
+        randomize(TTy);
+        PITTS::internal::leftNormalize_range<Type>(TTx, 0, d-1, 0);
+        PITTS::internal::axpby_leftOrthogonalize(0.01, TTx, 0.9, TTy);
     }
     
     PITTS::finalize();
