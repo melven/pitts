@@ -25,9 +25,9 @@ static void check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
     TensorTrain<double> _TTy_(TTy);
     copy(TTy, _TTy_);
 
-    bool leftOrtho = (ortho == 'l') ? true : false;
+    //bool leftOrtho = (ortho == 'l') ? true : false;
 
-    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff, leftOrtho);
+    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff);
     const double gamma = axpby(alpha, TTx, beta, TTy, accuracy);
     EXPECT_NEAR(_gamma_, gamma, accuracy);
 
