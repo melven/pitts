@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include "pitts_tensor3.hpp"
 #include "pitts_tensortrain.hpp"
-#include "pitts_tensortrain_axpby.hpp"
-//#include "pitts_tensortrain_axpby_normalized.hpp"
+#include "pitts_tensortrain_axpby_plain.hpp"
+#include "pitts_tensortrain_axpby_normalized.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "eigen_test_helper.hpp"
@@ -10,111 +10,6 @@
 
 using namespace PITTS;
 using namespace internal;
-
-/**
- * @brief Melven's original axpby implementation, is used to check against for correctness
- * 
- * @tparam T 
- * @param alpha 
- * @param TTx 
- * @param beta 
- * @param TTy 
- * @param rankTolerance 
- * @param maxRank 
- * @return T 
- */
-template<typename T>
-T axpby_crt(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
-{
-    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-    // check that dimensions match
-    if( TTx.dimensions() != TTy.dimensions() )
-    throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
-
-    const int nDim = TTx.dimensions().size();
-    if( TTx.subTensor(0).r1() != TTy.subTensor(0).r1() || TTx.subTensor(nDim-1).r2() != TTy.subTensor(nDim-1).r2() )
-    throw std::invalid_argument("TensorTrain axpby boundary ranks mismatch!");
-
-    // handle corner cases
-    if( std::abs(alpha) == 0 )
-    return beta;
-
-    if( std::abs(beta) == 0 )
-    {
-    // TTy = TTx;
-    copy(TTx, TTy);
-    return alpha;
-    }
-
-    // To add two tensor trains, for each sub-tensor, one obtains:
-    //
-    // a - a - ... - a - a
-    // |   |         |   |
-    //          +
-    // b - b - ... - b - b
-    // |   |         |   |
-    //          =
-    // axb - axb - ... - axb - axb
-    //  |     |           |     |
-    //
-    // with axb := (a 0;
-    //              0 b)
-    //
-    // With a subsequent orthogonalization step that tries to exploit the special structure of the matrices...
-    //
-
-    // Auxiliary tensor of rank-3
-    Tensor3<T> t3_tmp;
-
-    // Auxiliary tensor of rank-2
-    Tensor2<T> t2_M;
-    {
-    const int r2 = TTx.subTensor(nDim-1).r2();
-    t2_M.resize(2*r2, r2);
-    for(int i = 0; i < r2; i++)
-        for(int j = 0; j < r2; j++)
-        {
-            t2_M(i,j) = i == j ? alpha : T(0);
-            t2_M(r2+i,j) = i == j ? beta : T(0);
-        }
-    }
-
-    std::vector<Tensor3<T>> newSubT(nDim);
-
-    for(int iDim = nDim-1; iDim >= 0; iDim--)
-    {
-        const auto& subTx = TTx.subTensor(iDim);
-        const auto& subTy = TTy.subTensor(iDim);
-
-        internal::axpby_contract1(subTx, subTy, t2_M, t3_tmp, iDim == 0);
-
-        const auto r1 = t3_tmp.r1();
-        const auto n = t3_tmp.n();
-        const auto nChunks = t3_tmp.nChunks();
-        const auto r2 = t3_tmp.r2();
-
-        if( iDim == 0 )
-        {
-            // no need for any further steps, we do a normalize afterwards anyway!
-            copy(t3_tmp, newSubT[0]);
-            break;
-        }
-
-
-        // now calculate SVD of t3_tmp(: x : :)
-        unfold_right(t3_tmp, t2_M);
-
-        auto [B,Qt] = internal::normalize_qb(t2_M, false);
-
-        fold_right(Qt, n, newSubT[iDim]);
-
-        std::swap(B, t2_M);
-    }
-    TTy.setSubTensors(0, std::move(newSubT));
-
-    return leftNormalize(TTy, rankTolerance, maxRank);
-}
 
 
 /**
@@ -132,8 +27,8 @@ static void check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
 
     EXPECT_NE(TTx.isOrthogonal(), TT_Orthogonality::none);
 
-    const double _gamma_ = axpby(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff);
-    const double gamma = axpby_crt(alpha, TTx, beta, TTy, accuracy);
+    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff);
+    const double gamma = axpby_plain(alpha, TTx, beta, TTy, accuracy);
     EXPECT_NEAR(_gamma_, gamma, accuracy);
 
     double absolute_accuracy = accuracy * norm2(TTy); // scale by norm of "correct" result
