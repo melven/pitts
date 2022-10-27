@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+"""
+Examples for using the TT-GMRES linear solver in pitts
+"""
+
+__authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
+__date__ = '2022-10-26'
+
+import pitts_py
+from tt_laplace_operator import LaplaceOperator
+from tt_convection_operator import ConvectionOperator
+
+
+if __name__ == '__main__':
+    pitts_py.initialize()
+
+    #TTOp = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
+    #TTOp.setTTranks(2)
+    #pitts_py.randomize(TTOp)
+    #pitts_py.normalize(TTOp)
+    #TTOpEye = pitts_py.TensorTrainOperator_double([2,3,3,2,4,10,7],[2,3,3,2,4,10,7])
+    #TTOpEye.setEye()
+    #pitts_py.axpby(1, TTOpEye, 0.1, TTOp)
+
+    TTOp = LaplaceOperator([20,]*6)
+    pitts_py.axpby(0.1, ConvectionOperator([20,]*6), 1, TTOp)
+
+    b = pitts_py.TensorTrain_double(TTOp.row_dimensions())
+    #b.setTTranks(3)
+    #pitts_py.randomize(b)
+    b.setOnes()
+    #nrm_b = pitts_py.normalize(b)
+
+    x = pitts_py.TensorTrain_double(TTOp.col_dimensions())
+    pitts_py.copy(b, x)
+
+    resNorm = pitts_py.solveGMRES(TTOp, b, x, maxIter=100, relResTol=1.e-8, absResTol=1.e-16, maxRank=100, verbose=True)
+
+    print("resNorm %g" % resNorm)
+    r = pitts_py.TensorTrain_double(b.dimensions())
+    pitts_py.apply(TTOp, x, r)
+    r_nrm = pitts_py.axpby(1., b, -1., r, 0.)
+    print("Real residual norm: %g" % r_nrm )
+
+
+    pitts_py.finalize(verbose=True)
+
