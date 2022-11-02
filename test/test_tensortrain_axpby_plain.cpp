@@ -47,7 +47,7 @@ namespace
     const double TTb_norm = norm2(TTb);
 
     TensorTrain_double TTresult = TTb;
-    double gamma = internal::axpby_plain(alpha, TTa, beta, TTresult);
+    double gamma = PITTS::internal::axpby_plain(alpha, TTa, beta, TTresult);
     const double TTresult_norm = norm2(TTresult);
 
     // check Law of cosines
@@ -313,7 +313,7 @@ TEST(PITTS_TensorTrain_axpby_plain, boundaryRank_nDim1_constant)
   }
 
 
-  const double nrm = internal::axpby_plain(0.7, TTx, 0.3, TTy);
+  const double nrm = PITTS::internal::axpby_plain(0.7, TTx, 0.3, TTy);
   const double nrm_ref = std::sqrt(1.3*1.3*3*5*4);
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const double v_ref = 1/std::sqrt(3*5*4.);

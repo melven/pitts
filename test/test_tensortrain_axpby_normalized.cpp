@@ -42,8 +42,7 @@ static void check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
     toDense(_TTy_, _y_);
     EXPECT_NEAR(ConstEigenMap(_y_), ConstEigenMap(y), absolute_accuracy);
 
-    // add some testing that ranks are
-    // actually reduced maybe
+    // add some testing that ranks are actually reduced maybe
     // ehh idk, the svd didn't change
 }
 
