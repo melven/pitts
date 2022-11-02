@@ -29,10 +29,10 @@ namespace PITTS
         // check that dimensions match
 
         if (x_dim != y_dim)
-            throw std::invalid_argument("TensorTrain axpby_normalized dimension mismatch!");
+            throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
     
         if( TTx.subTensor(0).r1() != TTy.subTensor(0).r1() || TTx.subTensor(d-1).r2() != TTy.subTensor(d-1).r2() )
-            throw std::invalid_argument("TensorTrain axpby_normalized boundary ranks not equal to 1!");
+            throw std::invalid_argument("TensorTrain axpby boundary ranks mismatch!");
 
         // special cases
 

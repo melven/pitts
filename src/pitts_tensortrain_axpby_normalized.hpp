@@ -816,8 +816,9 @@ namespace PITTS
         assert(internal::is_normalized(TTx_ortho, x_ortho) == true);
         // for now
         const int& d = TTy.dimensions().size(); // order d
-        if (TTx_ortho.subTensor(0).r1() != 1 || TTy.subTensor(0).r1() != 1 || TTx_ortho.subTensor(d-1).r2() != 1 || TTy.subTensor(d-1).r2() != 1)
-            throw std::invalid_argument("TensorTrain axpby_normalized boundary ranks not equal to 1!");
+        // let's see if it works with non-1 boundary ranks
+        //if (TTx_ortho.subTensor(0).r1() != 1 || TTy.subTensor(0).r1() != 1 || TTx_ortho.subTensor(d-1).r2() != 1 || TTy.subTensor(d-1).r2() != 1)
+        //    throw std::invalid_argument("TensorTrain axpby_normalized boundary ranks not equal to 1!");
 
         T gamma;
         if (x_ortho == TT_Orthogonality::left)
