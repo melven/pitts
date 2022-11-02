@@ -110,7 +110,7 @@ namespace
   }
 }
 
-TEST(PITTS_TensorTrain_axpby, corner_cases_rank1)
+TEST(PITTS_TensorTrain_axpby_plain, corner_cases_rank1)
 {
   TensorTrain_double TTa(1,5), TTb(1,5);
   randomize(TTa);
@@ -122,7 +122,7 @@ TEST(PITTS_TensorTrain_axpby, corner_cases_rank1)
   check_axpby(3, TTa, 0, TTb);
 }
 
-TEST(PITTS_TensorTrain_axpby, unit_vectors_same_direction)
+TEST(PITTS_TensorTrain_axpby_plain, unit_vectors_same_direction)
 {
   TensorTrain_double TTa(1,5), TTb(1,5);
   TTa.setUnit({1});
@@ -132,7 +132,7 @@ TEST(PITTS_TensorTrain_axpby, unit_vectors_same_direction)
   EXPECT_NEAR(7., gamma, eps);
 }
 
-TEST(PITTS_TensorTrain_axpby, unit_vectors_different_directions)
+TEST(PITTS_TensorTrain_axpby_plain, unit_vectors_different_directions)
 {
   TensorTrain_double TTa(1,5), TTb(1,5);
   TTa.setUnit({1});
@@ -142,7 +142,7 @@ TEST(PITTS_TensorTrain_axpby, unit_vectors_different_directions)
   EXPECT_NEAR(5., gamma, eps);
 }
 
-TEST(PITTS_TensorTrain_axpby, random_vectors)
+TEST(PITTS_TensorTrain_axpby_plain, random_vectors)
 {
   TensorTrain_double TTa(1,5), TTb(1,5);
   randomize(TTa);
@@ -151,7 +151,7 @@ TEST(PITTS_TensorTrain_axpby, random_vectors)
   check_axpby(4., TTa, 3., TTb);
 }
 
-TEST(PITTS_TensorTrain_axpby, rank2_unit_vectors_same_direction)
+TEST(PITTS_TensorTrain_axpby_plain, rank2_unit_vectors_same_direction)
 {
   TensorTrain_double TTa(2,5), TTb(2,5);
   TTa.setUnit({1,3});
@@ -161,7 +161,7 @@ TEST(PITTS_TensorTrain_axpby, rank2_unit_vectors_same_direction)
   EXPECT_NEAR(7., gamma, eps);
 }
 
-TEST(PITTS_TensorTrain_axpby, rank2_unit_vectors_different_directions)
+TEST(PITTS_TensorTrain_axpby_plain, rank2_unit_vectors_different_directions)
 {
   TensorTrain_double TTa(2,5), TTb(2,5);
   TTa.setUnit({1,1});
@@ -171,7 +171,7 @@ TEST(PITTS_TensorTrain_axpby, rank2_unit_vectors_different_directions)
   EXPECT_NEAR(5., gamma, eps);
 }
 
-TEST(PITTS_TensorTrain_axpby, rank2_random_vectors)
+TEST(PITTS_TensorTrain_axpby_plain, rank2_random_vectors)
 {
   TensorTrain_double TTa(2,5,2), TTb(2,5,2);
   randomize(TTa);
@@ -180,7 +180,7 @@ TEST(PITTS_TensorTrain_axpby, rank2_random_vectors)
   check_axpby(4., TTa, 3., TTb);
 }
 
-TEST(PITTS_TensorTrain_axpby, larger_random_tensor)
+TEST(PITTS_TensorTrain_axpby_plain, larger_random_tensor)
 {
   TensorTrain_double TTx({4,3,2,5}), TTy({4,3,2,5});
   TTx.setTTranks({2,3,4});
@@ -191,7 +191,7 @@ TEST(PITTS_TensorTrain_axpby, larger_random_tensor)
   check_axpby(2., TTx, -1.5, TTy);
 }
 
-TEST(PITTS_TensorTrain_axpby, even_larger_ones_tensor)
+TEST(PITTS_TensorTrain_axpby_plain, even_larger_ones_tensor)
 {
   TensorTrain_double TTx({50,30,10}, 1), TTy({50,30,10}, 1);
   TTx.setTTranks({5,10});
@@ -215,7 +215,7 @@ TEST(PITTS_TensorTrain_axpby, even_larger_ones_tensor)
   EXPECT_EQ(std::vector<int>({1,1}), TTc.getTTranks());
 }
 
-TEST(PITTS_TensorTrain_axpby, even_larger_random_tensor)
+TEST(PITTS_TensorTrain_axpby_plain, even_larger_random_tensor)
 {
   TensorTrain_double TTx({50,30,10}, 1), TTy({50,30,10}, 1);
   TTx.setTTranks({5,10});
@@ -226,7 +226,7 @@ TEST(PITTS_TensorTrain_axpby, even_larger_random_tensor)
   check_axpby(0.002, TTx, -0.0005, TTy);
 }
 
-TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
+TEST(PITTS_TensorTrain_axpby_plain, approximation_accuracy_d2)
 {
   TensorTrain_double TTx({20,30},1), TTy({20,30},1);
   TTx.setTTranks({10});
@@ -297,7 +297,7 @@ TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
   EXPECT_NEAR(0.3, nrm, 0.1);
 }
 
-TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_constant)
+TEST(PITTS_TensorTrain_axpby_plain, boundaryRank_nDim1_constant)
 {
   TensorTrain_double TTx(1, 5), TTy(1, 5);
 
@@ -326,7 +326,7 @@ TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_constant)
       }
 }
 
-TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_random)
+TEST(PITTS_TensorTrain_axpby_plain, boundaryRank_nDim1_random)
 {
   TensorTrain_double TTx(1, 5), TTy(1, 5);
   Tensor3_double subTx(3,5,4);
@@ -340,7 +340,7 @@ TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_random)
   check_axpby(0.2, TTx, -0.5, TTy);
 }
 
-TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim3_random)
+TEST(PITTS_TensorTrain_axpby_plain, boundaryRank_nDim3_random)
 {
   TensorTrain_double TTx({5,3,2}, 2), TTy({5,3,2}, 2);
   TTx.setTTranks({5,3});
