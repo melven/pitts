@@ -27,8 +27,8 @@ static void check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
 
     EXPECT_NE(TTx.isOrthogonal(), TT_Orthogonality::none);
 
-    const double _gamma_ = axpby_normalized(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff);
-    const double gamma = axpby_plain(alpha, TTx, beta, TTy, accuracy);
+    const double _gamma_ = internal::axpby_normalized(alpha, TTx, beta, _TTy_, accuracy, 0x7fffffff);
+    const double gamma = internal::axpby_plain(alpha, TTx, beta, TTy, accuracy);
     EXPECT_NEAR(_gamma_, gamma, accuracy);
 
     double absolute_accuracy = accuracy * norm2(TTy); // scale by norm of "correct" result

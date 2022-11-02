@@ -17,6 +17,21 @@
 namespace PITTS 
 {
 
+    /**
+     * @brief Scale and add one tensor train to another.
+     * 
+     * Calculate gamma * y <- alpha * x + beta * y, such that for the result ||gamma * y|| = gamma
+     * 
+     * @tparam T underlying data type (double, complex, ...)
+     * 
+     * @param alpha         coefficient of tensor x, scalar value
+     * @param TTx           tensor x in tensor train format
+     * @param beta          coefficient of tensor y, scalar value
+     * @param TTy           tensor y in tensor train format
+     * @param rankTolerance approximation accuracy that is used to reduce the TTranks of the result
+     * @param maxRank       maximal allowed TT-rank, enforced even if this violates the rankTolerance
+     * @return              norm of the result tensor
+     */
     template<typename T>
     T axpby(T alpha, const TensorTrain<T>& TTx, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
     {
@@ -54,7 +69,7 @@ namespace PITTS
 
         if (x_ortho == TT_Orthogonality::none && y_ortho == TT_Orthogonality::none)
         {
-            gamma = axpby_plain(alpha, TTx, beta, TTy, rankTolerance, maxRank);
+            gamma = internal::axpby_plain(alpha, TTx, beta, TTy, rankTolerance, maxRank);
         }
         else if (x_ortho != TT_Orthogonality::none && y_ortho != TT_Orthogonality::none)
         {
@@ -62,24 +77,24 @@ namespace PITTS
             const int y_max_rank = *std::max_element(y_dim.begin(), y_dim.end());
             if (x_max_rank >= y_max_rank)
             {
-                gamma = axpby_normalized(alpha, TTx, beta, TTy, rankTolerance, maxRank);
+                gamma = internal::axpby_normalized(alpha, TTx, beta, TTy, rankTolerance, maxRank);
             }
             else 
             {
                 // goto y_ortho :/
                 TensorTrain<T> TTtmp(TTx);
-                gamma = axpby_normalized(beta, TTy, alpha, TTtmp, rankTolerance, maxRank);
+                gamma = internal::axpby_normalized(beta, TTy, alpha, TTtmp, rankTolerance, maxRank);
                 std::swap(TTy, TTtmp);
             }
         }
         else if (x_ortho != TT_Orthogonality::none)
         {
-            gamma = axpby_normalized(alpha, TTx, beta, TTy, rankTolerance, maxRank);
+            gamma = internal::axpby_normalized(alpha, TTx, beta, TTy, rankTolerance, maxRank);
         }
         else if (y_ortho != TT_Orthogonality::none)
         {
             TensorTrain<T> TTtmp(TTx);
-            gamma = axpby_normalized(beta, TTy, alpha, TTtmp, rankTolerance, maxRank);
+            gamma = internal::axpby_normalized(beta, TTy, alpha, TTtmp, rankTolerance, maxRank);
             std::swap(TTy, TTtmp);
         }
 

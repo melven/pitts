@@ -47,7 +47,7 @@ namespace
     const double TTb_norm = norm2(TTb);
 
     TensorTrain_double TTresult = TTb;
-    double gamma = axpby_plain(alpha, TTa, beta, TTresult);
+    double gamma = internal::axpby_plain(alpha, TTa, beta, TTresult);
     const double TTresult_norm = norm2(TTresult);
 
     // check Law of cosines
@@ -257,43 +257,43 @@ TEST(PITTS_TensorTrain_axpby, approximation_accuracy_d2)
 
   // accurate addition
   PITTS::copy(TTy, TTz);
-  double nrm = PITTS::axpby_plain(1., TTx, 1., TTz);
+  double nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz);
   EXPECT_EQ(std::vector<int>({20}), TTz.getTTranks());
-  nrm = PITTS::axpby_plain(-1., TTy, nrm, TTz);
-  nrm = PITTS::axpby_plain(-1., TTx, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
   EXPECT_NEAR(0, nrm, eps);
 
   // less accurate addition
   PITTS::copy(TTy, TTz);
-  nrm = PITTS::axpby_plain(1., TTx, 1., TTz, 0.1);
+  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0.1);
   EXPECT_GT(10, TTz.getTTranks()[0]);
-  nrm = PITTS::axpby_plain(-1., TTy, nrm, TTz);
-  nrm = PITTS::axpby_plain(-1., TTx, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
   EXPECT_NEAR(0.1, nrm, 0.05);
 
   // somewhat more accurate addition
   PITTS::copy(TTy, TTz);
-  nrm = PITTS::axpby_plain(1., TTx, 1., TTz, 0.01);
+  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0.01);
   EXPECT_LT(10, TTz.getTTranks()[0]);
   EXPECT_GT(20, TTz.getTTranks()[0]);
-  nrm = PITTS::axpby_plain(-1., TTy, nrm, TTz);
-  nrm = PITTS::axpby_plain(-1., TTx, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
   EXPECT_NEAR(0.01, nrm, 0.005);
 
   // force specific max. rank
   PITTS::copy(TTy, TTz);
-  nrm = PITTS::axpby_plain(1., TTx, 1., TTz, 0., 15);
+  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0., 15);
   EXPECT_EQ(15, TTz.getTTranks()[0]);
-  nrm = PITTS::axpby_plain(-1., TTy, nrm, TTz);
-  nrm = PITTS::axpby_plain(-1., TTx, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
   EXPECT_NEAR(0, nrm, 0.02);
 
   // force smaller max. rank
   PITTS::copy(TTy, TTz);
-  nrm = PITTS::axpby_plain(1., TTx, 1., TTz, 0., 5);
+  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0., 5);
   EXPECT_EQ(5, TTz.getTTranks()[0]);
-  nrm = PITTS::axpby_plain(-1., TTy, nrm, TTz);
-  nrm = PITTS::axpby_plain(-1., TTx, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
+  nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
   EXPECT_NEAR(0.3, nrm, 0.1);
 }
 
@@ -313,7 +313,7 @@ TEST(PITTS_TensorTrain_axpby, boundaryRank_nDim1_constant)
   }
 
 
-  const double nrm = axpby_plain(0.7, TTx, 0.3, TTy);
+  const double nrm = internal::axpby_plain(0.7, TTx, 0.3, TTy);
   const double nrm_ref = std::sqrt(1.3*1.3*3*5*4);
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const double v_ref = 1/std::sqrt(3*5*4.);
