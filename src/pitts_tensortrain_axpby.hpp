@@ -85,7 +85,7 @@ namespace PITTS
                 const int idx = (y_ortho == TT_Orthogonality::left) ? d - 1 : 0;
                 copy(TTy.subTensor(idx), last_core);
                 norm *= internal::t3_nrm(last_core);
-                internal::t3_scale(1./norm, last_core);
+                internal::t3_scale(T(1.)/norm, last_core);
                 TTy.setSubTensor(idx, std::move(last_core));
                 TTy.setOrthogonal(y_ortho);
             }
