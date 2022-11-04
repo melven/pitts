@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_random.hpp"
 
 using namespace PITTS;
 
