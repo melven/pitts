@@ -20,14 +20,15 @@ namespace PITTS
     /**
      * @brief Scale and add one tensor train to another.
      * 
-     * Calculate gamma * y <- alpha * x + beta * y, such that for the result ||gamma * y|| = gamma
+     * Calculate gamma * y <- alpha * x + beta * y, 
+     * such that the result y is orthogonalized and has frobenius norm 1.0
      * 
      * @tparam T underlying data type (double, complex, ...)
      * 
      * @param alpha         coefficient of tensor x, scalar value
      * @param TTx           tensor x in tensor train format
      * @param beta          coefficient of tensor y, scalar value
-     * @param TTy           tensor y in tensor train format
+     * @param TTy           tensor y in tensor train format, result tensor
      * @param rankTolerance approximation accuracy that is used to reduce the TTranks of the result
      * @param maxRank       maximal allowed TT-rank, enforced even if this violates the rankTolerance
      * @return              norm of the result tensor
@@ -41,8 +42,8 @@ namespace PITTS
         const std::vector<int>& y_dim = TTy.dimensions();
         const int& d = x_dim.size(); // order d
 
-        const TT_Orthogonality x_ortho = TTx.isOrthogonal();
-        const TT_Orthogonality y_ortho = TTy.isOrthogonal();
+        TT_Orthogonality x_ortho = TTx.isOrthogonal();
+        TT_Orthogonality y_ortho = TTy.isOrthogonal();
 
         // check that dimensions match
 
@@ -53,9 +54,12 @@ namespace PITTS
             throw std::invalid_argument("TensorTrain axpby boundary ranks mismatch!");
 
         // special cases
-        // first option of writing it
+        
         if (std::abs(alpha) == 0 || std::abs(beta) == 0)
         {
+            if (std::abs(alpha) == 0 && std::abs(beta) == 0)
+                return 0;
+                
             if (std::abs(alpha) != 0)
             {
                 copy(TTx, TTy); // TTx -> TTy
@@ -63,66 +67,30 @@ namespace PITTS
                 beta = alpha;
             }
             
-            T norm;
+            T norm = (beta >= 0) ? 1.0 : -1.0;
             if (y_ortho == TT_Orthogonality::none)
             {
-                norm = leftNormalize(TTy, rankTolerance, maxRank);
+                if (norm < 0)
+                {
+                    Tensor3<T> tmp;
+                    copy(TTy.subTensor(0), tmp);
+                    internal::t3_scale(norm, tmp);
+                    TTy.setSubTensor(0, std::move(tmp));
+                }
+                norm *= leftNormalize(TTy, rankTolerance, maxRank);
             }
             else
             {
-                // what exactly does orthogonality encompass?? the last (or first) core doesn't have to
-                // be orthogonal right?? therefore the norm doesn't have to be 1 then
+                Tensor3<T> last_core;
                 const int idx = (y_ortho == TT_Orthogonality::left) ? d - 1 : 0;
-                Tensor3<T> last_core(TTy.subTensor(idx));
-                norm = internal::t3_nrm(last_core);
+                copy(TTy.subTensor(idx), last_core);
+                norm *= internal::t3_nrm(last_core);
                 internal::t3_scale(1./norm, last_core);
                 TTy.setSubTensor(idx, std::move(last_core));
                 TTy.setOrthogonal(y_ortho);
             }
-            return beta * norm;
-        }
 
-        // option 2
-        if (std::abs(alpha) == 0)
-        {
-            T norm;
-            if (y_ortho == TT_Orthogonality::none)
-            {
-                norm = leftNormalize(TTy, rankTolerance, maxRank);
-            }
-            else
-            {
-                // what exactly does orthogonality encompass?? the last (or first) core doesn't have to
-                // be orthogonal right?? therefore the norm doesn't have to be 1 then
-                const int idx = (y_ortho == TT_Orthogonality::left) ? d - 1 : 0;
-                Tensor3<T> last_core(TTy.subTensor(idx));
-                norm = internal::t3_nrm(last_core);
-                internal::t3_scale(1./norm, last_core);
-                TTy.setSubTensor(idx, std::move(last_core));
-                TTy.setOrthogonal(y_ortho);
-            }
             return beta * norm;
-        }
-        
-        if (std::abs(beta) == 0)
-        {
-            copy(TTx, TTy); // TTx -> TTy
-
-            T norm;
-            if (x_ortho == TT_Orthogonality::none)
-            {
-                norm = leftNormalize(TTy, rankTolerance, maxRank);
-            }
-            else
-            {
-                const int idx = (x_ortho == TT_Orthogonality::left) ? d - 1 : 0;
-                Tensor3<T> last_core(TTy.subTensor(idx));
-                norm = internal::t3_nrm(last_core);
-                internal::t3_scale(1./norm, last_core);
-                TTy.setSubTensor(idx, std::move(last_core));
-                TTy.setOrthogonal(x_ortho);
-            }
-            return alpha * norm;
         }
 
         // dispatch

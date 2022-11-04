@@ -53,7 +53,7 @@ namespace
     // check Law of cosines
     EXPECT_NEAR(pow2(gamma*TTresult_norm), pow2(alpha*TTa_norm)+pow2(beta*TTb_norm) + 2*alpha*beta*dot(TTa,TTb), eps);
 
-    // check that the result is normalized
+    // check that the result is normalized (left-orthogonal and frobenius norm 1.)
     // except for the case alpha or beta == 0
     const auto nDim = TTresult.dimensions().size();
     if( alpha*beta != 0 )

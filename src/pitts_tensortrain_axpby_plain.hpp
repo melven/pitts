@@ -100,7 +100,8 @@ else
 
     //! Scale and add one tensor train to another
     //!
-    //! Calculate gamma * y <- alpha * x + beta * y, such that for the result ||gamma * y|| = gamma
+    //! Calculate gamma * y <- alpha * x + beta * y, 
+    //! such that the result y is orthogonalized and has frobenius norm 1.0
     //!
     //! @warning This function doesn't check that tensor dimensions match nor special cases. Call the function axpby for that.
     //!
