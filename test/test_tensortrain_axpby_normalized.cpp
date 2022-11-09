@@ -41,8 +41,8 @@ static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
     EXPECT_NEAR(_gamma_, gamma, absolute_accuracy);
     if (alpha*beta != 0.) {EXPECT_NEAR(_norm_, 1.0, absolute_accuracy);}
     EXPECT_NEAR(ConstEigenMap(_y_), ConstEigenMap(y), absolute_accuracy);
-    EXPECT_NE(_TTy_.isOrthogonal(), TTx.isOrthogonal());
     EXPECT_TRUE(internal::is_normalized(_TTy_, _TTy_.isOrthogonal(), accuracy));
+    //EXPECT_NE(_TTy_.isOrthogonal(), TTx.isOrthogonal()); not required (even tho it is the case)
 
     return std::make_pair(gamma, _TTy_);
 }
@@ -802,4 +802,52 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
     check_axpby(1.0, TTx, -2.0, TTy);
     check_axpby(3.0, TTx, 1.0, TTy);
     check_axpby(-4.0, TTx, -5.0, TTy);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include "pitts_tensor3_random.hpp"
+#include "pitts_tensortrain_random.hpp"
+
+
+
+TEST(PITTS_TensorTrain_axpby_normalized, boundaryRank_order1)
+{
+    TensorTrain<double> TTx(1, 5), TTy(1, 5);
+    Tensor3<double> subTx(3,5,4);
+    Tensor3<double> subTy(3,5,4);
+    randomize(subTx);
+    randomize(subTy);
+    TTx.setSubTensor(0, std::move(subTx));
+    TTy.setSubTensor(0, std::move(subTy));
+    left_ortho(TTx);
+
+    check_axpby(0.2, TTx, -0.5, TTy);
+}
+
+TEST(PITTS_TensorTrain_axpby_normalized, boundaryRank_order3)
+{
+    TensorTrain<double> TTx({5,3,2}, 2), TTy({5,3,2}, 2);
+    TTx.setTTranks({5,3});
+    TTy.setTTranks({1,4});
+    TTx.setSubTensor(0, Tensor3<double>(3,5,5));
+    TTx.setSubTensor(2, Tensor3<double>(3,2,3));
+    TTy.setSubTensor(0, Tensor3<double>(3,5,1));
+    TTy.setSubTensor(2, Tensor3<double>(4,2,3));
+    randomize(TTx);
+    randomize(TTy);
+    left_ortho(TTx);
+
+    check_axpby(0.2, TTx, -0.5, TTy);
 }
