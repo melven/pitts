@@ -19,7 +19,7 @@ static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
     const double TTy_norm = norm2(TTy);
 
     const double TTresult_norm = std::sqrt(std::max(0.0, pow2(alpha*TTx_norm)+pow2(beta*TTy_norm) + 2*alpha*beta*dot(TTx,TTy)));
-    const double absolute_accuracy = accuracy * std::max(TTresult_norm, 1.0); // max is taken to account for case TTresult_norm == 1, but it's def not perfect
+    const double absolute_accuracy = std::max(accuracy * TTresult_norm, 1e-6); // max is taken to account for case TTresult_norm == 0, but it's def not perfect
     const double& relative_accuracy = accuracy;
 
     // check gamma (against dot product)
