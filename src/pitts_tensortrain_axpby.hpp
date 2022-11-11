@@ -56,10 +56,12 @@ namespace PITTS
         // special cases
         
         if (std::abs(alpha) == 0 || std::abs(beta) == 0)
-        {
+        {   
+            // 0*TTx + 0*TTy = 0
             if (std::abs(alpha) == 0 && std::abs(beta) == 0)
                 return 0;
-                
+            
+            // if beta = 0, copy (alpha,TTx) -> (beta,TTy)
             if (std::abs(alpha) != 0)
             {
                 copy(TTx, TTy); // TTx -> TTy
@@ -67,30 +69,21 @@ namespace PITTS
                 beta = alpha;
             }
             
-            T norm = (beta >= 0) ? 1.0 : -1.0;
-            if (y_ortho == TT_Orthogonality::none)
+            // normalize and return alpha*TTy
+            T sgn = (beta >= 0) ? 1.0 : -1.0;
+            if (sgn < 0)
             {
-                if (norm < 0)
-                {
-                    Tensor3<T> tmp;
-                    copy(TTy.subTensor(0), tmp);
-                    internal::t3_scale(norm, tmp);
-                    TTy.setSubTensor(0, std::move(tmp));
-                }
-                norm *= leftNormalize(TTy, rankTolerance, maxRank);
-            }
-            else
-            {
-                Tensor3<T> last_core;
+                Tensor3<T> tmp;
                 const int idx = (y_ortho == TT_Orthogonality::left) ? d - 1 : 0;
-                copy(TTy.subTensor(idx), last_core);
-                norm *= internal::t3_nrm(last_core);
-                internal::t3_scale(T(1.)/norm, last_core);
-                TTy.setSubTensor(idx, std::move(last_core));
-                TTy.setOrthogonal(y_ortho);
+                copy(TTy.subTensor(idx), tmp);
+                internal::t3_scale(sgn, tmp);
+                TTy.setSubTensor(idx, std::move(tmp));
             }
-
-            return beta * norm;
+            if (y_ortho == TT_Orthogonality::none)
+                sgn *= leftNormalize(TTy, rankTolerance, maxRank);
+            else
+                TTy.setOrthogonal(y_ortho);
+            return beta * sgn;
         }
 
         // dispatch
