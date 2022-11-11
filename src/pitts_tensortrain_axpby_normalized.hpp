@@ -435,7 +435,7 @@ namespace PITTS
          * @return false    if A fails the orthogonality test
          */
         template<typename T>
-        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog)
+        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = std::sqrt(std::numeric_limits<T>::epsilon()))
         {
             if (orthog == TT_Orthogonality::none) return false;
 
@@ -456,7 +456,7 @@ namespace PITTS
                     orth = mat.transpose() * mat;
                 else
                     orth = mat * mat.transpose();
-                if ((orth - Matrix::Identity(orth.cols(), orth.rows())).norm() > std::sqrt(std::numeric_limits<T>::epsilon()))
+                if ((orth - Matrix::Identity(orth.cols(), orth.rows())).norm() > eps)
                     return false;
             }
             return true;
@@ -554,9 +554,9 @@ namespace PITTS
         template <typename T>
         static void quickndirty_visualizeTT(const TensorTrain<T>& TT, int prec = 4, int fold = 0)
         {
-            for (const auto& core : TT.subTensors())
+            for (int i = 0; i < TT.dimensions().size(); i++)
             {
-                quickndirty_visualizeCORE(core, prec, fold);
+                quickndirty_visualizeCORE(TT.subTensor(i), prec, fold);
             }
         }
 
@@ -784,55 +784,53 @@ namespace PITTS
             TTy.setSubTensors(0, std::move(z_cores));
         }
 
+
+
+        /**
+         * @brief Add scaled tensor trains, where one of them (x) is normalized.
+         * 
+         * Calculate gamma * y <- alpha * x + beta * y, 
+         * such that the result y is orthogonalized and has frobenius norm 1.0
+         * 
+         * @warning Tensor x (TTx) must already be left- or right- orthogonal.
+         * @warning This function doesn't check that tensor dimensions match nor special cases. Call the function axpby for that.
+         * 
+         * @tparam T underlying data type (double, complex, ...)
+         * 
+         * @param alpha         coefficient of tensor x, scalar value
+         * @param TTx           orthogonalized tensor x in tensor train format
+         * @param beta          coefficient of tensor y, scalar value
+         * @param TTy           tensor y in tensor train format, result tensor
+         * @param rankTolerance approxiamtion accuracy that is used to reduce the TTranks of the result
+         * @param maxRank       maximal allowed TT-rank, enforced even if this violates the rankTolerance
+         * @return              norm of the result tensor
+         */
+        template <typename T>
+        T axpby_normalized(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = 0x7fffffff)
+        {
+            const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+            const TT_Orthogonality x_ortho = TTx_ortho.isOrthogonal();
+            
+            // check that x_ortho != none and TTx is actually orthogonalized
+            assert(internal::is_normalized(TTx_ortho, x_ortho) == true);
+            
+            T gamma;
+            if (x_ortho == TT_Orthogonality::left)
+            {
+                internal::axpby_leftOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep left to right
+                gamma = rightNormalize(TTy, rankTolerance, maxRank);            // compression sweep right to left
+            }
+            else if (x_ortho == TT_Orthogonality::right)
+            {
+                internal::axpby_rightOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep right to left
+                gamma = leftNormalize(TTy, rankTolerance, maxRank);              // compression sweep left to right
+            }
+            return gamma;
+        }
+
+    
     } // namespace internal
-
-
-    /**
-     * @brief Add scaled tensor trains, where one of them is normalized.
-     * 
-     * Calculate gamma * y <- alpha * x + beta * y, such that for the result ||gamma * y|| = gamma
-     * 
-     * @warning Tensor x (TTx) must already be left- or right- orthogonal.
-     * 
-     * @tparam T underlying data type (double, complex, ...)
-     * 
-     * @param alpha         coefficient of tensor x, scalar value
-     * @param TTx           tensor x in tensor train format, left- or right- orthogonal
-     * @param beta          coefficient of tensor y, scalar value
-     * @param TTy           tensor y in tensor train format
-     * @param rankTolerance approxiamtion accuracy that is used to reduce the TTranks of the result
-     * @param maxRank       maximal allowed TT-rank, enforced even if this violates the rankTolerance
-     * @param leftOrtho     whether TTx is left-orthogonal or right-orthogonal
-     * @return              norm of the result tensor
-     */
-    template <typename T>
-    T axpby_normalized(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = 0x7fffffff)
-    {
-        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-        const TT_Orthogonality x_ortho = TTx_ortho.isOrthogonal();
-        
-        // checks
-        assert(internal::is_normalized(TTx_ortho, x_ortho) == true);
-        // for now
-        const int& d = TTy.dimensions().size(); // order d
-        // let's see if it works with non-1 boundary ranks
-        //if (TTx_ortho.subTensor(0).r1() != 1 || TTy.subTensor(0).r1() != 1 || TTx_ortho.subTensor(d-1).r2() != 1 || TTy.subTensor(d-1).r2() != 1)
-        //    throw std::invalid_argument("TensorTrain axpby_normalized boundary ranks not equal to 1!");
-
-        T gamma;
-        if (x_ortho == TT_Orthogonality::left)
-        {
-            internal::axpby_leftOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep left to right
-            gamma = rightNormalize(TTy, rankTolerance, maxRank);            // compression sweep right to left
-        }
-        else if (x_ortho == TT_Orthogonality::right)
-        {
-            internal::axpby_rightOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep right to left
-            gamma = leftNormalize(TTy, rankTolerance, maxRank);              // compression sweep left to right
-        }
-        return gamma;
-    }
 
 } // namespace PITTS
 
