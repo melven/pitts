@@ -39,8 +39,9 @@ namespace PITTS
         template<typename T>
         auto axpby_normalized_qb(const Tensor2<T>& M, bool leftOrthog = true, int maxRank = std::numeric_limits<int>::max(), T rankTolerance = 0)
         {
+            std::cout << "\n\nbeginning of qb function" << std::endl;
             const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-
+            std::cout << "* after creating timer" << std::endl;
             // get reasonable rank tolerance (ignoring passed value)        // was min(M.r1(), M.r2())
             const T rankTol = std::numeric_limits<decltype(rankTolerance)>::epsilon() * (M.r1() + M.r2()) / 2;
             rankTolerance = 16 * rankTol;
@@ -64,6 +65,7 @@ namespace PITTS
             std::pair<Tensor2<T>,Tensor2<T>> result;
             result.first.resize(M.r1(), rk);
             result.second.resize(rk, M.r2());
+            std::cout << "* after creating (Q,R)" << std::endl;
 
             // avoid "Intel MKL ERROR: Parameter 6 was incorrect on entry to DGEMV ." in Eigen that occurs rightOrtho case when rk == 0
             // the "error" doesn't actually cause any issues, but ain't nice to have
@@ -71,6 +73,7 @@ namespace PITTS
 
             qr.householderQ().setLength(rk);
             const EigenMatrix R = qr.matrixR().topRows(rk).template triangularView<Eigen::Upper>();
+            std::cout << "* after creating EigenMatrix R" << std::endl;
             if( leftOrthog )
             {
                 // return QR
@@ -84,6 +87,7 @@ namespace PITTS
                 EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
             }
 
+            std::cout << "end of qb function\n" << std::endl;
             return result;
         }
 
@@ -134,6 +138,11 @@ namespace PITTS
         template <typename T>
         inline void zxtry(const Tensor2<T>& x, const Tensor2<T>& y, Tensor2<T>& z)
         {
+            //
+            // maybe just map it to eigen and let that do it's job
+            // or do yourself... (bzw have compiler take care of it)
+            //
+
             const int r1  = x.r1();
             const int xr2 = x.r2();
             const int yr2 = y.r2();
@@ -546,6 +555,8 @@ namespace PITTS
         template <typename T>
         void axpby_leftOrthogonalize(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
         {
+            const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
             std::vector<Tensor3<T>> temp(2); // temporary tensor train holding result
@@ -662,6 +673,8 @@ namespace PITTS
         template <typename T>
         void axpby_rightOrthogonalize(T alpha, const TensorTrain<T>& TTx_ortho, T beta, TensorTrain<T>& TTy)
         {
+            const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+            
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
             std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
@@ -792,7 +805,7 @@ namespace PITTS
                 internal::axpby_leftOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep left to right
                 gamma = rightNormalize(TTy, rankTolerance, maxRank);            // compression sweep right to left
             }
-            else if (x_ortho == TT_Orthogonality::right)
+            else //if (x_ortho == TT_Orthogonality::right)
             {
                 internal::axpby_rightOrthogonalize(alpha, TTx_ortho, beta, TTy); // orthogonalization sweep right to left
                 gamma = leftNormalize(TTy, rankTolerance, maxRank);              // compression sweep left to right
