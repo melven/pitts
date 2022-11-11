@@ -19,7 +19,7 @@ static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
     const double TTy_norm = norm2(TTy);
 
     const double TTresult_norm = std::sqrt(std::max(0.0, pow2(alpha*TTx_norm)+pow2(beta*TTy_norm) + 2*alpha*beta*dot(TTx,TTy)));
-    const double absolute_accuracy = std::max(accuracy * TTresult_norm, 1e-6); // max is taken to account for case TTresult_norm == 0, but it's def not perfect
+    const double absolute_accuracy = accuracy * (TTx_norm + TTy_norm + TTresult_norm); // add up all three norms to account for error in TTresult_norm calculation
     const double& relative_accuracy = accuracy;
 
     // check gamma (against dot product)
@@ -71,34 +71,6 @@ static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
  * uebernommen von test_tensortrain_axbpy_normalized.cpp
 ****/
 
-/**
- * @brief Helper Function: Left-orthogonalizes cores in [first_idx, last_idx - 1) of tensor train.
- * 
- * @param tt            tensor train object
- * @param first_idx     first index
- * @param last_idx      last index: -1 <==> last
- */
-static void left_ortho(TensorTrain<double>& tt, int first_idx = 0, int last_idx = -1)
-{
-    if (last_idx == -1) last_idx = tt.dimensions().size();
-    // left-orthogonalize TT
-    internal::leftNormalize_range<double>(tt, first_idx, last_idx - 1, 0);
-}
-
-/**
- * @brief Helper Function: Right-orthogonalizes cores in [first_idx + 1, last_idx) of tensor train.
- * 
- * @param tt            tensor train object
- * @param first_idx     first index
- * @param last_idx      last index: -1 <==> last
- */
-static void right_ortho(TensorTrain<double>& tt, int first_idx = 0, int last_idx = -1)
-{
-    if (last_idx == -1) last_idx = tt.dimensions().size();
-    // right-orthogonalize TT
-    internal::rightNormalize_range<double>(tt, first_idx, last_idx - 1, 0);
-}
-
 static void printTTranks(const TensorTrain<double>& tt, const char* name)
 {
     std::vector<int> ranks = tt.getTTranks();
@@ -133,7 +105,7 @@ TEST(PITTS_TensorTrain_axpby, x_special_cases)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTx);
+    leftNormalize(TTx, 0.);;
 
     check_axpby(0.0, TTx, 0.0, TTy);
 
@@ -163,7 +135,7 @@ TEST(PITTS_TensorTrain_axpby, x_equal)
 
     randomize(TTx);
     copy(TTx, TTy);
-    right_ortho(TTx);
+    rightNormalize(TTx, 0.);;
 
     // addition
     check_axpby(1.0, TTx, 1.0, TTy);
@@ -192,7 +164,7 @@ TEST(PITTS_TensorTrain_axpby, x_large_tensors)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTx);
+    leftNormalize(TTx, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -215,7 +187,7 @@ TEST(PITTS_TensorTrain_axpby, x_long_tensors)
 
     randomize(TTx);
     randomize(TTy);
-    right_ortho(TTx);
+    rightNormalize(TTx, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -241,7 +213,7 @@ TEST(PITTS_TensorTrain_axpby, x_boundaryRanks)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTx);
+    leftNormalize(TTx, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -271,7 +243,7 @@ TEST(PITTS_TensorTrain_axpby, y_special_cases)
 
     randomize(TTx);
     randomize(TTy);
-    right_ortho(TTy);
+    rightNormalize(TTy, 0.);;
 
     check_axpby(0.0, TTx, 0.0, TTy);
 
@@ -301,7 +273,7 @@ TEST(PITTS_TensorTrain_axpby, y_equal)
 
     randomize(TTx);
     copy(TTx, TTy);
-    left_ortho(TTy);
+    leftNormalize(TTy, 0.);;
 
     // addition
     check_axpby(1.0, TTx, 1.0, TTy);
@@ -330,7 +302,7 @@ TEST(PITTS_TensorTrain_axpby, y_large_tensors)
 
     randomize(TTx);
     randomize(TTy);
-    right_ortho(TTy);
+    rightNormalize(TTy, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -353,7 +325,7 @@ TEST(PITTS_TensorTrain_axpby, y_long_tensors)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTy);
+    leftNormalize(TTy, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -379,7 +351,7 @@ TEST(PITTS_TensorTrain_axpby, y_boundaryRanks)
 
     randomize(TTx);
     randomize(TTy);
-    right_ortho(TTy);
+    rightNormalize(TTy, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -542,8 +514,8 @@ TEST(PITTS_TensorTrain_axpby, both_special_cases)
 
     randomize(TTx);
     randomize(TTy);
-    right_ortho(TTx);
-    left_ortho(TTy);
+    rightNormalize(TTx, 0.);;
+    leftNormalize(TTy, 0.);;
 
     check_axpby(0.0, TTx, 0.0, TTy);
 
@@ -572,7 +544,7 @@ TEST(PITTS_TensorTrain_axpby, both_equal)
     TTx.setTTranks({2,3,4});
 
     randomize(TTx);
-    right_ortho(TTy);
+    rightNormalize(TTx, 0.);;
     copy(TTx, TTy);
 
     // addition
@@ -602,8 +574,8 @@ TEST(PITTS_TensorTrain_axpby, both_large_tensors)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTx);
-    right_ortho(TTy);
+    leftNormalize(TTx, 0.);;
+    rightNormalize(TTy, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -626,8 +598,8 @@ TEST(PITTS_TensorTrain_axpby, both_long_tensors)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTx);
-    left_ortho(TTy);
+    leftNormalize(TTx, 0.);;
+    leftNormalize(TTy, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
@@ -653,8 +625,8 @@ TEST(PITTS_TensorTrain_axpby, both_boundaryRanks)
 
     randomize(TTx);
     randomize(TTy);
-    left_ortho(TTx);
-    right_ortho(TTy);
+    leftNormalize(TTx, 0.);;
+    rightNormalize(TTy, 0.);;
 
     check_axpby(0.2, TTx, -0.5, TTy);
 }
