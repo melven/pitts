@@ -54,6 +54,21 @@ namespace PITTS
          {(rA1*m*n*rA2+r1*m*r2)*kernel_info::Load<Chunk<T>>() + (rA1*r1*n*rA2*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
+      // copy Aop to obtain a better memory layout... (chunk-wise access)
+      std::unique_ptr<Chunk<T>[]> tmpAop{new Chunk<T>[nChunks*rA1*rA2*m]};
+      for(int i2 = 0; i2 < rA2; i2++)
+        for(int kChunk = 0; kChunk < nChunks; kChunk++)
+          for(int i1 = 0; i1 < rA1; i1++)
+            for(int l = 0; l < m; l++)
+            {
+              const int k_begin = kChunk*Chunk<T>::size;
+              const int k_end = std::min<int>(n, (kChunk+1)*Chunk<T>::size);
+              Chunk<T> tmp;
+              for(int k = 0; k < Chunk<T>::size; k++)
+                tmp[k] = k+k_begin < k_end ? Aop(i1,k+k_begin+n*l,i2) : T(0);
+              tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)] = tmp;
+            }
+
 
       // resulting y is the biggest array and this is easily memory-bound, so order loops according to memory layout of y
 #pragma omp parallel for collapse(3) schedule(static)
@@ -65,10 +80,10 @@ namespace PITTS
             const int j1 = i % r1;
             const int i2 = j / r2;
             const int j2 = j % r2;
-            Chunk<T> tmp{};
+
+            Chunk<T> tmp = Chunk<T>{};
             for(int l = 0; l < m; l++)
-              for(int k = kChunk*Chunk<T>::size; k < std::min<int>(n, (kChunk+1)+Chunk<T>::size); k++)
-                tmp[k-kChunk*Chunk<T>::size] += Aop(i1,k+n*l,i2) * x(j1,l,j2);
+              fmadd(x(j1,l,j2), tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)], tmp);
             y.chunk(i,kChunk,j) = tmp;
           }
     }
