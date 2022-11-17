@@ -147,16 +147,7 @@ namespace PITTS
             );
 
             z.resize(xr2, yr2);
-
-            for (int j = 0; j < yr2; j++)
-            {
-                for (int i = 0; i < xr2; i++)
-                {
-                    z(i, j) = 0;
-                    for (int k = 0; k < r1; k++)
-                        z(i,j) += x(k, i) * y(k, j);
-                }
-            }
+            EigenMap(z) = ConstEigenMap(x).adjoint() * ConstEigenMap(y);
         }
 
 
