@@ -80,7 +80,11 @@ namespace PITTS
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+#ifdef EIGEN_USE_LAPACKE
+      auto svd = Eigen::JacobiSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#else
       auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
       svd.setThreshold(rankTol);
       const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
 
