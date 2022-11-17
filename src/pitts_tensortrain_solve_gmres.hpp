@@ -81,12 +81,14 @@ namespace PITTS
     // RHS norm (just for information, might be useful to adjust tolerances...)
     const T nrm_b = norm2(TTb);
     const T r0_rankTol = relResTol / maxIter * T(0.1);
+    const T V0_rankTol = std::numeric_limits<T>::epsilon() * 100;
 
     std::vector<TensorTrain<T>> V;
     // calculate the initial residual
     V.emplace_back(TensorTrain<T>{TTb.dimensions()});
     apply(TTOpA, TTx, V[0]);
-    const T beta = axpby(T(-1), TTb, T(1), V[0], r0_rankTol, maxRank);
+    T tmp = normalize(V[0], V0_rankTol, maxRank);
+    const T beta = axpby(T(-1), TTb, tmp, V[0], r0_rankTol, maxRank);
     if( verbose )
       std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / beta << " (rel), rhs norm: " << nrm_b << ", ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
     
