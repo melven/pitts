@@ -145,7 +145,7 @@ namespace PITTS
       // spatial blocking
       constexpr int bs = 10;
 
-      if( false ) //r1*r1_ > bs*bs*nChunks )
+      if( r1*r1_ > bs*bs*nChunks )
       {
 #pragma omp parallel for collapse(2)
         for(int jb = 0; jb < r1_; jb+=bs)
