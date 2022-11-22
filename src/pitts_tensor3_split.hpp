@@ -30,6 +30,30 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+
+    //! small wrapper around QR only with data size
+    template<typename T>
+    auto normalize_qr_only(const Tensor2<T>& M, bool leftOrthog)
+    {
+      const int n = M.r1();
+      const int m = M.r2();
+      // 2n^2m-2/3n^3 for m>=n flops reported by LAPACKE
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{(std::min(m,n)*std::min(n,m)*(3*std::max(m,n)-std::min(m,n))/3)*kernel_info::FMA<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + ((n+m+1)*std::min(n,m))*kernel_info::Store<T>()}} // data transfers
+        );
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      const auto mapM = ConstEigenMap(M);
+
+      auto qr = leftOrthog ?
+        Eigen::ColPivHouseholderQR<EigenMatrix>(mapM) :
+        Eigen::ColPivHouseholderQR<EigenMatrix>(mapM.transpose());
+
+      return qr;
+    }
+
     //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
     template<typename T>
     auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
@@ -41,10 +65,8 @@ namespace PITTS
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-      const auto mapM = ConstEigenMap(M);
-      auto qr = leftOrthog ?
-        Eigen::ColPivHouseholderQR<EigenMatrix>(mapM) :
-        Eigen::ColPivHouseholderQR<EigenMatrix>(mapM.transpose());
+
+      auto qr = normalize_qr_only(M, leftOrthog);
       qr.setThreshold(rankTol);
       const auto r = std::max(Eigen::Index(1), std::min(qr.rank(), Eigen::Index(maxRank)));
       qr.householderQ().setLength(r);
@@ -69,6 +91,29 @@ namespace PITTS
       return result;
     }
 
+    //! small wrapper around SVD only with data size
+    template<typename T>
+    auto normalize_svd_only(const Tensor2<T>& M)
+    {
+      const int n = M.r1();
+      const int m = M.r2();
+      // 6.67 N^3 flops reported by LAPACK, round it to 7
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{(7*n*m*std::min(n,m))/2*kernel_info::FMA<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + ((n+m+1)*std::min(n,m))*kernel_info::Store<T>()}} // data transfers
+        );
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+#ifdef EIGEN_USE_LAPACKE
+      auto svd = Eigen::JacobiSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#else
+      auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
+      return svd;
+    }
+
     //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
     template<typename T>
     auto normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
@@ -79,12 +124,7 @@ namespace PITTS
       auto rankTol = std::abs(rankTolerance);
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-#ifdef EIGEN_USE_LAPACKE
-      auto svd = Eigen::JacobiSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
-#else
-      auto svd = Eigen::JacobiSVD<EigenMatrix, Eigen::HouseholderQRPreconditioner>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
-#endif
+      auto svd = normalize_svd_only(M);
       svd.setThreshold(rankTol);
       const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
 
