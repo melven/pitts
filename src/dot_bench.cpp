@@ -11,10 +11,9 @@ int main(int argc, char* argv[])
   PITTS::initialize(&argc, &argv);
 
   using Type = double;
-  PITTS::TensorTrain<Type> TT1(10,10000), TT2(10,10000);
-  const int r = 20;
-  TT1.setTTranks({r,r,r,r,r,r,r,r,r});
-  TT2.setTTranks({r,r,r,r,r,r,r,r,r});
+  PITTS::TensorTrain<Type> TT1(4,100), TT2(4,100);
+  TT1.setTTranks(150);
+  TT2.setTTranks({150,150,17});
   randomize(TT1);
   randomize(TT2);
   Type tmp = 0;
