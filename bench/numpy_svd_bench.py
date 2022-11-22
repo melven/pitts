@@ -2,6 +2,8 @@ import functools
 import timeit
 import argparse
 import numpy as np
+import scipy as sp
+import scipy.linalg
 
 
 def timer(func):
@@ -23,13 +25,20 @@ def svd_numpy(X, nIter=1):
     return U, S, Vt
 
 @timer
+def svd_scipy_gesdd(X, nIter=1):
+    for i in range(nIter):
+        # should use dgesdd according to the documentation
+        U, S, Vt = sp.linalg.svd(X, full_matrices=False, lapack_driver='gesvd')
+    return U, S, Vt
+
+@timer
 def random(shape):
     return np.random.rand(*shape).astype(dtype=np.float64, order='F')
 
 
 def main():
     # command line arguments
-    parser = argparse.ArgumentParser(description='benchmark for numpy.linalg.qr')
+    parser = argparse.ArgumentParser(description='benchmark for numpy.linalg.svd')
     parser.add_argument('n', type=int)
     parser.add_argument('m', type=int)
     parser.add_argument('nIter', type=int)
@@ -37,8 +46,13 @@ def main():
     args = parser.parse_args()
 
     X = random([args.n, args.m])
+    print('svd_numpy: dgesdd')
     svd_numpy(X, nIter=args.nIter)
     svd_numpy(X, nIter=args.nIter)
+
+    print('svd_scipy_gesdd: dgesvd')
+    svd_scipy_gesdd(X, nIter=args.nIter)
+    svd_scipy_gesdd(X, nIter=args.nIter)
 
 
 if __name__ == '__main__':
