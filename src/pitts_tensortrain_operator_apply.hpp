@@ -123,16 +123,23 @@ namespace PITTS
          {(m*n*rA2+r1*xn*r2)*kernel_info::Load<Chunk<T>>() + (m*xn*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-      for(int i1 = 0; i1 < n; i1++)
-        for(int k = 0; k < xn; k++)
-          for(int j1 = 0; j1 < r2; j1++)
+      const int nChunks = y.nChunks();
+#pragma omp parallel for collapse(2) schedule(static)
+      for(int j = 0; j < r2; j++)
+        for(int kChunk = 0; kChunk < nChunks; kChunk++)
+        {
+          for(int iy = 0; iy < n; iy++)
           {
-            T tmp(0);
-            for(int l = 0; l < m; l++)
-              for(int j2 = 0; j2 < rA2; j2++)
-                tmp += Aop(0,index(i1,l),j2) * x(l+j2*m,k,j1);
-            y(i1,k,j1) = tmp;
+            Chunk<T> tmp{};
+            for(int ix = 0; ix < r1; ix++)
+            {
+              const int l = ix % m;
+              const int j2 = ix / m;
+              fmadd(Aop(0,iy+n*l,j2), x.chunk(ix,kChunk,j), tmp);
+            }
+            y.chunk(iy,kChunk,j) = tmp;
           }
+        }
     }
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along some dimensions: x(:,:,*) * A(*,:,*,0)
@@ -170,16 +177,24 @@ namespace PITTS
          {(rA1*n*m+r1*xn*r2)*kernel_info::Load<Chunk<T>>() + (r1*xn*m)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-      for(int i1 = 0; i1 < r1; i1++)
-        for(int k = 0; k < xn; k++)
-          for(int j1 = 0; j1 < n; j1++)
+      const int nChunks = y.nChunks();
+
+#pragma omp parallel for collapse(2) schedule(static)
+      for(int jy = 0; jy < n; jy++)
+        for(int kChunk = 0; kChunk < nChunks; kChunk++)
+        {
+          for(int i = 0; i < r1; i++)
           {
-            T tmp(0);
-            for(int l = 0; l < m; l++)
-              for(int i2 = 0; i2 < rA1; i2++)
-                tmp += Aop(i2,index(j1,l),0) * x(i1,k,l+i2*m);
-            y(i1,k,j1) = tmp;
+            Chunk<T> tmp{};
+            for(int jx = 0; jx < r2; jx++)
+            {
+              const int l = jx % m;
+              const int i2 = jx / m;
+              fmadd(Aop(i2,jy+l*n,0), x.chunk(i,kChunk,jx), tmp);
+            }
+            y.chunk(i,kChunk,jy) = tmp;
           }
+        }
     }
   }
 

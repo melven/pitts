@@ -147,16 +147,7 @@ namespace PITTS
             );
 
             z.resize(xr2, yr2);
-
-            for (int j = 0; j < yr2; j++)
-            {
-                for (int i = 0; i < xr2; i++)
-                {
-                    z(i, j) = 0;
-                    for (int k = 0; k < r1; k++)
-                        z(i,j) += x(k, i) * y(k, j);
-                }
-            }
+            EigenMap(z) = ConstEigenMap(x).adjoint() * ConstEigenMap(y);
         }
 
 
@@ -184,16 +175,7 @@ namespace PITTS
             );
 
             z.resize(xr1, yr1);
-
-            for (int j = 0; j < yr1; j++)
-            {
-                for (int i = 0; i < xr1; i++)
-                {
-                    z(i, j) = 0;
-                    for (int k = 0; k < r2; k++)
-                        z(i,j) += x(i, k) * y(j, k);
-                }
-            }
+            EigenMap(z) = ConstEigenMap(x) * ConstEigenMap(y).adjoint();
         }
 
 
@@ -225,18 +207,7 @@ namespace PITTS
             );
 
             D.resize(r1, r2);
-
-            for (int j = 0; j < r2; j++)
-            {
-                for (int i = 0; i < r1; i++)
-                {
-                    D(i, j) = C(i, j);
-                    for (int k = 0; k < c; k++)
-                    {
-                        D(i, j) -= A(i, k) * B(k, j);
-                    }
-                }
-            }
+            EigenMap(D) = ConstEigenMap(C) - ConstEigenMap(A) * ConstEigenMap(B);
         }
 
         

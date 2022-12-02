@@ -12,14 +12,14 @@ int main(int argc, char* argv[])
 
   using Type = double;
   PITTS::TensorTrain<Type> TT1(10,100), TT2(10,100);
-  const int r = 10;
-  TT2.setTTranks({r,r,r,r,r,r,r,r,r});
+  TT2.setTTranks(150);
+  TT1.setTTranks(20);
+  randomize(TT1);
   randomize(TT2);
-  TT1.setOnes();
   Type tmp = 0;
-  for(int iter = 0; iter < 1000; iter++)
+  for(int iter = 0; iter < 10; iter++)
   {
-    tmp += axpby(0.00001, TT1, 0.9, TT2);
+    tmp += axpby(0.01, TT1, 0.9, TT2);
   }
   std::cout << "random: " << tmp << std::endl;
 
