@@ -39,9 +39,7 @@ namespace PITTS
         template<typename T>
         auto axpby_normalized_qb(const Tensor2<T>& M, bool leftOrthog = true, int maxRank = std::numeric_limits<int>::max(), T rankTolerance = 0)
         {
-            std::cout << "\n\nbeginning of qb function" << std::endl;
             const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-            std::cout << "* after creating timer" << std::endl;
             // get reasonable rank tolerance (ignoring passed value)        // was min(M.r1(), M.r2())
             const T rankTol = std::numeric_limits<decltype(rankTolerance)>::epsilon() * (M.r1() + M.r2()) / 2;
             rankTolerance = 16 * rankTol;
@@ -65,7 +63,6 @@ namespace PITTS
             std::pair<Tensor2<T>,Tensor2<T>> result;
             result.first.resize(M.r1(), rk);
             result.second.resize(rk, M.r2());
-            std::cout << "* after creating (Q,R)" << std::endl;
 
             // avoid "Intel MKL ERROR: Parameter 6 was incorrect on entry to DGEMV ." in Eigen that occurs rightOrtho case when rk == 0
             // the "error" doesn't actually cause any issues, but ain't nice to have
@@ -73,7 +70,6 @@ namespace PITTS
 
             qr.householderQ().setLength(rk);
             const EigenMatrix R = qr.matrixR().topRows(rk).template triangularView<Eigen::Upper>();
-            std::cout << "* after creating EigenMatrix R" << std::endl;
             if( leftOrthog )
             {
                 // return QR
@@ -87,7 +83,6 @@ namespace PITTS
                 EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
             }
 
-            std::cout << "end of qb function\n" << std::endl;
             return result;
         }
 
@@ -620,6 +615,7 @@ namespace PITTS
                 const int c = Txt.r1();   // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
                 const int n_k = Txt.n();  // n_k (n of Txt and Tyt)
                 const int r_k = Txt.r2(); // r_k (r2 of Txt)
+                assert(c*n_k - r_k >= 0);
                 const auto& [Q, R] = internal::axpby_normalized_qb(Mtmp, true, c*n_k - r_k);
                 
                 // TQ <- fold(Q)
