@@ -133,11 +133,6 @@ namespace PITTS
         template <typename T>
         inline void zxtry(const Tensor2<T>& x, const Tensor2<T>& y, Tensor2<T>& z)
         {
-            //
-            // maybe just map it to eigen and let that do it's job
-            // or do yourself... (bzw have compiler take care of it)
-            //
-
             const int r1  = x.r1();
             const int xr2 = x.r2();
             const int yr2 = y.r2();
@@ -227,14 +222,15 @@ namespace PITTS
         template <typename T>
         inline void t3_concat3(const Tensor3<T>& Le, const Tensor3<T>& Ri, Tensor3<T>& C)
         {
-            const int r1  = Le.r1();
-            const int n   = Le.n();
-            const int r2l = Le.r2();
-            const int r2r = Ri.r2();
+            const int r1     = Le.r1();
+            const int nChunk = Le.nChunks();
+            const int r2l    = Le.r2();
+            const int r2r    = Ri.r2();
 
             assert(r1 == Ri.r1());
             assert(n == Ri.n());
 
+            const int n      = Le.n(); // for timer only
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
                 {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                                    // arguments
                 {{(r1*n*r2l + r1*n*r2r)*kernel_info::NoOp<T>()},                                          // flops
@@ -245,21 +241,21 @@ namespace PITTS
 
             for (int i2 = 0; i2 < r2l; i2++)
             {
-                for (int j = 0; j < n; j++)
+                for(int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C(i1, j, i2) = Le(i1, j, i2);
+                        C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
                     }
                 }
             }
             for (int i2 = 0; i2 < r2r; i2++)
             {
-                for (int j = 0; j < n; j++)
+                for(int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C(i1, j, i2 + r2l) = Ri(i1, j, i2);
+                        C.chunk(i1, jChunk, i2 + r2l) = Ri.chunk(i1, jChunk, i2);
                     }
                 }
             }
