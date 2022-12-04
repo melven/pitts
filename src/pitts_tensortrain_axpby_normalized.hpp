@@ -228,7 +228,7 @@ namespace PITTS
             const int r2r    = Ri.r2();
 
             assert(r1 == Ri.r1());
-            assert(n == Ri.n());
+            assert(nChunk == Ri.nChunks());
 
             const int n      = Le.n(); // for timer only
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
