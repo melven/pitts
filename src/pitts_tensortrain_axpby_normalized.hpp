@@ -550,7 +550,7 @@ namespace PITTS
 
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            std::vector<Tensor3<T>> temp(2); // temporary tensor train holding result
+            std::vector<Tensor3<T>> temp(2); // temporary 3Tensors (to update TTy)
 
             // scale last tensor cores
             Tensor3<T> x_last_core;
@@ -570,18 +570,18 @@ namespace PITTS
             //
             // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
             //
-            Tensor3<T>& Tzt = temp[0];
-            Tensor3<T>& Tyt = temp[1];   // temporary 3Tensor y (Y tilde)
-            Tensor3<T>  Txt;   // temporary 3Tensor x (X tilde)
-            Tensor2<T>  Mzt;   // temporary 2Tensor to hold result Mxt^tr * Myt
+            Tensor3<T>& Tz  = temp[0];  // temporary 3Tensor holding result to be written into TTy[k]
+            Tensor3<T>& Tyt = temp[1];  // temporary 3Tensor y (Y tilde)
+            Tensor3<T>  Txt;            // temporary 3Tensor x (X tilde)
+            Tensor2<T>  Mmt;            // temporary 2Tensor to hold result Mxt^tr * Myt
 
-            Tensor2<T>  Mtmp;  // temporary 2Tensor to hold result Myt - Mxt * Mzt
-            Tensor3<T>  Ttmpu; // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
-            Tensor3<T>  Ttmpl; // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
+            Tensor2<T>  Mtmp;           // temporary 2Tensor to hold result Myt - Mxt * Mmt
+            Tensor3<T>  Ttmpu;          // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
+            Tensor3<T>  Ttmpl;          // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
 
-            Tensor2<T>  Myt;   // 2Tensor copy of Tyt 
-            Tensor2<T>  Mxt;   // 2Tensor copy of Txt
-            Tensor3<T>  TQ;    // 3Tensor copy of Q
+            Tensor2<T>  Myt;            // 2Tensor copy of Tyt 
+            Tensor2<T>  Mxt;            // 2Tensor copy of Txt
+            Tensor3<T>  TQ;             // 3Tensor copy of Q
             
             // initialize Txt and Tyt for k == 0
             copy(TTx.subTensor(0), Txt);
@@ -601,31 +601,27 @@ namespace PITTS
                 unfold_left(Txt, Mxt);
                 unfold_left(Tyt, Myt);
 
-                // Mzt <- Mxt^tr * Myt
-                internal::zxtry(Mxt, Myt, Mzt);
+                // Mmt <- Mxt^tr * Myt
+                internal::zxtry(Mxt, Myt, Mmt);
                 
-                // Mtmp <- Myt - Mxt * Mzt
-                internal::t2_fnmadd(Mxt, Mzt, Myt, Mtmp);
+                // Mtmp <- Myt - Mxt * Mmt
+                internal::t2_fnmadd(Mxt, Mmt, Myt, Mtmp);
 
                 // [Q, R] <- QR(Mtmp)
-                const int c = Txt.r1();   // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
-                const int n_k = Txt.n();  // n_k (n of Txt and Tyt)
-                const int r_k = Txt.r2(); // r_k (r2 of Txt)
-                assert(c*n_k - r_k >= 0);
-                const auto& [Q, R] = internal::axpby_normalized_qb(Mtmp, true, c*n_k - r_k);
+                const int r1 = Txt.r1(); // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
+                const int n_k = Txt.n(); // n_k (n of Txt and Tyt)
+                const int r2 = Txt.r2(); // r_k (r2 of Txt)
+                assert(r1*n_k - r2 >= 0);
+                const auto& [Q, R] = internal::axpby_normalized_qb(Mtmp, true, r1*n_k - r2);
                 
                 // TQ <- fold(Q)
                 fold_left(Q, n_k, TQ);
 
-                // Tzt <- concat(Txt, TQ, dim=3)
-                internal::t3_concat3(Txt, TQ, Tzt);
+                // Tz <- concat(Txt, TQ, dim=3)
+                internal::t3_concat3(Txt, TQ, Tz);
 
-                //
-                // Note: Ttmpu and Mzt can be independently calculated (in parallel)
-                //
-
-                // calculate upper half of new Tyt: Ttmpu <- Mzt *1 Ty1 (mode-1 contraction)
-                internal::normalize_contract1(Mzt, Ty1, Ttmpu);
+                // calculate upper half of new Tyt: Ttmpu <- Mmt *1 Ty1 (mode-1 contraction)
+                internal::normalize_contract1(Mmt, Ty1, Ttmpu);
 
                 // calculate lower half of new Tyt: Ttmpl <- R *1 Ty1 (mode-1 contraction)
                 internal::normalize_contract1(R, Ty1, Ttmpl);
@@ -635,10 +631,10 @@ namespace PITTS
 
                 // save result into TTy
                 temp = TTy.setSubTensors(k, std::move(temp));
-                copy(TTy.subTensor(k+1), Tyt);
+                copy(TTy.subTensor(k+1), Tyt);                   // completely unnecessary copy
 
                 //
-                // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mzt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
+                // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mmt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
                 //
                 
                 // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension R.r1 x Tx1.n x Tx1.r2
@@ -669,38 +665,35 @@ namespace PITTS
             
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            std::vector<Tensor3<T>> z_cores(d); // temporary tensor train holding result
+            std::vector<Tensor3<T>> temp(2); // temporary 3Tensors (to update TTy)
 
             // scale first tensor cores
             Tensor3<T> x_first_core;
             copy(TTx.subTensor(0), x_first_core);
             internal::t3_scale(alpha, x_first_core);
             //internal::t3_scale(beta, y_cores[0]);
-            copy(TTy.subTensor(0), z_cores[0]);
-            internal::t3_scale(beta, z_cores[0]);
+            copy(TTy.subTensor(0), temp[0]);
+            internal::t3_scale(beta, temp[0]);
             if (d == 1) // special case
             {
-                internal::t3_axpy((T)1, x_first_core, z_cores[0]);
-                TTy.setSubTensor(0, std::move(z_cores[0]));
+                internal::t3_axpy((T)1, x_first_core, temp[0]);
+                TTy.setSubTensor(0, std::move(temp[0]));
                 return;
             }
-            z_cores[0] = TTy.setSubTensor(0, std::move(z_cores[0]));
+            temp[0] = TTy.setSubTensor(0, std::move(temp[0]));
 
-            //
-            // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
-            //
+            Tensor3<T>& Tz  = temp[1];  // temporary 3Tensor holding result to be written into TTy[k]
+            Tensor3<T>& Tyt = temp[0];  // temporary 3Tensor y (Y tilde)
+            Tensor3<T> Txt;             // temporary 3Tensor x (X tilde)
+            Tensor2<T> Mmt;             // temporary 2Tensor to hold result Myt * Mxt^tr
 
-            Tensor3<T> Tyt;   // temporary 3Tensor y (Y tilde)
-            Tensor3<T> Txt;   // temporary 3Tensor x (X tilde)
-            Tensor2<T> Mzt;   // temporary 2Tensor to hold result Myt * Mxt^tr
+            Tensor2<T> Mtmp;            // temporary 2Tensor to hold result Myt - Mmt * Mxt
+            Tensor3<T> Ttmpl;           // temporary 3Tensor to calculate left part (in r2-dim) of Tyt into
+            Tensor3<T> Ttmpr;           // temporary 3Tensor to calculate right part (in r2-dim) of Tyt into
 
-            Tensor2<T> Mtmp;  // temporary 2Tensor to hold result Myt - Mzt * Mxt
-            Tensor3<T> Ttmpl; // temporary 3Tensor to calculate left part (in r2-dim) of Tyt into
-            Tensor3<T> Ttmpr; // temporary 3Tensor to calculate right part (in r2-dim) of Tyt into
-
-            Tensor2<T> Myt;   // 2Tensor copy of Tyt 
-            Tensor2<T> Mxt;   // 2Tensor copy of Txt
-            Tensor3<T> TQ;    // 3Tensor copy of Q
+            Tensor2<T> Myt;             // 2Tensor copy of Tyt 
+            Tensor2<T> Mxt;             // 2Tensor copy of Txt
+            Tensor3<T> TQ;              // 3Tensor copy of Q
             
             // initialize Txt and Tyt for k == d-1
             copy(TTx.subTensor(d-1), Txt);
@@ -716,50 +709,47 @@ namespace PITTS
                 unfold_right(Txt, Mxt);
                 unfold_right(Tyt, Myt);
 
-                // Mzt <- Myt * Mxt^tr
-                internal::zxytr(Myt, Mxt, Mzt);
+                // Mmt <- Myt * Mxt^tr
+                internal::zxytr(Myt, Mxt, Mmt);
                 
-                // Mtemp <- Myt - Mzt * Mxt
-                internal::t2_fnmadd(Mzt, Mxt, Myt, Mtmp);
+                // Mtemp <- Myt - Mmt * Mxt
+                internal::t2_fnmadd(Mmt, Mxt, Myt, Mtmp);
 
                 // [Q, B] <- QR(Mtmp)
                 const int r2 = Txt.r2(); // common r2-dimension of Txt and Tyt
                 const int n_k = Txt.n(); // n_k (n of Txt and Tyt)
                 const int r1 = Txt.r1(); // r_{k-1} (r1 of Txt)
+                assert(r2*n_k - r1 >= 0);
                 const auto& [L, Q] = internal::axpby_normalized_qb(Mtmp, false, r2*n_k - r1);
                 
                 // TQ <- fold(Q)
                 fold_right(Q, n_k, TQ);
 
-                // save result into z_cores[k] <- concat(Txt, TQ, dim=1)
-                internal::t3_concat1(Txt, TQ, z_cores[k]);
+                // Tz <- concat(Txt, TQ, dim=1)
+                internal::t3_concat1(Txt, TQ, Tz);
 
-                // calculate left half of new Tyt: Ttmpl <- Ty1 *3 Mzt (mode-3 contraction)
-                internal::normalize_contract2(Ty1, Mzt, Ttmpl);
+                // calculate left half of new Tyt: Ttmpl <- Ty1 *3 Mmt (mode-3 contraction)
+                internal::normalize_contract2(Ty1, Mmt, Ttmpl);
 
-                // calculate right half of new Tyt: Ttmpu <- Tyt *3 L
+                // calculate right half of new Tyt: Ttmpu <- Tyt *3 L (mode-3 contraction)
                 internal::normalize_contract2(Ty1, L, Ttmpr);
 
                 // concatinate Tyt <- concat(Ttmpl, Ttempr, dim=3)
                 internal::t3_concat3(Ttmpl, Ttmpr, Tyt);
 
-                //
-                // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mzt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
-                //
+                // save result into TTy
+                temp = TTy.setSubTensors(k-1, std::move(temp));
+                copy(TTy.subTensor(k-1), Tyt);
 
                 // calculate new Txt: Txt <- concat(Tx1, 0, dim=3), 0 of dimension Tx1.r1 x Tx1.n x L.r2
                 internal::t3_concat3_w0(Tx1, Q.r1(), Txt);
 
             } // end loop
 
-            // calculate z_cores[0] <- Txt + Tyt (componentwise)
+            // calculate TTy[0] <- Txt + Tyt (componentwise)
             internal::t3_axpy(T(1), Txt, Tyt);
-            std::swap(Tyt, z_cores[0]);
-
-            // save result into TTy
-            TTy.setSubTensors(0, std::move(z_cores));
+            TTy.setSubTensor(0, std::move(Tyt));
         }
-
 
 
         /**
