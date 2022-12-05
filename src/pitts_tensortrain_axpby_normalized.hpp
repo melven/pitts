@@ -223,14 +223,14 @@ namespace PITTS
         inline void t3_concat3(const Tensor3<T>& Le, const Tensor3<T>& Ri, Tensor3<T>& C)
         {
             const int r1     = Le.r1();
+            const int n      = Le.n();
             const int nChunk = Le.nChunks();
             const int r2l    = Le.r2();
             const int r2r    = Ri.r2();
 
             assert(r1 == Ri.r1());
-            assert(nChunk == Ri.nChunks());
+            assert(n  == Ri.n());
 
-            const int n      = Le.n(); // for timer only
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
                 {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                                    // arguments
                 {{(r1*n*r2l + r1*n*r2r)*kernel_info::NoOp<T>()},                                          // flops
@@ -274,10 +274,11 @@ namespace PITTS
         template <typename T>
         inline void t3_concat3_w0(const Tensor3<T>& Le, const int r2Ri, Tensor3<T>& C)
         {
-            const int r1  = Le.r1();
-            const int n   = Le.n();
-            const int r2l = Le.r2();
-            const int r2r = r2Ri;
+            const int r1     = Le.r1();
+            const int n      = Le.n();
+            const int nChunk = Le.nChunks();
+            const int r2l    = Le.r2();
+            const int r2r    = r2Ri;
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
                 {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                       // arguments
@@ -289,21 +290,21 @@ namespace PITTS
 
             for (int i2 = 0; i2 < r2l; i2++)
             {
-                for (int j = 0; j < n; j++)
+                for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C(i1, j, i2) = Le(i1, j, i2);
+                        C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
                     }
                 }
             }
             for (int i2 = 0; i2 < r2r; i2++)
             {
-                for (int j = 0; j < n; j++)
+                for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C(i1, j, i2 + r2l) = 0;
+                        C.chunk(i1, jChunk, i2 + r2l) = Chunk<T>{};
                     }
                 }
             }
@@ -321,10 +322,11 @@ namespace PITTS
         template <typename T>
         inline void t3_concat1(const Tensor3<T>& Up, const Tensor3<T>& Lo, Tensor3<T>& C)
         {
-            const int r1u = Up.r1();
-            const int r1l = Lo.r1();
-            const int n   = Up.n();
-            const int r2  = Up.r2();
+            const int r1u    = Up.r1();
+            const int r1l    = Lo.r1();
+            const int n      = Up.n();
+            const int nChunk = Up.nChunks();
+            const int r2     = Up.r2();
 
             assert(n  == Lo.n());
             assert(r2 == Lo.r2());
@@ -339,15 +341,15 @@ namespace PITTS
             
             for (int i2 = 0; i2 < r2; i2++)
             {
-                for (int j = 0; j < n; j++)
+                for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
                     {
-                        C(i1, j, i2) = Up(i1, j, i2);
+                        C.chunk(i1, jChunk, i2) = Up.chunk(i1, jChunk, i2);
                     }
                     for (int i1 = 0; i1 < r1l; i1++)
                     {
-                        C(i1 + r1u, j, i2) = Lo(i1, j, i2);
+                        C.chunk(i1 + r1u, jChunk, i2) = Lo.chunk(i1, jChunk, i2);
                     }
                 }
             }
@@ -366,10 +368,11 @@ namespace PITTS
         template <typename T>
         inline void t3_concat1_w0(const Tensor3<T>& Up, const int r1Lo, Tensor3<T>& C)
         {
-            const int r1u = Up.r1();
-            const int r1l = r1Lo;
-            const int n   = Up.n();
-            const int r2  = Up.r2();
+            const int r1u    = Up.r1();
+            const int r1l    = r1Lo;
+            const int n      = Up.n();
+            const int nChunk = Up.nChunks();
+            const int r2     = Up.r2();
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
                 {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                          // arguments
@@ -381,15 +384,15 @@ namespace PITTS
             
             for (int i2 = 0; i2 < r2; i2++)
             {
-                for (int j = 0; j < n; j++)
+                for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
                     {
-                        C(i1, j, i2) = Up(i1, j, i2);
+                        C.chunk(i1, jChunk, i2) = Up.chunk(i1, jChunk, i2);
                     }
                     for (int i1 = 0; i1 < r1l; i1++)
                     {
-                        C(i1 + r1u, j, i2) = (T)0;
+                        C.chunk(i1 + r1u, jChunk, i2) = Chunk<T>{};
                     }
                 }
             }
