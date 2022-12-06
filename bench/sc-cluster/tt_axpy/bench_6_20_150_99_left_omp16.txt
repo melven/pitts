@@ -1,0 +1,111 @@
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140205631842176 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140205623445504 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140205615048832 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140205606652160 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140205598255488 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140205247949312 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140205239552640 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140205231155968 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140205222759296 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140205214362624 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140205205965952 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140205197569280 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140204711079296 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 140204702682624 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 140204694285952 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 1
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34mRoundrobin placement triggered
+	threadid 140424708740864 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140424700348160 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140424691816192 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
+[1;34mRoundrobin placement triggered
+	threadid 140204685891328 -> hwthread 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140204677498624 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140204664911616 -> hwthread 2 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+Performance statistics:
+function                                                                                                                                                                                                   	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4980, m: 99)                                                                      	 0.468321  	 75        	 15.5296   	 0         	 1.27597   	 12.1708   
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2_fnmadd(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double](r1: 3000, c: 150, r2: 99)                            	 0.0551481 	 75        	 121.174   	 0         	 11.5201   	 10.5185   
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat3(const PITTS::Tensor3<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 249, n: 20, r2left: 150, r2right: 99)           	 0.0429236 	 75        	 0         	 0         	 34.6668   	 0         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 99, r1_: 150, nChunks: 2, r2: 99)  	 0.0235101 	 75        	 300.156   	 0         	 26.1955   	 11.4583   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 400, m: 99)                                                                       	 0.0202041 	 25        	 8.90159   	 0         	 0.882     	 10.0925   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 3000, m: 150)                                                                     	 0.0196328 	 3         	 20.2849   	 0         	 1.12789   	 17.9849   
+<PITTS::Tensor3<double>> :: void PITTS::internal::xtryz(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double](r1: 3000, x.r2: 150, y.r2: 99)                           	 0.0178066 	 75        	 375.283   	 0         	 25.6709   	 14.619    
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat1_w0(const PITTS::Tensor3<T>&, int, PITTS::Tensor3<T>&) [with T = double](r1upp: 150, r1low: 99, n: 20, r2: 150)                                	 0.0168939 	 75        	 0         	 0         	 42.5124   	 0         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 99, r1_: 99, nChunks: 2, r2: 99)   	 0.0145294 	 75        	 320.552   	 0         	 32.379    	 9.9       
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 150, n: 20, r2: 150)                                               	 0.0129074 	 78        	 0         	 0         	 43.5098   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>](r1: 249, n: 20, r2: 99)                                             	 0.0119788 	 75        	 0         	 0         	 49.3894   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::copy(const Tensor3<T>&, Tensor3<T>&) [with T = double](r1: 99, n: 20, r2: 99)                                                                                      	 0.00869639	 100       	 0         	 0         	 36.0646   	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 20, m: 150)                                                                       	 0.00636284	 1         	 0.0180212 	 0         	 0.00807187	 2.23259   
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 150, n: 20, r2: 99)                                                	 0.00615671	 75        	 0         	 0         	 57.8881   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2t3_concat1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor2<T>&) [with T = double](r1upp: 150, r1low: 99, n: 20, r2: 99)             	 0.00584498	 75        	 0         	 0         	 101.219   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::xtryz(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double](r1: 400, x.r2: 150, y.r2: 99)                            	 0.00318616	 25        	 93.2156   	 0         	 7.18419   	 12.9751   
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2_fnmadd(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double](r1: 400, c: 150, r2: 99)                             	 0.00301931	 25        	 98.3668   	 0         	 10.2043   	 9.63973   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 400, m: 150)                                                                      	 0.00171321	 1         	 9.19327   	 0         	 0.666118  	 13.8013   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 150, r1_: 150, nChunks: 2, r2: 150)	 0.00169273	 3         	 382.814   	 0         	 25.5209   	 15        
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 99, r1_: 20, nChunks: 2, r2: 99)   	 0.00156551	 25        	 200.338   	 0         	 52.2093   	 3.83721   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 99, r1_: 150, nChunks: 2, r2: 1)   	 0.00137279	 25        	 17.3078   	 0         	 35.7765   	 0.483776  
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 20, m: 99)                                                                        	 0.00135238	 25        	 1.36548   	 0         	 0.647745  	 2.10805   
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>](r1: 20, n: 20, r2: 99)                                              	 0.00104355	 25        	 0         	 0         	 15.179    	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat3(const PITTS::Tensor3<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 20, n: 20, r2left: 150, r2right: 99)            	 0.000829337	 25        	 0         	 0         	 48.0384   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 20, n: 20, r2: 150)                                                	 0.000636006	 26        	 0         	 0         	 39.2449   	 0         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 99, r1_: 99, nChunks: 2, r2: 1)    	 0.000627984	 25        	 24.9713   	 0         	 51.9606   	 0.480583  
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>](r1: 150, n: 20, r2: 150)                                            	 0.000561977	 3         	 0         	 0         	 38.4357   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat1_w0(const PITTS::Tensor3<T>&, int, PITTS::Tensor3<T>&) [with T = double](r1upp: 20, r1low: 0, n: 20, r2: 150)                                  	 0.000556525	 25        	 0         	 0         	 43.1247   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2t3_concat1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor2<T>&) [with T = double](r1upp: 20, r1low: 0, n: 20, r2: 99)               	 0.000552651	 25        	 0         	 0         	 28.6618   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::xtryz(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double](r1: 20, x.r2: 20, y.r2: 99)                              	 0.000486645	 25        	 4.06867   	 0         	 1.79186   	 2.27064   
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 20, n: 20, r2: 99)                                                 	 0.000400012	 25        	 0         	 0         	 39.5988   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat1(const PITTS::Tensor3<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1upp: 150, r1low: 99, n: 20, r2: 1)                	 0.000379552	 25        	 0         	 0         	 5.24829   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::copy(const Tensor3<T>&, Tensor3<T>&) [with T = double](r1: 99, n: 20, r2: 1)                                                                                       	 0.000341573	 50        	 0         	 0         	 4.63737   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::copy(const Tensor3<T>&, Tensor3<T>&) [with T = double](r1: 1, n: 20, r2: 99)                                                                                       	 0.000306526	 50        	 0         	 0         	 5.16759   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::copy(const Tensor3<T>&, Tensor3<T>&) [with T = double](r1: 150, n: 20, r2: 1)                                                                                      	 0.000229686	 26        	 0         	 0         	 5.4335    	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2_fnmadd(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double](r1: 20, c: 20, r2: 99)                               	 0.00022465	 25        	 8.81371   	 0         	 5.64434   	 1.56151   
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 1, n: 20, r2: 20)                                                  	 0.000196847	 25        	 0         	 0         	 0.812814  	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2t3_concat1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor2<T>&) [with T = double](r1upp: 1, r1low: 0, n: 20, r2: 99)                	 0.000173114	 25        	 0         	 0         	 4.57502   	 0         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 150, r1_: 20, nChunks: 2, r2: 150) 	 0.000141138	 1         	 204.056   	 0         	 48.9733   	 4.16667   
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat1_w0(const PITTS::Tensor3<T>&, int, PITTS::Tensor3<T>&) [with T = double](r1upp: 1, r1low: 0, n: 20, r2: 20)                                    	 0.000135544	 25        	 0         	 0         	 1.18043   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 1, n: 20, r2: 99)                                                  	 0.000131074	 25        	 0         	 0         	 6.04239   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat3(const PITTS::Tensor3<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 1, n: 20, r2left: 20, r2right: 0)               	 0.000102805	 25        	 0         	 0         	 1.55634   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>](r1: 1, n: 20, r2: 0)                                                	 8.2085e-05	 25        	 0         	 0         	 0         	 -nan      
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_axpy(T, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 150, n: 20, r2: 1)                                                        	 8.0139e-05	 25        	 1.87175   	 0         	 22.461    	 0.0833333 
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>](r1: 20, n: 20, r2: 150)                                             	 7.1778e-05	 1         	 0         	 0         	 13.3746   	 0         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 150, r1_: 150, nChunks: 2, r2: 1)  	 6.5712e-05	 1         	 21.9138   	 0         	 44.9963   	 0.487013  
+<PITTS::TensorTrain<double>> :: void PITTS::internal::t3_scale(T, PITTS::Tensor3<T>&) [with T = double](r1: 150, n: 20, r2: 1)                                                                             	 5.171e-05 	 26        	 1.50841   	 0         	 24.1346   	 0.0625    
+<PITTS::TensorTrain<double>> :: void PITTS::internal::t3_scale(T, PITTS::Tensor3<T>&) [with T = double](r1: 99, n: 20, r2: 1)                                                                              	 5.0039e-05	 25        	 0.989228  	 0         	 15.8277   	 0.0625    
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double](r1: 99, r1_: 0, nChunks: 2, r2: 99)    	 4.7014e-05	 25        	 0         	 0         	 1334.21   	 0         
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>](r1: 1, n: 20, r2: 20)                                               	 2.6119e-05	 1         	 0         	 0         	 0.245032  	 0         
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>](r1: 1, n: 20, r2: 150)                                                 	 2.1723e-05	 1         	 0         	 0         	 2.20964   	 0         
+<PITTS::TensorTrain<double>> :: T PITTS::internal::t3_nrm(const PITTS::Tensor3<T>&) [with T = double](r1: 150, n: 20, r2: 1)                                                                               	 5.719e-06 	 1         	 1.04913   	 0         	 4.19654   	 0.25      
+Timing statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    
+<PITTS::TensorTrain<double>> :: void PITTS::internal::axpby_leftOrthogonalize(T, const PITTS::TensorTrain<T>&, T, PITTS::TensorTrain<T>&) [with T = double]        	 1.16504   	 25        
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qb(const PITTS::Tensor2<T>&, bool, T, int, bool) [with T = double]                                     	 0.964942  	 130       
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double]                                              	 0.517587  	 130       
+<PITTS::TensorTrain<double>> :: T PITTS::leftNormalize(TensorTrain<T>&, T, int) [with T = double]                                                                  	 0.0584367 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2_fnmadd(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double]              	 0.0583921 	 125       
+<PITTS::TensorTrain<double>> :: void PITTS::internal::leftNormalize_range(PITTS::TensorTrain<T>&, int, int, T, int) [with T = double]                              	 0.0580592 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat3(const PITTS::Tensor3<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double]             	 0.0438558 	 125       
+<PITTS::TensorTrain<double>> :: void PITTS::internal::normalize_contract1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double]	 0.0435525 	 255       
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(int, int, int) [with T = double]                                                                        	 0.0435467 	 818       
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                   	 0.0252726 	 12        
+<PITTS::Tensor3<double>> :: void PITTS::internal::xtryz(const PITTS::Tensor2<T>&, const PITTS::Tensor2<T>&, PITTS::Tensor2<T>&) [with T = double]                  	 0.0214794 	 125       
+<PITTS::Tensor3<double>> :: void PITTS::unfold_left(const Tensor3<T>&, MatrixType&) [with T = double; MatrixType = Tensor2<double>]                                	 0.0204498 	 255       
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat1_w0(const PITTS::Tensor3<T>&, int, PITTS::Tensor3<T>&) [with T = double]                               	 0.017586  	 125       
+<PITTS::Tensor3<double>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = double; MatrixType = Tensor2<double>]                             	 0.0137643 	 130       
+<PITTS::Tensor3<double>> :: void PITTS::copy(const Tensor3<T>&, Tensor3<T>&) [with T = double]                                                                     	 0.00957418	 226       
+<PITTS::Tensor3<double>> :: void PITTS::internal::t2t3_concat1(const PITTS::Tensor2<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor2<T>&) [with T = double]           	 0.00657074	 125       
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                         	 0.000582666	 538       
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_concat1(const PITTS::Tensor3<T>&, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double]             	 0.000379552	 25        
+<PITTS::TensorTrain<double>> :: void PITTS::internal::t3_scale(T, PITTS::Tensor3<T>&) [with T = double]                                                            	 0.000101749	 51        
+<PITTS::Tensor3<double>> :: void PITTS::internal::t3_axpy(T, const PITTS::Tensor3<T>&, PITTS::Tensor3<T>&) [with T = double]                                       	 8.0139e-05	 25        
+<PITTS::TensorTrain<double>> :: T PITTS::internal::t3_nrm(const PITTS::Tensor3<T>&) [with T = double]                                                              	 5.719e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
