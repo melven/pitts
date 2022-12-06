@@ -79,13 +79,15 @@ namespace PITTS
       {
         // return QR
         EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
-        EigenMap(result.second) = R * qr.colsPermutation().inverse();
+        EigenMap(result.second) = R * qr.colsPermutation().transpose();
       }
       else
       {
         // return LQ
-        EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
-        EigenMap(result.second) = EigenMatrix::Identity(r, M.r2()) * qr.householderQ().transpose();
+        //EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
+        //EigenMap(result.second) = EigenMatrix::Identity(r, M.r2()) * qr.householderQ().transpose();
+        EigenMap(result.first) = qr.colsPermutation() * R.transpose();
+        EigenMap(result.second) = (qr.householderQ() * EigenMatrix::Identity(M.r2(), r)).transpose();
       }
 
       return result;

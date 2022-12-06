@@ -239,8 +239,10 @@ namespace PITTS
 
             C.resize(r1, n, r2l + r2r);
 
+#pragma omp parallel
+{
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l; i2++)
-            {
                 for(int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -248,9 +250,8 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
                     }
                 }
-            }
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2r; i2++)
-            {
                 for(int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -258,7 +259,7 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2 + r2l) = Ri.chunk(i1, jChunk, i2);
                     }
                 }
-            }
+}
         }
 
 
@@ -288,8 +289,10 @@ namespace PITTS
 
             C.resize(r1, n, r2l + r2r);
 
+#pragma omp parallel
+{
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -297,9 +300,8 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
                     }
                 }
-            }
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2r; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -307,7 +309,7 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2 + r2l) = Chunk<T>{};
                     }
                 }
-            }
+}
         }
 
 
@@ -339,8 +341,8 @@ namespace PITTS
 
             C.resize(r1u + r1l, n, r2);
             
+#pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
@@ -352,7 +354,6 @@ namespace PITTS
                         C.chunk(i1 + r1u, jChunk, i2) = Lo.chunk(i1, jChunk, i2);
                     }
                 }
-            }
         }
 
 
@@ -382,8 +383,8 @@ namespace PITTS
 
             C.resize(r1u + r1l, n, r2);
             
+#pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
@@ -395,7 +396,6 @@ namespace PITTS
                         C.chunk(i1 + r1u, jChunk, i2) = Chunk<T>{};
                     }
                 }
-            }
         }
 
 
