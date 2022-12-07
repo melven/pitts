@@ -55,14 +55,14 @@ int main(int argc, char* argv[])
     PITTS::TensorTrain<double> TTx(d, n, xr), TTy(d, n, yr), TTz(d, n, yr);
     randomize(TTx);
     randomize(TTy);
-    PITTS::leftNormalize(TTx, 0.0); // consider to subtract in performance results
+    PITTS::rightNormalize(TTx, 0.0); // consider to subtract in performance results
     
     for(int i = 0; i < iter; i++)
     {
         copy(TTy, TTz); // need to be subtracted in performance results
 
         // benchmark here
-        PITTS::internal::axpby_leftOrthogonalize(0.01, TTx, 0.9, TTz);
+        PITTS::internal::axpby_rightOrthogonalize(0.01, TTx, 0.9, TTz);
     }
     
     PITTS::finalize();

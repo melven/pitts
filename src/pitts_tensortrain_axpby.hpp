@@ -92,10 +92,12 @@ namespace PITTS
 
         if (x_ortho == TT_Orthogonality::none && y_ortho == TT_Orthogonality::none)
         {
+            // no tensor is normalized
             gamma = internal::axpby_plain(alpha, TTx, beta, TTy, rankTolerance, maxRank);
         }
         else if (x_ortho != TT_Orthogonality::none && y_ortho != TT_Orthogonality::none)
         {
+            // both tensors are normalized
             const int x_max_rank = *std::max_element(x_dim.begin(), x_dim.end());
             const int y_max_rank = *std::max_element(y_dim.begin(), y_dim.end());
             if (x_max_rank >= y_max_rank)
@@ -112,10 +114,12 @@ namespace PITTS
         }
         else if (x_ortho != TT_Orthogonality::none)
         {
+            // only TTx is normalized
             gamma = internal::axpby_normalized(alpha, TTx, beta, TTy, rankTolerance, maxRank);
         }
-        else if (y_ortho != TT_Orthogonality::none)
+        else //if (y_ortho != TT_Orthogonality::none)
         {
+            // only TTy is normalized
             TensorTrain<T> TTtmp(TTx);
             gamma = internal::axpby_normalized(beta, TTy, alpha, TTtmp, rankTolerance, maxRank);
             std::swap(TTy, TTtmp);
