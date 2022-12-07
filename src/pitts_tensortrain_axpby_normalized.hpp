@@ -526,7 +526,7 @@ namespace PITTS
             
             // initialize Txt and Tyt for k == 0
             copy(TTx.subTensor(0), Txt);
-            copy(TTy.subTensor(0), Tyt);
+            //copy(TTy.subTensor(0), Tyt);
 
             for (int k = 0; k < d - 1; k++)
             {
@@ -540,7 +540,7 @@ namespace PITTS
 
                 // copy Mxt <- Txt(:,: x :) and Myt <- Tyt(:,: x :)
                 unfold_left(Txt, Mxt);
-                unfold_left(Tyt, Myt);
+                unfold_left(TTy.subTensor(k), Myt); // we saved Tyt in TTy[k] in the last iteration
 
                 // Mmt <- Mxt^tr * Myt
                 internal::zxtry(Mxt, Myt, Mmt);
@@ -559,7 +559,14 @@ namespace PITTS
                 fold_left(Q, n_k, TQ);
 
                 // Tz <- concat(Txt, TQ, dim=3)
-                internal::t3_concat3(Txt, TQ, Tz);
+                internal::t3_concat3(Txt, TQ, Tz); // if resizing without destroying data possible -> could just append TQ to Txt and then swap Txt and Tz
+
+                //
+                // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mmt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
+                //
+                
+                // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension R.r1 x Tx1.n x Tx1.r2
+                internal::t3_concat1_w0(Tx1, Q.r2(), Txt);
 
                 // calculate upper half of new Tyt: Ttmpu <- Mmt *1 Ty1 (mode-1 contraction)
                 internal::normalize_contract1(Mmt, Ty1, Ttmpu);
@@ -572,20 +579,13 @@ namespace PITTS
 
                 // save result into TTy
                 temp = TTy.setSubTensors(k, std::move(temp));
-                copy(TTy.subTensor(k+1), Tyt);                   // completely unnecessary copy
-
-                //
-                // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mmt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
-                //
-                
-                // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension R.r1 x Tx1.n x Tx1.r2
-                internal::t3_concat1_w0(Tx1, Q.r2(), Txt);
+                //copy(TTy.subTensor(k+1), Tyt);
 
             } // end loop
 
             // calculate TTy[d-1] <- Txt + Tyt (componentwise)
-            internal::t3_axpy((T)1, Txt, Tyt);
-            TTy.setSubTensor(d-1, std::move(Tyt));
+            internal::t3_axpy((T)1, TTy.subTensor(d-1), Txt); // we saved Tyt in TTy[d-1] in the last iteration
+            TTy.setSubTensor(d-1, std::move(Txt));
         }
 
         
@@ -638,7 +638,7 @@ namespace PITTS
             
             // initialize Txt and Tyt for k == d-1
             copy(TTx.subTensor(d-1), Txt);
-            copy(TTy.subTensor(d-1), Tyt);
+            //copy(TTy.subTensor(d-1), Tyt);
 
             for (int k = d - 1; k > 0; k--)
             {
@@ -648,7 +648,7 @@ namespace PITTS
 
                 // Mxt <- Txt(: x :,:), Myt <- Tyt(: x :,:)
                 unfold_right(Txt, Mxt);
-                unfold_right(Tyt, Myt);
+                unfold_right(TTy.subTensor(k), Myt); // we saved Tyt in TTy[k] in the last iteration
 
                 // Mmt <- Myt * Mxt^tr
                 internal::zxytr(Myt, Mxt, Mmt);
@@ -669,6 +669,9 @@ namespace PITTS
                 // Tz <- concat(Txt, TQ, dim=1)
                 internal::t3_concat1(Txt, TQ, Tz);
 
+                // calculate new Txt: Txt <- concat(Tx1, 0, dim=3), 0 of dimension Tx1.r1 x Tx1.n x L.r2
+                internal::t3_concat3_w0(Tx1, Q.r1(), Txt);
+
                 // calculate left half of new Tyt: Ttmpl <- Ty1 *3 Mmt (mode-3 contraction)
                 internal::normalize_contract2(Ty1, Mmt, Ttmpl);
 
@@ -680,16 +683,13 @@ namespace PITTS
 
                 // save result into TTy
                 temp = TTy.setSubTensors(k-1, std::move(temp));
-                copy(TTy.subTensor(k-1), Tyt);
-
-                // calculate new Txt: Txt <- concat(Tx1, 0, dim=3), 0 of dimension Tx1.r1 x Tx1.n x L.r2
-                internal::t3_concat3_w0(Tx1, Q.r1(), Txt);
+                //copy(TTy.subTensor(k-1), Tyt);
 
             } // end loop
 
             // calculate TTy[0] <- Txt + Tyt (componentwise)
-            internal::t3_axpy(T(1), Txt, Tyt);
-            TTy.setSubTensor(0, std::move(Tyt));
+            internal::t3_axpy(T(1), TTy.subTensor(0), Txt); // we saved Tyt in TTy[0] in the last iteration
+            TTy.setSubTensor(0, std::move(Txt));
         }
 
 
