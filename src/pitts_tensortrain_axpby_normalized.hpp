@@ -25,68 +25,6 @@ namespace PITTS
 {
     namespace internal
     {
-        
-        /**
-         * @brief my version of wrapper for QB
-         * 
-         * @tparam T                underlying data type
-         * @param M                 Tensor2 that is being decomposed
-         * @param leftOrthog        true -> QR decomposition, false -> LQ decomposition
-         * @param maxRank           maximal rank of Q (further cols are cut off)
-         * @param rankTolerance     is IGNORED
-         * @return                  [Q, R] resp. [L, Q]
-         */
-        template<typename T>
-        auto axpby_normalized_qb(const Tensor2<T>& M, bool leftOrthog = true, int maxRank = std::numeric_limits<int>::max(), T rankTolerance = 0)
-        {
-            const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-            // get reasonable rank tolerance (ignoring passed value)        // was min(M.r1(), M.r2())
-            const T rankTol = std::numeric_limits<decltype(rankTolerance)>::epsilon() * (M.r1() + M.r2()) / 2;
-            rankTolerance = 16 * rankTol;
-
-            // calculate QR decomposition
-            using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-            const auto mapM = ConstEigenMap(M);
-            auto qr = leftOrthog ?
-                Eigen::ColPivHouseholderQR<EigenMatrix>(mapM) :
-                Eigen::ColPivHouseholderQR<EigenMatrix>(mapM.transpose());
-
-            //update rankTolerance (in case all pivot elements are tiny)
-            rankTolerance = std::max(rankTolerance, rankTol / std::abs(qr.maxPivot()));
-            // set threshold (which pivots to consider 0) for Eigen
-            qr.setThreshold(rankTolerance);
-            // rank of matrix
-            const Eigen::Index rk = std::min(qr.rank(), Eigen::Index(maxRank));
-
-            // return result
-            
-            std::pair<Tensor2<T>,Tensor2<T>> result;
-            result.first.resize(M.r1(), rk);
-            result.second.resize(rk, M.r2());
-
-            // avoid "Intel MKL ERROR: Parameter 6 was incorrect on entry to DGEMV ." in Eigen that occurs rightOrtho case when rk == 0
-            // the "error" doesn't actually cause any issues, but ain't nice to have
-            if (rk == 0) return result;
-
-            qr.householderQ().setLength(rk);
-            const EigenMatrix R = qr.matrixR().topRows(rk).template triangularView<Eigen::Upper>();
-            if( leftOrthog )
-            {
-                // return QR
-                EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), rk);
-                EigenMap(result.second) = R * qr.colsPermutation().inverse();
-            }
-            else
-            {
-                // return LQ
-                EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
-                EigenMap(result.second) = EigenMatrix::Identity(rk, M.r2()) * qr.householderQ().transpose();
-            }
-
-            return result;
-        }
-
-
         /**
          * @brief Componentwise axpy for Tensor3 objects.
          * y <- a*x + y
@@ -114,7 +52,7 @@ namespace PITTS
                  {r1*n*r2*kernel_info::Load<T>() + r1*n*r2*kernel_info::Update<T>()}} // data: load x ; update y
             );
             
-            #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
+#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
             for(int i2 = 0; i2 < r2; i2++)
                 for(int jChunk = 0; jChunk < nChunk; jChunk++)
                     for(int i1 = 0; i1 < r1; i1++)
@@ -239,8 +177,10 @@ namespace PITTS
 
             C.resize(r1, n, r2l + r2r);
 
+#pragma omp parallel
+{
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l; i2++)
-            {
                 for(int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -248,9 +188,8 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
                     }
                 }
-            }
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2r; i2++)
-            {
                 for(int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -258,7 +197,7 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2 + r2l) = Ri.chunk(i1, jChunk, i2);
                     }
                 }
-            }
+}
         }
 
 
@@ -288,8 +227,10 @@ namespace PITTS
 
             C.resize(r1, n, r2l + r2r);
 
+#pragma omp parallel
+{
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -297,9 +238,8 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
                     }
                 }
-            }
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2r; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
@@ -307,7 +247,7 @@ namespace PITTS
                         C.chunk(i1, jChunk, i2 + r2l) = Chunk<T>{};
                     }
                 }
-            }
+}
         }
 
 
@@ -339,8 +279,8 @@ namespace PITTS
 
             C.resize(r1u + r1l, n, r2);
             
+#pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
@@ -352,7 +292,6 @@ namespace PITTS
                         C.chunk(i1 + r1u, jChunk, i2) = Lo.chunk(i1, jChunk, i2);
                     }
                 }
-            }
         }
 
 
@@ -382,8 +321,8 @@ namespace PITTS
 
             C.resize(r1u + r1l, n, r2);
             
+#pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
-            {
                 for (int jChunk = 0; jChunk < nChunk; jChunk++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
@@ -395,7 +334,6 @@ namespace PITTS
                         C.chunk(i1 + r1u, jChunk, i2) = Chunk<T>{};
                     }
                 }
-            }
         }
 
 
@@ -615,7 +553,7 @@ namespace PITTS
                 const int n_k = Txt.n(); // n_k (n of Txt and Tyt)
                 const int r2 = Txt.r2(); // r_k (r2 of Txt)
                 assert(r1*n_k - r2 >= 0);
-                const auto& [Q, R] = internal::axpby_normalized_qb(Mtmp, true, r1*n_k - r2);
+                const auto& [Q, R] = internal::normalize_qb(Mtmp, true, T(0), r1*n_k - r2, true);
                 
                 // TQ <- fold(Q)
                 fold_left(Q, n_k, TQ);
@@ -723,7 +661,7 @@ namespace PITTS
                 const int n_k = Txt.n(); // n_k (n of Txt and Tyt)
                 const int r1 = Txt.r1(); // r_{k-1} (r1 of Txt)
                 assert(r2*n_k - r1 >= 0);
-                const auto& [L, Q] = internal::axpby_normalized_qb(Mtmp, false, r2*n_k - r1);
+                const auto& [L, Q] = internal::normalize_qb(Mtmp, false, T(0), r2*n_k - r1, true);
                 
                 // TQ <- fold(Q)
                 fold_right(Q, n_k, TQ);

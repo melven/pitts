@@ -56,7 +56,7 @@ namespace PITTS
 
     //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
     template<typename T>
-    auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
+    auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
     {
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -67,25 +67,37 @@ namespace PITTS
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
       auto qr = normalize_qr_only(M, leftOrthog);
+
+      // we might want to consider an absolute tolerance, e.g. when orthogonalizing w.r.t. another set of orthogonal vectors...
+      if( absoluteTolerance && qr.maxPivot() > 0 )
+        rankTol /= qr.maxPivot();
       qr.setThreshold(rankTol);
-      const auto r = std::max(Eigen::Index(1), std::min(qr.rank(), Eigen::Index(maxRank)));
+
+      // with an absolute tolerance, we can get rank 0, otherwise it should be (numerically) at least 1
+      // (Eigen / LAPACK / MKL don't like call with dimension zero, so avoid this when possible)
+      const auto minRank = absoluteTolerance ? 0 : 1;
+      const auto r = std::max(Eigen::Index(minRank), std::min(qr.rank(), Eigen::Index(maxRank)));
       qr.householderQ().setLength(r);
       const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
       result.second.resize(r, M.r2());
-      if( leftOrthog )
+
+      if( r > 0 )
       {
-        // return QR
-        EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
-        EigenMap(result.second) = R * qr.colsPermutation().inverse();
-      }
-      else
-      {
-        // return LQ
-        EigenMap(result.first) = (R * qr.colsPermutation().inverse()).transpose();
-        EigenMap(result.second) = EigenMatrix::Identity(r, M.r2()) * qr.householderQ().transpose();
+        if( leftOrthog )
+        {
+          // return QR
+          EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
+          EigenMap(result.second) = R * qr.colsPermutation().transpose();
+        }
+        else
+        {
+          // return LQ
+          EigenMap(result.first) = qr.colsPermutation() * R.transpose();
+          EigenMap(result.second) = (qr.householderQ() * EigenMatrix::Identity(M.r2(), r)).transpose();
+        }
       }
 
       return result;
