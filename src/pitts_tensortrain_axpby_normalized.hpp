@@ -69,7 +69,7 @@ namespace PITTS
          * @param z [out] Tensor2
          */
         template <typename T>
-        inline void zxtry(const Tensor2<T>& x, const Tensor2<T>& y, Tensor2<T>& z)
+        inline void xtryz(const Tensor2<T>& x, const Tensor2<T>& y, Tensor2<T>& z)
         {
             const int r1  = x.r1();
             const int xr2 = x.r2();
@@ -261,25 +261,30 @@ namespace PITTS
          * @param C  [out]
          */
         template <typename T>
-        inline void t2_concat1(const Tensor2<T>& Up, const Tensor2<T>& Lo, Tensor2<T>& C)
+        inline void t2t3_concat1(const Tensor2<T>& Up, const Tensor3<T>& Lo, Tensor2<T>& C)
         {
-            const int r1u    = Up.r1();
-            const int r1l    = Lo.r1();
-            const int r2     = Up.r2();
+            const int n     = Lo.n();
+            const int r1u   = Up.r1() / n;
+            const int r1l   = Lo.r1();
+            const int r2    = Lo.r2();
 
-            assert(r2 == Lo.r2());
+            assert(r1u / n == 0);
+            assert(r2 == Up.r2());
 
-            C.resize(r1u + r1l, r2);
+            C.resize((r1u + r1l)*n, r2);
 
             for (int i2 = 0; i2 < r2; i2++)
             {
-                for (int i1 = 0; i1 < r1u; i1++)
+                for (int j = 0; j < n; j++)
                 {
-                    C(i1, i2) = Up(i1, i2);
-                }
-                for (int i1 = 0; i1 < r1l; i1++)
-                {
-                    C(i1 + r1u, i2) = Lo(i1, i2);
+                    for (int i1 = 0; i1 < r1u; i1++)
+                    {
+                        C(i1 + j*r1u, i2) = Up(i1 + j*r2, i2);
+                    }
+                    for (int i1 = 0; i1 < r1l; i1++)
+                    {
+                        C(i1 + j*r1u + r1u*n, i2) = Lo(i1, j, i2);
+                    }  // col  row     offset
                 }
             }
         }
@@ -545,34 +550,28 @@ namespace PITTS
             //
             // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
             //
-            //Tensor3<T>& Tz  = temp[0];  // temporary 3Tensor holding result to be written into TTy[k]
-            //Tensor3<T>  Tyt;            // temporary 3Tensor y (Y tilde)
-            Tensor3<T>  Tytu;            // temporary 3Tensor y (Y tilde)
-            Tensor3<T>  Tytl;            // temporary 3Tensor y (Y tilde)
-            //
-            Tensor2<T>  Mmt;            // temporary 2Tensor to hold result Mxt^tr * Myt
+            Tensor3<T> Tytu;    // upper half of Y tilde
+            Tensor3<T> Tytl;    // lower half of Y tilde
+            Tensor2<T> Mmt;     // Mx^tr * Mytu (= Mxt^tr * Myt)
 
-            Tensor3<T>  Txt;            // temporary 3Tensor x (X tilde)
-            Tensor2<T>  Mtmp;           // temporary 2Tensor to hold result Myt - Mxt * Mmt
-            Tensor2<T>  Mtmpu;
-            Tensor2<T>  Mytu;          // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
-            Tensor2<T>  Mytl;          // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
+            Tensor2<T> Mx;      // Tx left-unfolded
+            Tensor2<T> Mytu;    // Tytu left-unfolded
+            Tensor2<T> Mytl;    // Tytl left-unfolded
 
-            //Tensor2<T>  Myt;            // 2Tensor copy of Tyt 
-            Tensor2<T>  Mx;            // 2Tensor copy of Txt
-            Tensor3<T>  TQ;             // 3Tensor copy of Q
+            Tensor2<T> Mtmp;    // short-lived 2Tensor: holding result Myt - Mxt * Mmt to take QR decomposition of
+            Tensor2<T> Mtmpu;   // short-lived 2Tensor: calculating upper half of Mtmp into here
+            Tensor3<T> Txt;     // short-lived 3Tensor: X tilde (= concat1(Tx, 0))
+            Tensor3<T> TQ;      // short-lived 3Tensor: Q left-unfolded
             
-            // initialize Txt and Tyt for k == 0
-            copy(TTx.subTensor(0), Txt);
+            // initialize Tyt(u/l) for k == 0
             copy(TTy.subTensor(0), Tytu);
-            Tytl.resize(0,0,0);
+            Tytl.resize(0, TTy.subTensor(0).n(), TTy.subTensor(0).r2());
 
             for (int k = 0; k < d - 1; k++)
             {
                 // convenience references
                 const Tensor3<T>& Ty1 = TTy.subTensor(k+1);
                 const Tensor3<T>& Tx =  TTx.subTensor(k);
-                //const Tensor3<T>& Txtu = Tx1;
 
                 //
                 // Note: If Mxt is square matrix, most of the calculation (especially QR) can be skipped
@@ -581,16 +580,21 @@ namespace PITTS
                 // copy Mx <- Tx(:,: x :), Mytu <- Tytu(:,: x :), Mytl <- Tytl(:,: x :)
                 unfold_left(Tx, Mx);
                 unfold_left(Tytu, Mytu);
-                unfold_left(Tytl, Mytl);
+                //unfold_left(Tytl, Mytl);
 
                 // Mmt <- Mx^tr * Mytu
-                internal::zxtry(Mx, Mytu, Mmt);
+                internal::xtryz(Mx, Mytu, Mmt);
                 
                 // Mtmpu <- Mytu - Mx * Mmt
                 internal::t2_fnmadd(Mx, Mmt, Mytu, Mtmpu); // Mtmp can be Mytu ------------
 
                 // concatinate Mtmp <- concat(Mtmpu, Tytl, dim=1)
-                internal::t2_concat1(Mytu, Mytl, Mtmp);
+                //internal::t2t3_concat1(Mtmpu, Tytl, Mtmp);
+                Tensor3<T> Ttmpu;
+                fold_left(Mtmpu, Tx.n(), Ttmpu);
+                Tensor3<T> xxx;
+                internal::t3_concat1(Ttmpu, Tytl, xxx);
+                unfold_left(xxx, Mtmp);
 
                 // [Q, R] <- QR(Mtmp)
                 const int r1 = Tytu.r1() + Tytl.r1(); // r_{k-1} + st_{k-1}
@@ -599,15 +603,10 @@ namespace PITTS
                 assert(r1*n_k - r2 >= 0);
                 const auto& [Q, R] = internal::normalize_qb(Mtmp, true, T(0), r1*n_k - r2, true);
                 
-                // TQ <- fold(Q)
+                // TQ <- fold(Q), Txt <- concat(Tx, 0, dim=1), temp[0] <- concat(Txt, TQ, dim=3)
                 fold_left(Q, n_k, TQ);
-                // Txt <- concat(Tx, 0, dim=1)
                 internal::t3_concat1_w0(Tx, Tytl.r1(), Txt);
-                // temp[0] <- concat(Txt, TQ, dim=3)
                 internal::t3_concat3(Txt, TQ, temp[0]); // if resizing without destroying data possible -> could just append TQ to Txt and then swap Txt and Tz
-                // save result into TTy
-                temp[1].resize(temp[0].r2(), TTy.subTensor(k+1).n(), TTy.subTensor(k+1).r2()); // dummy tensor
-                temp = TTy.setSubTensors(k, std::move(temp));
 
                 // calculate upper half of new Tyt: Tytu <- Mmt *1 Ty1 (mode-1 contraction)
                 internal::normalize_contract1(Mmt, Ty1, Tytu);
@@ -615,12 +614,16 @@ namespace PITTS
                 // calculate lower half of new Tyt: Tytl <- R *1 Ty1 (mode-1 contraction)
                 internal::normalize_contract1(R, Ty1, Tytl);
 
+                // save this iteration's result into TTy
+                temp[1].resize(temp[0].r2(), TTy.subTensor(k+1).n(), TTy.subTensor(k+1).r2()); // dummy tensor
+                temp = TTy.setSubTensors(k, std::move(temp));
+
             } // end loop
 
-            // calculate TTy[d-1] <- Txt + Tyt (componentwise)
-            internal::t3_axpy((T)1, TTx.subTensor(d-1), Tytu);
-            internal::t3_concat1(Tytu, Tytl, temp[0])
-            TTy.setSubTensor(d-1, std::move(temp[0]));
+            // calculate TTy[d-1] <- x_last_core + Tyt (componentwise)
+            internal::t3_axpy((T)1, x_last_core, Tytu);
+            internal::t3_concat1(Tytu, Tytl, x_last_core);
+            TTy.setSubTensor(d-1, std::move(x_last_core));
         }
 
         
