@@ -251,14 +251,17 @@ namespace PITTS
         }
 
 
-
         /**
-         * @brief Compute C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
+         * @brief Special flavor of C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
+         * 
+         * 1. Lo is interpreted as a left-unfolded 3Tensor of fitting dimension
+         * 2. Lo and Up are concatted as if they were 3Tensors
+         * 3. The result is written into C as the left-unfolded result
          * 
          * @tparam T 
-         * @param Up [in]
-         * @param Lo [in]
-         * @param C  [out]
+         * @param Up [in]   2Tensor (left-unfolded)
+         * @param Lo [in]   3Tensor
+         * @param C  [out]  2Tensor (left-unfolded)
          */
         template <typename T>
         inline void t2t3_concat1(const Tensor2<T>& Up, const Tensor3<T>& Lo, Tensor2<T>& C)
@@ -268,23 +271,23 @@ namespace PITTS
             const int r1l   = Lo.r1();
             const int r2    = Lo.r2();
 
-            assert(r1u / n == 0);
-            assert(r2 == Up.r2());
+            assert(Up.r1() % n == 0);
+            assert(Lo.r2() == Up.r2());
 
             C.resize((r1u + r1l)*n, r2);
 
             for (int i2 = 0; i2 < r2; i2++)
             {
-                for (int j = 0; j < n; j++)
-                {
-                    for (int i1 = 0; i1 < r1u; i1++)
+                for (int j = 0; j < n; j++)             // might be beneficial to unroll (to at least half chunk size)
+                {                                       // but maybe that's too much pressure on registers...
+                    for (int i1 = 0; i1 < r1u; i1++)    // or/and unmerge loops (do first col of up, then add col of Lo in gaps)
                     {
-                        C(i1 + j*r1u, i2) = Up(i1 + j*r2, i2);
+                        C(i1 + j*(r1u+r1l), i2) = Up(i1 + j*r1u, i2);
                     }
                     for (int i1 = 0; i1 < r1l; i1++)
                     {
-                        C(i1 + j*r1u + r1u*n, i2) = Lo(i1, j, i2);
-                    }  // col  row     offset
+                        C(i1 + j*(r1u+r1l) + r1u, i2) = Lo(i1, j, i2);
+                    }
                 }
             }
         }
@@ -586,15 +589,10 @@ namespace PITTS
                 internal::xtryz(Mx, Mytu, Mmt);
                 
                 // Mtmpu <- Mytu - Mx * Mmt
-                internal::t2_fnmadd(Mx, Mmt, Mytu, Mtmpu); // Mtmp can be Mytu ------------
+                internal::t2_fnmadd(Mx, Mmt, Mytu, Mtmpu); // Mtmpu can be Mytu (change t2_fnmadd implementatio) ------------ 
 
                 // concatinate Mtmp <- concat(Mtmpu, Tytl, dim=1)
-                //internal::t2t3_concat1(Mtmpu, Tytl, Mtmp);
-                Tensor3<T> Ttmpu;
-                fold_left(Mtmpu, Tx.n(), Ttmpu);
-                Tensor3<T> xxx;
-                internal::t3_concat1(Ttmpu, Tytl, xxx);
-                unfold_left(xxx, Mtmp);
+                internal::t2t3_concat1(Mtmpu, Tytl, Mtmp);
 
                 // [Q, R] <- QR(Mtmp)
                 const int r1 = Tytu.r1() + Tytl.r1(); // r_{k-1} + st_{k-1}
