@@ -186,11 +186,13 @@ namespace PITTS
 
     b.resize(r1, n, r2);
 
-#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
-      for(int i = 0; i < r1; i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < r2; k++)
-            b(i,j,k) = a(i,j,k);
+    const auto nChunks = a.nChunks();
+
+#pragma omp parallel for collapse(3) schedule(static)
+    for(int k = 0; k < r2; k++)
+      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int i = 0; i < r1; i++)
+          b.chunk(i,jChunk,k) = a.chunk(i,jChunk,k);
   }
 }
 
