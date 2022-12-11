@@ -251,6 +251,40 @@ namespace PITTS
         }
 
 
+
+        /**
+         * @brief Compute C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
+         * 
+         * @tparam T 
+         * @param Up [in]
+         * @param Lo [in]
+         * @param C  [out]
+         */
+        template <typename T>
+        inline void t2_concat1(const Tensor2<T>& Up, const Tensor2<T>& Lo, Tensor2<T>& C)
+        {
+            const int r1u    = Up.r1();
+            const int r1l    = Lo.r1();
+            const int r2     = Up.r2();
+
+            assert(r2 == Lo.r2());
+
+            C.resize(r1u + r1l, r2);
+
+            for (int i2 = 0; i2 < r2; i2++)
+            {
+                for (int i1 = 0; i1 < r1u; i1++)
+                {
+                    C(i1, i2) = Up(i1, i2);
+                }
+                for (int i1 = 0; i1 < r1l; i1++)
+                {
+                    C(i1 + r1u, i2) = Lo(i1, i2);
+                }
+            }
+        }
+
+
         /**
          * @brief Compute C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
          * 
@@ -511,81 +545,82 @@ namespace PITTS
             //
             // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
             //
-            Tensor3<T>& Tz  = temp[0];  // temporary 3Tensor holding result to be written into TTy[k]
-            Tensor3<T>& Tyt = temp[1];  // temporary 3Tensor y (Y tilde)
-            Tensor3<T>  Txt;            // temporary 3Tensor x (X tilde)
+            //Tensor3<T>& Tz  = temp[0];  // temporary 3Tensor holding result to be written into TTy[k]
+            //Tensor3<T>  Tyt;            // temporary 3Tensor y (Y tilde)
+            Tensor3<T>  Tytu;            // temporary 3Tensor y (Y tilde)
+            Tensor3<T>  Tytl;            // temporary 3Tensor y (Y tilde)
+            //
             Tensor2<T>  Mmt;            // temporary 2Tensor to hold result Mxt^tr * Myt
 
+            Tensor3<T>  Txt;            // temporary 3Tensor x (X tilde)
             Tensor2<T>  Mtmp;           // temporary 2Tensor to hold result Myt - Mxt * Mmt
-            Tensor3<T>  Ttmpu;          // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
-            Tensor3<T>  Ttmpl;          // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
+            Tensor2<T>  Mtmpu;
+            Tensor2<T>  Mytu;          // temporary 3Tensor to calculate upper part (in r1-dim) of Tyt into
+            Tensor2<T>  Mytl;          // temporary 3Tensor to calculate lower part (in r1-dim) of Tyt into
 
-            Tensor2<T>  Myt;            // 2Tensor copy of Tyt 
-            Tensor2<T>  Mxt;            // 2Tensor copy of Txt
+            //Tensor2<T>  Myt;            // 2Tensor copy of Tyt 
+            Tensor2<T>  Mx;            // 2Tensor copy of Txt
             Tensor3<T>  TQ;             // 3Tensor copy of Q
             
             // initialize Txt and Tyt for k == 0
             copy(TTx.subTensor(0), Txt);
-            //copy(TTy.subTensor(0), Tyt);
+            copy(TTy.subTensor(0), Tytu);
+            Tytl.resize(0,0,0);
 
             for (int k = 0; k < d - 1; k++)
             {
                 // convenience references
                 const Tensor3<T>& Ty1 = TTy.subTensor(k+1);
-                const Tensor3<T>& Tx1 = (k == d-2) ? x_last_core : TTx.subTensor(k+1);
+                const Tensor3<T>& Tx =  TTx.subTensor(k);
+                //const Tensor3<T>& Txtu = Tx1;
 
                 //
                 // Note: If Mxt is square matrix, most of the calculation (especially QR) can be skipped
                 //
 
-                // copy Mxt <- Txt(:,: x :) and Myt <- Tyt(:,: x :)
-                unfold_left(Txt, Mxt);
-                unfold_left(TTy.subTensor(k), Myt); // we saved Tyt in TTy[k] in the last iteration
+                // copy Mx <- Tx(:,: x :), Mytu <- Tytu(:,: x :), Mytl <- Tytl(:,: x :)
+                unfold_left(Tx, Mx);
+                unfold_left(Tytu, Mytu);
+                unfold_left(Tytl, Mytl);
 
-                // Mmt <- Mxt^tr * Myt
-                internal::zxtry(Mxt, Myt, Mmt);
+                // Mmt <- Mx^tr * Mytu
+                internal::zxtry(Mx, Mytu, Mmt);
                 
-                // Mtmp <- Myt - Mxt * Mmt
-                internal::t2_fnmadd(Mxt, Mmt, Myt, Mtmp);
+                // Mtmpu <- Mytu - Mx * Mmt
+                internal::t2_fnmadd(Mx, Mmt, Mytu, Mtmpu); // Mtmp can be Mytu ------------
+
+                // concatinate Mtmp <- concat(Mtmpu, Tytl, dim=1)
+                internal::t2_concat1(Mytu, Mytl, Mtmp);
 
                 // [Q, R] <- QR(Mtmp)
-                const int r1 = Txt.r1(); // common r1-dimension of Txt and Tyt (= r_{k-1} + st_{k-1})
-                const int n_k = Txt.n(); // n_k (n of Txt and Tyt)
-                const int r2 = Txt.r2(); // r_k (r2 of Txt)
+                const int r1 = Tytu.r1() + Tytl.r1(); // r_{k-1} + st_{k-1}
+                const int n_k = Tx.n(); // n_k
+                const int r2 = Tx.r2(); // r_k
                 assert(r1*n_k - r2 >= 0);
                 const auto& [Q, R] = internal::normalize_qb(Mtmp, true, T(0), r1*n_k - r2, true);
                 
                 // TQ <- fold(Q)
                 fold_left(Q, n_k, TQ);
-
-                // Tz <- concat(Txt, TQ, dim=3)
-                internal::t3_concat3(Txt, TQ, Tz); // if resizing without destroying data possible -> could just append TQ to Txt and then swap Txt and Tz
-
-                //
-                // Note: In Txt, a bunch of values are set to 0. Those could be left away, and the loops for Mmt, Mtmp, y_cores[k] updated accordingly (cuts on the flops there too)
-                //
-                
-                // calculate new Txt: Txt <- concat(Tx1, 0, dim=1), 0 of dimension R.r1 x Tx1.n x Tx1.r2
-                internal::t3_concat1_w0(Tx1, Q.r2(), Txt);
-
-                // calculate upper half of new Tyt: Ttmpu <- Mmt *1 Ty1 (mode-1 contraction)
-                internal::normalize_contract1(Mmt, Ty1, Ttmpu);
-
-                // calculate lower half of new Tyt: Ttmpl <- R *1 Ty1 (mode-1 contraction)
-                internal::normalize_contract1(R, Ty1, Ttmpl);
-
-                // concatinate Tyt <- concat(Ttmpu, Ttmpl, dim=1)
-                internal::t3_concat1(Ttmpu, Ttmpl, Tyt);
-
+                // Txt <- concat(Tx, 0, dim=1)
+                internal::t3_concat1_w0(Tx, Tytl.r1(), Txt);
+                // temp[0] <- concat(Txt, TQ, dim=3)
+                internal::t3_concat3(Txt, TQ, temp[0]); // if resizing without destroying data possible -> could just append TQ to Txt and then swap Txt and Tz
                 // save result into TTy
+                temp[1].resize(temp[0].r2(), TTy.subTensor(k+1).n(), TTy.subTensor(k+1).r2()); // dummy tensor
                 temp = TTy.setSubTensors(k, std::move(temp));
-                //copy(TTy.subTensor(k+1), Tyt);
+
+                // calculate upper half of new Tyt: Tytu <- Mmt *1 Ty1 (mode-1 contraction)
+                internal::normalize_contract1(Mmt, Ty1, Tytu);
+
+                // calculate lower half of new Tyt: Tytl <- R *1 Ty1 (mode-1 contraction)
+                internal::normalize_contract1(R, Ty1, Tytl);
 
             } // end loop
 
             // calculate TTy[d-1] <- Txt + Tyt (componentwise)
-            internal::t3_axpy((T)1, TTy.subTensor(d-1), Txt); // we saved Tyt in TTy[d-1] in the last iteration
-            TTy.setSubTensor(d-1, std::move(Txt));
+            internal::t3_axpy((T)1, TTx.subTensor(d-1), Tytu);
+            internal::t3_concat1(Tytu, Tytl, temp[0])
+            TTy.setSubTensor(d-1, std::move(temp[0]));
         }
 
         
@@ -675,7 +710,7 @@ namespace PITTS
                 // calculate left half of new Tyt: Ttmpl <- Ty1 *3 Mmt (mode-3 contraction)
                 internal::normalize_contract2(Ty1, Mmt, Ttmpl);
 
-                // calculate right half of new Tyt: Ttmpu <- Tyt *3 L (mode-3 contraction)
+                // calculate right half of new Tyt: Ttmpr <- Tyt *3 L (mode-3 contraction)
                 internal::normalize_contract2(Ty1, L, Ttmpr);
 
                 // concatinate Tyt <- concat(Ttmpl, Ttempr, dim=3)
