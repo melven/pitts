@@ -147,6 +147,47 @@ namespace PITTS
             EigenMap(D) = ConstEigenMap(C) - ConstEigenMap(A) * ConstEigenMap(B);
         }
 
+
+        /**
+         * @brief Special falvor of C <- concat(Le, Ri, dim=3), the concatination of Le and Ri along the third dimension.
+         * 
+         * 1. Le is interpreted as a right-unfolded 3Tensor
+         * 2. Le and Ri are concatinated as if they were 3Tensors
+         * 3. The result is written into C as the right-unfolded result
+         * 
+         * @tparam T 
+         * @param Le    [in]  2Tensor (right-unfolded)
+         * @param Ri    [in]  3Tensor
+         * @param C     [out] 2Tensor (right-unfolded)
+         */
+        template <typename T>
+        inline void t2t3_concat3(const Tensor2<T>& Le, const Tensor3<T>& Ri, Tensor2<T>& C)
+        {
+            const int r1     = Ri.r1();
+            const int n      = Ri.n();
+            const int r2l    = Le.r2() / n;
+            const int r2r    = Ri.r2();
+
+            assert(Le.r2() % n == 0);
+            assert(Ri.r1() == Le.r1());
+
+            C.resize(r1, n*(r2l + r2r));
+
+            for (int i2 = 0; i2 < r2l*n; i2++)
+                for (int i1 = 0; i1 < r1; i1++)
+                {
+                    C(i1, i2) = Le(i1, i2);
+                }
+            for (int i2 = 0; i2 < r2r; i2++)
+                for(int j = 0; j < n; j++)
+                {
+                    for (int i1 = 0; i1 < r1; i1++)
+                    {
+                        C(i1, j + (i2+r2l)*n) = Ri(i1, j, i2);
+                    }
+                }
+        }
+
         
         /**
          * @brief Compute C <- concat(Le, Ri, dim=3), 
@@ -254,14 +295,14 @@ namespace PITTS
         /**
          * @brief Special flavor of C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
          * 
-         * 1. Lo is interpreted as a left-unfolded 3Tensor of fitting dimension
-         * 2. Lo and Up are concatted as if they were 3Tensors
+         * 1. Up is interpreted as a left-unfolded 3Tensor of fitting dimension
+         * 2. Up and Lo are concatted as if they were 3Tensors
          * 3. The result is written into C as the left-unfolded result
          * 
          * @tparam T 
-         * @param Up [in]   2Tensor (left-unfolded)
-         * @param Lo [in]   3Tensor
-         * @param C  [out]  2Tensor (left-unfolded)
+         * @param Up    [in]  2Tensor (left-unfolded)
+         * @param Lo    [in]  3Tensor
+         * @param C     [out] 2Tensor (left-unfolded)
          */
         template <typename T>
         inline void t2t3_concat1(const Tensor2<T>& Up, const Tensor3<T>& Lo, Tensor2<T>& C)
@@ -694,9 +735,7 @@ namespace PITTS
                 internal::t2_fnmadd(Mmt, Mx, Mytl, Mtmpl);
 
                 // concatinate Mtmp <- concat(Mtmpl, Tytr, dim=3)
-                Tensor3<T> xxx; fold_right(Mtmpl, Tytl.n(), xxx);
-                Tensor3<T> yyy; t3_concat3(xxx, Tytr, yyy);
-                unfold_right(yyy, Mtmp);
+                internal::t2t3_concat3(Mtmpl, Tytr, Mtmp);
 
                 // [L, Q] <- QR(Mtmp)
                 const int r2 = Tytr.r2() + Tytl.r2(); // r_k + st_k
