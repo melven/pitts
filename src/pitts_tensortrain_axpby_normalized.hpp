@@ -173,11 +173,21 @@ namespace PITTS
 
             C.resize(r1, n*(r2l + r2r));
 
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                                    // arguments
+                {{(r1*n*r2l + r1*n*r2r)*kernel_info::NoOp<T>()},                                          // flops
+                 {(r1*n*r2l + r1*n*r2r)*kernel_info::Load<T>() + r1*n*(r2l+r2r)*kernel_info::Store<T>()}} // data: load Le,Ri ; store C
+            );
+
+#pragma omp parallel
+{
+#pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l*n; i2++)
                 for (int i1 = 0; i1 < r1; i1++)
                 {
                     C(i1, i2) = Le(i1, i2);
                 }
+#pragma omp for schedule(static) collapse(2) nowait // or 3 ?
             for (int i2 = 0; i2 < r2r; i2++)
                 for(int j = 0; j < n; j++)
                 {
@@ -186,6 +196,7 @@ namespace PITTS
                         C(i1, j + (i2+r2l)*n) = Ri(i1, j, i2);
                     }
                 }
+}
         }
 
         
@@ -315,8 +326,15 @@ namespace PITTS
             assert(Up.r1() % n == 0);
             assert(Lo.r2() == Up.r2());
 
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                                       // arguments
+                {{(r1u*n*r2 + r1l*n*r2)*kernel_info::NoOp<T>()},                                          // flops
+                 {(r1u*n*r2 + r1l*n*r2)*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up,Lo ; store C
+            );
+
             C.resize((r1u + r1l)*n, r2);
 
+#pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
             {
                 for (int j = 0; j < n; j++)             // might be beneficial to unroll (to at least half chunk size)
