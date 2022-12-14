@@ -117,17 +117,16 @@ namespace PITTS
 
 
         /**
-         * @brief Compute D <- C - A * B.
+         * @brief Compute C <- C - A * B.
          * "fnmadd of Tensor2's"
          * 
          * @tparam T 
          * @param A [in] Tensor2
          * @param B [in] Tensor2
-         * @param C [in] Tensor2
-         * @param D [out] Tensor2
+         * @param C [in/out] Tensor2
          */
         template<typename T>
-        inline void t2_fnmadd(const Tensor2<T>& A, const Tensor2<T>& B, const Tensor2<T>& C, Tensor2<T>& D)
+        inline void t2_fnmadd(const Tensor2<T>& A, const Tensor2<T>& B, Tensor2<T>& C)
         {
             const int r1 = C.r1();
             const int r2 = C.r2();
@@ -143,8 +142,7 @@ namespace PITTS
                  {(r1*c + c*r2 + r1*r2)*kernel_info::Load<T>() + r1*r2*kernel_info::Store<T>()}} // data: load A,B,C ; store D
             );
 
-            D.resize(r1, r2);
-            EigenMap(D) = ConstEigenMap(C) - ConstEigenMap(A) * ConstEigenMap(B);
+            EigenMap(C) -= ConstEigenMap(A) * ConstEigenMap(B);
         }
 
 
@@ -621,7 +619,7 @@ namespace PITTS
             //Tensor2<T> Mytl;    // Tytl left-unfolded
 
             Tensor2<T> Mtmp;    // short-lived 2Tensor: holding result Myt - Mxt * Mmt to take QR decomposition of
-            Tensor2<T> Mtmpu;   // short-lived 2Tensor: calculating upper half of Mtmp into here
+            //Tensor2<T> Mtmpu;   // short-lived 2Tensor: calculating upper half of Mtmp into here
             Tensor3<T> Txt;     // short-lived 3Tensor: X tilde (= concat1(Tx, 0))
             Tensor3<T> TQ;      // short-lived 3Tensor: Q left-folded
             
@@ -648,10 +646,10 @@ namespace PITTS
                 internal::xtryz(Mx, Mytu, Mmt);
                 
                 // Mtmpu <- Mytu - Mx * Mmt
-                internal::t2_fnmadd(Mx, Mmt, Mytu, Mtmpu); // Mtmpu can be Mytu (change t2_fnmadd implementatio) ------------ 
+                internal::t2_fnmadd(Mx, Mmt, Mytu); // Mtmpu can be Mytu (change t2_fnmadd implementatio) ------------ 
 
                 // concatinate Mtmp <- concat(Mtmpu, Tytl, dim=1)
-                internal::t2t3_concat1(Mtmpu, Tytl, Mtmp);
+                internal::t2t3_concat1(Mytu, Tytl, Mtmp);
 
                 // [Q, R] <- QR(Mtmp)
                 const int r1 = Tytu.r1() + Tytl.r1(); // r_{k-1} + st_{k-1}
@@ -727,7 +725,7 @@ namespace PITTS
             Tensor2<T> Mytr;    // Tytr right-unfolded
 
             Tensor2<T> Mtmp;    // short-lived 2Tensor: holding result Myt - Mxt * Mmt to take QR decomposition of
-            Tensor2<T> Mtmpl;   // short-lived 2Tensor: calculating left half of Mtmp into here
+            //Tensor2<T> Mtmpl;   // short-lived 2Tensor: calculating left half of Mtmp into here
             Tensor3<T> Txt;     // short-lived 3Tensor: X tilde (= concat1(Tx, 0))
             Tensor3<T> TQ;      // short-lived 3Tensor: Q right-folded
             
@@ -750,10 +748,10 @@ namespace PITTS
                 internal::xytrz(Mytl, Mx, Mmt);
                 
                 // Mtmpl <- Mytl - Mmt * Mx
-                internal::t2_fnmadd(Mmt, Mx, Mytl, Mtmpl);
+                internal::t2_fnmadd(Mmt, Mx, Mytl);
 
                 // concatinate Mtmp <- concat(Mtmpl, Tytr, dim=3)
-                internal::t2t3_concat3(Mtmpl, Tytr, Mtmp);
+                internal::t2t3_concat3(Mytl, Tytr, Mtmp);
 
                 // [L, Q] <- QR(Mtmp)
                 const int r2 = Tytr.r2() + Tytl.r2(); // r_k + st_k
