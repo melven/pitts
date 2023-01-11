@@ -68,6 +68,7 @@ namespace PITTS
       r2_ = r2;
       n_ = n;
       // ensure padding is zero
+#pragma omp parallel for schedule(static)
       for(int j = 0; j < r2_; j++)
         for (int i = 0; i < r1_; i++)
           chunk(i,nChunks()-1,j) = Chunk<T>{};
