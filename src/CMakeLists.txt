@@ -35,6 +35,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_from_dense_classical.hpp
   pitts_tensortrain_from_dense_twosided.hpp
   pitts_tensortrain_to_dense.hpp
+  pitts_tensortrain_debug.hpp
   pitts_tensortrain_from_itensor.hpp
   pitts_tensortrain_to_itensor.hpp
   pitts_tensortrain_gram_schmidt.hpp
