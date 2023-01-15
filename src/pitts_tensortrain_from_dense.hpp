@@ -11,6 +11,8 @@
 #define PITTS_TENSORTRAIN_FROM_DENSE_HPP
 
 // includes
+#include <limits>
+#include <numeric>
 #include "pitts_parallel.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
@@ -21,12 +23,7 @@
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_timer.hpp"
-#include <limits>
-#include <numeric>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

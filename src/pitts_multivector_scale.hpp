@@ -13,10 +13,7 @@
 // includes
 #include <array>
 #include <exception>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"

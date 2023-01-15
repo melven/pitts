@@ -1,11 +1,8 @@
 #include <gtest/gtest.h>
 #include "test_complex_helper.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
+#include "pitts_eigen.hpp"
 #include <complex>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
 
 template<typename T>
 class PITTS_FixedTensor3_combine : public ::testing::Test

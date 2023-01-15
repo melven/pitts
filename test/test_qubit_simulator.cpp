@@ -1,11 +1,8 @@
 #include <gtest/gtest.h>
 #include "test_complex_helper.hpp"
 #include "pitts_qubit_simulator.hpp"
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
+#include "pitts_eigen.hpp"
 #include <unsupported/Eigen/MatrixFunctions>
-#pragma GCC pop_options
 
 using namespace PITTS;
 

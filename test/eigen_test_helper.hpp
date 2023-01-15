@@ -6,10 +6,7 @@
 
 // includes
 #include <gtest/gtest.h>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 
 
 // allow ASSERT_NEAR with Eigen classes

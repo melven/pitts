@@ -5,13 +5,10 @@
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_eigen.hpp"
 #include <exception>
 #include <charconv>
 #include <iostream>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
 
 
 int main(int argc, char* argv[])
