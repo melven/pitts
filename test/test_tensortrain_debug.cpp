@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
+#include "pitts_tensortrain_random.hpp"
 #include "eigen_test_helper.hpp"
 
 using vec = Eigen::VectorXd;
