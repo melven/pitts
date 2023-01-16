@@ -16,10 +16,7 @@
 #include <iterator>
 #include <numeric>
 #include <type_traits>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_tensor3_fold.hpp"

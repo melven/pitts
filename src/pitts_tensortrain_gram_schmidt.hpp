@@ -18,10 +18,7 @@
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_timer.hpp"
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

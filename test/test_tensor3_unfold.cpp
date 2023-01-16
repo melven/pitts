@@ -2,10 +2,7 @@
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_random.hpp"
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 
 
 TEST(PITTS_Tensor3_unfold, unfold_left_Eigen_scalar)

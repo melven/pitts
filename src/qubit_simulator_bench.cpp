@@ -1,11 +1,8 @@
+#include <iostream>
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_qubit_simulator.hpp"
-#include <iostream>
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+#include "pitts_eigen.hpp"
 #include <unsupported/Eigen/MatrixFunctions>
 
 namespace
