@@ -291,28 +291,19 @@ namespace PITTS
 
     //! normal equations
     //!
-    //! uses W = A^T V resulting in the Ritz-Galerkin approach for the normal equations: V^T A^TA V x = V^T A^T b.
-    //! Suitable for non-symmetric operators.
-    //! But squares the condition number and doubles the TT ranks in the calculation.
-    //! Can be interpreted as a Petrov-Galerkin approach with W = A^T V.
+    //! uses W = A V resulting in the Ritz-Galerkin approach for the normal equations: V^T A^TA V x = V^T A^T b.
+    //! Suitable for non-symmetric operators but squares the condition number and doubles the TT ranks in the calculation.
+    //! Can be interpreted as a Petrov-Galerkin approach with W = A V.
     //!
     NormalEquations,
 
-    //! transposed (bi-conjugate) approach
+    //! non-symmetric approach
     //!
-    //! successively builds W from solving V^T A^T W y = V^T b and V from solving W^T A V x = W^T b.
-    //! Similar to the idea of the BiCG iterative method.
-    //! Twice the amount of work but preserves the condition number and the TT ranks in the calculation.
+    //! uses an orthogonal W that approximates AV, so A V = W B + E with W^T W = I and W^T E = 0.
+    //! Slightly more work but avoids squaring the condition number and the TT ranks in the calculation.
+    //! Might suffer from break-downs if the sub-problem operator B = W^T A V is not invertible.
     //!
-    PetrovGalerkin_transposedOperator,
-
-    //! inverse transposed approach
-    //!
-    //! similar to the idea above but builds W from solving V^T A^T W y = V^T (V x) and V from solving W^T A V x = W^T b.
-    //! The idea is to approximate A^(-T) V with W.
-    //! Twice the amount of work but should improve the condition number while possibly doubling the TT ranks in the calculation.
-    //! 
-    PetrovGalerkin_inverseTransposedOperator
+    PetrovGalerkin
   };
 
 
