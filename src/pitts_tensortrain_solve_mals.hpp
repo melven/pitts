@@ -43,6 +43,10 @@
 #include "pitts_gmres.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#ifndef NDEBUG
+#include "pitts_tensortrain_debug.hpp"
+#include "pitts_tensortrain_operator_debug.hpp"
+#endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -307,6 +311,9 @@ namespace PITTS
     using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
     using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
     using namespace internal::solve_mals;
+#ifndef NDEBUG
+    using namespace PITTS::debug;
+#endif
 
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -390,15 +397,7 @@ namespace PITTS
     assert(right_xTAx.size() == nDim+1);
     assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
     assert( std::abs( right_xTAx[nDim](0,0) - dot(TTx, TTAx) ) < sqrt_eps );
-#ifndef NDEBUG
-    constexpr auto apply_error = [](const TensorTrainOperator<T>& A, const TensorTrain<T>& x, const TensorTrain<T>& Ax) -> T
-    {
-      TensorTrain<T> Ax_ref(A.row_dimensions());
-      apply(A, x, Ax_ref);
-      return std::abs(axpby(T(1), Ax, T(-1), Ax_ref));
-    };
-#endif
-    assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
+    assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
 
 
     // calculate the error norm
@@ -488,7 +487,7 @@ namespace PITTS
           subT_Ax_tmp = TTAx.setSubTensors(iDim, std::move(subT_Ax_tmp));
         }
 
-        assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
+        assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
       }
       assert(left_xTb.size() == nDim+1);
       assert(left_xTb[nDim].r1() == 1 && left_xTb[nDim].r2() == 1);
@@ -576,7 +575,7 @@ namespace PITTS
           subT_Ax_tmp = TTAx.setSubTensors(iDim-1, std::move(subT_Ax_tmp));
         }
 
-        assert( apply_error(effTTOpA, TTx, TTAx) < sqrt_eps );
+        assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
       }
       assert(right_xTb.size() == nDim+1);
       assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
