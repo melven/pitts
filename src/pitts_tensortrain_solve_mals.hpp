@@ -314,7 +314,7 @@ namespace PITTS
   //! @tparam T             data type (double, float, complex)
   //!
   //! @param TTOpA              tensor-train operator A
-  //! @param symmetricA         flag to indicate that A is symmetric / Hermitian
+  //! @param projection         defines different variants for defining the local sub-problem in the MALS algorithm, for symmetric problems choose RitzGalerkin
   //! @param TTb                right-hand side tensor-train b
   //! @param TTx                initial guess on input, overwritten with the (approximate) result on output
   //! @param nSweeps            desired number of MALS sweeps
@@ -329,7 +329,7 @@ namespace PITTS
   //!
   template<typename T>
   T solveMALS(const TensorTrainOperator<T>& TTOpA,
-              const bool symmetricA,
+              const MALS_projection projection,
               const TensorTrain<T>& TTb,
               TensorTrain<T>& TTx,
               int nSweeps,
@@ -367,17 +367,33 @@ namespace PITTS
 
 
     // for the non-symmetric case, we solve the normal equations, so calculate A^T*b and A^T*A
-    TensorTrain<T> TTAtb(TTOpA.column_dimensions());
-    TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
-    if( !symmetricA )
+    // and provide convenient name for TTOpA resp. TTOpAtA for the code below
+    const auto& effTTb = [&]()
     {
-      applyT(TTOpA, TTb, TTAtb);
-      applyT(TTOpA, TTOpA, TTOpAtA);
-    }
-
-    // provide convenient name for TTOpA resp. TTOpAtA for the code below
-    const auto& effTTb = symmetricA ? TTb : TTAtb;
-    const auto effTTOpA = symmetricA ? TTOpA : TTOpAtA;
+      if( projection == MALS_projection::NormalEquations )
+      {
+        TensorTrain<T> TTAtb(TTOpA.column_dimensions());
+        applyT(TTOpA, TTb, TTAtb);
+        return TTAtb;
+      }
+      else
+      {
+        return TTb;
+      }
+    }();
+    const auto& effTTOpA = [&]()
+    {
+      if( projection == MALS_projection::NormalEquations )
+      {
+        TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
+        applyT(TTOpA, TTOpA, TTOpAtA);
+        return TTOpAtA;
+      }
+      else
+      {
+        return TTOpA;
+      }
+    }();
 
     const T bTb = dot(effTTb,effTTb);
     const T sqrt_bTb = std::sqrt(bTb);
