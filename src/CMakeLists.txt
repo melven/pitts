@@ -50,6 +50,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_operator_from_itensor.hpp
   pitts_tensortrain_operator_to_itensor.hpp
   pitts_tensortrain_operator_debug.hpp
+  pitts_tensortrain_sweep_index.hpp
   pitts_tensortrain_solve_mals.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp
