@@ -143,6 +143,7 @@ namespace PITTS
       // auxiliary matrix / tensor
       Tensor2<T> t2;
       std::vector<Tensor3<T>> newSubT(2);
+      const std::vector<TT_Orthogonality> newSubTOrtho = {TT_Orthogonality::left, TT_Orthogonality::none};
 
       for(int iDim = firstIdx; iDim < lastIdx; iDim++)
       {
@@ -160,11 +161,8 @@ namespace PITTS
 
         // now contract Vt(:,*) * subT_next(*,:,:)
         internal::normalize_contract1(Vt, subT_next, newSubT[1]);
-        newSubT = TT.setSubTensors(iDim, std::move(newSubT));
+        newSubT = TT.setSubTensors(iDim, std::move(newSubT), newSubTOrtho);
       }
-
-      if( firstIdx == 0 && lastIdx == nDim-1 )
-        TT.setOrthogonal(TT_Orthogonality::left);
     }
 
     //! Make a subset of sub-tensors right-orthogonal sweeping the given index range (right to left)
@@ -190,6 +188,7 @@ namespace PITTS
       // auxiliary matrix / tensor
       Tensor2<T> t2;
       std::vector<Tensor3<T>> newSubT(2);
+      const std::vector<TT_Orthogonality> newSubTOrtho = {TT_Orthogonality::none, TT_Orthogonality::right};
 
       for(int iDim = lastIdx; iDim > firstIdx; iDim--)
       {
@@ -207,11 +206,8 @@ namespace PITTS
 
         // now contract subT_prev(:,:,*) * U(*,:)
         internal::normalize_contract2(subT_prev, U, newSubT[0]);
-        newSubT = TT.setSubTensors(iDim-1, std::move(newSubT));
+        newSubT = TT.setSubTensors(iDim-1, std::move(newSubT), newSubTOrtho);
       }
-
-      if( firstIdx == 0 && lastIdx == nDim-1 )
-        TT.setOrthogonal(TT_Orthogonality::right);
     }
   }
 
@@ -234,15 +230,9 @@ namespace PITTS
     internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
-    const auto& subT = TT.subTensor(nDim-1);
-    Tensor3<T> t3;
-    const T nrm = internal::t3_nrm(subT);
+    const T nrm = internal::t3_nrm(TT.subTensor(nDim-1));
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    copy(subT, t3);
-    internal::t3_scale(invNrm, t3);
-    TT.setSubTensor(nDim-1, std::move(t3));
-
-    TT.setOrthogonal(TT_Orthogonality::left);
+    TT.editSubTensor(nDim-1, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, TT_Orthogonality::left);
 
     return nrm;
   }
@@ -280,15 +270,9 @@ namespace PITTS
     internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
     // just calculate its norm and scale the last subtensor
-    const auto& subT = TT.subTensor(nDim-1);
-    Tensor3<T> t3;
-    const T nrm = internal::t3_nrm(subT);
+    const T nrm = internal::t3_nrm(TT.subTensor(nDim-1));
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    copy(subT, t3);
-    internal::t3_scale(invNrm, t3);
-    TT.setSubTensor(nDim-1, std::move(t3));
-
-    TT.setOrthogonal(TT_Orthogonality::left);
+    TT.editSubTensor(nDim-1, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, TT_Orthogonality::left);
 
     return nrm;
   }
@@ -314,16 +298,10 @@ namespace PITTS
 
     internal::rightNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
-    // just calculate its norm and scale the last subtensor
-    const auto& subT = TT.subTensor(0);
-    Tensor3<T> t3;
-    const T nrm = internal::t3_nrm(subT);
+    // just calculate its norm and scale the first subtensor
+    const T nrm = internal::t3_nrm(TT.subTensor(0));
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    copy(subT, t3);
-    internal::t3_scale(invNrm, t3);
-    TT.setSubTensor(0, std::move(t3));
-
-    TT.setOrthogonal(TT_Orthogonality::right);
+    TT.editSubTensor(0, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, TT_Orthogonality::right);
 
     return nrm;
   }
