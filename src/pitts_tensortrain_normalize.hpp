@@ -211,7 +211,9 @@ namespace PITTS
     }
   }
 
-  //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right)
+  //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right or vice-versa)
+  //!
+  //! Omits the first sweep if the tensor-train is already left- or right-orthogonal.
   //!
   //! @tparam T  underlying data type (double, complex, ...)
   //!
@@ -226,13 +228,30 @@ namespace PITTS
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
     const auto nDim = TT.dimensions().size();
-    internal::rightNormalize_range(TT, 0, nDim-1, T(0));
-    internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
 
-    // just calculate its norm and scale the last subtensor
-    const T nrm = internal::t3_nrm(TT.subTensor(nDim-1));
+    auto ttOrtho = TT.isOrthogonal();
+    if( ttOrtho == TT_Orthogonality::none )
+    {
+      internal::rightNormalize_range(TT, 0, nDim - 1, T(0));
+      ttOrtho = TT_Orthogonality::right;
+    }
+    
+    if( ttOrtho == TT_Orthogonality::right )
+    {
+      internal::leftNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
+      ttOrtho = TT_Orthogonality::left;
+    }
+    else // ttOrtho & right
+    {
+      internal::rightNormalize_range(TT, 0, nDim-1, rankTolerance, maxRank);
+      ttOrtho = TT_Orthogonality::right;
+    }
+
+    // just calculate its norm and scale the last/first subtensor
+    const int idx = (ttOrtho == TT_Orthogonality::left) ? nDim-1 : 0;
+    const T nrm = internal::t3_nrm(TT.subTensor(idx));
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
-    TT.editSubTensor(nDim-1, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, TT_Orthogonality::left);
+    TT.editSubTensor(idx, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, ttOrtho);
 
     return nrm;
   }
