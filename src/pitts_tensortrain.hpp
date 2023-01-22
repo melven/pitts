@@ -18,16 +18,6 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  // forward declarations
-  template<typename T>
-  class TensorTrain;
-
-  template<typename T>
-  void copy(const TensorTrain<T>&, TensorTrain<T>&);
-
-  template<typename T>
-  void randomize(TensorTrain<T>&);
-
   //! namespace for helper functionality
   namespace internal
   {
@@ -42,17 +32,32 @@ namespace PITTS
   }
 
   //! A tensor-train can be left- or right-orthogonal (or none of both)
-  enum class TT_Orthogonality
+  enum class TT_Orthogonality : unsigned char
   {
     //! Currently not orthogonal or unknown
     none = 0,
 
     //! left-orthogonal (for all subtensors X_i: fold_left(X_i)^T fold_left(X_i) = I)
-    left,
+    left = 1,
 
     //! right-orthogonal (for all subtensors X_i: fold_right(X_i)^T fold_right(X_i) = I)
-    right
+    right = 2,
+
+    //! both left- and right-orthogonal (e.g. a unit tensor)
+    both = 3
   };
+
+  //! allow to perform bitwise-operation & on TT_Orthogonality
+  constexpr TT_Orthogonality operator&(TT_Orthogonality a, TT_Orthogonality b) noexcept
+  {
+    return static_cast<TT_Orthogonality>(static_cast<unsigned char>(a) & static_cast<unsigned char>(b));
+  }
+
+  //! allow to perform bitwise-operation | on TT_Orthogonality
+  constexpr TT_Orthogonality operator|(TT_Orthogonality a, TT_Orthogonality b) noexcept
+  {
+    return static_cast<TT_Orthogonality>(static_cast<unsigned char>(a) | static_cast<unsigned char>(b));
+  }
 
 
   //! tensor train class
@@ -68,7 +73,8 @@ namespace PITTS
 
       //! create a new tensor with the given dimensions
       TensorTrain(const std::vector<int>& dimensions, int initial_TTrank = 1)
-        : dimensions_(dimensions)
+        : dimensions_(dimensions),
+        orthonormal_(dimensions.size(), TT_Orthogonality::none)
       {
         // create all sub-tensors
         subTensors_.resize(dimensions.size());
@@ -82,7 +88,8 @@ namespace PITTS
 
       //! explicit copy construction is ok
       TensorTrain(const TensorTrain<T>& other)
-        : dimensions_(other.dimensions_)
+        : dimensions_(other.dimensions_),
+        orthonormal_(other.orthonormal_)
       {
         // create and copy all subtensors
         subTensors_.resize(dimensions_.size());
@@ -92,7 +99,8 @@ namespace PITTS
 
       //! construct from given sub-tensors, dimensions are obtained from the sub-tensor dimensions
       TensorTrain(std::vector<Tensor3<T>>&& subTensors) :
-        dimensions_(internal::dimensionsFromSubTensors(subTensors))
+        dimensions_(internal::dimensionsFromSubTensors(subTensors)),
+        orthonormal_(dimensions_.size(), TT_Orthogonality::none)
       {
         subTensors_.resize(dimensions_.size());
         setSubTensors(0, std::move(subTensors));
@@ -122,7 +130,7 @@ namespace PITTS
       //! Intentionally moves from the input argument and returns the old sub-tensor.
       //! This allows to call this method without allocating or copying data and to reuse the old memory.
       //!
-      Tensor3<T> setSubTensor(int i, Tensor3<T>&& newSubTensor)
+      Tensor3<T> setSubTensor(int i, Tensor3<T>&& newSubTensor, TT_Orthogonality orthonormal = TT_Orthogonality::none)
       {
         if( newSubTensor.n() != dimensions_.at(i) )
           throw std::invalid_argument("Invalid subtensor dimension!");
@@ -131,12 +139,44 @@ namespace PITTS
         if( i+1 < dimensions_.size() && newSubTensor.r2() != subTensors_[i].r2() )
           throw std::invalid_argument("Invalid subtensor rank (r2)!");
 
-        isOrthogonal_ = TT_Orthogonality::none;
-
         // similar to std::swap
         Tensor3<T> oldSubTensor(std::move(subTensors_[i]));
         subTensors_[i] = std::move(newSubTensor);
+        orthonormal_[i] = orthonormal;
         return oldSubTensor;
+      }
+
+      //! set i'th sub-tensor (by applying a function to it)
+      template<typename Tensor3Function>
+      void editSubTensor(int i, const Tensor3Function& fun, TT_Orthogonality orthonormal = TT_Orthogonality::none)
+      {
+        if( i < 0 || i >= subTensors_.size() )
+          throw std::invalid_argument("TensorTrain::setSubTensor<Tensor3Function>: invalid sub-tensor index!");
+
+        // not allowed to change sub-tensor dimensions through this!
+        const int r1 = subTensors_[i].r1();
+        const int n = subTensors_[i].n();
+        const int r2 = subTensors_[i].r2();
+
+        fun(subTensors_[i]);
+
+        if( i > 0 && subTensors_[i].r1() != r1 )
+        {
+          subTensors_[i].resize(r1, n, r2);
+          throw std::invalid_argument("TensorTrain::setSubTensor<Tensor3Function>: invalid subtensor rank (r1)!");
+        }
+        if( subTensors_[i].n() != n )
+        {
+          subTensors_[i].resize(r1, n, r2);
+          throw std::invalid_argument("TensorTrain::setSubTensor<Tensor3Function>: invalid subtensor dimension!");
+        }
+        if( i+1 < dimensions_.size() && subTensors_[i].r2() != r2 )
+        {
+          subTensors_[i].resize(r1, n, r2);
+          throw std::invalid_argument("TensorTrain::setSubTensor<Tensor3Function>: invalid subtensor rank (2)!");
+        }
+
+        orthonormal_[i] = orthonormal;
       }
 
       //! set a range of sub-tensors
@@ -146,7 +186,7 @@ namespace PITTS
       //! Intentionally moves from the input argument and returns the old sub-tensors.
       //! This allows to call this method without allocating or copying data and to reuse the old memory.
       //!
-      std::vector<Tensor3<T>> setSubTensors(int offset, std::vector<Tensor3<T>>&& newSubTensors)
+      std::vector<Tensor3<T>> setSubTensors(int offset, std::vector<Tensor3<T>>&& newSubTensors, const std::vector<TT_Orthogonality>& orthonormal = {})
       {
         for(int i = 0; i < newSubTensors.size(); i++)
         {
@@ -166,12 +206,15 @@ namespace PITTS
             if( newSubTensors[i].r2() != subTensors_[offset+i].r2() )
               throw std::invalid_argument("Invalid subtensor rank (r2)!");
         }
-
-        isOrthogonal_ = TT_Orthogonality::none;
+        if( orthonormal.size() > 0 && orthonormal.size() != newSubTensors.size() )
+          throw std::invalid_argument("Dimension of orthonormal array must match number of sub-tensors!");
 
         std::vector<Tensor3<T>> tmp(std::move(newSubTensors));
         for(int i = 0; i < tmp.size(); i++)
+        {
           std::swap(subTensors_[offset+i], tmp[i]);
+          orthonormal_[offset+i] = orthonormal.size() > 0 ? orthonormal[i] : TT_Orthogonality::none;
+        }
         return tmp;
       }
 
@@ -183,7 +226,7 @@ namespace PITTS
       TensorTrain<T> setSubTensors(int offset, TensorTrain<T>&& other)
       {
         // careful for correct behavior even for exceptions
-        other.subTensors_ = setSubTensors(offset, std::move(other.subTensors_));
+        other.subTensors_ = setSubTensors(offset, std::move(other.subTensors_), other.orthonormal_);
 
         TensorTrain<T> tmp(std::move(other));
         return tmp;
@@ -233,15 +276,24 @@ namespace PITTS
         return tt_ranks;
       }
 
+      //! current orthognoality state of the i-th sub-tensor
+      [[nodiscard]] TT_Orthogonality isOrthonormal(int i) const {return orthonormal_.at(i);}
+
       //! current orthogonality state of the tensor-train
       //!
-      //! This flag is resetted automatically whenever the tensor-train is modified.
-      //! To adjust this flag, call setOrthogonal.
+      //! Calculated from the orthogonality state of the sub-tensors
       //!
-      TT_Orthogonality isOrthogonal() const {return isOrthogonal_;}
-
-      //! set the current orthogonality state of the tensor-train
-      void setOrthogonal(TT_Orthogonality newState) {isOrthogonal_ = newState;}
+      [[nodiscard]] TT_Orthogonality isOrthogonal() const noexcept
+      {
+        const bool leftOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end()-1, [](TT_Orthogonality o){return o & TT_Orthogonality::left;});
+        const bool rightOrtho = std::all_of(orthonormal_.begin()+1, orthonormal_.end(), [](TT_Orthogonality o){return o & TT_Orthogonality::right;});
+        TT_Orthogonality result = TT_Orthogonality::none;
+        if( leftOrtho )
+          result = result | TT_Orthogonality::left;
+        if( rightOrtho )
+          result = result | TT_Orthogonality::right;
+        return result;
+      }
 
       //! make this a tensor of zeros
       //!
@@ -249,11 +301,13 @@ namespace PITTS
       //!
       void setZero()
       {
-        isOrthogonal_ = TT_Orthogonality::none;
         // we use a rank of one...
         setTTranks(1);
-        for(auto& M: subTensors_)
-          M.setConstant(T(0));
+        for(int i = 0; i < subTensors_.size(); i++)
+        {
+          subTensors_[i].setConstant(T(0));
+          orthonormal_[i] = TT_Orthogonality::none;
+        }
       }
 
       //! make this a tensor of ones
@@ -262,11 +316,13 @@ namespace PITTS
       //!
       void setOnes()
       {
-        isOrthogonal_ = TT_Orthogonality::none;
         // we use a rank of one...
         setTTranks(1);
-        for(auto& M: subTensors_)
-          M.setConstant(T(1));
+        for(int i = 0; i < subTensors_.size(); i++)
+        {
+          subTensors_[i].setConstant(T(1));
+          orthonormal_[i] = TT_Orthogonality::none;
+        }
       }
 
       //! make this a canonical unit tensor in the given direction
@@ -280,26 +336,11 @@ namespace PITTS
         // we use a rank of one...
         setTTranks(1);
         for(int i = 0; i < dimensions_.size(); i++)
+        {
           subTensors_[i].setUnit(0, index[i], 0);
-
-        // it's also right-orthogonal but we don't support combinations of flags (yet)
-        isOrthogonal_ = TT_Orthogonality::left;
+          orthonormal_[i] = TT_Orthogonality::both;
+        }
       }
-
-    protected:
-      //! internal low-level sub-tensor access function
-      //!
-      //! Provided to a few selected friend functions to allow an optimized implementation.
-      //!
-      //! \warning you must call setOrthogonal when using this method!
-      //!
-      Tensor3<T>& editableSubTensor(int i) {return subTensors_.at(i);}
-
-      //! copy function can circumvent checks in setSubTensor for a faster implementation.
-      friend void copy<T>(const TensorTrain<T>&, TensorTrain<T>&);
-
-      //! randomize function can circumvent setting setSubTensor and modify the entries directly
-      friend void randomize<T>(TensorTrain<T>&);
 
     private:
       //! tensor dimensions
@@ -319,11 +360,11 @@ namespace PITTS
       //!
       std::vector<Tensor3<T>> subTensors_;
 
-      //! current orthogonality state of the tensor-train
+      //! current orthogonality state of the sub-tensors of the tensor-train
       //!
-      //! This is set to none by e.g. setSubTensor and setSubTensors.
+      //! This is set by e.g. setSubTensor and setSubTensors.
       //!
-      TT_Orthogonality isOrthogonal_ = TT_Orthogonality::none;
+      std::vector<TT_Orthogonality> orthonormal_;
   };
 
   //! explicitly copy a TensorTrain object
@@ -333,11 +374,15 @@ namespace PITTS
     // check that dimensions match
     if( a.dimensions() != b.dimensions() )
       throw std::invalid_argument("TensorTrain copy dimension mismatch!");
+    
+    b.setTTranks(a.getTTranks());
 
     for(int i = 0; i < a.dimensions().size(); i++)
-      copy(a.subTensor(i), b.editableSubTensor(i));
-
-    b.setOrthogonal(a.isOrthogonal());
+    {
+      const auto& t3a = a.subTensor(i);
+      const auto copyFcn = [&t3a](Tensor3<T>& t3b){copy(t3a, t3b);};
+      b.editSubTensor(i, copyFcn, a.isOrthonormal(i));
+    }
   }
 }
 
