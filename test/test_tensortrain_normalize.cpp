@@ -109,7 +109,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
-    EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
+    EXPECT_TRUE(static_cast<bool>(PITTS::TT_Orthogonality::left & TT.isOrthogonal()));
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -147,7 +147,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
-    EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
+    EXPECT_TRUE(static_cast<bool>(PITTS::TT_Orthogonality::right & TT.isOrthogonal()));
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -561,7 +561,6 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1)
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
-  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
       for(int k = 0; k < subT.r2(); k++)
@@ -594,7 +593,6 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
-  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
       for(int k = 0; k < subT.r2(); k++)

@@ -73,16 +73,11 @@ namespace PITTS
             T sgn = (beta >= 0) ? 1.0 : -1.0;
             if (sgn < 0)
             {
-                Tensor3<T> tmp;
                 const int idx = (y_ortho == TT_Orthogonality::left) ? d - 1 : 0;
-                copy(TTy.subTensor(idx), tmp);
-                internal::t3_scale(sgn, tmp);
-                TTy.setSubTensor(idx, std::move(tmp));
+                TTy.editSubTensor(idx, [sgn](Tensor3<T>& subT){internal::t3_scale(sgn, subT);}, TTy.isOrthonormal(idx));
             }
             if (y_ortho == TT_Orthogonality::none)
                 sgn *= leftNormalize(TTy, rankTolerance, maxRank);
-            else
-                TTy.setOrthogonal(y_ortho);
             return beta * sgn;
         }
 
