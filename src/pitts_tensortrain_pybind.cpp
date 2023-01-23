@@ -128,7 +128,7 @@ namespace PITTS
       //! wrapper function to allow modifying the list argument V
       template<typename T>
       auto gramSchmidt(py::list V, TensorTrain<T>& w,
-                       T rankTolerance, int maxRank,
+                       T rankTolerance, int maxRank, bool symmetric,
                        const std::string& outputPrefix, bool verbose,
                        int nIter, bool pivoting, bool modified, bool skipDirs)
       {
@@ -136,7 +136,7 @@ namespace PITTS
         for(int i = 0; i < V.size(); i++)
           Vtmp.emplace_back(std::move(V[i].cast<TensorTrain<T>&>()));
         V.attr("clear")();
-        auto result = PITTS::gramSchmidt(Vtmp, w, rankTolerance, maxRank, outputPrefix, verbose, nIter, pivoting, modified, skipDirs);
+        auto result = PITTS::gramSchmidt(Vtmp, w, rankTolerance, maxRank, symmetric, outputPrefix, verbose, nIter, pivoting, modified, skipDirs);
         for(int i = 0; i < Vtmp.size(); i++)
           V.append(std::move(Vtmp[i]));
         return result;
@@ -226,6 +226,7 @@ namespace PITTS
             &pybind::gramSchmidt<T>,
             py::arg("V"), py::arg("w"),
             py::arg("rankTolerance") = std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::arg("symmetric")=false,
             py::arg("outputPrefix")="", py::arg("verbose")=false,
             py::arg("nIter")=4, py::arg("pivoting")=true, py::arg("modified")=true, py::arg("skipDirs")=true,
             "Modified Gram-Schmidt orthogonalization algorithm in Tensor-Train format");

@@ -44,7 +44,7 @@ namespace PITTS
             &solveGMRES<T>,
             py::arg("TTOpA"), py::arg("TTb"), py::arg("TTx"),
             py::arg("maxIter"), py::arg("absResTol"), py::arg("relResTol"),
-            py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("adaptiveTolerance")=true,
+            py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("adaptiveTolerance")=true, py::arg("symmetric")=false,
             py::arg("outputPrefix")="", py::arg("verbose")=false,
             "TT-GMRES: iterative solver for linear systems in tensor-train format");
       }

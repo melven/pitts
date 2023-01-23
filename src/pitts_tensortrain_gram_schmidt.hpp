@@ -67,6 +67,7 @@ namespace PITTS
   //! @param w                new direction in TT format, orthogonalized wrt. V
   //! @param rankTolerance    desired approximation accuracy (for TT axpby / normalize)
   //! @param maxRank          maximal allowed approximation rank (for TT axpby / normalize)
+  //! @param symmetric        set to true for w=Av_k with symmetric operator A to exploit the symmetry (Results in MinRes-like algorithms).
   //! @param outputPrefix     string to prefix all output about the convergence history
   //! @param verbose          set to true, to print the residual norm in each iteration to std::cout
   //! @param nIter            number of iterations for iterated Gram-Schmidt
@@ -77,7 +78,7 @@ namespace PITTS
   //!
   template<typename T>
   auto gramSchmidt(std::vector<TensorTrain<T>>& V, TensorTrain<T>& w,
-                    T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max(),
+                    T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max(), bool symmetric = false,
                     const std::string& outputPrefix = "", bool verbose = false,
                     int nIter = 4, bool pivoting = true, bool modified = true, bool skipDirs = true)
   {
@@ -86,6 +87,8 @@ namespace PITTS
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
     const int nV = V.size();
+    // adjust first vector in V to consider for symmetric cases
+    const int firstV = symmetric ? std::max(0, nV-2) : 0;
 
     T alpha = normalize(w, rankTolerance, maxRank);
     arr h = arr::Zero(nV+1);
@@ -96,12 +99,12 @@ namespace PITTS
       return h;
     }
 
-    arr Vtw(nV);
+    arr Vtw = arr::Zero(nV);
     for(int iter = 0; iter < nIter; iter++)
     {
       if( pivoting || (!modified) )
       {
-        for (int i = 0; i < nV; i++)
+        for (int i = firstV; i < nV; i++)
           Vtw(i) = dot(V[i], w);
 
         const T maxErr = Vtw.abs().maxCoeff();
@@ -111,7 +114,7 @@ namespace PITTS
           break;
       }
 
-      for(int i = 0; i < nV; i++)
+      for(int i = firstV; i < nV; i++)
       {
         int pivot = i;
         if( pivoting )

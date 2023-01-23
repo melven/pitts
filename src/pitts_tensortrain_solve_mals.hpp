@@ -492,7 +492,7 @@ namespace PITTS
 
           if( useTTgmres )
           {
-            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, " (M)ALS local problem: ", true);
+            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
           }
           else
           {
@@ -582,7 +582,7 @@ namespace PITTS
 
           if( useTTgmres )
           {
-            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, " (M)ALS local problem: ", true);
+            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
           }
           else
           {
