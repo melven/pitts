@@ -434,15 +434,6 @@ namespace PITTS
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 #endif
 
-    // helper function that returns a 1x1 Tensor2 with value 1
-    constexpr auto Tensor2_one = []()
-    {
-      Tensor2<T> t2(1,1);
-      t2(0,0) = T(1);
-      return t2;
-    };
-
-
     // we store previous parts of x^Tb from left and right
     // (respectively x^T A^T b for the non-symmetric case)
     std::vector<Tensor2<T>> left_xTb, right_xTb;
@@ -455,17 +446,15 @@ namespace PITTS
     assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
     assert( std::abs(right_xTb[nDim](0,0) - dot(TTx, effTTb)) < sqrt_eps );
 
-
     // we store previous parts of x^T A x
     // (respectively x^T A^T A x for the non-symmetric case)
     std::vector<Tensor2<T>> left_xTAx, right_xTAx;
-    left_xTAx.emplace_back(Tensor2_one());
-    right_xTAx.emplace_back(Tensor2_one());
 
     // this includes a calculation of Ax, so reuse it
     TensorTrain<T> TTAx(effTTOpA.row_dimensions()), residualVector(effTTOpA.row_dimensions());
     std::vector<Tensor3<T>> TTAx_subT;
     update_right_xTb(TTx, TTx, 0, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
+    update_left_xTb(TTx, TTx, 0, -1, left_xTAx, &effTTOpA, &TTAx_subT);
     TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
 
     assert(right_xTAx.size() == nDim+1);
@@ -486,19 +475,18 @@ namespace PITTS
       if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
-      for(int iDim = 1; iDim < nMALS; iDim++)
-      {
-        right_xTb.pop_back();
-        right_xTAx.pop_back();
-      }
-
       // sweep left to right
       for(int iDim = 0; iDim < nDim; iDim++)
       {
         if( iDim + nMALS <= nDim )
         {
-          right_xTb.pop_back();
-          right_xTAx.pop_back();
+          internal::ensureLeftOrtho_range(TTx, 0, iDim);
+          update_left_xTb(effTTb, TTx, 0, iDim-1, left_xTb);
+          update_left_xTb(TTx, TTx, 0, iDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
+
+          internal::ensureRightOrtho_range(TTx, iDim+nMALS-1, nDim-1);
+          update_right_xTb(effTTb, TTx, iDim+nMALS, nDim-1, right_xTb);
+          update_right_xTb(TTx, TTx, iDim+nMALS, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
         }
 
         if( iDim + nMALS <= nDim && iDim % (nMALS-nOverlap) == 0 && (iDim != lastStep.first || nMALS == nDim) )
@@ -539,15 +527,9 @@ namespace PITTS
 
           TTx.setSubTensors(iDim, std::move(tt_x));
         }
-
-        // prepare current approximation for the next iteration
-        if (iDim + 1 != nDim)
-          internal::leftNormalize_range(TTx, iDim, iDim + 1, T(0), maxRank);
-
-        // prepare left/right xTb for the next iteration
-        update_left_xTb(effTTb, TTx, 0, iDim, left_xTb);
-        update_left_xTb(TTx, TTx, 0, iDim, left_xTAx, &effTTOpA, &TTAx_subT);
       }
+      update_left_xTb(effTTb, TTx, 0, nDim-1, left_xTb);
+      update_left_xTb(TTx, TTx, 0, nDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
       
       assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
@@ -568,19 +550,18 @@ namespace PITTS
       if( residualNorm / sqrt_bTb < residualTolerance )
         break;
 
-      for(int iDim = nDim-1; iDim > nDim-nMALS; iDim--)
-      {
-        left_xTb.pop_back();
-        left_xTAx.pop_back();
-      }
-
       // sweep right to left
       for(int iDim = nDim-1; iDim >= 0; iDim--)
       {
         if( iDim+1 - nMALS >= 0 )
         {
-          left_xTb.pop_back();
-          left_xTAx.pop_back();
+          internal::ensureLeftOrtho_range(TTx, 0, iDim-nMALS+1);
+          update_left_xTb(effTTb, TTx, 0, iDim-nMALS, left_xTb);
+          update_left_xTb(TTx, TTx, 0, iDim-nMALS, left_xTAx, &effTTOpA, &TTAx_subT);
+
+          internal::ensureRightOrtho_range(TTx, iDim, nDim-1);
+          update_right_xTb(effTTb, TTx, iDim+1, nDim-1, right_xTb);
+          update_right_xTb(TTx, TTx, iDim+1, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
         }
 
         if( iDim+1 - nMALS >= 0 && (nDim-iDim-1) % (nMALS-nOverlap) == 0 && (iDim != lastStep.second || nMALS == nDim) )
@@ -617,15 +598,9 @@ namespace PITTS
 
           TTx.setSubTensors(iDim+1-nMALS, std::move(tt_x));
         }
-
-        // prepare current approximation for the next iteration
-        if( iDim != 0 )
-          internal::rightNormalize_range(TTx, iDim-1, iDim, T(0), maxRank);
-
-        // prepare left/right xTb for the next iteration
-        update_right_xTb(effTTb, TTx, iDim, nDim-1, right_xTb);
-        update_right_xTb(TTx, TTx, iDim, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
       }
+      update_right_xTb(effTTb, TTx, 0, nDim-1, right_xTb);
+      update_right_xTb(TTx, TTx, 0, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
       assert(norm2(effTTOpA * TTx - TTAx) < sqrt_eps);
 
