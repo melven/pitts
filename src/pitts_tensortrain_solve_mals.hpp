@@ -476,20 +476,17 @@ namespace PITTS
         break;
 
       // sweep left to right
-      for(int iDim = 0; iDim < nDim; iDim++)
+      for(int iDim = 0; iDim + nMALS <= nDim; iDim++)
       {
-        if( iDim + nMALS <= nDim )
-        {
-          internal::ensureLeftOrtho_range(TTx, 0, iDim);
-          update_left_xTb(effTTb, TTx, 0, iDim-1, left_xTb);
-          update_left_xTb(TTx, TTx, 0, iDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
+        internal::ensureLeftOrtho_range(TTx, 0, iDim);
+        update_left_xTb(effTTb, TTx, 0, iDim-1, left_xTb);
+        update_left_xTb(TTx, TTx, 0, iDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
 
-          internal::ensureRightOrtho_range(TTx, iDim+nMALS-1, nDim-1);
-          update_right_xTb(effTTb, TTx, iDim+nMALS, nDim-1, right_xTb);
-          update_right_xTb(TTx, TTx, iDim+nMALS, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
-        }
+        internal::ensureRightOrtho_range(TTx, iDim+nMALS-1, nDim-1);
+        update_right_xTb(effTTb, TTx, iDim+nMALS, nDim-1, right_xTb);
+        update_right_xTb(TTx, TTx, iDim+nMALS, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
 
-        if( iDim + nMALS <= nDim && iDim % (nMALS-nOverlap) == 0 && (iDim != lastStep.first || nMALS == nDim) )
+        if( iDim % (nMALS-nOverlap) == 0 && (iDim != lastStep.first || nMALS == nDim) )
         {
           // skip iteration in next right-to-left sweep if it would be the same dims as this one
           lastStep = {iDim, iDim+nMALS-1};
@@ -551,20 +548,17 @@ namespace PITTS
         break;
 
       // sweep right to left
-      for(int iDim = nDim-1; iDim >= 0; iDim--)
+      for(int iDim = nDim-1; iDim+1-nMALS >= 0; iDim--)
       {
-        if( iDim+1 - nMALS >= 0 )
-        {
-          internal::ensureLeftOrtho_range(TTx, 0, iDim-nMALS+1);
-          update_left_xTb(effTTb, TTx, 0, iDim-nMALS, left_xTb);
-          update_left_xTb(TTx, TTx, 0, iDim-nMALS, left_xTAx, &effTTOpA, &TTAx_subT);
+        internal::ensureLeftOrtho_range(TTx, 0, iDim-nMALS+1);
+        update_left_xTb(effTTb, TTx, 0, iDim-nMALS, left_xTb);
+        update_left_xTb(TTx, TTx, 0, iDim-nMALS, left_xTAx, &effTTOpA, &TTAx_subT);
 
-          internal::ensureRightOrtho_range(TTx, iDim, nDim-1);
-          update_right_xTb(effTTb, TTx, iDim+1, nDim-1, right_xTb);
-          update_right_xTb(TTx, TTx, iDim+1, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
-        }
+        internal::ensureRightOrtho_range(TTx, iDim, nDim-1);
+        update_right_xTb(effTTb, TTx, iDim+1, nDim-1, right_xTb);
+        update_right_xTb(TTx, TTx, iDim+1, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
 
-        if( iDim+1 - nMALS >= 0 && (nDim-iDim-1) % (nMALS-nOverlap) == 0 && (iDim != lastStep.second || nMALS == nDim) )
+        if( (nDim-iDim-1) % (nMALS-nOverlap) == 0 && (iDim != lastStep.second || nMALS == nDim) )
         {
           // skip iteration in next right-to-left sweep if it would be the same dims as this one
           lastStep = {iDim+1-nMALS, iDim};
