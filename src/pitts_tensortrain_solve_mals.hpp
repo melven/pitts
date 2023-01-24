@@ -547,24 +547,10 @@ namespace PITTS
         // prepare left/right xTb for the next iteration
         update_left_xTb(effTTb, TTx, 0, iDim, left_xTb);
         update_left_xTb(TTx, TTx, 0, iDim, left_xTAx, &effTTOpA, &TTAx_subT);
-
-        if( iDim+1 == nDim )
-        {
-          TTAx_subT[iDim] = TTAx.setSubTensor(iDim, std::move(TTAx_subT[iDim]));
-        }
-        else // iDim+1 < nDim
-        {
-          const auto& Ak_next = effTTOpA.tensorTrain().subTensor(iDim+1);
-          const auto& xk_next = TTx.subTensor(iDim+1);
-          internal::apply_contract(effTTOpA, iDim+1, Ak_next, xk_next, TTAx_subT[iDim+1]);
-          std::vector<Tensor3<T>> subT_Ax_tmp(2);
-          copy(TTAx_subT[iDim], subT_Ax_tmp[0]);
-          copy(TTAx_subT[iDim+1], subT_Ax_tmp[1]);
-          TTAx.setSubTensors(iDim, std::move(subT_Ax_tmp));
-        }
-
-        assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
       }
+      TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
+      
+      assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
       assert(left_xTb.size() == nDim+1);
       assert(left_xTb[nDim].r1() == 1 && left_xTb[nDim].r2() == 1);
       assert( std::abs( left_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
@@ -639,23 +625,10 @@ namespace PITTS
         // prepare left/right xTb for the next iteration
         update_right_xTb(effTTb, TTx, iDim, nDim-1, right_xTb);
         update_right_xTb(TTx, TTx, iDim, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
-        if( iDim == 0 )
-        {
-          TTAx_subT[iDim] = TTAx.setSubTensor(iDim, std::move(TTAx_subT[iDim]));
-        }
-        else // iDim > 0
-        {
-          const auto& Ak_prev = effTTOpA.tensorTrain().subTensor(iDim-1);
-          const auto& xk_prev = TTx.subTensor(iDim-1);
-          internal::apply_contract(effTTOpA, iDim-1, Ak_prev, xk_prev, TTAx_subT[iDim-1]);
-          std::vector<Tensor3<T>> subT_Ax_tmp(2);
-          copy(TTAx_subT[iDim-1], subT_Ax_tmp[0]);
-          copy(TTAx_subT[iDim], subT_Ax_tmp[1]);
-          TTAx.setSubTensors(iDim-1, std::move(subT_Ax_tmp));
-        }
-
-        assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
       }
+      TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
+      assert(norm2(effTTOpA * TTx - TTAx) < sqrt_eps);
+
       assert(right_xTb.size() == nDim+1);
       assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
       assert( std::abs( right_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
