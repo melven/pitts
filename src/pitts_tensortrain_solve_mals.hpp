@@ -58,32 +58,91 @@ namespace PITTS
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
-      //! calculate next part of x^Tb from right to left (like TT dot product bug allows to store all intermediate results)
+      //! calculate next part of x^Tb from right to left or discard last part
+      //!
+      //! Like TT dot product bug allows to store all intermediate results.
+      //!
       template<typename T>
-      Tensor2<T> calculate_next_right_xTb(const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
+      void update_right_xTb(const TensorTrain<T>& TTb, const TensorTrain<T>& TTx, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& right_xTb)
       {
-        // first contraction: subTb(:,:,*) * prev_t2(:,*)
-        Tensor3<T> t3_tmp;
-        internal::dot_contract1(subTb, prev_xTb, t3_tmp);
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        // second contraction: subTx(:,*,*) * t3_tmp(:,*,*)
-        Tensor2<T> t2;
-        internal::dot_contract2(subTx, t3_tmp, t2);
-        return t2;
+        const int nDim = TTb.dimensions().size();
+        assert(nDim == TTx.dimensions().size());
+        assert(0 <= firstIdx);
+        assert(firstIdx <= lastIdx+1);
+        assert(lastIdx == nDim-1);
+
+        // first call? right_xTb should at least contain a 1x1 one tensor
+        if( right_xTb.empty() )
+        {
+          right_xTb.emplace_back(Tensor2<T>{1,1});
+          right_xTb.back()(0,0) = T(1);
+        }
+
+        // calculate new entries in right_xTb when sweeping right-to-left
+        for(int iDim = lastIdx - (right_xTb.size()-1); iDim >= firstIdx; iDim--)
+        {
+          const auto& subTb = TTb.subTensor(iDim);
+          const auto& subTx = TTx.subTensor(iDim);
+
+          // first contraction: subTb(:,:,*) * prev_t2(:,*)
+          Tensor3<T> t3_tmp;
+          internal::dot_contract1(subTb, right_xTb.back(), t3_tmp);
+
+          // second contraction: subTx(:,*,*) * t3_tmp(:,*,*)
+          Tensor2<T> t2;
+          internal::dot_contract2(subTx, t3_tmp, t2);
+          right_xTb.emplace_back(std::move(t2));
+        }
+
+        // discard old entries in right_xTb when sweeping left-to-right
+        for(int iDim = lastIdx - (right_xTb.size()-1); iDim+1 < firstIdx; iDim++)
+          right_xTb.pop_back();
       }
 
-      //! calculate next part of x^Tb from left to right
+      //! calculate next part of x^Tb from left to right or discard last part
+      //!
+      //! Like TT dot product bug allows to store all intermediate results.
+      //!
       template<typename T>
-      Tensor2<T> calculate_next_left_xTb(const Tensor3<T>& subTb, const Tensor3<T>& subTx, const Tensor2<T>& prev_xTb)
+      void update_left_xTb(const TensorTrain<T>& TTb, const TensorTrain<T>& TTx, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& left_xTb)
       {
-        // first contraction: pve_t2(*,:) * subTb(*,:,:)
-        Tensor3<T> t3_tmp;
-        internal::reverse_dot_contract1(prev_xTb, subTb, t3_tmp);
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        // second contraction: t3(*,*,:) * subTx(*,*,:)
-        Tensor2<T> t2;
-        internal::reverse_dot_contract2(t3_tmp, subTx, t2);
-        return t2;
+        const int nDim = TTb.dimensions().size();
+        assert(nDim == TTx.dimensions().size());
+        assert(0 == firstIdx);
+        assert(firstIdx-1 <= lastIdx);
+        assert(lastIdx < nDim);
+
+        // first call? left_xTb should at least contain a 1x1 one tensor
+        if( left_xTb.empty() )
+        {
+          left_xTb.emplace_back(Tensor2<T>{1,1});
+          left_xTb.back()(0,0) = T(1);
+        }
+
+        // calculate new entries in left_xTb when sweeping left-to-right
+
+        for(int iDim = firstIdx + (left_xTb.size()-1); iDim <= lastIdx; iDim++)
+        {
+          const auto& subTb = TTb.subTensor(iDim);
+          const auto& subTx = TTx.subTensor(iDim);
+
+          // first contraction: pve_t2(*,:) * subTb(*,:,:)
+          Tensor3<T> t3_tmp;
+          internal::reverse_dot_contract1(left_xTb.back(), subTb, t3_tmp);
+
+          // second contraction: t3(*,*,:) * subTx(*,*,:)
+          Tensor2<T> t2;
+          internal::reverse_dot_contract2(t3_tmp, subTx, t2);
+          left_xTb.emplace_back(std::move(t2));
+        }
+
+        // discard old entries in left_xTb when sweeping right-to-left
+        for(int iDim = firstIdx + (left_xTb.size()-1); iDim-1 > lastIdx; iDim--)
+          left_xTb.pop_back();
       }
 
       //! calculate next part of x^TAx from right to left
@@ -414,12 +473,10 @@ namespace PITTS
     // we store previous parts of x^Tb from left and right
     // (respectively x^T A^T b for the non-symmetric case)
     std::vector<Tensor2<T>> left_xTb, right_xTb;
-    left_xTb.emplace_back(Tensor2_one());
-    right_xTb.emplace_back(Tensor2_one());
     
     // like TT dot product and store all intermediate results
-    for(int iDim = nDim-1; iDim >= 0; iDim--)
-      right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensor(iDim), TTx.subTensor(iDim), right_xTb.back()) );
+    update_right_xTb(effTTb, TTx, 0, nDim-1, right_xTb);
+    update_left_xTb(effTTb, TTx, 0, -1, left_xTb);
 
     assert(right_xTb.size() == nDim+1);
     assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
@@ -519,7 +576,7 @@ namespace PITTS
           internal::leftNormalize_range(TTx, iDim, iDim + 1, T(0), maxRank);
 
         // prepare left/right xTb for the next iteration
-        left_xTb.emplace_back( calculate_next_left_xTb(effTTb.subTensor(iDim), TTx.subTensor(iDim), left_xTb.back()) );
+        update_left_xTb(effTTb, TTx, 0, iDim, left_xTb);
         left_xTAx.emplace_back( calculate_next_left_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), left_xTAx.back(), subT_Ax_tmp[0]) );
 
         if( iDim+1 == nDim )
@@ -608,7 +665,7 @@ namespace PITTS
           internal::rightNormalize_range(TTx, iDim-1, iDim, T(0), maxRank);
 
         // prepare left/right xTb for the next iteration
-        right_xTb.emplace_back( calculate_next_right_xTb(effTTb.subTensor(iDim), TTx.subTensor(iDim), right_xTb.back()) );
+        update_right_xTb(effTTb, TTx, iDim, nDim-1, right_xTb);
         right_xTAx.emplace_back( calculate_next_right_xTAx(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), right_xTAx.back(), subT_Ax_tmp[1]) );
         if( iDim == 0 )
         {
