@@ -409,9 +409,6 @@ namespace PITTS
     nOverlap = std::min(nOverlap, nMALS-1);
     internal::SweepIndex lastSwpIdx(nDim, nMALS, nOverlap, -1);
 
-    // first right-normalize x
-    internal::rightNormalize_range(TTx, 0, nDim-1, T(0), maxRank);
-
     // for the non-symmetric case, we solve the normal equations, so calculate A^T*b and A^T*A
     // and provide convenient name for TTOpA resp. TTOpAtA for the code below
     const auto& effTTb = [&]()
@@ -441,8 +438,7 @@ namespace PITTS
       }
     }();
 
-    const T bTb = dot(effTTb,effTTb);
-    const T sqrt_bTb = std::sqrt(bTb);
+    const T nrm_TTb = norm2(effTTb);
 
 #ifndef NDEBUG
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
@@ -452,35 +448,18 @@ namespace PITTS
     // (respectively x^T A^T b for the non-symmetric case)
     std::vector<Tensor2<T>> left_xTb, right_xTb;
     
-    // like TT dot product and store all intermediate results
-    update_right_xTb(effTTb, TTx, 0, nDim-1, right_xTb);
-    update_left_xTb(effTTb, TTx, 0, -1, left_xTb);
-
-    assert(right_xTb.size() == nDim+1);
-    assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
-    assert( std::abs(right_xTb[nDim](0,0) - dot(TTx, effTTb)) < sqrt_eps );
-
     // we store previous parts of x^T A x
     // (respectively x^T A^T A x for the non-symmetric case)
     std::vector<Tensor2<T>> left_xTAx, right_xTAx;
 
-    // this includes a calculation of Ax, so reuse it
-    TensorTrain<T> TTAx(effTTOpA.row_dimensions()), residualVector(effTTOpA.row_dimensions());
+    // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
     std::vector<Tensor3<T>> TTAx_subT;
-    update_right_xTb(TTx, TTx, 0, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
-    update_left_xTb(TTx, TTx, 0, -1, left_xTAx, &effTTOpA, &TTAx_subT);
-    TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
-
-    assert(right_xTAx.size() == nDim+1);
-    assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
-    assert( std::abs( right_xTAx[nDim](0,0) - dot(TTx, TTAx) ) < sqrt_eps );
-    assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
-
+    TensorTrain<T> TTAx(effTTOpA.row_dimensions());
 
     // calculate the error norm
-    copy(effTTb, residualVector);
-    auto residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
-    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+    apply(effTTOpA, TTx, TTAx);
+    T residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
+    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
     // lambda to avoid code duplication: performs one step in a sweep
     const auto solveLocalProblem = [&](const internal::SweepIndex &swpIdx, bool firstSweep = false)
@@ -501,13 +480,13 @@ namespace PITTS
       const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
       assert(std::abs(dot(tt_x, tt_b) - dot(TTx, effTTb)) < sqrt_eps);
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
-      if (firstSweep && residualNorm / sqrt_bTb > 0.5)
+      if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
 
       if (useTTgmres)
-        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
+        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
       else
-        const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
+        const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
     };
@@ -515,7 +494,7 @@ namespace PITTS
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
-      if( residualNorm / sqrt_bTb < residualTolerance )
+      if( residualNorm / nrm_TTb < residualTolerance )
         break;
 
       // sweep left to right
@@ -537,8 +516,8 @@ namespace PITTS
 
       // check error
       residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-      if( residualNorm / sqrt_bTb < residualTolerance )
+      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+      if( residualNorm / nrm_TTb < residualTolerance )
         break;
 
       // sweep right to left
@@ -559,7 +538,7 @@ namespace PITTS
 
       // check error
       residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
-      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 
 
