@@ -493,7 +493,6 @@ namespace PITTS
       update_right_xTb(effTTb, TTx, swpIdx.rightDim() + 1, nDim - 1, right_xTb);
       update_right_xTb(TTx, TTx, swpIdx.rightDim() + 1, nDim - 1, right_xTAx, &effTTOpA, &TTAx_subT);
 
-      lastSwpIdx = swpIdx;
       std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
       // prepare operator and right-hand side
@@ -527,27 +526,17 @@ namespace PITTS
           continue;
 
         solveLocalProblem(swpIdx, iSweep == 0);
+        lastSwpIdx = swpIdx;
       }
-      update_left_xTb(effTTb, TTx, 0, nDim-1, left_xTb);
-      update_left_xTb(TTx, TTx, 0, nDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
-      update_right_xTb(effTTb, TTx, nDim, nDim-1, right_xTb);
-      update_right_xTb(TTx, TTx, nDim, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
+      // update remaining sub-tensors of TTAx
+      for(int iDim = lastSwpIdx.leftDim(); iDim < nDim; iDim++)
+        internal::apply_contract(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), TTAx_subT.at(iDim));
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
-      
-      assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
-      assert(left_xTb.size() == nDim+1);
-      assert(left_xTb[nDim].r1() == 1 && left_xTb[nDim].r2() == 1);
-      assert( std::abs( left_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
-      assert(left_xTAx.size() == nDim+1);
-      assert(left_xTAx[nDim].r1() == 1 && left_xTAx[nDim].r2() == 1);
-      assert( std::abs( left_xTAx[nDim](0,0) - dot(TTx,TTAx) ) < sqrt_eps );
-      assert(right_xTb.size() == 1);
-      assert(right_xTAx.size() == 1);
 
+      assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
 
       // check error
-      copy(effTTb, residualVector);
-      residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
+      residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
       std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
       if( residualNorm / sqrt_bTb < residualTolerance )
         break;
@@ -560,27 +549,16 @@ namespace PITTS
           continue;
 
         solveLocalProblem(swpIdx);
+        lastSwpIdx = swpIdx;
       }
-      update_left_xTb(effTTb, TTx, 0, -1, left_xTb);
-      update_left_xTb(TTx, TTx, 0, -1, left_xTAx, &effTTOpA, &TTAx_subT);
-      update_right_xTb(effTTb, TTx, 0, nDim-1, right_xTb);
-      update_right_xTb(TTx, TTx, 0, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
+      for(int iDim = lastSwpIdx.rightDim(); iDim >= 0; iDim--)
+        internal::apply_contract(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), TTAx_subT.at(iDim));
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
+
       assert(norm2(effTTOpA * TTx - TTAx) < sqrt_eps);
 
-      assert(right_xTb.size() == nDim+1);
-      assert(right_xTb[nDim].r1() == 1 && right_xTb[nDim].r2() == 1);
-      assert( std::abs( right_xTb[nDim](0,0) - dot(TTx, effTTb) ) < sqrt_eps );
-      assert(right_xTAx.size() == nDim+1);
-      assert(right_xTAx[nDim].r1() == 1 && right_xTAx[nDim].r2() == 1);
-      assert( std::abs( right_xTAx[nDim](0,0) - dot(TTx,TTAx) ) < sqrt_eps );
-      assert(left_xTb.size() == 1);
-      assert(left_xTAx.size() == 1);
-
-
       // check error
-      copy(effTTb, residualVector);
-      residualNorm = axpby(T(-1),TTAx,T(1),residualVector);
+      residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
       std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / sqrt_bTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 
