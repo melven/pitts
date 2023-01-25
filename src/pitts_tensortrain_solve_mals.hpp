@@ -43,6 +43,7 @@
 #include "pitts_gmres.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_tensortrain_sweep_index.hpp"
 #ifndef NDEBUG
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_operator_debug.hpp"
@@ -402,17 +403,14 @@ namespace PITTS
     if( TTx.dimensions() != TTOpA.column_dimensions() )
       throw std::invalid_argument("TensorTrain solveMALS: operator and x dimensions mismatch!");
 
+    // Generate index for sweeping (helper class)
     const int nDim = TTx.dimensions().size();
     nMALS = std::min(nMALS, nDim);
     nOverlap = std::min(nOverlap, nMALS-1);
-    if( nMALS < 1 || nMALS > nDim )
-      throw std::invalid_argument("Tensortrain solveMALS: invalid parameter nMALS (1 <= nMALS)!");
-    if( nOverlap < 0 || nOverlap >= nMALS )
-      throw std::invalid_argument("Tensortrain solveMALS: invalid parameter nOverlap (1 <= nOverlap < nMALS)!");
+    internal::SweepIndex lastSwpIdx(nDim, nMALS, nOverlap, -1);
 
     // first right-normalize x
     internal::rightNormalize_range(TTx, 0, nDim-1, T(0), maxRank);
-
 
     // for the non-symmetric case, we solve the normal equations, so calculate A^T*b and A^T*A
     // and provide convenient name for TTOpA resp. TTOpAtA for the code below
@@ -492,41 +490,43 @@ namespace PITTS
         break;
 
       // sweep left to right
-      for(int iDim = 0; iDim + nMALS <= nDim; iDim++)
+      for(auto swpIdx = lastSwpIdx.first(); swpIdx; swpIdx = swpIdx.next())
       {
-        internal::ensureLeftOrtho_range(TTx, 0, iDim);
-        update_left_xTb(effTTb, TTx, 0, iDim-1, left_xTb);
-        update_left_xTb(TTx, TTx, 0, iDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
+        // skip iteration if this is the same as in the last right-to-left sweep
+        if( nMALS != nDim && swpIdx == lastSwpIdx )
+          continue;
 
-        internal::ensureRightOrtho_range(TTx, iDim+nMALS-1, nDim-1);
-        update_right_xTb(effTTb, TTx, iDim+nMALS, nDim-1, right_xTb);
-        update_right_xTb(TTx, TTx, iDim+nMALS, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
+        internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
+        update_left_xTb(effTTb, TTx, 0, swpIdx.leftDim()-1, left_xTb);
+        update_left_xTb(TTx, TTx, 0, swpIdx.leftDim()-1, left_xTAx, &effTTOpA, &TTAx_subT);
 
-        if( iDim % (nMALS-nOverlap) == 0 && (iDim != lastStep.first || nMALS == nDim) )
-        {
-          // skip iteration in next right-to-left sweep if it would be the same dims as this one
-          lastStep = {iDim, iDim+nMALS-1};
-          std::cout << " (M)ALS setup local problem for sub-tensors " << iDim << " to " << iDim+nMALS-1 << "\n";
+        internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim-1);
+        update_right_xTb(effTTb, TTx, swpIdx.rightDim()+1, nDim-1, right_xTb);
+        update_right_xTb(TTx, TTx, swpIdx.rightDim()+1, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
 
-          // prepare operator and right-hand side
-          TensorTrain<T> tt_x = calculate_local_x(iDim, nMALS, TTx);
-          const TensorTrain<T> tt_b = calculate_local_rhs(iDim, nMALS, left_xTb.back(), effTTb, right_xTb.back());
-          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim, nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
-          assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
-          // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
-          if( iSweep == 0 && residualNorm / sqrt_bTb > 0.5 )
-            tt_x.setZero();
+        lastSwpIdx = swpIdx;
+        std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
-          if( useTTgmres )
-            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
-          else
-            const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
+        // prepare operator and right-hand side
+        TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
+        const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_xTb.back(), effTTb, right_xTb.back());
+        const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
+        assert(std::abs(dot(tt_x, tt_b) - dot(TTx, effTTb)) < sqrt_eps);
+        // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
+        if (iSweep == 0 && residualNorm / sqrt_bTb > 0.5)
+          tt_x.setZero();
 
-          TTx.setSubTensors(iDim, std::move(tt_x));
-        }
+        if (useTTgmres)
+          const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
+        else
+          const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
+
+        TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
       }
       update_left_xTb(effTTb, TTx, 0, nDim-1, left_xTb);
       update_left_xTb(TTx, TTx, 0, nDim-1, left_xTAx, &effTTOpA, &TTAx_subT);
+      update_right_xTb(effTTb, TTx, nDim, nDim-1, right_xTb);
+      update_right_xTb(TTx, TTx, nDim, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
       
       assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
@@ -548,36 +548,38 @@ namespace PITTS
         break;
 
       // sweep right to left
-      for(int iDim = nDim-1; iDim+1-nMALS >= 0; iDim--)
+      for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
-        internal::ensureLeftOrtho_range(TTx, 0, iDim-nMALS+1);
-        update_left_xTb(effTTb, TTx, 0, iDim-nMALS, left_xTb);
-        update_left_xTb(TTx, TTx, 0, iDim-nMALS, left_xTAx, &effTTOpA, &TTAx_subT);
+        // skip iteration if this is the same as in the last left-to-right sweep
+        if( nMALS != nDim && swpIdx == lastSwpIdx )
+          continue;
 
-        internal::ensureRightOrtho_range(TTx, iDim, nDim-1);
-        update_right_xTb(effTTb, TTx, iDim+1, nDim-1, right_xTb);
-        update_right_xTb(TTx, TTx, iDim+1, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
+        internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
+        update_left_xTb(effTTb, TTx, 0, swpIdx.leftDim()-1, left_xTb);
+        update_left_xTb(TTx, TTx, 0, swpIdx.leftDim()-1, left_xTAx, &effTTOpA, &TTAx_subT);
 
-        if( (nDim-iDim-1) % (nMALS-nOverlap) == 0 && (iDim != lastStep.second || nMALS == nDim) )
-        {
-          // skip iteration in next right-to-left sweep if it would be the same dims as this one
-          lastStep = {iDim+1-nMALS, iDim};
-          std::cout << " (M)ALS setup local problem for sub-tensors " << iDim << " to " << iDim+1-nMALS << "\n";
+        internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim-1);
+        update_right_xTb(effTTb, TTx, swpIdx.rightDim()+1, nDim-1, right_xTb);
+        update_right_xTb(TTx, TTx, swpIdx.rightDim()+1, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
 
-          // prepare operator and right-hand side
-          TensorTrain<T> tt_x = calculate_local_x(iDim+1-nMALS, nMALS, TTx);
-          const TensorTrain<T> tt_b = calculate_local_rhs(iDim+1-nMALS, nMALS, left_xTb.back(), effTTb, right_xTb.back());
-          const TensorTrainOperator<T> localTTOp = calculate_local_op(iDim+1-nMALS, nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
-          assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
+        lastSwpIdx = swpIdx;
+        std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
-          if( useTTgmres )
-            const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
-          else
-            const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
+        // prepare operator and right-hand side
+        TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
+        const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_xTb.back(), effTTb, right_xTb.back());
+        const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
+        assert(std::abs(dot(tt_x, tt_b) - dot(TTx, effTTb)) < sqrt_eps);
 
-          TTx.setSubTensors(iDim+1-nMALS, std::move(tt_x));
-        }
+        if (useTTgmres)
+          const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
+        else
+          const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
+
+        TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
       }
+      update_left_xTb(effTTb, TTx, 0, -1, left_xTb);
+      update_left_xTb(TTx, TTx, 0, -1, left_xTAx, &effTTOpA, &TTAx_subT);
       update_right_xTb(effTTb, TTx, 0, nDim-1, right_xTb);
       update_right_xTb(TTx, TTx, 0, nDim-1, right_xTAx, &effTTOpA, &TTAx_subT);
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
