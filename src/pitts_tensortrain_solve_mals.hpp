@@ -317,12 +317,14 @@ namespace PITTS
         toDense(tt_b, mv_rhs);
 
         // absolute tolerance is not invariant wrt. #dimensions
-        const auto localRes = GMRES<arr>(tt_OpA, true, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
+        const arr localRes = GMRES<arr>(tt_OpA, true, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
 
         const auto r_left = tt_x.subTensor(0).r1();
         const auto r_right = tt_x.subTensor(nDim-1).r2();
         TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), relTol/nDim, maxRank, false, r_left, r_right);
         std::swap(tt_x, new_tt_x);
+
+        return localRes(0);
       }
     }
   }
