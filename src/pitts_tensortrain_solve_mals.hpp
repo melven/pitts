@@ -303,8 +303,27 @@ namespace PITTS
 
         return localTTOp;
       }
-    }
 
+      template<typename T>
+      T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
+                        int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix = "", bool verbose = false)
+      {
+        using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
+        const int nDim = tt_x.dimensions().size();
+        // GMRES with dense vectors...
+        MultiVector<T> mv_x, mv_rhs;
+        toDense(tt_x, mv_x);
+        toDense(tt_b, mv_rhs);
+
+        // absolute tolerance is not invariant wrt. #dimensions
+        const auto localRes = GMRES<arr>(tt_OpA, true, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
+
+        const auto r_left = tt_x.subTensor(0).r1();
+        const auto r_right = tt_x.subTensor(nDim-1).r2();
+        TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), relTol/nDim, maxRank, false, r_left, r_right);
+        std::swap(tt_x, new_tt_x);
+      }
+    }
   }
 
   //! Different variants for defining the sub-problem in MALS-like algorithms for solving linear systems in TT format
@@ -370,9 +389,6 @@ namespace PITTS
               int nMALS = 2, int nOverlap = 1,
               bool useTTgmres = false, int gmresMaxIter = 25, T gmresRelTol = T(1.e-4))
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
-    using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
     using namespace internal::solve_mals;
 #ifndef NDEBUG
     using namespace PITTS::debug;
@@ -502,25 +518,9 @@ namespace PITTS
             tt_x.setZero();
 
           if( useTTgmres )
-          {
             const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
-          }
           else
-          {
-            // GMRES with dense vectors...
-            MultiVector<T> mv_x, mv_rhs;
-            toDense(tt_x, mv_x);
-            toDense(tt_b, mv_rhs);
-
-            // absolute tolerance is not invariant wrt. #dimensions
-            const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, gmresRelTol*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
-
-            // use mv_rhs as work array
-            const auto r_left = tt_x.subTensor(0).r1();
-            const auto r_right = tt_x.subTensor(nMALS-1).r2();
-            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), gmresRelTol*residualTolerance/nDim, maxRank, false, r_left, r_right);
-            std::swap(tt_x, new_tt_x);
-          }
+            const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
 
           TTx.setSubTensors(iDim, std::move(tt_x));
         }
@@ -571,24 +571,9 @@ namespace PITTS
           assert( std::abs( dot(tt_x, tt_b) - dot(TTx, effTTb) ) < sqrt_eps );
 
           if( useTTgmres )
-          {
             const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
-          }
           else
-          {
-            // GMRES with dense vectors...
-            MultiVector<T> mv_x, mv_rhs;
-            toDense(tt_x, mv_x);
-            toDense(tt_b, mv_rhs);
-
-            // absolute tolerance is not invariant wrt. #dimensions
-            const auto localRes = GMRES<arr>(localTTOp, true, mv_rhs, mv_x, gmresMaxIter, arr::Constant(1, gmresRelTol*residualTolerance*sqrt_bTb), arr::Constant(1, gmresRelTol), " (M)ALS local problem: ", true);
-
-            const auto r_left = tt_x.subTensor(0).r1();
-            const auto r_right = tt_x.subTensor(nMALS-1).r2();
-            TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), gmresRelTol*residualTolerance/nDim, maxRank, false, r_left, r_right);
-            std::swap(tt_x, new_tt_x);
-          }
+            const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol*residualTolerance*sqrt_bTb, gmresRelTol, " (M)ALS local problem: ", true);
 
           TTx.setSubTensors(iDim+1-nMALS, std::move(tt_x));
         }
