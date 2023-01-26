@@ -209,6 +209,60 @@ namespace PITTS
         newSubT = TT.setSubTensors(iDim-1, std::move(newSubT), newSubTOrtho);
       }
     }
+
+    //! Ensure a subset of sub-tensors is left-orthogonal and call leftNormalize_range if it is not.
+    //!
+    //! @tparam T  underlying data type (double, complex, ...)
+    //!
+    //! @param TT             tensor in tensor train format
+    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
+    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
+    //!
+    template<typename T>
+    void ensureLeftOrtho_range(TensorTrain<T>& TT, int firstIdx, int lastIdx)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      const auto nDim = TT.dimensions().size();
+      assert(0 <= firstIdx );
+      assert(lastIdx < nDim);
+
+      for(int iDim = firstIdx; iDim < lastIdx; iDim++)
+      {
+        if( (TT.isOrthonormal(iDim) & TT_Orthogonality::left) == TT_Orthogonality::none )
+        {
+          leftNormalize_range(TT, iDim, lastIdx, T(0));
+          return;
+        }
+      }
+    }
+
+    //! Ensure a subset of sub-tensors is right-orthogonal and call rightNormalize_range if it is not.
+    //!
+    //! @tparam T  underlying data type (double, complex, ...)
+    //!
+    //! @param TT             tensor in tensor train format
+    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
+    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
+    //!
+    template<typename T>
+    void ensureRightOrtho_range(TensorTrain<T>& TT, int firstIdx, int lastIdx)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+      const auto nDim = TT.dimensions().size();
+      assert(0 <= firstIdx );
+      assert(lastIdx < nDim);
+
+      for(int iDim = lastIdx; iDim > firstIdx; iDim--)
+      {
+        if( (TT.isOrthonormal(iDim) & TT_Orthogonality::right) == TT_Orthogonality::none )
+        {
+          rightNormalize_range(TT, firstIdx, iDim, T(0));
+          return;
+        }
+      }
+    }
   }
 
   //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right or vice-versa)

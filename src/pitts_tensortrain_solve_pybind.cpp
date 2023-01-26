@@ -33,8 +33,8 @@ namespace PITTS
       void init_TensorTrain_solve_helper(py::module& m, const std::string& type_name)
       {
         m.def("solveMALS",
-            py::overload_cast< const TensorTrainOperator<T>&, bool, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int, bool, int, T>(&solveMALS<T>),
-            py::arg("TTOpA"), py::arg("symmetricA"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
+            py::overload_cast< const TensorTrainOperator<T>&, MALS_projection, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int, bool, int, T>(&solveMALS<T>),
+            py::arg("TTOpA"), py::arg("projection"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
             py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(),
             py::arg("nMALS")=2, py::arg("nOverlap")=1,
             py::arg("useTTgmres")=false, py::arg("gmresMaxIter") = 25, py::arg("gmresRelTol") = 1.e-4,
@@ -44,7 +44,7 @@ namespace PITTS
             &solveGMRES<T>,
             py::arg("TTOpA"), py::arg("TTb"), py::arg("TTx"),
             py::arg("maxIter"), py::arg("absResTol"), py::arg("relResTol"),
-            py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("adaptiveTolerance")=true,
+            py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("adaptiveTolerance")=true, py::arg("symmetric")=false,
             py::arg("outputPrefix")="", py::arg("verbose")=false,
             "TT-GMRES: iterative solver for linear systems in tensor-train format");
       }
@@ -53,6 +53,13 @@ namespace PITTS
     // create pybind11-wrapper for PITTS::TensorTrain
     void init_TensorTrain_solve(py::module& m)
     {
+      py::enum_<MALS_projection>(m, "MALS_projection")
+        .value("RitzGalerkin", MALS_projection::RitzGalerkin)
+        .value("NormalEquations", MALS_projection::NormalEquations)
+        .value("PetrovGalerkin", MALS_projection::PetrovGalerkin)
+        .export_values();
+
+
       init_TensorTrain_solve_helper<float>(m, "float");
       init_TensorTrain_solve_helper<double>(m, "double");
       //init_TensorTrain_helper<std::complex<float>>(m, "float_complex");

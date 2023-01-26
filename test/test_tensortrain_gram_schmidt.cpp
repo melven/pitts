@@ -47,7 +47,7 @@ TEST(PITTS_TensorTrain_gram_schmidt, unit_vectors)
     TensorTrain_double w(std::vector<int>{3,4,5});
     w.setUnit({i%3, (i/3)%4, (i/3)/4});
 
-    const arr h = PITTS::gramSchmidt(V, w, eps, 999, " MGS test ", true);
+    const arr h = PITTS::gramSchmidt(V, w, eps, 999, false, " MGS test ", true);
     H.col(i).segment(0, i+1) = h;
   }
   const mat H_ref = mat::Identity(3*4*5, 3*4*5);
@@ -67,7 +67,7 @@ TEST(PITTS_TensorTrain_gram_schmidt, random_vectors)
     randomize(w);
 
     toDense(w, &X(0,i), &X(7*7*7-1,i)+1);
-    const arr h = PITTS::gramSchmidt(V, w, eps, 999, " MGS test ", true);
+    const arr h = PITTS::gramSchmidt(V, w, eps, 999, false, " MGS test ", true);
     H.col(i).segment(0, i+1) = h;
   }
 
@@ -101,7 +101,7 @@ namespace
       randomize(w);
 
       toDense(w, &X(0,i), &X(7*7*7-1,i)+1);
-      const arr h = PITTS::gramSchmidt(V, w, eps, 999, " MGS test ", true, nIter, pivoting, modified, skipDirs);
+      const arr h = PITTS::gramSchmidt(V, w, eps, 999, false, " MGS test ", true, nIter, pivoting, modified, skipDirs);
       H.col(i).segment(0, i+1) = h;
     }
 

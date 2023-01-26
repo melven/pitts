@@ -60,14 +60,15 @@ namespace PITTS
   //! @param relResTol          relative residual tolerance: the iteration aborts if the relative residual norm is smaller than relResTol
   //! @param maxRank            maximal allowed TT-rank, enforced even if this violates the residualTolerance
   //! @param adaptiveTolerance  use an adaptive tolerance for the tensor-train arithmetic in the iteration
+  //! @param symmetric          set to true for symmetric operators to exploit the symmetry (results in a MinRes variant)
   //! @param outputPrefix       string to prefix all output about the convergence history
-  //! @param verbose            set to true, to print the residual norm in each iteration to std::cout
+  //! @param verbose            set to true to print the residual norm in each iteration to std::cout
   //! @return                   residual norm of the result (||Ax - b||)
   //!
   template <typename T>
   auto solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
                   int maxIter, T absResTol, T relResTol,
-                  int maxRank = std::numeric_limits<int>::max(), bool adaptiveTolerance = true,
+                  int maxRank = std::numeric_limits<int>::max(), bool adaptiveTolerance = true, bool symmetric = false,
                   const std::string &outputPrefix = "", bool verbose = false)
   {
     using vec = Eigen::Matrix<T,Eigen::Dynamic,1>;
@@ -114,7 +115,7 @@ namespace PITTS
       if( adaptiveTolerance )
         rankTolerance *= beta / rho;
 
-      H.col(i).segment(0, i+2) = gramSchmidt(V, w, rankTolerance, maxRank, outputPrefix + "  gramSchmidt: ", verbose);
+      H.col(i).segment(0, i+2) = gramSchmidt(V, w, rankTolerance, maxRank, symmetric, outputPrefix + "  gramSchmidt: ", verbose);
 
       // least squares solve using Givens rotations
       R(0,i) = H(0,i);
