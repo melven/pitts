@@ -109,7 +109,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
-    EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
+    EXPECT_TRUE(static_cast<bool>(PITTS::TT_Orthogonality::left & TT.isOrthogonal()));
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -147,7 +147,7 @@ namespace
 
     EXPECT_NEAR(norm2(refTT), TTnorm, eps);
     EXPECT_NEAR(1., norm2(TT), eps);
-    EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
+    EXPECT_TRUE(static_cast<bool>(PITTS::TT_Orthogonality::right & TT.isOrthogonal()));
 
     // check orthogonality of subtensors
     const int nDim = TT.dimensions().size();
@@ -561,7 +561,6 @@ TEST(PITTS_TensorTrain_normalize, leftNormalize_boundaryRank_nDim1)
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
-  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
       for(int k = 0; k < subT.r2(); k++)
@@ -594,7 +593,6 @@ TEST(PITTS_TensorTrain_normalize, rightNormalize_boundaryRank_nDim1)
   EXPECT_NEAR(nrm_ref, nrm, eps);
   const auto& subT = TT.subTensor(0);
   EXPECT_NEAR(1., t3_nrm(subT), eps);
-  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
   for(int i = 0; i < subT.r1(); i++)
     for(int j = 0; j < subT.n(); j++)
       for(int k = 0; k < subT.r2(); k++)
@@ -679,4 +677,148 @@ TEST(PITTS_TensorTrain_normalize, isOrthogonal)
   EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthogonal());
   leftNormalize(TT);
   EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthogonal());
+}
+
+TEST(PITTS_TensorTrain_normalize, leftOrtho_range)
+{
+  using PITTS::internal::ensureLeftOrtho_range;
+  TensorTrain_double TT({3,3,3,3,3,3});
+  TT.setOnes();
+  ensureLeftOrtho_range(TT, 1, 3);
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(5));
+  ensureLeftOrtho_range(TT, 0, 2);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(5));
+  ensureLeftOrtho_range(TT, 0, 4);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(5));
+}
+
+TEST(PITTS_TensorTrain_normalize, rightOrtho_range)
+{
+  using PITTS::internal::ensureRightOrtho_range;
+  TensorTrain_double TT({3,3,3,3,3,3});
+  TT.setOnes();
+  ensureRightOrtho_range(TT, 1, 3);
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(5));
+  ensureRightOrtho_range(TT, 0, 2);
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(5));
+  ensureRightOrtho_range(TT, 0, 4);
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(5));
+}
+
+TEST(PITTS_TensorTrain_normalize, sweep_with_leftRightOrtho_range)
+{
+  using PITTS::internal::ensureLeftOrtho_range;
+  using PITTS::internal::ensureRightOrtho_range;
+  TensorTrain_double TT({3,3,3,3,3,3});
+  TT.setOnes();
+  //ensureLeftOrtho_range(TT, 0, 0);
+  ensureRightOrtho_range(TT, 1, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 1);
+  ensureRightOrtho_range(TT, 2, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 2);
+  ensureRightOrtho_range(TT, 3, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 3);
+  ensureRightOrtho_range(TT, 4, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 4);
+  //ensureRightOrtho_range(TT, 5, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 3);
+  ensureRightOrtho_range(TT, 4, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 2);
+  ensureRightOrtho_range(TT, 3, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 1);
+  ensureRightOrtho_range(TT, 2, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
+
+  ensureLeftOrtho_range(TT, 0, 1);
+  ensureRightOrtho_range(TT, 1, 5);
+  EXPECT_EQ(PITTS::TT_Orthogonality::left, TT.isOrthonormal(0));
+  EXPECT_EQ(PITTS::TT_Orthogonality::none, TT.isOrthonormal(1));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(2));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(3));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(4));
+  EXPECT_EQ(PITTS::TT_Orthogonality::right, TT.isOrthonormal(5));
 }
