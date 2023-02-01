@@ -397,6 +397,17 @@ namespace PITTS
     using namespace PITTS::debug;
 #endif
 
+    // for the non-symmetric case, we can solve the normal equations, so calculate A^T*b and A^T*A
+    if( projection == MALS_projection::NormalEquations )
+    {
+      TensorTrain<T> TTAtb(TTOpA.column_dimensions());
+      TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
+      applyT(TTOpA, TTb, TTAtb);
+      applyT(TTOpA, TTOpA, TTOpAtA);
+
+      return solveMALS(TTOpAtA, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, useTTgmres, gmresMaxIter, gmresRelTol);
+    }
+
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
     // check that dimensions match
@@ -411,36 +422,7 @@ namespace PITTS
     nOverlap = std::min(nOverlap, nMALS-1);
     internal::SweepIndex lastSwpIdx(nDim, nMALS, nOverlap, -1);
 
-    // for the non-symmetric case, we solve the normal equations, so calculate A^T*b and A^T*A
-    // and provide convenient name for TTOpA resp. TTOpAtA for the code below
-    const auto& effTTb = [&]()
-    {
-      if( projection == MALS_projection::NormalEquations )
-      {
-        TensorTrain<T> TTAtb(TTOpA.column_dimensions());
-        applyT(TTOpA, TTb, TTAtb);
-        return TTAtb;
-      }
-      else
-      {
-        return TTb;
-      }
-    }();
-    const auto& effTTOpA = [&]()
-    {
-      if( projection == MALS_projection::NormalEquations )
-      {
-        TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
-        applyT(TTOpA, TTOpA, TTOpAtA);
-        return TTOpAtA;
-      }
-      else
-      {
-        return TTOpA;
-      }
-    }();
-
-    const T nrm_TTb = norm2(effTTb);
+    const T nrm_TTb = norm2(TTb);
 
 #ifndef NDEBUG
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
@@ -456,31 +438,31 @@ namespace PITTS
 
     // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
     std::vector<Tensor3<T>> TTAx_subT;
-    TensorTrain<T> TTAx(effTTOpA.row_dimensions());
+    TensorTrain<T> TTAx(TTOpA.row_dimensions());
 
     // calculate the error norm
-    apply(effTTOpA, TTx, TTAx);
-    T residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
+    apply(TTOpA, TTx, TTAx);
+    T residualNorm = axpby(T(1), TTb, T(-1), TTAx);
     std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
     // lambda to avoid code duplication: performs one step in a sweep
     const auto solveLocalProblem = [&](const internal::SweepIndex &swpIdx, bool firstSweep = false)
     {
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
-      update_left_xTb(effTTb, TTx, 0, swpIdx.leftDim() - 1, left_xTb);
-      update_left_xTb(TTx, TTx, 0, swpIdx.leftDim() - 1, left_xTAx, &effTTOpA, &TTAx_subT);
+      update_left_xTb(TTb, TTx, 0, swpIdx.leftDim() - 1, left_xTb);
+      update_left_xTb(TTx, TTx, 0, swpIdx.leftDim() - 1, left_xTAx, &TTOpA, &TTAx_subT);
 
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
-      update_right_xTb(effTTb, TTx, swpIdx.rightDim() + 1, nDim - 1, right_xTb);
-      update_right_xTb(TTx, TTx, swpIdx.rightDim() + 1, nDim - 1, right_xTAx, &effTTOpA, &TTAx_subT);
+      update_right_xTb(TTb, TTx, swpIdx.rightDim() + 1, nDim - 1, right_xTb);
+      update_right_xTb(TTx, TTx, swpIdx.rightDim() + 1, nDim - 1, right_xTAx, &TTOpA, &TTAx_subT);
 
       std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
       // prepare operator and right-hand side
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-      const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_xTb.back(), effTTb, right_xTb.back());
-      const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_xTAx.back(), effTTOpA, right_xTAx.back());
-      assert(std::abs(dot(tt_x, tt_b) - dot(TTx, effTTb)) < sqrt_eps);
+      const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_xTb.back(), TTb, right_xTb.back());
+      const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_xTAx.back(), TTOpA, right_xTAx.back());
+      assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) < sqrt_eps);
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
@@ -511,13 +493,13 @@ namespace PITTS
       }
       // update remaining sub-tensors of TTAx
       for(int iDim = lastSwpIdx.leftDim(); iDim < nDim; iDim++)
-        internal::apply_contract(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), TTAx_subT.at(iDim));
+        internal::apply_contract(TTOpA, iDim, TTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), TTAx_subT.at(iDim));
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
 
-      assert( norm2(effTTOpA * TTx - TTAx) < sqrt_eps );
+      assert( norm2(TTOpA * TTx - TTAx) < sqrt_eps );
 
       // check error
-      residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
+      residualNorm = axpby(T(1), TTb, T(-1), TTAx);
       std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
       if( residualNorm / nrm_TTb < residualTolerance )
         break;
@@ -533,13 +515,13 @@ namespace PITTS
         lastSwpIdx = swpIdx;
       }
       for(int iDim = lastSwpIdx.rightDim(); iDim >= 0; iDim--)
-        internal::apply_contract(effTTOpA, iDim, effTTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), TTAx_subT.at(iDim));
+        internal::apply_contract(TTOpA, iDim, TTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), TTAx_subT.at(iDim));
       TTAx_subT = TTAx.setSubTensors(0, std::move(TTAx_subT));
 
-      assert(norm2(effTTOpA * TTx - TTAx) < sqrt_eps);
+      assert(norm2(TTOpA * TTx - TTAx) < sqrt_eps);
 
       // check error
-      residualNorm = axpby(T(1), effTTb, T(-1), TTAx);
+      residualNorm = axpby(T(1), TTb, T(-1), TTAx);
       std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 

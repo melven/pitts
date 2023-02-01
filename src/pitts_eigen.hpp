@@ -10,10 +10,31 @@
 #ifndef PITTS_EIGEN_HPP
 #define PITTS_EIGEN_HPP
 
-// includes
-#pragma GCC push_options
-#pragma GCC optimize("no-unsafe-math-optimizations")
-#include <Eigen/Dense>
-#pragma GCC pop_options
+// include the content of Eigen/Dense individually, so we can fix the optimization options for Eigen/SVD (which does not work with unsafe-math-optimizations)
+//#include <Eigen/Dense>
+#include <Eigen/Core>
+#include <Eigen/QR>
+
+// use Eigen/SVD but avoid unsupported compiler optimizations...
+#ifndef EIGEN_USE_LAPACKE
+#  ifdef __INTEL_COMPILER
+#    pragma float_control(precise, on, push)
+#  else
+#    pragma GCC push_options
+#    pragma GCC optimize("no-unsafe-math-optimizations")
+#  endif
+#endif
+
+#include <Eigen/SVD>
+
+#ifndef EIGEN_USE_LAPACKE
+#  ifdef __INTEL_COMPILER
+#    pragma float_control(pop)
+#  else
+#    pragma GCC pop_options
+#  endif
+#endif
+
+#include <Eigen/Eigenvalues>
 
 #endif // PITTS_EIGEN_HPP
