@@ -415,6 +415,8 @@ namespace PITTS
       throw std::invalid_argument("TensorTrain solveMALS: operator and rhs dimensions mismatch!");
     if( TTx.dimensions() != TTOpA.column_dimensions() )
       throw std::invalid_argument("TensorTrain solveMALS: operator and x dimensions mismatch!");
+    if( TTOpA.row_dimensions() != TTOpA.column_dimensions() && projection == MALS_projection::RitzGalerkin )
+      throw std::invalid_argument("TensorTrain solveMALS: rectangular operator not supported with RitzGalerkin approach (row_dims != col_dims)!");
 
     // Generate index for sweeping (helper class)
     const int nDim = TTx.dimensions().size();
