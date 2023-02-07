@@ -249,20 +249,20 @@ namespace PITTS
 
       //! calculate the local RHS tensor-train for (M)ALS
       template<typename T>
-      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_xTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_xTb)
+      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_vTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_vTb)
       {
         std::vector<Tensor3<T>> subT_b(nMALS);
         for(int i = 0; i < nMALS; i++)
           copy(TTb.subTensor(iDim+i), subT_b[i]);
 
-        // first contract: tt_b_right(:,:,*) * right_xTb(:,*)
+        // first contract: tt_b_right(:,:,*) * right_vTb(:,*)
         Tensor3<T> t3_tmp;
         std::swap(subT_b.back(), t3_tmp);
-        internal::dot_contract1(t3_tmp, right_xTb, subT_b.back());
+        internal::dot_contract1(t3_tmp, right_vTb, subT_b.back());
 
-        // then contract: left_xTb(*,:) * tt_b_left(*,:,:)
+        // then contract: left_vTb(*,:) * tt_b_left(*,:,:)
         std::swap(subT_b.front(), t3_tmp);
-        internal::reverse_dot_contract1(left_xTb, t3_tmp, subT_b.front());
+        internal::reverse_dot_contract1(left_vTb, t3_tmp, subT_b.front());
 
         TensorTrain<T> tt_b(std::move(subT_b));
 
@@ -326,10 +326,10 @@ namespace PITTS
 
       //! calculate the local linear operator in TT format for (M)ALS
       template<typename T>
-      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_xTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_xTAx)
+      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_vTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_vTAx)
       {
-        const int n0 = left_xTAx.r2();
-        const int nd = right_xTAx.r1();
+        const int n0 = left_vTAx.r2();
+        const int nd = right_vTAx.r1();
 
         std::vector<int> localRowDims(nMALS+2), localColDims(nMALS+2);
         localRowDims.front() = localColDims.front() = n0;
@@ -341,10 +341,10 @@ namespace PITTS
         localRowDims.back()  = localColDims.back()  = nd;
 
         std::vector<Tensor3<T>> subT_localOp(nMALS+2);
-        copy_op_left(left_xTAx, subT_localOp.front());
+        copy_op_left(left_vTAx, subT_localOp.front());
         for(int i = 0; i < nMALS; i++)
           copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[1+i]);
-        copy_op_right(right_xTAx, subT_localOp.back());
+        copy_op_right(right_vTAx, subT_localOp.back());
 
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
         localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));
@@ -488,15 +488,17 @@ namespace PITTS
 
     // we store previous parts of w^Tb from left and right
     // (respectively x^T A^T b for the non-symmetric case)
-    std::vector<Tensor2<T>> left_xTb, right_xTb;
+    std::vector<Tensor2<T>> left_vTb, right_vTb;
     
     // we store previous parts of x^T A x
     // (respectively x^T A^T A x for the non-symmetric case)
-    std::vector<Tensor2<T>> left_xTAx, right_xTAx;
+    std::vector<Tensor2<T>> left_vTAx, right_vTAx;
 
     // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
     std::vector<Tensor3<T>> left_Ax, right_Ax;
     TensorTrain<T> TTAx(TTOpA.row_dimensions());
+
+    // for the Petrov-Galerkin variant, we need the projection space v that approx. spans Ax
 
     // calculate the error norm
     apply(TTOpA, TTx, TTAx);
@@ -506,22 +508,31 @@ namespace PITTS
     // lambda to avoid code duplication: performs one step in a sweep
     const auto solveLocalProblem = [&](const internal::SweepIndex &swpIdx, bool firstSweep = false)
     {
+      std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
+
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
-      update_left_vTw<T>(TTx, TTb, 0, swpIdx.leftDim() - 1, left_xTb);
       update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax);
-      update_left_vTw<T>(TTx, left_Ax, 0, swpIdx.leftDim() - 1, left_xTAx);
 
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
-      update_right_vTw<T>(TTx, TTb, swpIdx.rightDim() + 1, nDim - 1, right_xTb);
       update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax);
-      update_right_vTw<T>(TTx, right_Ax, swpIdx.rightDim() + 1, nDim - 1, right_xTAx);
 
-      std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
+      LeftPartialTT<T> left_v = TTx;
+      RightPartialTT<T> right_v = TTx;
+      if( projection == MALS_projection::PetrovGalerkin )
+      {
+        throw std::invalid_argument("TensorTrain solveMALS: PetrovGalerkin projection not implemented, yet!");
+      }
+
+      update_left_vTw<T>(left_v, TTb, 0, swpIdx.leftDim() - 1, left_vTb);
+      update_left_vTw<T>(left_v, left_Ax, 0, swpIdx.leftDim() - 1, left_vTAx);
+
+      update_right_vTw<T>(right_v, TTb, swpIdx.rightDim() + 1, nDim - 1, right_vTb);
+      update_right_vTw<T>(right_v, right_Ax, swpIdx.rightDim() + 1, nDim - 1, right_vTAx);
 
       // prepare operator and right-hand side
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-      const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_xTb.back(), TTb, right_xTb.back());
-      const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_xTAx.back(), TTOpA, right_xTAx.back());
+      const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_vTb.back(), TTb, right_vTb.back());
+      const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_vTAx.back(), TTOpA, right_vTAx.back());
       assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) < sqrt_eps);
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
