@@ -170,7 +170,7 @@ namespace PITTS
       //!   ----- vTw -----
       //!
       template<typename T>
-      void update_right_vTw(const TensorTrain<T>& TTv, const RightPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& right_vTw)
+      void update_right_vTw(const RightPartialTT<T>& TTv, const RightPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& right_vTw)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -188,8 +188,8 @@ namespace PITTS
         // calculate new entries in right_vTw when sweeping right-to-left
         for(int iDim = lastIdx - (right_vTw.size()-1); iDim >= firstIdx; iDim--)
         {
+          const auto& subTv = TTv.subTensorFromRight(lastIdx-iDim);
           const auto& subTw = TTw.subTensorFromRight(lastIdx-iDim);
-          const auto& subTv = TTv.subTensor(iDim);
 
           // first contraction: subTw(:,:,*) * prev_t2(:,*)
           Tensor3<T> t3_tmp;
@@ -211,7 +211,7 @@ namespace PITTS
       //! Like TT dot product fused with TT apply but allows to store all intermediate results.
       //!
       template<typename T>
-      void update_left_vTw(const TensorTrain<T>& TTv, const LeftPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& left_vTw)
+      void update_left_vTw(const LeftPartialTT<T>& TTv, const LeftPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& left_vTw)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -229,8 +229,8 @@ namespace PITTS
         // calculate new entries in left_vTw when sweeping left-to-right
         for(int iDim = firstIdx + (left_vTw.size()-1); iDim <= lastIdx; iDim++)
         {
+          const auto& subTv = TTv.subTensorFromLeft(iDim);
           const auto& subTw = TTw.subTensorFromLeft(iDim);
-          const auto& subTv = TTv.subTensor(iDim);
 
           // first contraction: prev_t2(*,:) * subTw(*,:,:)
           Tensor3<T> t3_tmp;
