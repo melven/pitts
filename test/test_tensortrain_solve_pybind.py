@@ -26,7 +26,7 @@ class TestTensorTrain_solve(unittest.TestCase):
         pitts_py.randomize(ttB)
         pitts_py.randomize(ttX)
 
-        residualNorm = pitts_py.solveMALS(ttOp, pitts_py.MALS_projection.RitzGalerkin, ttB, ttX, 10)
+        residualNorm = pitts_py.solveMALS(ttOp, True, pitts_py.MALS_projection.RitzGalerkin, ttB, ttX, 10)
         self.assertLess(residualNorm, 1.e-5)
 
         ttR = pitts_py.TensorTrain_double([5,3,3])
@@ -60,7 +60,7 @@ class TestTensorTrain_solve(unittest.TestCase):
         pitts_py.randomize(ttB)
         pitts_py.randomize(ttX)
 
-        residualNorm = pitts_py.solveMALS(ttOp, pitts_py.MALS_projection.RitzGalerkin, ttB, ttX, 10, useTTgmres=True)
+        residualNorm = pitts_py.solveMALS(ttOp, True, pitts_py.MALS_projection.RitzGalerkin, ttB, ttX, 10, useTTgmres=True)
         self.assertLess(residualNorm, 1.e-5)
 
         ttR = pitts_py.TensorTrain_double([5,3,3])

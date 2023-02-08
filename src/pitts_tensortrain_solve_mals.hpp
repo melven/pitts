@@ -352,12 +352,41 @@ namespace PITTS
         localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));
 
 #ifndef NDEBUG
+constexpr auto to_string = [](const std::vector<int>& v){
+  std::string result = "[";;
+  for(int i = 0; i < v.size(); i++)
+  {
+    if( i > 0 )
+      result += ", ";
+    result += std::to_string(v[i]);
+  }
+  result += "]";
+  return result;
+};
+std::cout << "localOp: row_dims = " << to_string(localTTOp.row_dimensions()) << "\n";
+std::cout << "         col_dims = " << to_string(localTTOp.column_dimensions()) << "\n";
+std::cout << "            ranks = " << to_string(localTTOp.getTTranks()) << "\n";
+#if 0
 if( nMALS == 1 )
 {
+  using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+  for(int iDim = 0; iDim < localTTOp.row_dimensions().size(); iDim++)
+  {
+    std::cout << "  sub-tensor dim " << iDim << ":\n";
+    const auto& subT = localTTOp.tensorTrain().subTensor(iDim);
+    for(int i = 0; i < subT.r1(); i++)
+      for(int j = 0; j < subT.r2(); j++)
+      {
+        std::cout << "    subT[" << i << ",:,;," << j << "]:\n";
+        mat mOpij(localTTOp.row_dimensions()[iDim], localTTOp.column_dimensions()[iDim]);
+        for(int k = 0; k < subT.n(); k++)
+          mOpij(k % mOpij.rows(), k / mOpij.rows()) = subT(i,k,j);
+        std::cout << mOpij << "\n";
+      }
+  }
   MultiVector<T> mvOp;
   toDense(localTTOp.tensorTrain(), mvOp);
-  using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-  const int n1 = localRowDims[0];
+  const int n1 = localRowDims[1];
   mat mOp(n0*n1*nd,n0*n1*nd);
   for(int i1 = 0; i1 < n0; i1++)
     for(int j1 = 0; j1 < n1; j1++)
@@ -369,6 +398,7 @@ if( nMALS == 1 )
   std::cout << "localOp:\n" << mOp << "\n";
   std::cout << " singular values: " << mOp.bdcSvd().singularValues().transpose() << "\n";
 }
+#endif
 #endif
 
         return localTTOp;
@@ -386,7 +416,7 @@ if( nMALS == 1 )
         toDense(tt_b, mv_rhs);
 
         // absolute tolerance is not invariant wrt. #dimensions
-        const arr localRes = GMRES<arr>(tt_OpA, true, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
+        const arr localRes = GMRES<arr>(tt_OpA, symmetric, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
 
         const auto r_left = tt_x.subTensor(0).r1();
         const auto r_right = tt_x.subTensor(nDim-1).r2();
@@ -462,6 +492,7 @@ if( nMALS == 1 )
   //! @tparam T             data type (double, float, complex)
   //!
   //! @param TTOpA              tensor-train operator A
+  //! @param symmetric          is the operator symmetric?
   //! @param projection         defines different variants for defining the local sub-problem in the MALS algorithm, for symmetric problems choose RitzGalerkin
   //! @param TTb                right-hand side tensor-train b
   //! @param TTx                initial guess on input, overwritten with the (approximate) result on output
@@ -477,6 +508,7 @@ if( nMALS == 1 )
   //!
   template<typename T>
   T solveMALS(const TensorTrainOperator<T>& TTOpA,
+              bool symmetric,
               const MALS_projection projection,
               const TensorTrain<T>& TTb,
               TensorTrain<T>& TTx,
@@ -494,12 +526,21 @@ if( nMALS == 1 )
     // for the non-symmetric case, we can solve the normal equations, so calculate A^T*b and A^T*A
     if( projection == MALS_projection::NormalEquations )
     {
+      if( symmetric )
+        std::cout << "TensorTrain solveMALS: Warning - using NormalEquations variant for a symmetric operator!";
       TensorTrain<T> TTAtb(TTOpA.column_dimensions());
       TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
 
-      return solveMALS(TTOpAtA, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, useTTgmres, gmresMaxIter, gmresRelTol);
+      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, useTTgmres, gmresMaxIter, gmresRelTol);
+    }
+
+    if( symmetric && projection == MALS_projection::PetrovGalerkin )
+    {
+      std::cout << "TensorTrain solveMALS: Warning - using PetrovGalerkin projection for a symmetric operator!";
+      // set symmetric to false because the sub-problem will become non-symmetric!
+      symmetric = false;
     }
 
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -512,6 +553,7 @@ if( nMALS == 1 )
     if( TTOpA.row_dimensions() != TTOpA.column_dimensions() && projection == MALS_projection::RitzGalerkin )
       throw std::invalid_argument("TensorTrain solveMALS: rectangular operator not supported with RitzGalerkin approach (row_dims != col_dims)!");
 
+
     // Generate index for sweeping (helper class)
     const int nDim = TTx.dimensions().size();
     nMALS = std::min(nMALS, nDim);
@@ -522,6 +564,28 @@ if( nMALS == 1 )
 
 #ifndef NDEBUG
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+#endif
+
+#ifndef NDEBUG
+{
+  // check that 'symmetric' flag is used correctly
+  TensorTrainOperator<T> TTOpAT = TTOpA;
+  for(int iDim = 0; iDim < nDim; iDim++)
+  {
+    constexpr auto transpose = [](Tensor3<T>& subT)
+    {
+      const int n = sqrt(subT.n())+0.5;
+      assert(n*n == subT.n());
+      for(int i = 0; i < subT.r1(); i++)
+        for(int j = 0; j < n; j++)
+          for(int k = 0; k < n; k++)
+            for(int l = 0; l < subT.r2(); l++)
+              std::swap(subT(i,j+k*n,l), subT(i,k+j*n,l));
+    };
+    TTOpAT.tensorTrain().editSubTensor(iDim, transpose);
+  }
+  assert(axpby(T(1), TTOpA.tensorTrain(), T(-1), TTOpAT.tensorTrain()) < sqrt_eps*norm2(TTOpA.tensorTrain()));
+}
 #endif
 
     // we store previous parts of w^Tb from left and right
@@ -680,9 +744,9 @@ right_vTb.clear();
         tt_x.setZero();
 
       if (useTTgmres)
-        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, true, " (M)ALS local problem: ", true);
+        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
       else
-        const T localRes = solveDenseGMRES(localTTOp, true, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
+        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
 
