@@ -351,56 +351,6 @@ namespace PITTS
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
         localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));
 
-#ifndef NDEBUG
-constexpr auto to_string = [](const std::vector<int>& v){
-  std::string result = "[";;
-  for(int i = 0; i < v.size(); i++)
-  {
-    if( i > 0 )
-      result += ", ";
-    result += std::to_string(v[i]);
-  }
-  result += "]";
-  return result;
-};
-std::cout << "localOp: row_dims = " << to_string(localTTOp.row_dimensions()) << "\n";
-std::cout << "         col_dims = " << to_string(localTTOp.column_dimensions()) << "\n";
-std::cout << "            ranks = " << to_string(localTTOp.getTTranks()) << "\n";
-#if 0
-if( nMALS == 1 )
-{
-  using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-  for(int iDim = 0; iDim < localTTOp.row_dimensions().size(); iDim++)
-  {
-    std::cout << "  sub-tensor dim " << iDim << ":\n";
-    const auto& subT = localTTOp.tensorTrain().subTensor(iDim);
-    for(int i = 0; i < subT.r1(); i++)
-      for(int j = 0; j < subT.r2(); j++)
-      {
-        std::cout << "    subT[" << i << ",:,;," << j << "]:\n";
-        mat mOpij(localTTOp.row_dimensions()[iDim], localTTOp.column_dimensions()[iDim]);
-        for(int k = 0; k < subT.n(); k++)
-          mOpij(k % mOpij.rows(), k / mOpij.rows()) = subT(i,k,j);
-        std::cout << mOpij << "\n";
-      }
-  }
-  MultiVector<T> mvOp;
-  toDense(localTTOp.tensorTrain(), mvOp);
-  const int n1 = localRowDims[1];
-  mat mOp(n0*n1*nd,n0*n1*nd);
-  for(int i1 = 0; i1 < n0; i1++)
-    for(int j1 = 0; j1 < n1; j1++)
-      for(int k1 = 0; k1 < nd; k1++)
-        for(int i2 = 0; i2 < n0; i2++)
-          for(int j2 = 0; j2 < n1; j2++)
-            for(int k2 = 0; k2 < nd; k2++)
-              mOp(i1+n0*j1+n0*n1*k1,i2+n0*j2+n0*n1*k2) = mvOp(i1+i2*n0 + (j1+j2*n1)*n0*n0 + (k1+k2*nd)*n0*n0*n1*n1,0);
-  std::cout << "localOp:\n" << mOp << "\n";
-  std::cout << " singular values: " << mOp.bdcSvd().singularValues().transpose() << "\n";
-}
-#endif
-#endif
-
         return localTTOp;
       }
 
@@ -566,27 +516,8 @@ if( nMALS == 1 )
     constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 #endif
 
-#ifndef NDEBUG
-{
-  // check that 'symmetric' flag is used correctly
-  TensorTrainOperator<T> TTOpAT = TTOpA;
-  for(int iDim = 0; iDim < nDim; iDim++)
-  {
-    constexpr auto transpose = [](Tensor3<T>& subT)
-    {
-      const int n = sqrt(subT.n())+0.5;
-      assert(n*n == subT.n());
-      for(int i = 0; i < subT.r1(); i++)
-        for(int j = 0; j < n; j++)
-          for(int k = 0; k < n; k++)
-            for(int l = 0; l < subT.r2(); l++)
-              std::swap(subT(i,j+k*n,l), subT(i,k+j*n,l));
-    };
-    TTOpAT.tensorTrain().editSubTensor(iDim, transpose);
-  }
-  assert(axpby(T(1), TTOpA.tensorTrain(), T(-1), TTOpAT.tensorTrain()) < sqrt_eps*norm2(TTOpA.tensorTrain()));
-}
-#endif
+    // check that 'symmetric' flag is used correctly
+    assert(!symmetric || norm2((TTOpA-transpose(TTOpA)).tensorTrain()) < sqrt_eps);
 
     // we store previous parts of w^Tb from left and right
     // (respectively x^T A^T b for the non-symmetric case)
@@ -696,8 +627,6 @@ if( projection == MALS_projection::PetrovGalerkin )
             left_vTAx.pop_back();
           while( left_vTb.size() >= left_v_subT.size() )
             left_vTb.pop_back();
-left_vTAx.clear();
-left_vTb.clear();
         }
 
         if( right_v_subT.size() >  0 )
@@ -716,8 +645,6 @@ left_vTb.clear();
             right_vTAx.pop_back();
           while( right_vTb.size() >= right_v_subT.size() )
             right_vTb.pop_back();
-right_vTAx.clear();
-right_vTb.clear();
         }
 
         left_v = left_v_subT;
