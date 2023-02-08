@@ -477,7 +477,7 @@ namespace PITTS
     if( projection == MALS_projection::NormalEquations )
     {
       if( symmetric )
-        std::cout << "TensorTrain solveMALS: Warning - using NormalEquations variant for a symmetric operator!";
+        std::cout << "TensorTrain solveMALS: Warning - using NormalEquations variant for a symmetric operator!\n";
       TensorTrain<T> TTAtb(TTOpA.column_dimensions());
       TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
       applyT(TTOpA, TTb, TTAtb);
@@ -488,7 +488,7 @@ namespace PITTS
 
     if( symmetric && projection == MALS_projection::PetrovGalerkin )
     {
-      std::cout << "TensorTrain solveMALS: Warning - using PetrovGalerkin projection for a symmetric operator!";
+      std::cout << "TensorTrain solveMALS: Warning - using PetrovGalerkin projection for a symmetric operator!\n";
       // set symmetric to false because the sub-problem will become non-symmetric!
       symmetric = false;
     }
@@ -664,7 +664,7 @@ if( projection == MALS_projection::PetrovGalerkin )
       const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_vTAx.back(), TTOpA, right_vTAx.back());
       if( projection == MALS_projection::RitzGalerkin )
       {
-        assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) < sqrt_eps);
+        assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) <= sqrt_eps*std::abs(dot(TTx, TTb)));
       }
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
