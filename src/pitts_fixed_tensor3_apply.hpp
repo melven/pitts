@@ -38,7 +38,9 @@ namespace PITTS
     for(int i = 0; i < r1; i++)
       for(int j = 0; j < r2; j++)
       {
-        T tmp[N]{};
+        T tmp[N];
+        for(int k = 0; k < N; k++)
+          tmp[k] = T(0);
         for(int k_ = 0; k_ < N; k_++)
           for(int k = 0; k < N; k++)
             tmp[k] += t3(i,k_,j)*M[k_][k];

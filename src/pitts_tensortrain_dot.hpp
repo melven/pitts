@@ -48,7 +48,9 @@ namespace PITTS
       {
         for(int i = 0; i < r1; i++)
         {
-          Chunk<T> tmp[r2_]{};
+          Chunk<T> tmp[r2_];
+          for(int k = 0; k < r2_; k++)
+            tmp[k] = Chunk<T>{};
           for(int l = 0; l < r2; l++)
             for(int k = 0; k < r2_; k++)
               fmadd(B(k,l), A.chunk(i,jChunk,l), tmp[k]);
@@ -81,7 +83,9 @@ namespace PITTS
       {
         for(int i = 0; i < r1; i++)
         {
-          Chunk<T> tmp[r2_]{};
+          Chunk<T> tmp[r2_];
+          for(int k = 0; k < r2_; k++)
+            tmp[k] = Chunk<T>{};
           for(int l = 0; l < r2; l++)
             for(int k = 0; k < r2_; k++)
               fmadd(B(l,k), A.chunk(i,jChunk,l), tmp[k]);
@@ -114,7 +118,9 @@ namespace PITTS
       {
         for (int k = 0; k < r2; k++)
         {
-          Chunk<T> tmp[r1_]{};
+          Chunk<T> tmp[r1_];
+          for (int i = 0; i < r1_; i++)
+            tmp[i] = Chunk<T>{};
           for (int l = 0; l < r1; l++)
             for (int i = 0; i < r1_; i++)
               fmadd(A(l,i), B.chunk(l,jChunk,k), tmp[i]);
@@ -151,7 +157,9 @@ namespace PITTS
         for(int jb = 0; jb < r1_; jb+=bs)
           for(int ib = 0; ib < r1; ib+=bs)
           {
-            Chunk<T> tmp[bs*bs]{};
+            Chunk<T> tmp[bs*bs];
+            for(int i = 0; i < bs*bs; i++)
+              tmp[i] = Chunk<T>{};
             for(int l = 0; l < r2; l++)
               for(int kChunk = 0; kChunk < nChunks; kChunk++)
                 for(int j = jb; j < std::min(r1_, jb+bs); j++)
@@ -173,7 +181,9 @@ namespace PITTS
                   tmp[i+j*bs] = T(0);
 #pragma omp parallel reduction(+:tmp)
               {
-                Chunk<T> tmpC[bs*bs]{};
+                Chunk<T> tmpC[bs*bs];
+                for(int i = 0; i < bs*bs; i++)
+                  tmpC[i] = Chunk<T>{};
 #pragma omp for collapse(2) schedule(static)
               for(int l = 0; l < r2; l++)
                 for(int kChunk = 0; kChunk < nChunks; kChunk++)
@@ -200,7 +210,9 @@ namespace PITTS
           for(int jb = 0; jb < r1_; jb+=bs)
             for(int ib = 0; ib < r1; ib+=bs)
             {
-              Chunk<T> tmp[bs*bs]{};
+              Chunk<T> tmp[bs*bs];
+              for(int i = 0; i < bs*bs; i++)
+                tmp[i] = Chunk<T>{};
 #pragma omp for collapse(2) schedule(static) nowait
               for(int l = 0; l < r2; l++)
                 for(int kChunk = 0; kChunk < nChunks; kChunk++)

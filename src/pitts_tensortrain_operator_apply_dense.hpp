@@ -61,12 +61,16 @@ namespace PITTS
 
       if( n_left >= Chunk<T>::size )
       {
+        const long nLeftChunks = n_left / Chunk<T>::size;
+#ifndef __clang__
 #pragma omp parallel
+#endif
         {
           for(int iCol = 0; iCol < nCols; iCol++)
           {
-            const long nLeftChunks = n_left / Chunk<T>::size;
+#ifndef __clang__
 #pragma omp for collapse(3) schedule(static) nowait
+#endif
             for(long jr = 0; jr < m_right; jr++)
               for(long i = 0; i < n; i++)
                 for(long jlChunk = 0; jlChunk < nLeftChunks; jlChunk++)
@@ -87,7 +91,9 @@ namespace PITTS
                 }
             if( nLeftChunks*Chunk<T>::size < n_left )
             {
+#ifndef __clang__
 #pragma omp for collapse(2) schedule(static) nowait
+#endif
               for(long jr = 0; jr < m_right; jr++)
                 for(long i = 0; i < n; i++)
                   for(long jl = nLeftChunks*Chunk<T>::size; jl < n_left; jl++)
@@ -107,11 +113,15 @@ namespace PITTS
       }
       else // generic case
       {
+#ifndef __clang__
 #pragma omp parallel
+#endif
         {
           for(int iCol = 0; iCol < nCols; iCol++)
           {
+#ifndef __clang__
 #pragma omp for collapse(3) schedule(static) nowait
+#endif
             for(long jr = 0; jr < m_right; jr++)
               for(long i = 0; i < n; i++)
                 for(long jl = 0; jl < n_left; jl++)

@@ -43,7 +43,11 @@ TEST(PITTS_Performance, simple_function)
   ASSERT_EQ(1,  PITTS::performance::globalPerformanceStatisticsMap.size());
   for(auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
   {
+#ifdef __clang__
+    ASSERT_STREQ("void (anonymous namespace)::simpleFunction(int, int)", scopeWithArgs.scope.function_name());
+#else
     ASSERT_STREQ("void {anonymous}::simpleFunction(int, int)", scopeWithArgs.scope.function_name());
+#endif
     ASSERT_EQ("", scopeWithArgs.scope.type_name());
     ASSERT_EQ(1, performance.timings.calls);
   }
@@ -62,7 +66,11 @@ TEST(PITTS_Performance, simple_template_function)
   ASSERT_EQ(1,  PITTS::performance::globalPerformanceStatisticsMap.size());
   for(auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
   {
+#ifdef __clang__
+    ASSERT_STREQ("void (anonymous namespace)::simpleTemplateFunction(int, int) [T = int]", scopeWithArgs.scope.function_name());
+#else
     ASSERT_STREQ("void {anonymous}::simpleTemplateFunction(int, int) [with T = int]", scopeWithArgs.scope.function_name());
+#endif
     ASSERT_EQ(1, performance.timings.calls);
   }
 
@@ -84,7 +92,11 @@ TEST(PITTS_Performance, simple_function_with_type)
   ASSERT_EQ(1,  PITTS::performance::globalPerformanceStatisticsMap.size());
   for(const auto& [scopeWithArgs, performance]: PITTS::performance::globalPerformanceStatisticsMap)
   {
+#ifdef __clang__
+    ASSERT_STREQ("void (anonymous namespace)::simpleFunctionWithType(int, int)", scopeWithArgs.scope.function_name());
+#else
     ASSERT_STREQ("void {anonymous}::simpleFunctionWithType(int, int)", scopeWithArgs.scope.function_name());
+#endif
     ASSERT_EQ("int", scopeWithArgs.scope.type_name());
     ASSERT_EQ(2, performance.timings.calls);
     ASSERT_EQ(400, performance.kernel.flops.doublePrecision);

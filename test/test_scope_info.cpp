@@ -25,7 +25,11 @@ namespace
 TEST(PITTS_ScopeInfo, simpleFunction)
 {
   constexpr auto scope = simpleFunction(7, 8);
+#ifdef __clang__
+  EXPECT_STREQ("auto (anonymous namespace)::simpleFunction(int, int)", scope.function_name());
+#else
   EXPECT_STREQ("constexpr auto {anonymous}::simpleFunction(int, int)", scope.function_name());
+#endif
 
   // check that we can get the hash at compile time
   constexpr auto hash = getHash(scope);
@@ -35,7 +39,11 @@ TEST(PITTS_ScopeInfo, templateFunction)
 {
   std::vector<double> bla = {1., 2., 3.};
   auto scope = templateFunction(bla);
+#ifdef __clang__
+  EXPECT_STREQ("auto (anonymous namespace)::templateFunction(std::vector<T>) [T = double]", scope.function_name());
+#else
   EXPECT_STREQ("constexpr auto {anonymous}::templateFunction(std::vector<T>) [with T = double]", scope.function_name());
+#endif
 
   // check that we can get the hash at compile time
   auto hash = getHash(scope);

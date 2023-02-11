@@ -57,7 +57,7 @@ namespace PITTS
       const auto r12 = subT1.r2();
       const auto r21 = subT2.r1();
       const auto r22 = subT2.r2();
-      static constexpr auto n = subT1.n();
+      const auto n = subT1.n();
 
       flops += 2.*r11*r12*r21*r22*(n+1.);
 
