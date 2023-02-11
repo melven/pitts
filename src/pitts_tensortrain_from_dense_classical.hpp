@@ -64,7 +64,11 @@ namespace PITTS
     for(int iDim = 0; iDim+1 < dimensions.size(); iDim++)
     {
       tmp.resize(tmp.rows()*dimensions[iDim], tmp.cols()/dimensions[iDim]);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+      Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinU | Eigen::ComputeThinV> svd(tmp);
+#else
       Eigen::BDCSVD<EigenMatrix> svd(tmp, Eigen::ComputeThinU | Eigen::ComputeThinV);
+#endif
       svd.setThreshold(rankTolerance);
       int rank = svd.rank();
       if( maxRank > 0 )

@@ -37,17 +37,29 @@ namespace PITTS
       void split(const MultiVector<T>& X, MultiVector<T>& Y, Tensor2<T>& M, int nextDim, T rankTolerance, int maxRank)
       {
         using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+        Eigen::JacobiSVD<EigenMatrix, Eigen::ComputeThinU | Eigen::ComputeThinV> svd;
+#else
         Eigen::JacobiSVD<EigenMatrix> svd;
+#endif
 std::cout << "HOSVD::split  matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
         if( X.rows() > 10*X.cols() )
         {
           // calculate QR decomposition (QR-trick: X=QR,SVD(R))
           block_TSQR(X, M, 0, false);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+          svd.compute(ConstEigenMap(M));
+#else
           svd.compute(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
+#endif
         }
         else
         {
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+          svd.compute(ConstEigenMap(X));
+#else
           svd.compute(ConstEigenMap(X), Eigen::ComputeThinU | Eigen::ComputeThinV);
+#endif
         }
 
 std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
