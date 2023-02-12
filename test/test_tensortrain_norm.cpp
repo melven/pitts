@@ -44,7 +44,7 @@ TEST(PITTS_TensorTrain_norm, rank_2_matrix)
   EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
 
   // higher rank
-  TT.setTTranks({3});
+  TT.setTTranks(3);
   randomize(TT);
   EXPECT_NEAR(std::sqrt(dot(TT,TT)), norm2(TT), eps);
 }

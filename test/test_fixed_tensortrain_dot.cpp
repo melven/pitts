@@ -129,7 +129,7 @@ TYPED_TEST(PITTS_FixedTensorTrain_dot, rank_2_matrix_random_self)
   EXPECT_NEAR(tmp, dot(TT,TT), eps);
 
   // TT-rank==3
-  TT.setTTranks({3});
+  TT.setTTranks(3);
   randomize(TT);
   tmp = 0;
   for(int i = 0; i < 5; i++)
@@ -166,9 +166,9 @@ TYPED_TEST(PITTS_FixedTensorTrain_dot, rank_2_matrix_random_other)
   EXPECT_NEAR(tmp, dot(TT1,TT2), eps);
 
   // TT-rank>1
-  TT1.setTTranks({3});
+  TT1.setTTranks(3);
   randomize(TT1);
-  TT2.setTTranks({2});
+  TT2.setTTranks(2);
   randomize(TT2);
   tmp = 0;
   for(int i = 0; i < 5; i++)

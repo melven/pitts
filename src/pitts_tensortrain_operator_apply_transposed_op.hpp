@@ -26,7 +26,7 @@ namespace PITTS
     template<typename T>
     void applyT_contract_op(const TensorTrainOperator<T>& TTOpA,
                            const TensorTrainOperator<T>& TTOpB,
-                           const TensorTrainOperator<T>& TTOpC,
+                           [[maybe_unused]] const TensorTrainOperator<T>& TTOpC,
                            int iDim,
                            const Tensor3<T>& Aop,
                            const Tensor3<T>& Bop,

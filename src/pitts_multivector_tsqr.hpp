@@ -330,7 +330,7 @@ namespace PITTS
       //! internal helper function for transformBlock
       template<typename T>
       [[gnu::always_inline]]
-      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col)
+      inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset, int col)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -442,7 +442,7 @@ namespace PITTS
       template<typename T>
       [[gnu::always_inline]]
       inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
-                                Chunk<T>* pdataResult, int ldaResult, int resultOffset,
+                                Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset,
                                 int beginCol, int endCol, int applyBeginCol, int applyEndCol)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
@@ -543,7 +543,7 @@ namespace PITTS
       //! @param datatype   MPI data type, used to extract actual length
       //!
       template<typename T>
-      void combineTwoBlocks(const T* invec, T* inoutvec, const int* len, const MPI_Datatype* datatype)
+      void combineTwoBlocks(const T* invec, T* inoutvec, [[maybe_unused]] const int* len, const MPI_Datatype* datatype)
       {
         assert( *len == 1 );
         int size;

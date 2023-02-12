@@ -24,7 +24,7 @@ namespace PITTS
   {
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along middle dimension: A(:,*,:,:) * x(:,*,:)
     template<typename T>
-    void applyT_contract(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
+    void applyT_contract([[maybe_unused]] const TensorTrainOperator<T>& TTOp, [[maybe_unused]] int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
     {
       const auto rA1 = Aop.r1();
       const auto rA2 = Aop.r2();
