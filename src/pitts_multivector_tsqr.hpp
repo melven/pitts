@@ -128,8 +128,10 @@ namespace PITTS
 //for(int j = 0; j < NC; j++)
 //  std::cout << "apply " << col+j << "\n";
 
-        Chunk<T> wTx[NC]{};
-        Chunk<T> vTx[NC]{};
+        Chunk<T> wTx[NC];
+        Chunk<T> vTx[NC];
+        for(int j = 0; j < NC; j++)
+          wTx[j] = vTx[j] = Chunk<T>{};
         if( pdata == pdataResult || firstRow >= nChunks )
         {
           // fast case: in-place operation

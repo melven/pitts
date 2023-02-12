@@ -50,7 +50,9 @@ namespace PITTS
       {
         for(int i = 0; i < r1; i++)
         {
-          Chunk<T> tmp[r2]{};
+          Chunk<T> tmp[r2];
+          for(int k = 0; k < r2; k++)
+            tmp[k] = Chunk<T>{};
           for(int l = 0; l < r2; l++)
             for(int k = 0; k < r2; k++)
               fmadd(B(k,l), A.chunk(i,jChunk,l), tmp[k]);

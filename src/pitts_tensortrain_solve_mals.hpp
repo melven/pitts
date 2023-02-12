@@ -513,7 +513,7 @@ namespace PITTS
     const T nrm_TTb = norm2(TTb);
 
 #ifndef NDEBUG
-    constexpr auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+    const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 #endif
 
     // check that 'symmetric' flag is used correctly
