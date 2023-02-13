@@ -40,7 +40,7 @@ namespace PITTS
   //! @param argv     pointer to main argv argument for MPI_Init
   //! @param verbose  set to false to omit any console output (info on #threads and #processes)
   //!
-  void initialize(int* argc, char** argv[], bool verbose = true)
+  inline void initialize(int* argc, char** argv[], bool verbose = true)
   {
     // first init OpenMP threads (before MPI, to make it easier to pin)
 #pragma omp parallel
@@ -78,7 +78,7 @@ namespace PITTS
   //!
   //! @param verbose set to false to omit any console output (for timing statistics)
   //!
-  void finalize(bool verbose = true)
+  inline void finalize(bool verbose = true)
   {
 #ifdef PITTS_USE_LIKWID_MARKER_API
     LIKWID_MARKER_CLOSE;
