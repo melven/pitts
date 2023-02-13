@@ -32,10 +32,6 @@ module;
 #ifdef PITTS_USE_MODULES
 export module pitts_multivector_cdist;
 # define PITTS_MODULE_EXPORT export
-#else
-# ifndef PITTS_MODULE_EXPORT
-#   define PITTS_MODULE_EXPORT
-# endif
 #endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
