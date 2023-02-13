@@ -78,6 +78,15 @@ target_sources(pitts INTERFACE
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 
+# support for C++20 modules
+if(PITTS_USE_MODULES)
+  add_library(pitts_modules STATIC)
+  target_sources(pitts_modules PUBLIC FILE_SET CXX_MODULES FILES
+    pitts_multivector_cdist.cppm
+    )
+endif()
+
+
 # test executables
 add_executable(axpby_left_ortho_bench axpby_left_ortho_bench.cpp)
 add_executable(axpby_right_ortho_bench axpby_right_ortho_bench.cpp)
@@ -104,6 +113,33 @@ add_executable(tt_from_dense_twosided_bench tt_from_dense_twosided_bench.cpp)
 add_executable(tt_from_dense_thickbounds_bench tt_from_dense_thickbounds_bench.cpp)
 add_executable(tt_from_dense_thickbounds_single_bench tt_from_dense_thickbounds_single_bench.cpp)
 add_executable(tt_from_dense_twosided_thickbounds_bench tt_from_dense_twosided_thickbounds_bench.cpp)
+if(PITTS_USE_MODULES)
+  target_link_libraries(axpby_left_ortho_bench PRIVATE pitts_modules)
+  target_link_libraries(axpby_right_ortho_bench PRIVATE pitts_modules)
+  target_link_libraries(norm2_bench PRIVATE pitts_modules)
+  target_link_libraries(dot_bench PRIVATE pitts_modules)
+  target_link_libraries(normalize_bench PRIVATE pitts_modules)
+  target_link_libraries(axpby_bench PRIVATE pitts_modules)
+  target_link_libraries(apply_op_bench PRIVATE pitts_modules)
+  target_link_libraries(cg_bench PRIVATE pitts_modules)
+  target_link_libraries(qubit_simulator_bench PRIVATE pitts_modules)
+  target_link_libraries(cdist2_bench PRIVATE pitts_modules)
+  target_link_libraries(centroids_bench PRIVATE pitts_modules)
+  target_link_libraries(kmeans_bench PRIVATE pitts_modules)
+  target_link_libraries(tsqr_bench PRIVATE pitts_modules)
+  target_link_libraries(tsqr_single_bench PRIVATE pitts_modules)
+  target_link_libraries(tsmm_bench PRIVATE pitts_modules)
+  target_link_libraries(normalize_qb_bench PRIVATE pitts_modules)
+  target_link_libraries(tsmm_single_bench PRIVATE pitts_modules)
+  target_link_libraries(transpose_bench PRIVATE pitts_modules)
+  target_link_libraries(multivector_copy_bench PRIVATE pitts_modules)
+  target_link_libraries(tt_from_dense_classical_bench PRIVATE pitts_modules)
+  target_link_libraries(tt_from_dense_bench PRIVATE pitts_modules)
+  target_link_libraries(tt_from_dense_twosided_bench PRIVATE pitts_modules)
+  target_link_libraries(tt_from_dense_thickbounds_bench PRIVATE pitts_modules)
+  target_link_libraries(tt_from_dense_thickbounds_single_bench PRIVATE pitts_modules)
+  target_link_libraries(tt_from_dense_twosided_thickbounds_bench PRIVATE pitts_modules)
+endif()
 
 # Python binding
 if(pybind11_FOUND)
@@ -139,6 +175,10 @@ if(pybind11_FOUND)
     target_compile_definitions(pitts_py PRIVATE -DPITTS_HAVE_ITENSOR)
     target_include_directories(pitts_py PRIVATE ${ITENSOR_INCLUDE_DIRS})
     target_link_libraries(pitts_py PRIVATE ${ITENSOR_LIBRARIES})
+  endif()
+
+  if(PITTS_USE_MODULES)
+    target_link_libraries(pitts_py PRIVATE pitts_modules)
   endif()
 
   install(TARGETS pitts_py LIBRARY DESTINATION lib)

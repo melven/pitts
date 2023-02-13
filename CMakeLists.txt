@@ -45,6 +45,9 @@ else()
   message(WARNING "Unknown CXX compiler ID '${CMAKE_CXX_COMPILER_ID}', cannot determine correct flags!")
 endif()
 
+# we can use C++20 modules for faster compile times
+include(CXX20Modules)
+
 
 ###
 ### Required libraries

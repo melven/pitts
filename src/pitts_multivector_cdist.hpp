@@ -6,19 +6,40 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_cdist.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_CDIST)
+import pitts_multivector_cdist;
+#define PITTS_MULTIVECTOR_CDIST_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_CDIST_HPP
 #define PITTS_MULTIVECTOR_CDIST_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
-#include <vector>
+#include <memory>
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_cdist;
+# define PITTS_MODULE_EXPORT export
+#else
+# ifndef PITTS_MODULE_EXPORT
+#   define PITTS_MODULE_EXPORT
+# endif
+#endif
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! calculate the squared distance of each vector in one multi-vector with each vector in another multi-vector
   //!
@@ -94,6 +115,12 @@ namespace PITTS
 
   }
 
+  // explicit template instantiations
+  template void cdist2<float>(const MultiVector<float>& X, const MultiVector<float>& Y, Tensor2<float>& D);
+  template void cdist2<double>(const MultiVector<double>& X, const MultiVector<double>& Y, Tensor2<double>& D);
+  // workaround for pybind interface (no matching function call) with C++20 modules
+  template std::string_view PITTS::internal::TypeName::name<float>();
+  template std::string_view PITTS::internal::TypeName::name<double>();
 }
 
 
