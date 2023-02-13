@@ -25,14 +25,19 @@ module;
 #include <memory>
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
-#include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_performance.hpp"
 
 // module export
 #ifdef PITTS_USE_MODULES
 export module pitts_multivector_cdist;
 # define PITTS_MODULE_EXPORT export
+#else
+# define PITTS_MODULE_EXPORT
 #endif
+
+#include "pitts_type_name.hpp"
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 PITTS_MODULE_EXPORT namespace PITTS

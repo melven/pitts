@@ -6,28 +6,50 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_cdist.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TYPE_NAME)
+import pitts_type_name;
+#define PITTS_TYPE_NAME_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TYPE_NAME_HPP
 #define PITTS_TYPE_NAME_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <source_location>
 #include <string_view>
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_type_name;
+# define PITTS_MODULE_EXPORT export
+#else
+# define PITTS_MODULE_EXPORT
+#endif
 
 //! dummy namespace for PITTS for obtaining compile-time names
 namespace PITTS_internal
 {
     //! helper function, returns something like "list_of_namespaces::wrapped_type_name<Type>()" and we want to extract "Type"
     template<typename Type>
+#ifdef PITTS_USE_MODULES
+    consteval std::string_view wrapped_type_name()
+#else
     static consteval std::string_view wrapped_type_name()
+#endif
     {
       return std::source_location::current().function_name();
     }
 }
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal

@@ -29,6 +29,8 @@ module;
 #ifdef PITTS_USE_MODULES
 export module pitts_hash_function;
 # define PITTS_MODULE_EXPORT export
+#else
+# define PITTS_MODULE_EXPORT
 #endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

@@ -83,6 +83,7 @@ if(PITTS_USE_MODULES)
   add_library(pitts_modules STATIC)
   target_sources(pitts_modules PUBLIC FILE_SET CXX_MODULES FILES
     pitts_hash_function.cppm
+    pitts_type_name.cppm
     pitts_multivector_cdist.cppm
     )
 endif()
