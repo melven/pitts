@@ -119,9 +119,6 @@ PITTS_MODULE_EXPORT namespace PITTS
   // explicit template instantiations
   template void cdist2<float>(const MultiVector<float>& X, const MultiVector<float>& Y, Tensor2<float>& D);
   template void cdist2<double>(const MultiVector<double>& X, const MultiVector<double>& Y, Tensor2<double>& D);
-  // workaround for pybind interface (no matching function call) with C++20 modules
-  template std::string_view PITTS::internal::TypeName::name<float>();
-  template std::string_view PITTS::internal::TypeName::name<double>();
 }
 
 
