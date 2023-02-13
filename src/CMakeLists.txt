@@ -85,6 +85,7 @@ if(PITTS_USE_MODULES)
     pitts_hash_function.cppm
     pitts_type_name.cppm
     pitts_multivector_cdist.cppm
+    pitts_common.cppm
     )
 endif()
 
