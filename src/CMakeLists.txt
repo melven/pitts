@@ -92,6 +92,7 @@ if(PITTS_USE_MODULES)
     pitts_tensor3_random.cppm
     pitts_tensor3_combine.cppm
     pitts_tensor3_fold.cppm
+    pitts_tensor3_unfold.cppm
     pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm

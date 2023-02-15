@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_multivector.hpp"
+#include "pitts_chunk.hpp"
 #include <type_traits>
 
 TEST(PITTS_MultiVector, type_traits)
