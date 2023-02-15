@@ -6,17 +6,40 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor3_random.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_FIXED_TENSOR3_RANDOM)
+import pitts_fixed_tensor3_random;
+#define PITTS_FIXED_TENSOR3_RANDOM_HPP
+#endif
+
 // include guard
 #ifndef PITTS_FIXED_TENSOR3_RANDOM_HPP
 #define PITTS_FIXED_TENSOR3_RANDOM_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
+#ifdef PITTS_USE_MODULES
+// workaround for mismatching std::align implementation
+#include <memory>
+#endif
+
 #include <random>
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_fixed_tensor3_random;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! fill a rank-3 tensor with random values
   //!
@@ -85,6 +108,7 @@ namespace PITTS
         }
   }
 
+  // explicit template instantiations
 }
 
 
