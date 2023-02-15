@@ -6,18 +6,40 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_random.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_RANDOM)
+import pitts_multivector_random;
+#define PITTS_MULTIVECTOR_RANDOM_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_RANDOM_HPP
 #define PITTS_MULTIVECTOR_RANDOM_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
+#ifdef PITTS_USE_MODULES
+// workaround for mismatching std::align implementation
+#include <memory>
+#endif
+
 #include <random>
-#include <omp.h>
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_random;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! fill a multivector (rank-2 tensor) with random values
   //!
@@ -59,6 +81,9 @@ namespace PITTS
     }
   }
 
+  // explicit template instantiations
+  template void randomize<float>(MultiVector<float>& X);
+  template void randomize<double>(MultiVector<double>& X);
 }
 
 
