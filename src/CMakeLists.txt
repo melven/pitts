@@ -85,6 +85,7 @@ if(PITTS_USE_MODULES)
     pitts_hash_function.cppm
     pitts_type_name.cppm
     pitts_common.cppm
+    pitts_parallel.cppm
     pitts_chunk.cppm
     pitts_chunk_ops.cppm
     pitts_fixed_tensor3.cppm

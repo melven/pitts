@@ -6,6 +6,7 @@
 #include "pitts_multivector_cdist.hpp"
 #include "pitts_multivector_random.hpp"
 #include <iostream>
+#include <vector>
 
 
 int main(int argc, char* argv[])
