@@ -88,6 +88,7 @@ if(PITTS_USE_MODULES)
     pitts_common.cppm
     pitts_multivector_axpby.cppm
     pitts_multivector_norm.cppm
+    pitts_multivector_dot.cppm
     )
 endif()
 
