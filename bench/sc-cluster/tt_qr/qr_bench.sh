@@ -1,11 +1,11 @@
 #!/bin/sh
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH -c 16
-#SBATCH -t 300
+#SBATCH -c 14
+#SBATCH -t 5
 #SBATCH --exclusive
 #SBATCH --mem=10G
-#SBATCH --nodelist=be-cpu05
+#SBATCH --nodelist=be-cpu02
 #SBATCH --output="%x-%j.out"
 
 likwid-pin -c 0 ../../../build/src/qr_bench f > qr_bench_serial_fullrank.txt
