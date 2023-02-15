@@ -6,21 +6,51 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor2_qb_decomposition.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSOR2_QB_DECOMPOSITION)
+import pitts_tensor2_qb_decomposition;
+#define PITTS_TENSOR2_QB_DECOMPOSITION_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSOR2_QB_DECOMPOSITION_HPP
 #define PITTS_TENSOR2_QB_DECOMPOSITION_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <exception>
 #include <cmath>
-#include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
-#include "pitts_timer.hpp"
+#ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+namespace Eigen
+{
+  // forward declaration
+  template<typename MatrixType> class SelfAdjointEigenSolver;
+}
+#endif
+#include "pitts_tensor2.hpp"
+#include "pitts_timer.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensor2_qb_decomposition;
+# define PITTS_MODULE_EXPORT export
+#endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! QB-part in the SVQB orthogonalization algorithm from Stathopoulos and Wu, SISC 23 (6), pp. 2165-2182
   //!
@@ -121,6 +151,9 @@ namespace PITTS
     return rank;
   }
 
+  // explicit template instantiations
+  //template auto qb_decomposition<float>(const Tensor2<float>& M, Tensor2<float>& B, Tensor2<float>& Binv, float rankTolerance);
+  //template auto qb_decomposition<double>(const Tensor2<double>& M, Tensor2<double>& B, Tensor2<double>& Binv, double rankTolerance);
 }
 
 
