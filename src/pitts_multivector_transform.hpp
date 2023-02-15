@@ -6,9 +6,20 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_transform.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_TRANSFORM)
+import pitts_multivector_transform;
+#define PITTS_MULTIVECTOR_TRANSFORM_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_TRANSFORM_HPP
 #define PITTS_MULTIVECTOR_TRANSFORM_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <array>
@@ -18,8 +29,15 @@
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_transform;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! calculate the matrix-matrix product of a tall-skinny matrix (multivector) with a small matrix (Y <- X*M)
   //!
@@ -225,6 +243,9 @@ namespace PITTS
 
   }
 
+  // explicit template instantiations
+  template void transform<float>(const MultiVector<float>& X, const Tensor2<float>& M, MultiVector<float>& Y, std::array<long long,2> reshape = {0, 0});
+  template void transform<double>(const MultiVector<double>& X, const Tensor2<double>& M, MultiVector<double>& Y, std::array<long long,2> reshape = {0, 0});
 }
 
 
