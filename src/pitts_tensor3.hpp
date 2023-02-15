@@ -51,7 +51,7 @@ namespace PITTS
     Tensor3() = default;
 
     //! adjust the desired tensor dimensions (destroying all data!)
-    void resize(int r1, int n, int r2)
+    void resize(int r1, int n, int r2, bool setPaddingToZero = true)
     {
       // fast return without timer!
       if( r1 == r1_ && n == n_ && r2 == r2_ )
@@ -67,6 +67,8 @@ namespace PITTS
       r1_ = r1;
       r2_ = r2;
       n_ = n;
+      if( !setPaddingToZero )
+        return;
       // ensure padding is zero
 #pragma omp parallel for schedule(static)
       for(int j = 0; j < r2_; j++)
@@ -184,7 +186,7 @@ namespace PITTS
          {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
         );
 
-    b.resize(r1, n, r2);
+    b.resize(r1, n, r2, false);
 
     const auto nChunks = a.nChunks();
 

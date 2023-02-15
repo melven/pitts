@@ -56,7 +56,10 @@ namespace PITTS
       for(int j = 0; j < r2; j++)
         for(int i = 0; i < r1; i++)
         {
-          T tmp[N][N] = {};
+          T tmp[N][N];
+          for(int k1 = 0; k1 < N; k1++)
+            for(int k2 = 0; k2 < N; k2++)
+              tmp[k1][k2] = T(0);
           for(int l = 0; l < r; l++)
             for(int k1 = 0; k1 < N; k1++)
               for(int k2 = 0; k2 < N; k2++)
@@ -72,7 +75,10 @@ namespace PITTS
       for(int j = 0; j < r2; j++)
         for(int i = 0; i < r1; i++)
         {
-          T tmp[N][N] = {};
+          T tmp[N][N];
+          for(int k1 = 0; k1 < N; k1++)
+            for(int k2 = 0; k2 < N; k2++)
+              tmp[k1][k2] = T(0);
           for(int l = 0; l < r; l++)
             for(int k1 = 0; k1 < N; k1++)
               for(int k2 = 0; k2 < N; k2++)

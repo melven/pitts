@@ -56,7 +56,9 @@ namespace PITTS
       {
         for(int i = 0; i < r2; i++)
         {
-          Chunk<T> tmp[r1_]{};
+          Chunk<T> tmp[r1_];
+          for(int k = 0; k < r1_; k++)
+            tmp[k] = Chunk<T>{};
           for(int l = 0; l < r1; l++)
             for(int k = 0; k < r1_; k++)
               fmadd(A(k,l), B.chunk(l,jChunk,i), tmp[k]);
@@ -89,7 +91,9 @@ namespace PITTS
       for(int jChunk = 0; jChunk < nChunks; jChunk++)
         for(int k = 0; k < r2; k++)
         {
-          Chunk<T> tmp[r1]{};
+          Chunk<T> tmp[r1];
+          for(int i = 0; i < r1; i++)
+            tmp[i] = Chunk<T>{};
           for(int l = 0; l < r; l++)
             for(int i = 0; i < r1; i++)
               fmadd(B(l,k), A.chunk(i,jChunk,l), tmp[i]);

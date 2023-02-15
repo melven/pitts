@@ -33,8 +33,8 @@ namespace PITTS
       void init_TensorTrain_solve_helper(py::module& m, const std::string& type_name)
       {
         m.def("solveMALS",
-            py::overload_cast< const TensorTrainOperator<T>&, MALS_projection, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int, bool, int, T>(&solveMALS<T>),
-            py::arg("TTOpA"), py::arg("projection"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
+            py::overload_cast< const TensorTrainOperator<T>&, bool, MALS_projection, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int, bool, int, T>(&solveMALS<T>),
+            py::arg("TTOpA"), py::arg("symmetric"), py::arg("projection"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
             py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(),
             py::arg("nMALS")=2, py::arg("nOverlap")=1,
             py::arg("useTTgmres")=false, py::arg("gmresMaxIter") = 25, py::arg("gmresRelTol") = 1.e-4,
