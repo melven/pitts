@@ -89,6 +89,7 @@ if(PITTS_USE_MODULES)
     pitts_tensor2_random.cppm
     pitts_tensor2_qb_decomposition.cppm
     pitts_tensor3.cppm
+    pitts_tensor3_random.cppm
     pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm
