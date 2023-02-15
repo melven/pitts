@@ -6,17 +6,36 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor3_fold.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSOR3_FOLD)
+import pitts_tensor3_fold;
+#define PITTS_TENSOR3_FOLD_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSOR3_FOLD_HPP
 #define PITTS_TENSOR3_FOLD_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <cassert>
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensor3_fold;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -151,6 +170,14 @@ namespace PITTS
           t3(i,j,k) = internal::elem(v, i+j*r1+k*n*r1);
         }
   }
+
+  // explicit template instantiations
+  template void fold_left<float, Tensor2<float>>(const Tensor2<float>& mat, int n, Tensor3<float>& t3);
+  template void fold_left<double, Tensor2<double>>(const Tensor2<double>& mat, int n, Tensor3<double>& t3);
+  template void fold_right<float, Tensor2<float>>(const Tensor2<float>& mat, int n, Tensor3<float>& t3);
+  template void fold_right<double, Tensor2<double>>(const Tensor2<double>& mat, int n, Tensor3<double>& t3);
+  template void fold<float, std::vector<float>>(const std::vector<float>& v, int r1, int n, int r2, Tensor3<float>& t3);
+  template void fold<double, std::vector<double>>(const std::vector<double>& v, int r1, int n, int r2, Tensor3<double>& t3);
 }
   
 #endif // PITTS_TENSOR3_FOLD_HPP

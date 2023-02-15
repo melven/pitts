@@ -34,7 +34,7 @@ export module pitts_tensor3_combine;
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! calculate the result of multiplying two rank-3 tensors (contraction of third and first dimension)
   //!
