@@ -23,7 +23,7 @@ module;
 
 // includes
 #include <array>
-#include <exception>
+#include <stdexcept>
 #include <memory>
 #include <tuple>
 #include "pitts_parallel.hpp"

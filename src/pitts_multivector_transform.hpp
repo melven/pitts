@@ -23,7 +23,7 @@ module;
 
 // includes
 #include <array>
-#include <exception>
+#include <stdexcept>
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"

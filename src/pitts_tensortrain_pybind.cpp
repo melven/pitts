@@ -8,7 +8,7 @@
 
 // includes
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_dot.hpp"

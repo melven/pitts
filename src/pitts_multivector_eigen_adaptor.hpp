@@ -13,6 +13,7 @@
 // includes
 #include "pitts_multivector.hpp"
 #include "pitts_eigen.hpp"
+#include "pitts_chunk.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

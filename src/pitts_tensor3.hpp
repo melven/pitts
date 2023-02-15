@@ -6,17 +6,35 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor3.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSOR3)
+import pitts_tensor3;
+#define PITTS_TENSOR3_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSOR3_HPP
 #define PITTS_TENSOR3_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <memory>
 #include "pitts_chunk.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensor3;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! rank-3 tensor (intended to be used in a tensor train)
   //!
@@ -196,6 +214,12 @@ namespace PITTS
         for(int i = 0; i < r1; i++)
           b.chunk(i,jChunk,k) = a.chunk(i,jChunk,k);
   }
+
+  // explicit template instantiations
+  template class Tensor3<float>;
+  template class Tensor3<double>;
+  template void copy<float>(const Tensor3<float>&, Tensor3<float>&);
+  template void copy<double>(const Tensor3<double>&, Tensor3<double>&);
 }
 
 

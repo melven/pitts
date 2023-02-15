@@ -12,7 +12,7 @@
 
 // includes
 #include <vector>
-#include <exception>
+#include <stdexcept>
 #include "pitts_fixed_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

@@ -13,7 +13,7 @@
 
 // includes
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_from_itensor.hpp"
 #include "pitts_tensortrain_operator_itensor_autompo_pybind.hpp"

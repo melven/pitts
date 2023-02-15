@@ -1,4 +1,5 @@
 #include <charconv>
+#include <stdexcept>
 
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"

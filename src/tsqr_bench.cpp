@@ -1,4 +1,4 @@
-#include <exception>
+#include <stdexcept>
 #include <charconv>
 #include <iostream>
 #include "pitts_parallel.hpp"

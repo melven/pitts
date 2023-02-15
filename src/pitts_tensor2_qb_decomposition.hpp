@@ -22,7 +22,7 @@ module;
 #endif
 
 // includes
-#include <exception>
+#include <stdexcept>
 #include <cmath>
 #ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"

@@ -21,7 +21,7 @@
 #include <sstream>
 #include <functional>
 #include <tuple>
-#include <exception>
+#include <stdexcept>
 #include <type_traits>
 #include <complex>
 #include <cereal/archives/binary.hpp>

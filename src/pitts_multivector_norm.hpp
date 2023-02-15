@@ -23,7 +23,7 @@ module;
 
 // includes
 #include <array>
-#include <exception>
+#include <stdexcept>
 #ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
 #else

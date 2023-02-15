@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <complex>
 #include <random>
-#include <exception>
+#include <stdexcept>
 #include <array>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensortrain_dot.hpp"
