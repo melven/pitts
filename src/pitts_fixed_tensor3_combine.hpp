@@ -6,17 +6,35 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_fixed_tensor3_combine.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_FIXED_TENSOR3_COMBINE)
+import pitts_fixed_tensor3_combine;
+#define PITTS_FIXED_TENSOR3_COMBINE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_FIXED_TENSOR3_COMBINE_HPP
 #define PITTS_FIXED_TENSOR3_COMBINE_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <array>
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_fixed_tensor3_combine;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! calculate the result of multiplying two fixed-size rank-3 tensors (contraction of third and first dimension)
   //!
@@ -92,6 +110,7 @@ namespace PITTS
     return t3c;
   }
 
+  // explicit template instantiations
 }
 
 
