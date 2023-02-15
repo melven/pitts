@@ -6,18 +6,45 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor3_split.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_FIXED_TENSOR3_SPLIT)
+import pitts_fixed_tensor3_split;
+#define PITTS_FIXED_TENSOR3_SPLIT_HPP
+#endif
+
 // include guard
 #ifndef PITTS_FIXED_TENSOR3_SPLIT_HPP
 #define PITTS_FIXED_TENSOR3_SPLIT_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <array>
+#ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#else
+#include <complex>
+#include <string>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_timer.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_fixed_tensor3_split;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! split a fixed-size rank-3 tensor into 2 smaller tensors
   //!
@@ -54,7 +81,8 @@ namespace PITTS
     {
       Eigen::ColPivHouseholderQR<Matrix> qr(t3cMap);
       qr.setThreshold(1.e-10);
-      const auto r = std::max(Eigen::Index(1), qr.rank());
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(1), qr.rank());
 
       t3a.resize(r1,r);
       t3b.resize(r,r2);
@@ -71,7 +99,8 @@ namespace PITTS
     {
       Eigen::ColPivHouseholderQR<Matrix> qr(t3cMap.transpose());
       qr.setThreshold(1.e-10);
-      const auto r = std::max(Eigen::Index(1), qr.rank());
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(1), qr.rank());
 
       t3a.resize(r1,r);
       t3b.resize(r,r2);
@@ -106,6 +135,7 @@ namespace PITTS
     */
   }
 
+  // explicit template instantiations
 }
 
 

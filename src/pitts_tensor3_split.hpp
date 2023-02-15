@@ -29,7 +29,6 @@ module;
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #else
 #include <string>
-#include <complex>
 #define EIGEN_CORE_MODULE_H
 #include <Eigen/src/Core/util/Macros.h>
 #include <Eigen/src/Core/util/Constants.h>
