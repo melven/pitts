@@ -8,7 +8,6 @@ static const char* help_message = "\nOnly allowed parameters are f, h, l, ?: \n"
     "f      - take QR of full-rank matrix\n"
     "h      - take QR of high-rank matrix\n"
     "l      - take QR of low-rank matrix\n"
-    "n      - size of each dimension\n"
     "?      - display this help message and exit\n";
 
 
