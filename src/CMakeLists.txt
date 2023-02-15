@@ -85,6 +85,7 @@ if(PITTS_USE_MODULES)
     pitts_hash_function.cppm
     pitts_type_name.cppm
     pitts_multivector_cdist.cppm
+    pitts_multivector_centroids.cppm
     pitts_common.cppm
     pitts_multivector_axpby.cppm
     pitts_multivector_norm.cppm
