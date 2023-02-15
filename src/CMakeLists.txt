@@ -84,6 +84,7 @@ if(PITTS_USE_MODULES)
   target_sources(pitts_modules PUBLIC FILE_SET CXX_MODULES FILES
     pitts_hash_function.cppm
     pitts_type_name.cppm
+    pitts_scope_info.cppm
     pitts_common.cppm
     pitts_parallel.cppm
     pitts_chunk.cppm
