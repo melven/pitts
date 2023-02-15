@@ -6,14 +6,32 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor3_combine.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSOR3_COMBINE)
+import pitts_tensor3_combine;
+#define PITTS_TENSOR3_COMBINE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSOR3_COMBINE_HPP
 #define PITTS_TENSOR3_COMBINE_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <array>
 #include "pitts_tensor3.hpp"
 #include "pitts_performance.hpp"
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensor3_combine;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -92,6 +110,9 @@ namespace PITTS
     return t3c;
   }
 
+  // explicit template instantiations
+  template auto combine<float>(const Tensor3<float>& t3a, const Tensor3<float>& t3b, bool swap = false);
+  template auto combine<double>(const Tensor3<double>& t3a, const Tensor3<double>& t3b, bool swap = false);
 }
 
 
