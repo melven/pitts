@@ -6,20 +6,46 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_scale.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_SCALE)
+import pitts_multivector_scale;
+#define PITTS_MULTIVECTOR_SCALE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_SCALE_HPP
 #define PITTS_MULTIVECTOR_SCALE_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <array>
 #include <exception>
+#ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_scale;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! scale each column in a multi-vector with a scalar
   //!
@@ -53,6 +79,10 @@ namespace PITTS
       }
     }
   }
+
+  // explicit template instantiations
+  //template void scale<float>(const Eigen::Array<float,1,Eigen::Dynamic>& alpha, MultiVector<float>& X);
+  //template void scale<double>(const Eigen::Array<double,1,Eigen::Dynamic>& alpha, MultiVector<double>& X);
 
 }
 
