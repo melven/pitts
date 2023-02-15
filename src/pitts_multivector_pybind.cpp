@@ -9,10 +9,6 @@
 // includes
 #include <iostream>
 #include <variant>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-//#include <pybind11/complex.h>
-#include <pybind11/numpy.h>
 #include <string>
 #include <exception>
 #include "pitts_multivector.hpp"
@@ -24,6 +20,12 @@
 #include "pitts_multivector_transpose.hpp"
 #include "pitts_multivector_pybind.hpp"
 #include "pitts_scope_info.hpp"
+
+// include pybind11 last (workaround for problem with C++20 modules)
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+//#include <pybind11/complex.h>
+#include <pybind11/numpy.h>
 
 namespace py = pybind11;
 

@@ -11,14 +11,14 @@
 #define PITTS_PERFORMANCE_HPP
 
 // includes
-#include "pitts_parallel.hpp"
-#include "pitts_kernel_info.hpp"
-#include "pitts_timer.hpp"
 #include <cmath>
 #include <iomanip>
 #include <vector>
 #include <numeric>
 #include <string>
+#include "pitts_parallel.hpp"
+#include "pitts_kernel_info.hpp"
+#include "pitts_timer.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

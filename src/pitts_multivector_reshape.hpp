@@ -6,9 +6,20 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_reshape.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_RESHAPE)
+import pitts_multivector_reshape;
+#define PITTS_MULTIVECTOR_RESHAPE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_RESHAPE_HPP
 #define PITTS_MULTIVECTOR_RESHAPE_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <exception>
@@ -16,8 +27,15 @@
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_reshape;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! reshape a tall-skinny matrix (multivector)
   //!
@@ -150,6 +168,9 @@ namespace PITTS
     }
   }
 
+  // explicit template instantiations
+  template void reshape(const MultiVector<float>& X, long long rows, long long cols, MultiVector<float>& Y);
+  template void reshape(const MultiVector<double>& X, long long rows, long long cols, MultiVector<double>& Y);
 }
 
 

@@ -8,9 +8,11 @@
 
 // includes
 #include <iostream>
-#include <pybind11/pybind11.h>
 #include "pitts_common_pybind.hpp"
 #include "pitts_common.hpp"
+
+// include pybind11 last (workaround for problem with C++20 modules)
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 

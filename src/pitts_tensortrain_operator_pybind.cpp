@@ -7,10 +7,6 @@
 **/
 
 // includes
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-//#include <pybind11/complex.h>
-#include <pybind11/numpy.h>
 #include <string>
 #include <exception>
 #include "pitts_tensortrain_operator.hpp"
@@ -20,6 +16,12 @@
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_scope_info.hpp"
+
+// include pybind11 last (workaround for problem with C++20 modules)
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+//#include <pybind11/complex.h>
+#include <pybind11/numpy.h>
 
 namespace py = pybind11;
 

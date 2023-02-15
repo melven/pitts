@@ -7,11 +7,13 @@
 **/
 
 // includes
+#include "pitts_qubit_simulator.hpp"
+#include "pitts_qubit_simulator_pybind.hpp"
+
+// include pybind11 last (workaround for problem with C++20 modules)
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/complex.h>
-#include "pitts_qubit_simulator.hpp"
-#include "pitts_qubit_simulator_pybind.hpp"
 
 namespace py = pybind11;
 
