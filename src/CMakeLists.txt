@@ -86,6 +86,7 @@ if(PITTS_USE_MODULES)
     pitts_type_name.cppm
     pitts_multivector_cdist.cppm
     pitts_common.cppm
+    pitts_multivector_axpby.cppm
     )
 endif()
 
