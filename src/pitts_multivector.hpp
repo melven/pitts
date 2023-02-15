@@ -6,9 +6,20 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR)
+import pitts_multivector;
+#define PITTS_MULTIVECTOR_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_HPP
 #define PITTS_MULTIVECTOR_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <memory>
@@ -17,8 +28,15 @@
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! "Set" of large vectors (matrix with a high number of rows)
   //!
@@ -171,6 +189,10 @@ namespace PITTS
       }
     }
   }
+
+  // explicit template instantiations
+  template class MultiVector<float>;
+  template class MultiVector<double>;
 }
 
 

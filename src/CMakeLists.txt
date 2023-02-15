@@ -84,9 +84,10 @@ if(PITTS_USE_MODULES)
   target_sources(pitts_modules PUBLIC FILE_SET CXX_MODULES FILES
     pitts_hash_function.cppm
     pitts_type_name.cppm
+    pitts_common.cppm
+    pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm
-    pitts_common.cppm
     pitts_multivector_random.cppm
     pitts_multivector_reshape.cppm
     pitts_multivector_transform.cppm
