@@ -86,6 +86,7 @@ if(PITTS_USE_MODULES)
     pitts_type_name.cppm
     pitts_common.cppm
     pitts_fixed_tensor3.cppm
+    pitts_fixed_tensor3_apply.cppm
     pitts_tensor2.cppm
     pitts_tensor2_random.cppm
     pitts_tensor2_qb_decomposition.cppm
