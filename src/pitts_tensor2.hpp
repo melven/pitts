@@ -6,9 +6,20 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor2.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSOR2)
+import pitts_tensor2;
+#define PITTS_TENSOR2_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSOR2_HPP
 #define PITTS_TENSOR2_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <vector>
@@ -16,8 +27,15 @@
 #include "pitts_chunk.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensor2;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! "small" rank-2 tensor (matrix, intended to be used in a tensor train)
   //!
@@ -134,6 +152,10 @@ namespace PITTS
       for(long long i = 0; i < r1; i++)
         b(i,j) = a(i,j);
   }
+
+  // explicit template instantiations
+  template class Tensor2<float>;
+  template class Tensor2<double>;
 }
 
 
