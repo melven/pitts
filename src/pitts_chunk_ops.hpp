@@ -6,16 +6,32 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_chunk_ops.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_CHUNK_OPS)
+import pitts_chunk_ops;
+#define PITTS_CHUNK_OPS_HPP
+#endif
+
 // include guard
 #ifndef PITTS_CHUNK_OPS_HPP
 #define PITTS_CHUNK_OPS_HPP
 
+// module export
+#ifdef PITTS_USE_MODULES
+
+export module pitts_chunk_ops;
+export import pitts_chunk;
+# define PITTS_MODULE_EXPORT export
+
+#else
+
 // includes
 #include "pitts_chunk.hpp"
 
+#endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! add the element-wise product of two chunks ( d_i = a_i * b_i + c_i )
   template<typename T>
@@ -51,7 +67,7 @@ namespace PITTS
 
   //! sum up all elements of a chunk and broadcast the result to all elements ( a_i = a_1 + ... a_n )
   template<typename T>
-  inline void bcast_sum(Chunk<double>& v);
+  inline void bcast_sum(Chunk<T>& v);
 
   //! masked broadcast to given index, sets result to value at given index and to src everywhere else ( result_i = (i==index) ? value : src_i )
   template<typename T>

@@ -6,7 +6,7 @@
 *
 **/
 
-// just import the module if we are in module mode and this file is not included from pitts_multivector_cdist.cppm
+// just import the module if we are in module mode and this file is not included from pitts_chunk.cppm
 #if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_CHUNK)
 import pitts_chunk;
 #define PITTS_CHUNK_HPP

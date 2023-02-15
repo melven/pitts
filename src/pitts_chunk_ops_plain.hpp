@@ -11,7 +11,6 @@
 #define PITTS_CHUNK_OPS_PLAIN_HPP
 
 // includes
-#include "pitts_chunk.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

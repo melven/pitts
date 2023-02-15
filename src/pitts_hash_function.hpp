@@ -6,7 +6,7 @@
 *
 **/
 
-// just import the module if we are in module mode and this file is not included from pitts_multivector_cdist.cppm
+// just import the module if we are in module mode and this file is not included from pitts_hash_function.cppm
 #if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_HASH_FUNCTION)
 import pitts_hash_function;
 #define PITTS_HASH_FUNCTION_HPP
