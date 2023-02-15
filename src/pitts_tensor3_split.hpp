@@ -6,23 +6,49 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensor3_split.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSOR3_SPLIT)
+import pitts_tensor3_split;
+#define PITTS_TENSOR3_SPLIT_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSOR3_SPLIT_HPP
 #define PITTS_TENSOR3_SPLIT_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <tuple>
 #include <complex>
+#ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_tensor3.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensor3_split;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -73,7 +99,8 @@ namespace PITTS
       // with an absolute tolerance, we can get rank 0, otherwise it should be (numerically) at least 1
       // (Eigen / LAPACK / MKL don't like call with dimension zero, so avoid this when possible)
       const auto minRank = absoluteTolerance ? 0 : 1;
-      const auto r = std::max(Eigen::Index(minRank), std::min(qr.rank(), Eigen::Index(maxRank)));
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(minRank), std::min(qr.rank(), Index(maxRank)));
       qr.householderQ().setLength(r);
       const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
 
@@ -136,7 +163,8 @@ namespace PITTS
 
       auto svd = normalize_svd_only(M);
       svd.setThreshold(rankTol);
-      const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
+      using Index = decltype(svd.rank());
+      const auto r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
@@ -207,6 +235,9 @@ namespace PITTS
     return result;
   }
 
+  // explicit template instantiations
+  //template auto split<float>(const Tensor3<float>& t3c, int na, int nb, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max());
+  //template auto split<double>(const Tensor3<double>& t3c, int na, int nb, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max());
 }
 
 

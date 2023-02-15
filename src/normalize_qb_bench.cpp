@@ -2,9 +2,12 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_random.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include <iostream>
 #include <charconv>
 #include <stdexcept>
+#include <omp.h>
 
 
 int main(int argc, char* argv[])
