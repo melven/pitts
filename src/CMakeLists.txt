@@ -90,6 +90,7 @@ if(PITTS_USE_MODULES)
     pitts_multivector_random.cppm
     pitts_multivector_reshape.cppm
     pitts_multivector_transform.cppm
+    pitts_multivector_transpose.cppm
     pitts_multivector_axpby.cppm
     pitts_multivector_norm.cppm
     pitts_multivector_scale.cppm

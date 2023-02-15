@@ -6,22 +6,40 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_transpose.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_TRANSPOSE)
+import pitts_multivector_transpose;
+#define PITTS_MULTIVECTOR_TRANSPOSE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_TRANSPOSE_HPP
 #define PITTS_MULTIVECTOR_TRANSPOSE_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
-#include "pitts_parallel.hpp"
-#include "pitts_multivector.hpp"
-#include "pitts_performance.hpp"
-#include "pitts_chunk_ops.hpp"
 #include <array>
 #include <exception>
 #include <memory>
 #include <tuple>
+#include "pitts_parallel.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_chunk_ops.hpp"
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_transpose;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! reshape and transpose a tall-skinny matrix
   //!
@@ -149,6 +167,10 @@ namespace PITTS
       }
     }
   }
+
+  // explicit template instantiations
+  template void transpose<float>(const MultiVector<float>& X, MultiVector<float>& Y, std::array<long long,2> reshape = {0, 0}, bool reverse = false);
+  template void transpose<double>(const MultiVector<double>& X, MultiVector<double>& Y, std::array<long long,2> reshape = {0, 0}, bool reverse = false);
 }
 
 #endif // PITTS_MULTIVECTOR_TRANSPOSE_HPP
