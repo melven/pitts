@@ -19,6 +19,7 @@
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_transpose.hpp"
 #include "pitts_multivector_pybind.hpp"
+#include "pitts_tensor2.hpp"
 #include "pitts_scope_info.hpp"
 
 // include pybind11 last (workaround for problem with C++20 modules)

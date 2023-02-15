@@ -9,23 +9,41 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_multivector_tsqr.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_MULTIVECTOR_TSQR)
+import pitts_multivector_tsqr;
+#define PITTS_MULTIVECTOR_TSQR_HPP
+#endif
+
 // include guard
 #ifndef PITTS_MULTIVECTOR_TSQR_HPP
 #define PITTS_MULTIVECTOR_TSQR_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
+#include <cassert>
+#include <memory>
+#include <cstdint>
+#include <bit>
 #include "pitts_parallel.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
-#include <cassert>
-#include <memory>
-#include <cstdint>
-#include <bit>
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_multivector_tsqr;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -828,6 +846,10 @@ namespace PITTS
       for(int i = 0; i < m; i++)
         R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
   }
+
+  // explicit template instantiations
+  template void block_TSQR<float>(const MultiVector<float>& M, Tensor2<float>& R, int reductionFactor = 0, bool mpiGlobal = true, int colBlockingSize = 0);
+  template void block_TSQR<double>(const MultiVector<double>& M, Tensor2<double>& R, int reductionFactor = 0, bool mpiGlobal = true, int colBlockingSize = 0);
 }
 
 
