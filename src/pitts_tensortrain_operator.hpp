@@ -22,6 +22,8 @@ module;
 #endif
 
 // includes
+#include <cmath>
+#include <vector>
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
