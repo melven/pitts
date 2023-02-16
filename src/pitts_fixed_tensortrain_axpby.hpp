@@ -15,6 +15,7 @@
 #include <cassert>
 #include "pitts_tensor2.hpp"
 #include "pitts_fixed_tensortrain.hpp"
+#include "pitts_fixed_tensor3.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"
 #include "pitts_timer.hpp"
