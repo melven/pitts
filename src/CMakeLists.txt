@@ -126,6 +126,7 @@ if(PITTS_USE_MODULES)
     pitts_tensortrain_laplace_operator.cppm
     pitts_tensortrain_normalize.cppm
     pitts_tensortrain_random.cppm
+    pitts_tensortrain_to_dense.cppm
     pitts_tensortrain_operator.cppm
     pitts_tensortrain_operator_apply.cppm
     pitts_tensortrain_operator_apply_dense.cppm
