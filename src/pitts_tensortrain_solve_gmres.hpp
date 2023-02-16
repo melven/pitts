@@ -27,6 +27,7 @@ module;
 #include <vector>
 #ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #else
 #include <string>
 #include <complex>
@@ -195,6 +196,11 @@ PITTS_MODULE_EXPORT namespace PITTS
     return rho;
   }
 
+  // explicit template instantiations
+  //template auto solveGMRES<float>(const TensorTrainOperator<float> &TTOpA, const TensorTrain<float> &TTb, TensorTrain<float> &TTx,
+  //                                int maxIter, float absResTol, float relResTol, int maxRank, bool adaptiveTolerance, bool symmetric, const std::string &outputPrefix, bool verbose);
+  //template auto solveGMRES<double>(const TensorTrainOperator<double> &TTOpA, const TensorTrain<double> &TTb, TensorTrain<double> &TTx,
+  //                                 int maxIter, double absResTol, double relResTol, int maxRank, bool adaptiveTolerance, bool symmetric, const std::string &outputPrefix, bool verbose);
 }
 
 

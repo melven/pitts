@@ -15,6 +15,43 @@
 #include "pitts_tensortrain_solve_pybind.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 
+#ifdef PITTS_USE_MODULES
+
+#include "pitts_tensor2.hpp"
+#include "pitts_tensor3_combine.hpp"
+#include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
+#include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_normalize.hpp"
+#include "pitts_tensortrain_operator.hpp"
+#include "pitts_tensortrain_operator_apply.hpp"
+#include "pitts_tensortrain_operator_apply_dense.hpp"
+#include "pitts_tensortrain_operator_apply_transposed.hpp"
+#include "pitts_tensortrain_operator_apply_transposed_op.hpp"
+#include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_to_dense.hpp"
+#include "pitts_tensortrain_from_dense.hpp"
+#include "pitts_tensortrain_solve_gmres.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_axpby.hpp"
+#include "pitts_multivector_norm.hpp"
+#include "pitts_multivector_dot.hpp"
+#include "pitts_multivector_scale.hpp"
+#include "pitts_gmres.hpp"
+#include "pitts_timer.hpp"
+#include "pitts_chunk_ops.hpp"
+#include "pitts_tensortrain_sweep_index.hpp"
+#include "pitts_performance.hpp"
+#ifndef NDEBUG
+#include "pitts_tensortrain_debug.hpp"
+#include "pitts_tensortrain_operator_debug.hpp"
+#endif
+
+#endif
+
 // include pybind11 last (workaround for problem with C++20 modules)
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

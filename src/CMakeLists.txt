@@ -150,6 +150,7 @@ if(PITTS_USE_MODULES)
     pitts_gmres.cppm
     pitts_tensortrain_sweep_index.cppm
     pitts_tensortrain_solve_gmres.cppm
+    pitts_tensortrain_solve_mals.cppm
     )
 endif()
 

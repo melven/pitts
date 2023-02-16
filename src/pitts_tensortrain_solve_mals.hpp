@@ -6,20 +6,39 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_solve_mals.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_SOLVE_MALS)
+import pitts_tensortrain_solve_mals;
+#define PITTS_TENSORTRAIN_SOLVE_MALS_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_SOLVE_MALS_HPP
 #define PITTS_TENSORTRAIN_SOLVE_MALS_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
-//#include <omp.h>
-//#include <iostream>
 #include <cmath>
 #include <limits>
 #include <cassert>
 #include <iostream>
 #include <utility>
+#include <vector>
+#ifndef PITTS_USE_MODULES
+#include "pitts_eigen.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_combine.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
@@ -42,7 +61,6 @@
 #include "pitts_multivector_norm.hpp"
 #include "pitts_multivector_dot.hpp"
 #include "pitts_multivector_scale.hpp"
-#include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_gmres.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
@@ -53,8 +71,15 @@
 #include "pitts_tensortrain_operator_debug.hpp"
 #endif
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_solve_mals;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
