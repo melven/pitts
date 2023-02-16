@@ -8,6 +8,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_from_dense_twosided.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
 
 
 

@@ -24,6 +24,7 @@
 #include "pitts_tensortrain_pybind.hpp"
 #include "pitts_scope_info.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
 
 // include pybind11 last (workaround for problem with C++20 modules)
 #include <pybind11/pybind11.h>
