@@ -46,6 +46,7 @@
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
+#include "pitts_performance.hpp"
 #ifndef NDEBUG
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_operator_debug.hpp"

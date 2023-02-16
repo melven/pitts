@@ -131,6 +131,7 @@ if(PITTS_USE_MODULES)
     pitts_tensortrain_operator_apply_op.cppm
     pitts_tensortrain_operator_apply_transposed.cppm
     pitts_tensortrain_operator_apply_transposed_dense.cppm
+    pitts_tensortrain_operator_apply_transposed_op.cppm
     pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm

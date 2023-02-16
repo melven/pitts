@@ -10,6 +10,7 @@
 #include <string>
 #include <stdexcept>
 #include <variant>
+#include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
@@ -18,6 +19,7 @@
 #include "pitts_scope_info.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor3.hpp"
 
 // include pybind11 last (workaround for problem with C++20 modules)
 #include <pybind11/pybind11.h>
