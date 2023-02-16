@@ -6,20 +6,48 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_gmres.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_GMRES)
+import pitts_gmres;
+#define PITTS_GMRES_HPP
+#endif
+
 // include guard
 #ifndef PITTS_GMRES_HPP
 #define PITTS_GMRES_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <cmath>
 #include <limits>
 #include <cassert>
 #include <iostream>
-#include "pitts_timer.hpp"
+#include <vector>
+#ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
+#else
+#include <complex>
+#include <string>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
+#include "pitts_timer.hpp"
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_gmres;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -178,6 +206,7 @@ namespace PITTS
     return rho;
   }
 
+  // explicit template instantiations
 }
 
 
