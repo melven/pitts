@@ -6,15 +6,25 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_norm.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_NORM)
+import pitts_tensortrain_norm;
+#define PITTS_TENSORTRAIN_NORM_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_NORM_HPP
 #define PITTS_TENSORTRAIN_NORM_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
-//#include <omp.h>
-//#include <iostream>
 #include <cmath>
 #include <cassert>
+#include <stdexcept>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_tensortrain.hpp"
@@ -23,8 +33,15 @@
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_norm;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -210,6 +227,9 @@ namespace PITTS
     return std::sqrt(result);
   }
 
+  // explicit template instantiations
+  template float norm2<float>(const TensorTrain<float>& TT);
+  template double norm2<double>(const TensorTrain<double>& TT);
 }
 
 

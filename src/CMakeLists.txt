@@ -118,6 +118,7 @@ if(PITTS_USE_MODULES)
     pitts_tensortrain_axpby_plain.cppm
     pitts_tensortrain_debug.cppm
     pitts_tensortrain_dot.cppm
+    pitts_tensortrain_norm.cppm
     pitts_tensortrain_from_dense.cppm
     pitts_tensortrain_from_dense_classical.cppm
     pitts_tensortrain_from_dense_twosided.cppm

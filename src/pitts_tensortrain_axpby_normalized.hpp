@@ -42,6 +42,7 @@ module;
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_performance.hpp"
 
 // module export
 #ifdef PITTS_USE_MODULES

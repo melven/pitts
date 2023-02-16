@@ -44,6 +44,7 @@ module;
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_performance.hpp"
 
 // module export
 #ifdef PITTS_USE_MODULES
