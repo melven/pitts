@@ -33,6 +33,7 @@
 #include "pitts_tensortrain_operator_apply_dense.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
+#include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_solve_gmres.hpp"

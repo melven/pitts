@@ -149,6 +149,7 @@ if(PITTS_USE_MODULES)
     pitts_multivector_dot.cppm
     pitts_gmres.cppm
     pitts_tensortrain_sweep_index.cppm
+    pitts_tensortrain_solve_gmres.cppm
     )
 endif()
 

@@ -6,14 +6,35 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_solve_gmres.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_SOLVE_GMRES)
+import pitts_tensortrain_solve_gmres;
+#define PITTS_TENSORTRAIN_SOLVE_GMRES_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_SOLVE_GMRES_HPP
 #define PITTS_TENSORTRAIN_SOLVE_GMRES_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <iostream>
 #include <cassert>
 #include <vector>
+#ifndef PITTS_USE_MODULES
+#include "pitts_eigen.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_axpby.hpp"
@@ -22,10 +43,18 @@
 #include "pitts_tensortrain_gram_schmidt.hpp"
 #include "pitts_gmres.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_eigen.hpp"
+#include "pitts_tensor3.hpp"
+#include "pitts_tensortrain_normalize.hpp"
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_solve_gmres;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
