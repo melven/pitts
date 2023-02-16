@@ -27,6 +27,7 @@ module;
 #include <memory>
 #endif
 
+#include <complex>
 #include <random>
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_performance.hpp"

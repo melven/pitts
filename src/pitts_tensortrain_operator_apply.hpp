@@ -11,7 +11,7 @@
 #define PITTS_TENSORTRAIN_OPERATOR_APPLY_HPP
 
 // includes
-#include <cmath>
+#include <memory>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"

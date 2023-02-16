@@ -22,7 +22,8 @@ module;
 #endif
 
 // includes
-#include <array>
+#include <memory>
+#include <stdexcept>
 #include "pitts_tensor3.hpp"
 #include "pitts_performance.hpp"
 

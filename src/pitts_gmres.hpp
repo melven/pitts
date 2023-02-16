@@ -32,10 +32,33 @@ module;
 #else
 #include <complex>
 #include <string>
-#define EIGEN_CORE_MODULE_H
-#include <Eigen/src/Core/util/Macros.h>
-#include <Eigen/src/Core/util/Constants.h>
-#include <Eigen/src/Core/util/ForwardDeclarations.h>
+//#define EIGEN_CORE_MODULE_H
+//#include <Eigen/src/Core/util/Macros.h>
+//#include <Eigen/src/Core/util/Constants.h>
+//#include <Eigen/src/Core/util/ForwardDeclarations.h>
+namespace Eigen
+{
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::RowMajor
+#else
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
+#endif
+  enum StorageOptions {
+    ColMajor = 0,
+    RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
+    AutoAlign = 0,
+    DontAlign = 0x2
+  };
+  const int Dynamic = -1;
+  template<typename Scalar_, int Rows_, int Cols_,
+           int Options_ = AutoAlign |
+                            ( (Rows_==1 && Cols_!=1) ? Eigen::RowMajor
+                            : (Cols_==1 && Rows_!=1) ? Eigen::ColMajor
+                            : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
+           int MaxRows_ = Rows_,
+           int MaxCols_ = Cols_
+  > class Matrix;
+}
 #endif
 #include "pitts_timer.hpp"
 

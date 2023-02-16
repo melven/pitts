@@ -28,6 +28,7 @@ module;
 #include <cassert>
 #include <memory>
 #include <cstdint>
+#include <cmath>
 #include <bit>
 #include "pitts_parallel.hpp"
 #include "pitts_multivector.hpp"
@@ -304,7 +305,7 @@ PITTS_MODULE_EXPORT namespace PITTS
 
         const int bs = colBlockSize;
 
-        const std::function<void(int,int,int,int)> tree_apply = [&](int beginCol, int endCol, int applyBeginCol, int applyEndCol)
+        const auto tree_apply = [&](const auto& tree_apply, int beginCol, int endCol, int applyBeginCol, int applyEndCol) -> void
         {
           int nCol = endCol - beginCol;
           // could also split by nApplyCol but doesn't seem to be help
@@ -317,12 +318,12 @@ PITTS_MODULE_EXPORT namespace PITTS
           else
           {
             int middle = beginCol + (nCol/2/bs)*bs;
-            tree_apply(beginCol, middle, applyBeginCol, applyEndCol);
-            tree_apply(middle, endCol, applyBeginCol, applyEndCol);
+            tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
+            tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
           }
         };
 
-        const std::function<void(int,int)> tree_calc = [&](int beginCol, int endCol)
+        const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
         {
           int nCol = endCol - beginCol;
           if( nCol < 2*bs )
@@ -336,13 +337,13 @@ PITTS_MODULE_EXPORT namespace PITTS
           else
           {
             int middle = beginCol + (nCol/2/bs)*bs;
-            tree_calc(beginCol, middle);
-            tree_apply(beginCol, middle, middle, endCol);
-            tree_calc(middle, endCol);
+            tree_calc(tree_calc, beginCol, middle);
+            tree_apply(tree_apply, beginCol, middle, middle, endCol);
+            tree_calc(tree_calc, middle, endCol);
           }
         };
 
-        tree_calc(0,m);
+        tree_calc(tree_calc,0,m);
       }
 
       //! internal helper function for transformBlock

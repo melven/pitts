@@ -33,7 +33,16 @@ module;
 #include "pitts_parallel.hpp"
 #include "pitts_scope_info.hpp"
 
-#include <cereal/cereal.hpp>
+#ifndef PITTS_USE_MODULES
+# include <cereal/cereal.hpp>
+#else
+# define CEREAL_NVP(T) ::cereal::make_nvp(#T, T)
+namespace cereal
+{
+  template <class T> class NameValuePair;
+  template <class T> NameValuePair<T> make_nvp( std::string const & name, T && value );
+}
+#endif
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>

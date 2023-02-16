@@ -86,6 +86,7 @@ if(PITTS_USE_MODULES)
     pitts_timer.cppm
     pitts_type_name.cppm
     pitts_scope_info.cppm
+    pitts_kernel_info.cppm
     pitts_common.cppm
     pitts_parallel.cppm
     pitts_performance.cppm

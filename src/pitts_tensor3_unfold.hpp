@@ -22,6 +22,7 @@ module;
 #endif
 
 // includes
+#include <vector>
 #include "pitts_tensor3.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"

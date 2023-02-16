@@ -22,7 +22,7 @@ module;
 #endif
 
 // includes
-#include <array>
+#include <stdexcept>
 #include "pitts_fixed_tensor3.hpp"
 #include "pitts_performance.hpp"
 

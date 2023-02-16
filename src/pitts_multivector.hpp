@@ -193,6 +193,8 @@ PITTS_MODULE_EXPORT namespace PITTS
   // explicit template instantiations
   template class MultiVector<float>;
   template class MultiVector<double>;
+  template void copy<float>(const MultiVector<float>&, MultiVector<float>&);
+  template void copy<double>(const MultiVector<double>&, MultiVector<double>&);
 }
 
 

@@ -23,6 +23,7 @@ module;
 
 // includes
 #include <cassert>
+#include <vector>
 #include "pitts_tensor3.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"
@@ -30,6 +31,8 @@ module;
 // module export
 #ifdef PITTS_USE_MODULES
 export module pitts_tensor3_fold;
+// for convenience: otherwise templates cannot be instantiated...
+export import pitts_kernel_info;
 # define PITTS_MODULE_EXPORT export
 #endif
 

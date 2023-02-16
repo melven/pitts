@@ -6,18 +6,49 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_kernel_info.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_KERNEL_INFO)
+import pitts_kernel_info;
+#define PITTS_KERNEL_INFO_HPP
+#endif
+
 // include guard
 #ifndef PITTS_KERNEL_INFO_HPP
 #define PITTS_KERNEL_INFO_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <type_traits>
 #include <complex>
-#include <cereal/cereal.hpp>
 
+#ifndef PITTS_USE_MODULES
+# include <cereal/cereal.hpp>
+#else
+// workaround for mismatching std::align implementation
+#include <memory>
+# include <cereal/details/helpers.hpp>
+# define CEREAL_NVP(T) ::cereal::make_nvp(#T, T)
+namespace cereal
+{
+  //template <class T> class NameValuePair;
+  template <class T> NameValuePair<T> make_nvp( std::string const & name, T && value );
+}
+#endif
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_kernel_info;
+# define PITTS_MODULE_EXPORT export
+#else
+# define PITTS_MODULE_EXPORT
+#endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
