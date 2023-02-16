@@ -88,6 +88,7 @@ if(PITTS_USE_MODULES)
     pitts_scope_info.cppm
     pitts_common.cppm
     pitts_parallel.cppm
+    pitts_performance.cppm
     pitts_chunk.cppm
     pitts_chunk_ops.cppm
     pitts_fixed_tensor3.cppm

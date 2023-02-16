@@ -13,6 +13,8 @@
 //#define VERBOSE
 
 // includes
+#include <iostream>
+#include <iomanip>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
