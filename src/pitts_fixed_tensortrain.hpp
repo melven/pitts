@@ -29,6 +29,7 @@ module;
 // module export
 #ifdef PITTS_USE_MODULES
 export module pitts_fixed_tensortrain;
+export import pitts_fixed_tensor3;
 # define PITTS_MODULE_EXPORT export
 #endif
 
