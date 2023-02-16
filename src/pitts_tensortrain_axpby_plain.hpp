@@ -16,8 +16,8 @@
 #include <cmath>
 #include <limits>
 #include <cassert>
+#include <vector>
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_timer.hpp"

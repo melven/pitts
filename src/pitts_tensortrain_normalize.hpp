@@ -17,8 +17,8 @@
 #include <limits>
 #include <algorithm>
 #include <cassert>
+#include <vector>
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"

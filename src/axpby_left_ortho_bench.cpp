@@ -3,9 +3,10 @@
 
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
-#include "pitts_tensortrain_axpby_normalized.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensortrain_axpby_normalized.hpp"
 
 static const char* help_message = "\nNeed to pass parameters (d, n, xr, yr, iter): \n"
     "d      - dimension of tensor (order of tensortrain)\n"

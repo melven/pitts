@@ -113,6 +113,7 @@ if(PITTS_USE_MODULES)
     pitts_tensor3_unfold.cppm
     pitts_tensor3_split.cppm
     pitts_tensortrain.cppm
+    pitts_tensortrain_axpby.cppm
     pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm

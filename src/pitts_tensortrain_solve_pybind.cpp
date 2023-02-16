@@ -13,6 +13,7 @@
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_tensortrain_solve_pybind.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 
 // include pybind11 last (workaround for problem with C++20 modules)
 #include <pybind11/pybind11.h>

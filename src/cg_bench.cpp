@@ -1,3 +1,4 @@
+#include <iostream>
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
@@ -5,7 +6,7 @@
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_laplace_operator.hpp"
-#include <iostream>
+#include "pitts_tensor2_eigen_adaptor.hpp"
 
 namespace
 {

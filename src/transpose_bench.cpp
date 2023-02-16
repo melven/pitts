@@ -1,11 +1,11 @@
+#include <iostream>
+#include <charconv>
+#include <stdexcept>
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_transpose.hpp"
 #include "pitts_multivector_random.hpp"
-#include <iostream>
-#include <charconv>
-#include <stdexcept>
 
 
 int main(int argc, char* argv[])

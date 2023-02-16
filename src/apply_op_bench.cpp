@@ -1,10 +1,11 @@
+#include <iostream>
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
-#include <iostream>
+#include "pitts_tensor2_eigen_adaptor.hpp"
 
 
 int main(int argc, char* argv[])
