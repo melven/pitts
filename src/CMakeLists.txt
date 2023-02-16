@@ -121,6 +121,7 @@ if(PITTS_USE_MODULES)
     pitts_tensortrain_from_dense.cppm
     pitts_tensortrain_from_dense_classical.cppm
     pitts_tensortrain_from_dense_twosided.cppm
+    pitts_tensortrain_gram_schmidt.cppm
     pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm

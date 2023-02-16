@@ -6,22 +6,49 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_gram_schmidt.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_GRAM_SCHMIDT)
+import pitts_tensortrain_gram_schmidt;
+#define PITTS_TENSORTRAIN_GRAM_SCHMIDT_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_GRAM_SCHMIDT_HPP
 #define PITTS_TENSORTRAIN_GRAM_SCHMIDT_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <iostream>
 #include <cassert>
+#ifndef PITTS_USE_MODULES
+#include "pitts_eigen.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_eigen.hpp"
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_gram_schmidt;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -145,7 +172,9 @@ namespace PITTS
     return h;
   }
 
+  // explicit template instantiations
+  //template auto gramSchmidt<float>(std::vector<TensorTrain<float>>& V, TensorTrain<float>& w, float rankTolerance, int maxRank, bool symmetric, onst std::string& outputPrefix, bool verbose, int nIter, bool pivoting, bool modified, bool skipDirs);
+  //template auto gramSchmidt<double>(std::vector<TensorTrain<double>>& V, TensorTrain<double>& w, double rankTolerance, int maxRank, bool symmetric, onst std::string& outputPrefix, bool verbose, int nIter, bool pivoting, bool modified, bool skipDirs);
 }
-
 
 #endif // PITTS_TENSORTRAIN_GRAM_SCHMIDT_HPP
