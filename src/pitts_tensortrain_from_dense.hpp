@@ -6,14 +6,37 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_from_dense.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_FROM_DENSE)
+import pitts_tensortrain_from_dense;
+#define PITTS_TENSORTRAIN_FROM_DENSE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_FROM_DENSE_HPP
 #define PITTS_TENSORTRAIN_FROM_DENSE_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 #include <limits>
 #include <numeric>
 #include <iostream>
+#include <vector>
+#ifndef PITTS_USE_MODULES
+#include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_parallel.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
@@ -21,14 +44,20 @@
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_reshape.hpp"
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_eigen.hpp"
+
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_from_dense;
+export import pitts_kernel_info;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! calculate tensor-train decomposition of a tensor stored in fully dense format
   //!
@@ -141,7 +170,9 @@ namespace PITTS
     return result;
   }
 
+  // explicit template instantiations
+  //template TensorTrain<float> fromDense<float>(MultiVector<float>& X, MultiVector<float>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1, bool mpiGlobal = false, int r0 = 1, int rd = 1)
+  //template TensorTrain<double> fromDense<double>(MultiVector<double>& X, MultiVector<double>& work, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1, bool mpiGlobal = false, int r0 = 1, int rd = 1)
 }
-
 
 #endif // PITTS_TENSORTRAIN_FROM_DENSE_HPP

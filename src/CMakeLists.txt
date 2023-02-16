@@ -118,6 +118,7 @@ if(PITTS_USE_MODULES)
     pitts_tensortrain_axpby_plain.cppm
     pitts_tensortrain_debug.cppm
     pitts_tensortrain_dot.cppm
+    pitts_tensortrain_from_dense.cppm
     pitts_multivector.cppm
     pitts_multivector_cdist.cppm
     pitts_multivector_centroids.cppm
