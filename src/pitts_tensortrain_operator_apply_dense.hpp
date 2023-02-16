@@ -14,10 +14,12 @@
 #include <cmath>
 #include <numeric>
 #include <functional>
+#include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
