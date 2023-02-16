@@ -11,10 +11,10 @@
 #define PITTS_TENSORTRAIN_DOT_HPP
 
 // includes
-//#include <omp.h>
-//#include <iostream>
 #include <cassert>
+#include <stdexcept>
 #include "pitts_tensor2.hpp"
+#include "pitts_tensor3.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"

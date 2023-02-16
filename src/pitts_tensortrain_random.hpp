@@ -13,6 +13,7 @@
 // includes
 #include <random>
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensor3.hpp"
 #include "pitts_tensor3_random.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

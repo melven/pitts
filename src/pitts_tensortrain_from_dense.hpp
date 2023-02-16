@@ -23,6 +23,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_eigen.hpp"
 

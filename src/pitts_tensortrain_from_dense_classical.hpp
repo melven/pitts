@@ -20,6 +20,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
