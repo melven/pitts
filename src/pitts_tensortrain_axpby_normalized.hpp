@@ -6,24 +6,53 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_axpby.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_AXPBY_NORMALIZED)
+import pitts_tensortrain_axpby_normalized;
+#define PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
 #define PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 //#define VERBOSE
 
 // includes
 #include <iostream>
 #include <iomanip>
+#ifndef PITTS_USE_MODULES
+#include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#else
+#include <string>
+#include <complex>
+#define EIGEN_CORE_MODULE_H
+#include <Eigen/src/Core/util/Macros.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/Core/util/ForwardDeclarations.h>
+#endif
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_axpby_normalized;
+# define PITTS_MODULE_EXPORT export
+#endif
+
 
 #define FIXED_FLOAT(f, prec) std::fixed << std::setprecision(prec) << (f < 0 ? "" : " ") << f
 
-namespace PITTS
+//! namespace for the library PITTS (parallel iterative tensor train solvers)
+PITTS_MODULE_EXPORT namespace PITTS
 {
     namespace internal
     {
@@ -474,105 +503,6 @@ namespace PITTS
             }
             return true;
         }
-        
-
-        /*
-        * print the 2-tensor to command line
-        */
-        template <typename T>
-        static void quickndirty_visualizeMAT(const Tensor2<T>& G, int prec = 4)
-        {
-            std::cout << "dimensions: " << G.r1() << " x "<< G.r2() << std::endl;
-            if (G.r1() == 0 || G.r2() == 0) goto _return;
-            for (int i1  = 0; i1 < G.r1(); i1++)
-            {
-                for (int i2 = 0; i2 < G.r2(); i2++)
-                {
-                    std::cout << FIXED_FLOAT(G(i1, i2), prec) << '\t';
-                }
-                std::cout << std::endl;
-            }
-        _return:
-            std::cout << "\n";
-        }
-
-        /*
-        * print the 3-tensor to command line
-        * 
-        * @param prec    digits after decimal point to be displayed
-        * 
-        * @param fold    if fold == 1, combine r1 and n dimensions
-        *                if fold == 2, combine n and r2 dimensions
-        *                if fold == 0, don't fold, show depth (n) to the side
-        */
-        template <typename T>
-        static void quickndirty_visualizeCORE(const Tensor3<T>& G, int prec = 4, int fold = 0)
-        {
-            std::cout << "dimensions: " << G.r1() << " x " << G.n() << " x "<< G.r2() << std::endl;
-            if (fold == 1) // combine r1 and n dimension
-            {
-                for (int j = 0; j < G.n(); j++)
-                {
-                    for (int i1  = 0; i1 < G.r1(); i1++)
-                    {
-                        for (int i2 = 0; i2 < G.r2(); i2++)
-                        {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
-                        }
-                        std::cout << std::endl;
-                    }
-                }
-            }
-            if (fold == 2) // combine n and r2 dimension
-            {
-                for (int i1  = 0; i1 < G.r1(); i1++)
-                {
-                    for (int i2 = 0; i2 < G.r2(); i2++)
-                    {
-                        for (int j = 0; j < G.n(); j++)
-                        {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
-                        }
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            if (fold == 0)
-            {
-                for (int i1  = 0; i1 < G.r1(); i1++)
-                {
-                    for (int j = 0; j < G.n(); j++)
-                    {
-                        for (int i2 = 0; i2 < G.r2(); i2++)
-                        {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
-                        }
-                        std::cout << '\t';
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            std::cout << "\n";
-        }
-
-        /*
-        * print the complete tensor to command line
-        * 
-        * @param prec    digits after decimal point to be displayed
-        * 
-        * @param fold    if fold == 1, combine r1 and n dimensions
-        *                if fold == 2, combine n and r2 dimensions
-        *                if fold == 0, don't fold, show depth (n) to the side
-        */
-        template <typename T>
-        static void quickndirty_visualizeTT(const TensorTrain<T>& TT, int prec = 4, int fold = 0)
-        {
-            for (int i = 0; i < TT.dimensions().size(); i++)
-            {
-                quickndirty_visualizeCORE(TT.subTensor(i), prec, fold);
-            }
-        }
-
 
         
         /**
@@ -830,8 +760,11 @@ namespace PITTS
         }
 
     
-    } // namespace internal
+    }
 
-} // namespace PITTS
+  // explicit template instantiations
+  //template float axpby_normalized<float>(float alpha, const TensorTrain<float>& TTx, float beta, TensorTrain<float>& TTy, float rankTolerance, int maxRank);
+  //template double axpby_normalized<double>(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double rankTolerance, int maxRank);
+}
 
 #endif // PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
