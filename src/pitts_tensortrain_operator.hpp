@@ -6,20 +6,39 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_operator.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_OPERATOR)
+import pitts_tensortrain_operator;
+#define PITTS_TENSORTRAIN_OPERATOR_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_OPERATOR_HPP
 #define PITTS_TENSORTRAIN_OPERATOR_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
 #include <algorithm>
 #include <cassert>
+#include <stdexcept>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_performance.hpp"
 
-//! namespace for the library PITTS (parallel iterative tensor train solvers)
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_operator;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
+//helper functionality
 namespace PITTS
 {
   //! namespace for helper functionality
@@ -40,7 +59,11 @@ namespace PITTS
       return totalDims;
     }
   }
+}
 
+//! namespace for the library PITTS (parallel iterative tensor train solvers)
+PITTS_MODULE_EXPORT namespace PITTS
+{
   //! tensor train operator class
   //!
   //! @tparam T  underlying data type (double, complex, ...)
@@ -232,7 +255,16 @@ namespace PITTS
   {
     return normalize(TTOp.tensorTrain(), rankTolerance, maxRank);
   }
-}
 
+  // explicit template instantiations
+  template class TensorTrainOperator<float>;
+  template class TensorTrainOperator<double>;
+  template void copy<float>(const TensorTrainOperator<float>& a, TensorTrainOperator<float>& b);
+  template void copy<double>(const TensorTrainOperator<double>& a, TensorTrainOperator<double>& b);
+  //template void axpby<float>(float alpha, const TensorTrainOperator<<float>T>& TTOpx, float beta, TensorTrainOperator<float>& TTOpy, float rankTolerance);
+  //template void axpby<double>(double alpha, const TensorTrainOperator<double>& TTOpx, double beta, TensorTrainOperator<double>& TTOpy, double rankTolerance);
+  template void randomize<float>(TensorTrainOperator<float>& TTOp);
+  template void randomize<double>(TensorTrainOperator<double>& TTOp);
+}
 
 #endif // PITTS_TENSORTRAIN_OPERATOR_HPP

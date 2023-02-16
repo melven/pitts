@@ -12,6 +12,7 @@
 
 // includes
 #include <cmath>
+#include <vector>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
