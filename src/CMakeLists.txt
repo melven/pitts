@@ -98,6 +98,7 @@ if(PITTS_USE_MODULES)
     pitts_fixed_tensortrain.cppm
     pitts_fixed_tensortrain_axpby.cppm
     pitts_fixed_tensortrain_dot.cppm
+    pitts_fixed_tensortrain_random.cppm
     pitts_tensor2.cppm
     pitts_tensor2_random.cppm
     pitts_tensor2_qb_decomposition.cppm
