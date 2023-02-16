@@ -22,6 +22,7 @@ module;
 #endif
 
 // includes
+#include <algorithm>
 #ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
@@ -36,6 +37,9 @@ module;
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby_plain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_tensor3.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 // module export
 #ifdef PITTS_USE_MODULES
@@ -69,8 +73,8 @@ PITTS_MODULE_EXPORT namespace PITTS
     {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const std::vector<int>& x_dim = TTx.dimensions();
-        const std::vector<int>& y_dim = TTy.dimensions();
+        const auto& x_dim = TTx.dimensions();
+        const auto& y_dim = TTy.dimensions();
         const int& d = x_dim.size(); // order d
 
         TT_Orthogonality x_ortho = TTx.isOrthogonal();

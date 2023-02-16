@@ -6,7 +6,7 @@
 *
 **/
 
-// just import the module if we are in module mode and this file is not included from pitts_tensortrain_axpby.cppm
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_axpby_normalized.cppm
 #if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_AXPBY_NORMALIZED)
 import pitts_tensortrain_axpby_normalized;
 #define PITTS_TENSORTRAIN_AXPBY_NORMALIZED_HPP
@@ -42,6 +42,7 @@ module;
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
+
 // module export
 #ifdef PITTS_USE_MODULES
 export module pitts_tensortrain_axpby_normalized;
