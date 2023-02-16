@@ -81,6 +81,7 @@ install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 # support for C++20 modules
 if(PITTS_USE_MODULES)
   add_library(pitts_modules STATIC)
+  set_target_properties(pitts_modules PROPERTIES POSITION_INDEPENDENT_CODE On)
   target_sources(pitts_modules PUBLIC FILE_SET CXX_MODULES FILES
     pitts_hash_function.cppm
     pitts_timer.cppm
@@ -101,6 +102,7 @@ if(PITTS_USE_MODULES)
     pitts_fixed_tensortrain_axpby.cppm
     pitts_fixed_tensortrain_dot.cppm
     pitts_fixed_tensortrain_random.cppm
+    pitts_qubit_simulator.cppm
     pitts_tensor2.cppm
     pitts_tensor2_random.cppm
     pitts_tensor2_qb_decomposition.cppm
