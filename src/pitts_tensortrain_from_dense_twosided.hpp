@@ -13,6 +13,7 @@
 // includes
 #include <limits>
 #include <numeric>
+#include <iostream>
 #include "pitts_eigen.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"

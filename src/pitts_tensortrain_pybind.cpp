@@ -9,6 +9,7 @@
 // includes
 #include <string>
 #include <stdexcept>
+#include <variant>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_dot.hpp"

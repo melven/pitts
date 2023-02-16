@@ -9,6 +9,7 @@
 // includes
 #include <string>
 #include <stdexcept>
+#include <variant>
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_tensortrain_solve_pybind.hpp"

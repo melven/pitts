@@ -8,9 +8,9 @@
 
 // includes
 #include <iostream>
-#include <variant>
 #include <string>
 #include <stdexcept>
+#include <variant>
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_cdist.hpp"

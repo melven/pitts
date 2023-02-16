@@ -16,6 +16,7 @@
 #include <random>
 #include <stdexcept>
 #include <array>
+#include <variant>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensortrain_dot.hpp"
 #include "pitts_fixed_tensortrain_axpby.hpp"
