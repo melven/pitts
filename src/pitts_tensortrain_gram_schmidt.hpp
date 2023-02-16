@@ -24,6 +24,7 @@ module;
 // includes
 #include <iostream>
 #include <cassert>
+#include <vector>
 #ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
 #else

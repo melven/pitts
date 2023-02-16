@@ -16,6 +16,7 @@
 #include <iterator>
 #include <numeric>
 #include <type_traits>
+#include <cassert>
 #include "pitts_tensortrain.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_tensor2.hpp"

@@ -26,6 +26,8 @@ module;
 // includes
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <cassert>
 #ifndef PITTS_USE_MODULES
 #include "pitts_eigen.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
@@ -43,6 +45,10 @@ module;
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_performance.hpp"
+#include "pitts_chunk.hpp"
+#include "pitts_chunk_ops.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
 
 // module export
 #ifdef PITTS_USE_MODULES

@@ -22,6 +22,8 @@
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_combine.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"

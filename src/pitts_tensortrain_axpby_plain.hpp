@@ -45,6 +45,9 @@ module;
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
+#include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
 
 // module export
 #ifdef PITTS_USE_MODULES

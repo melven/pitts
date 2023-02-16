@@ -6,18 +6,28 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_normalize.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_NORMALIZE)
+import pitts_tensortrain_normalize;
+#define PITTS_TENSORTRAIN_NORMALIZE_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_NORMALIZE_HPP
 #define PITTS_TENSORTRAIN_NORMALIZE_HPP
 
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
+
 // includes
-//#include <omp.h>
-//#include <iostream>
 #include <cmath>
 #include <limits>
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <stdexcept>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_tensor3_split.hpp"
@@ -29,8 +39,16 @@
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_normalize;
+export import pitts_tensor3;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! namespace for helper functionality
   namespace internal
@@ -386,6 +404,9 @@ namespace PITTS
   }
 
 
+  // explicit template instantiations
+  //template float normalize(TensorTrain<float>& TT, float rankTolerance, int maxRank);
+  //template double normalize(TensorTrain<double>& TT, float rankTolerance, int maxRank);
 }
 
 
