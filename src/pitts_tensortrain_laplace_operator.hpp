@@ -6,9 +6,20 @@
 *
 **/
 
+// just import the module if we are in module mode and this file is not included from pitts_tensortrain_laplace_operator.cppm
+#if defined(PITTS_USE_MODULES) && !defined(EXPORT_PITTS_TENSORTRAIN_LAPLACE_OPERATOR)
+import pitts_tensortrain_laplace_operator;
+#define PITTS_TENSORTRAIN_LAPLACE_OPERATOR_HPP
+#endif
+
 // include guard
 #ifndef PITTS_TENSORTRAIN_LAPLACE_OPERATOR_HPP
 #define PITTS_TENSORTRAIN_LAPLACE_OPERATOR_HPP
+
+// global module fragment
+#ifdef PITTS_USE_MODULES
+module;
+#endif
 
 // includes
 //#include <omp.h>
@@ -19,8 +30,15 @@
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_timer.hpp"
 
+// module export
+#ifdef PITTS_USE_MODULES
+export module pitts_tensortrain_laplace_operator;
+# define PITTS_MODULE_EXPORT export
+#endif
+
+
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
-namespace PITTS
+PITTS_MODULE_EXPORT namespace PITTS
 {
   //! Apply an n-dimensional Laplace operator to a tensor in tensor-train format
   //!
@@ -89,6 +107,9 @@ namespace PITTS
     return norm;
   }
 
+  // explicit template instantiations
+  //template float laplaceOperator<float>(TensorTrain<float>& TT, float rankTolerance);
+  //template double laplaceOperator<double>(TensorTrain<double>& TT, float rankTolerance);
 }
 
 
