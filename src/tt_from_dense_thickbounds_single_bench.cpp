@@ -6,6 +6,7 @@
 #include "pitts_tensortrain_from_dense.hpp"
 #include <charconv>
 #include <vector>
+#include <stdexcept>
 
 
 

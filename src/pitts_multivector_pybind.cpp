@@ -12,7 +12,7 @@
 //#include <pybind11/complex.h>
 #include <pybind11/numpy.h>
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_cdist.hpp"

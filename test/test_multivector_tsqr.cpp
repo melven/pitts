@@ -315,8 +315,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   auto mapX = ConstEigenMap(X);
   auto mapX_ref = ConstEigenMap(X_ref);
   //std::cout << "X:\n" << mapX << std::endl;
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapX.topRows(m));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+#else
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+#endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -383,8 +388,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   auto mapXresult = ConstEigenMap(Xresult);
   //std::cout << "X:\n" << mapXresult << std::endl;
   auto mapX_ref = ConstEigenMap(X_ref);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapXresult.bottomRows(n-nChunks*Chunk::size));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+#else
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+#endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -481,8 +491,13 @@ namespace
     }
 
     // check that the singular values and right singular vectors match...
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+    Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(PITTS::ConstEigenMap(R));
+    Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(M_ref);
+#else
     Eigen::BDCSVD<Eigen::MatrixXd> svd(PITTS::ConstEigenMap(R), Eigen::ComputeThinV);
     Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(M_ref, Eigen::ComputeThinV);
+#endif
 
     ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
     // V can differ by sign, only consider absolute part
@@ -606,8 +621,13 @@ TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
   }
 
   // check that the singular values and right singular vectors match...
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(ConstEigenMap(R));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(Mglobal);
+#else
   Eigen::BDCSVD<Eigen::MatrixXd> svd(ConstEigenMap(R), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(Mglobal, Eigen::ComputeThinV);
+#endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part

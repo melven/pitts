@@ -73,7 +73,8 @@ namespace PITTS
       // with an absolute tolerance, we can get rank 0, otherwise it should be (numerically) at least 1
       // (Eigen / LAPACK / MKL don't like call with dimension zero, so avoid this when possible)
       const auto minRank = absoluteTolerance ? 0 : 1;
-      const auto r = std::max(Eigen::Index(minRank), std::min(qr.rank(), Eigen::Index(maxRank)));
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(minRank), std::min(qr.rank(), Index(maxRank)));
       qr.householderQ().setLength(r);
       const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
 
@@ -115,7 +116,11 @@ namespace PITTS
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M));
+#else
       auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
 
       return svd;
     }
@@ -132,7 +137,8 @@ namespace PITTS
 
       auto svd = normalize_svd_only(M);
       svd.setThreshold(rankTol);
-      const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
+      using Index = decltype(svd.rank());
+      const auto r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);

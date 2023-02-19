@@ -18,10 +18,13 @@
 #include <cassert>
 #include <iostream>
 #include <utility>
+#include <vector>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_combine.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
@@ -31,6 +34,7 @@
 #include "pitts_tensortrain_operator_apply_dense.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
+#include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_solve_gmres.hpp"
@@ -44,6 +48,7 @@
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
+#include "pitts_performance.hpp"
 #ifndef NDEBUG
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_operator_debug.hpp"

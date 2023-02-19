@@ -11,7 +11,7 @@
 #define PITTS_MULTIVECTOR_CDIST_HPP
 
 // includes
-#include <vector>
+#include <memory>
 #include "pitts_multivector.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_performance.hpp"

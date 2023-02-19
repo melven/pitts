@@ -12,7 +12,6 @@
 
 // includes
 #include <random>
-#include <omp.h>
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 

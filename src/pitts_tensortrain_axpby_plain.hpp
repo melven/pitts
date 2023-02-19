@@ -16,12 +16,17 @@
 #include <cmath>
 #include <limits>
 #include <cassert>
+#include <vector>
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
+#include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

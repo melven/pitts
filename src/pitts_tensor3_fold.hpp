@@ -11,6 +11,8 @@
 #define PITTS_TENSOR3_FOLD_HPP
 
 // includes
+#include <cassert>
+#include <vector>
 #include "pitts_tensor3.hpp"
 #include "pitts_performance.hpp"
 

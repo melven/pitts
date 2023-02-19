@@ -21,6 +21,7 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <cereal/cereal.hpp>
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>

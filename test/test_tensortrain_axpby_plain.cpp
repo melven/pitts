@@ -229,8 +229,8 @@ TEST(PITTS_TensorTrain_axpby_plain, even_larger_random_tensor)
 TEST(PITTS_TensorTrain_axpby_plain, approximation_accuracy_d2)
 {
   TensorTrain_double TTx({20,30},1), TTy({20,30},1);
-  TTx.setTTranks({10});
-  TTy.setTTranks({10});
+  TTx.setTTranks(10);
+  TTy.setTTranks(10);
 
   // construct some interesting subtensors that are orthogonal
   std::vector<Tensor3_double> subTx(2), subTy(2);

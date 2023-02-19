@@ -11,8 +11,13 @@
 #define PITTS_TENSORTRAIN_AXPBY_HPP
 
 // includes
+#include <algorithm>
+#include "pitts_eigen.hpp"
 #include "pitts_tensortrain_axpby_plain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_timer.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 namespace PITTS 
 {

@@ -14,11 +14,15 @@
 #include "pitts_parallel.hpp"
 #include "pitts_kernel_info.hpp"
 #include "pitts_timer.hpp"
+
 #include <cmath>
 #include <iomanip>
 #include <vector>
 #include <numeric>
 #include <string>
+#include <unordered_map>
+#include <iostream>
+#include <algorithm>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

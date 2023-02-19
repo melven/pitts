@@ -5,6 +5,7 @@
 #include "pitts_multivector_random.hpp"
 #include <iostream>
 #include <charconv>
+#include <stdexcept>
 
 
 int main(int argc, char* argv[])

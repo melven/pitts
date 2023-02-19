@@ -13,9 +13,12 @@
 #define PITTS_TENSORTRAIN_OPERATOR_DEBUG_HPP
 
 // includes
+#include <vector>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_operator_apply_op.hpp"
+#include "pitts_tensor3.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

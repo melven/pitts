@@ -17,6 +17,8 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_normalize.hpp"
+#include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

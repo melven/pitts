@@ -12,7 +12,6 @@
 
 // includes
 #include <memory>
-#include "pitts_chunk.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
