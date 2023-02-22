@@ -12,9 +12,14 @@
 
 // includes
 #include <cmath>
+#include <memory>
+#include <cassert>
+#include <vector>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -24,7 +29,7 @@ namespace PITTS
   {
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along middle dimension: A(:,:,*,:) * x(:,*,:)
     template<typename T>
-    void apply_contract(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
+    void apply_contract([[maybe_unused]] const TensorTrainOperator<T>& TTOp, [[maybe_unused]] int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
     {
       const auto rA1 = Aop.r1();
       const auto rA2 = Aop.r2();
@@ -90,7 +95,7 @@ namespace PITTS
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along some dimensions: A(0,:,*,*) * x(*,:,:)
     template<typename T>
-    void apply_contract_leftBoundaryRank(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
+    void apply_contract_leftBoundaryRank([[maybe_unused]] const TensorTrainOperator<T>& TTOp, [[maybe_unused]] int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
     {
       assert(Aop.r1() == 1);
       const auto rA2 = Aop.r2();
@@ -144,7 +149,7 @@ namespace PITTS
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along some dimensions: x(:,:,*) * A(*,:,*,0)
     template<typename T>
-    void apply_contract_rightBoundaryRank(const Tensor3<T>& x, const TensorTrainOperator<T>& TTOp, int iDim, const Tensor3<T>& Aop, Tensor3<T>& y)
+    void apply_contract_rightBoundaryRank(const Tensor3<T>& x, [[maybe_unused]] const TensorTrainOperator<T>& TTOp, [[maybe_unused]] int iDim, const Tensor3<T>& Aop, Tensor3<T>& y)
     {
       const auto rA1 = Aop.r1();
       assert(Aop.r2() == 1);

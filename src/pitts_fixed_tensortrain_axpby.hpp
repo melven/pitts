@@ -12,7 +12,8 @@
 
 // includes
 #include <limits>
-#include "pitts_tensor2.hpp"
+#include <cassert>
+#include <utility>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"

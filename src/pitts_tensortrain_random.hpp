@@ -11,7 +11,6 @@
 #define PITTS_TENSORTRAIN_RANDOM_HPP
 
 // includes
-#include <random>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensor3_random.hpp"
 

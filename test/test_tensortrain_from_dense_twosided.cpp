@@ -12,7 +12,8 @@ namespace
     int size = 1;
     for(auto d: dimensions)
       size *= d;
-    assert(end - begin == size);
+    if( end - begin != size )
+      throw std::invalid_argument("dimension mismatch!");
     PITTS::MultiVector<double> result(size / dimensions.back(), dimensions.back());
     for(int j = 0; j < result.cols(); j++)
       for(int i = 0; i < result.rows(); i++)

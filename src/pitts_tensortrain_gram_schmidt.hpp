@@ -13,6 +13,7 @@
 // includes
 #include <iostream>
 #include <cassert>
+#include <vector>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_normalize.hpp"

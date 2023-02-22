@@ -12,9 +12,14 @@
 
 // includes
 #include <cmath>
+#include <cassert>
+#include <stdexcept>
+#include <vector>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -26,7 +31,7 @@ namespace PITTS
     template<typename T>
     void apply_contract_op(const TensorTrainOperator<T>& TTOpA,
                            const TensorTrainOperator<T>& TTOpB,
-                           const TensorTrainOperator<T>& TTOpC,
+                           [[maybe_unused]] const TensorTrainOperator<T>& TTOpC,
                            int iDim,
                            const Tensor3<T>& Aop,
                            const Tensor3<T>& Bop,

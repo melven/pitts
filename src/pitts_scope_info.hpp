@@ -16,6 +16,7 @@
 #include <source_location>
 #include <array>
 #include <string_view>
+#include <string>
 #include <cstdint>
 #include <bit>
 

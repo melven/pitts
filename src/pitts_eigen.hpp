@@ -17,7 +17,7 @@
 
 // use Eigen/SVD but avoid unsupported compiler optimizations...
 #ifndef EIGEN_USE_LAPACKE
-#  ifdef __INTEL_COMPILER
+#  if defined(__INTEL_COMPILER) || defined(__clang__)
 #    pragma float_control(precise, on, push)
 #  else
 #    pragma GCC push_options
@@ -28,7 +28,7 @@
 #include <Eigen/SVD>
 
 #ifndef EIGEN_USE_LAPACKE
-#  ifdef __INTEL_COMPILER
+#  if defined(__INTEL_COMPILER) || defined(__clang__)
 #    pragma float_control(pop)
 #  else
 #    pragma GCC pop_options

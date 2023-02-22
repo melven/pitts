@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "pitts_kernel_info.hpp"
+#include <complex>
 
 namespace
 {

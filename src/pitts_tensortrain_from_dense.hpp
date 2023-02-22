@@ -11,8 +11,6 @@
 #define PITTS_TENSORTRAIN_FROM_DENSE_HPP
 
 // includes
-#include <limits>
-#include <numeric>
 #include "pitts_parallel.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_multivector.hpp"
@@ -24,6 +22,10 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_eigen.hpp"
+#include <limits>
+#include <numeric>
+#include <iostream>
+#include <vector>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -88,7 +90,11 @@ namespace PITTS
     Tensor2<T> tmpR;
     std::vector<Tensor3<T>> subTensors(nDims);
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+    Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinU | Eigen::ComputeThinV> svd;
+#else
     Eigen::BDCSVD<EigenMatrix> svd;
+#endif
     for(int iDim = nDims-1; iDim > 0; iDim--)
     {
       if( root )
@@ -98,7 +104,11 @@ namespace PITTS
 //std::cout << "tmpR:\n" << ConstEigenMap(tmpR) << "\n";
 
       // calculate SVD of R
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+      svd.compute(ConstEigenMap(tmpR));
+#else
       svd.compute(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
+#endif
       //Eigen::JacobiSVD<EigenMatrix> svd(ConstEigenMap(tmpR), Eigen::ComputeThinU | Eigen::ComputeThinV);
       svd.setThreshold(rankTolerance);
       if( root )
@@ -132,6 +142,5 @@ namespace PITTS
   }
 
 }
-
 
 #endif // PITTS_TENSORTRAIN_FROM_DENSE_HPP

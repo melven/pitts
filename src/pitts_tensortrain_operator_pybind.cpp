@@ -12,7 +12,7 @@
 //#include <pybind11/complex.h>
 #include <pybind11/numpy.h>
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"

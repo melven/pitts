@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <complex>
 #include <random>
-#include <exception>
+#include <stdexcept>
 #include <array>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_fixed_tensortrain_dot.hpp"
@@ -22,6 +22,7 @@
 #include "pitts_fixed_tensor3_combine.hpp"
 #include "pitts_fixed_tensor3_split.hpp"
 #include "pitts_fixed_tensor3_apply.hpp"
+#include "pitts_performance.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

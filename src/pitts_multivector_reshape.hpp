@@ -11,7 +11,7 @@
 #define PITTS_MULTIVECTOR_RESHAPE_HPP
 
 // includes
-#include <exception>
+#include <stdexcept>
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"

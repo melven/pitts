@@ -22,7 +22,8 @@
 #include "pitts_tensortrain_gram_schmidt.hpp"
 #include "pitts_gmres.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_eigen.hpp"
+#include "pitts_tensor3.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

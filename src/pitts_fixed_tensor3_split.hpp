@@ -54,7 +54,8 @@ namespace PITTS
     {
       Eigen::ColPivHouseholderQR<Matrix> qr(t3cMap);
       qr.setThreshold(1.e-10);
-      const auto r = std::max(Eigen::Index(1), qr.rank());
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(1), qr.rank());
 
       t3a.resize(r1,r);
       t3b.resize(r,r2);
@@ -71,7 +72,8 @@ namespace PITTS
     {
       Eigen::ColPivHouseholderQR<Matrix> qr(t3cMap.transpose());
       qr.setThreshold(1.e-10);
-      const auto r = std::max(Eigen::Index(1), qr.rank());
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(1), qr.rank());
 
       t3a.resize(r1,r);
       t3b.resize(r,r2);

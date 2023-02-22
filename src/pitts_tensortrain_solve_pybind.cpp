@@ -30,7 +30,7 @@ namespace PITTS
     {
       //! provide all TensorTrain<T> related classes and functions
       template<typename T>
-      void init_TensorTrain_solve_helper(py::module& m, const std::string& type_name)
+      void init_TensorTrain_solve_helper(py::module& m, [[maybe_unused]] const std::string& type_name)
       {
         m.def("solveMALS",
             py::overload_cast< const TensorTrainOperator<T>&, bool, MALS_projection, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int, bool, int, T>(&solveMALS<T>),

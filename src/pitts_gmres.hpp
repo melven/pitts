@@ -15,6 +15,7 @@
 #include <limits>
 #include <cassert>
 #include <iostream>
+#include <vector>
 #include "pitts_timer.hpp"
 #include "pitts_eigen.hpp"
 

@@ -14,6 +14,7 @@
 #include <memory>
 #include "pitts_chunk.hpp"
 #include "pitts_performance.hpp"
+#include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS

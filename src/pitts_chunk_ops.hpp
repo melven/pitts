@@ -51,7 +51,7 @@ namespace PITTS
 
   //! sum up all elements of a chunk and broadcast the result to all elements ( a_i = a_1 + ... a_n )
   template<typename T>
-  inline void bcast_sum(Chunk<double>& v);
+  inline void bcast_sum(Chunk<T>& v);
 
   //! masked broadcast to given index, sets result to value at given index and to src everywhere else ( result_i = (i==index) ? value : src_i )
   template<typename T>

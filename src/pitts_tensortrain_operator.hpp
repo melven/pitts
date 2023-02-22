@@ -11,10 +11,17 @@
 #define PITTS_TENSORTRAIN_OPERATOR_HPP
 
 // includes
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <stdexcept>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_normalize.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
