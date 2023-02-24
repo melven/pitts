@@ -26,14 +26,17 @@ namespace PITTS
   //!
   //! Computes the decomposition B^TB = M using a SVD of M for a symmetric positive semi-definite matrix M
   //!
-  //! @tparam T     underlying data type (double, complex, ...)
+  //! @tparam T                 underlying data type (double, complex, ...)
   //!
-  //! @param  M     Symmetric positive semi-definite input matrix M, overwritten with the output matrix B
-  //! @param  Binv  Pseudo-Inverse of the output matrix
-  //! @return       detected rank of the matrix
+  //! @param  M                 Symmetric positive semi-definite input matrix M
+  //! @param  B                 Resulting matrix B with B^TB = M
+  //! @param  Binv              Pseudo-Inverse of the output matrix B
+  //! @param  rankTolerance     Desired accuracy / truncation tolerance
+  //! @param  absoluteTolerance Use rankTolerance as absolute truncation tolerance instead of relative to the biggest singular value.
+  //! @return                   detected rank of the matrix
   //!
   template<typename T>
-  auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance)
+  auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance, bool absoluteTolerance = false)
   {
     const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -51,10 +54,13 @@ namespace PITTS
     const auto mapM = ConstEigenMap(M);
 
     // compute sqrt(diag(M)) and its inverse
+    const auto maxDiag = ConstEigenMap(M).diagonal().array().abs().maxCoeff();
+    const auto diagTol2 = rankTolerance*rankTolerance * (absoluteTolerance ? 1 : maxDiag);
+
     vec d(n), dinv(n);
     for(int i = 0; i < n; i++)
     {
-      if( std::abs(M(i,i)) <= rankTolerance )
+      if( std::abs(M(i,i)) <= diagTol2 )
       {
         d(i) = T(0);
         dinv(i) = T(0);
@@ -74,10 +80,10 @@ namespace PITTS
 
     // determine rank of the input matrix and set w = sqrt(lambda), winv = 1/w
     // Eigen orders eigenvalues with increasing value (smallest first)
-    int rank = n;
     const auto evMax = std::abs(eigSolv.eigenvalues()(n-1));
     vec w(n), winv(n);
-    if( evMax <= rankTolerance )
+    int rank = n;
+    if( evMax <= T(0) )
     {
       w = vec::Zero(n);
       winv = vec::Zero(n);
@@ -85,9 +91,10 @@ namespace PITTS
     }
     else
     {
+      const auto eigTol2 = diagTol2 / maxDiag;
       for(int i = 0; i < n; i++)
       {
-        if( eigSolv.eigenvalues()(i) <= rankTolerance*evMax )
+        if( eigSolv.eigenvalues()(i) <= eigTol2 )
         {
           rank--;
           w(i) = T(0);
