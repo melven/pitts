@@ -182,18 +182,18 @@ TEST(PITTS_Tensor2_qb_decomposition, absoluteTolerance)
 
   mat invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
   invErr.topLeftCorner(1,1) -= mat::Identity(1,1);
-  EXPECT_NEAR(mat::Zero(4,4), invErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(1,1), invErr, 1.e-13);
   mat qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
-  EXPECT_NEAR(mat::Zero(4,4), qbErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(1,4), qbErr, 1.e-13);
 
   rank = qb_decomposition(XtX, B, Binv, 1.e-4, true);
   EXPECT_EQ(2, rank);
 
   invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
   invErr.topLeftCorner(2,2) -= mat::Identity(2,2);
-  EXPECT_NEAR(mat::Zero(4,4), invErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(2,2), invErr, 1.e-13);
   qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
-  EXPECT_NEAR(mat::Zero(4,4), qbErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(2,4), qbErr, 1.e-13);
 
   rank = qb_decomposition(XtX, B, Binv, 1.e-8, true);
   EXPECT_EQ(4, rank);
@@ -226,18 +226,18 @@ TEST(PITTS_Tensor2_qb_decomposition, relativeTolerance)
 
   mat invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
   invErr.topLeftCorner(1,1) -= mat::Identity(1,1);
-  EXPECT_NEAR(mat::Zero(4,4), invErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(1,1), invErr, 1.e-13);
   mat qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
-  EXPECT_NEAR(mat::Zero(4,4), qbErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(1,4), qbErr, 1.e-13);
 
   rank = qb_decomposition(XtX, B, Binv, 1.e-7, false);
   EXPECT_EQ(2, rank);
 
   invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
   invErr.topLeftCorner(2,2) -= mat::Identity(2,2);
-  EXPECT_NEAR(mat::Zero(4,4), invErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(2,2), invErr, 1.e-13);
   qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
-  EXPECT_NEAR(mat::Zero(4,4), qbErr, 1.e-13);
+  EXPECT_NEAR(mat::Zero(2,4), qbErr, 1.e-13);
 
   rank = qb_decomposition(XtX, B, Binv, 1.e-11, false);
   EXPECT_EQ(4, rank);

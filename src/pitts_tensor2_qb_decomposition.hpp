@@ -81,49 +81,36 @@ namespace PITTS
     // determine rank of the input matrix and set w = sqrt(lambda), winv = 1/w
     // Eigen orders eigenvalues with increasing value (smallest first)
     const auto evMax = std::abs(eigSolv.eigenvalues()(n-1));
-    vec w(n), winv(n);
-    int rank = n;
     if( evMax <= T(0) )
     {
-      w = vec::Zero(n);
-      winv = vec::Zero(n);
-      rank = 0;
+      B.resize(0,n);
+      Binv.resize(n,0);
+      return 0;
     }
-    else
+
+    vec w(n), winv(n);
+    int rank = n;
+    const auto eigTol2 = diagTol2 / maxDiag;
+    for(int i = 0; i < n; i++)
     {
-      const auto eigTol2 = diagTol2 / maxDiag;
-      for(int i = 0; i < n; i++)
+      if( eigSolv.eigenvalues()(i) <= eigTol2 )
       {
-        if( eigSolv.eigenvalues()(i) <= eigTol2 )
-        {
-          rank--;
-          w(i) = T(0);
-          winv(i) = T(0);
-        }
-        else
-        {
-          w(i) = std::sqrt(eigSolv.eigenvalues()(i));
-          winv(i) = T(1)/w(i);
-        }
+        rank--;
+        w(i) = T(0);
+        winv(i) = T(0);
+      }
+      else
+      {
+        w(i) = std::sqrt(eigSolv.eigenvalues()(i));
+        winv(i) = T(1)/w(i);
       }
     }
 
     // calculate B and Binv
-    B.resize(n,n);
-    Binv.resize(n,n);
-    EigenMap(Binv) = dinv.asDiagonal() * eigSolv.eigenvectors() * winv.asDiagonal();
-    EigenMap(B) = w.asDiagonal() * eigSolv.eigenvectors().transpose() * d.asDiagonal();
-
-    // reorder, so the part corresponding to the largest eigenvalues are first
-    for(int i = 0; i < n; i++)
-    {
-      for(int j = 0; j < n/2; j++)
-      {
-        int k = n-j-1;
-        std::swap(B(j,i), B(k,i));
-        std::swap(Binv(i,j), Binv(i,k));
-      }
-    }
+    B.resize(rank,n);
+    Binv.resize(n,rank);
+    EigenMap(Binv) = dinv.asDiagonal() * eigSolv.eigenvectors().rightCols(rank) * winv.bottomRows(rank).asDiagonal();
+    EigenMap(B) = w.bottomRows(rank).asDiagonal() * eigSolv.eigenvectors().rightCols(rank).transpose() * d.asDiagonal();
 
     return rank;
   }
