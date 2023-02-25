@@ -177,7 +177,7 @@ TEST(PITTS_Tensor2_qb_decomposition, absoluteTolerance)
   EigenMap(XtX) = X.transpose()*X;
   Tensor2_double B, Binv;
 
-  int rank = qb_decomposition(XtX, B, Binv, 1., true);
+  int rank = qb_decomposition(XtX, B, Binv, 1., 999, true);
   EXPECT_EQ(1, rank);
 
   mat invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
@@ -186,7 +186,7 @@ TEST(PITTS_Tensor2_qb_decomposition, absoluteTolerance)
   mat qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
   EXPECT_NEAR(mat::Zero(1,4), qbErr, 1.e-13);
 
-  rank = qb_decomposition(XtX, B, Binv, 1.e-4, true);
+  rank = qb_decomposition(XtX, B, Binv, 1.e-4, 999, true);
   EXPECT_EQ(2, rank);
 
   invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
@@ -195,7 +195,7 @@ TEST(PITTS_Tensor2_qb_decomposition, absoluteTolerance)
   qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
   EXPECT_NEAR(mat::Zero(2,4), qbErr, 1.e-13);
 
-  rank = qb_decomposition(XtX, B, Binv, 1.e-8, true);
+  rank = qb_decomposition(XtX, B, Binv, 1.e-8, 999, true);
   EXPECT_EQ(4, rank);
 
   invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
@@ -221,7 +221,7 @@ TEST(PITTS_Tensor2_qb_decomposition, relativeTolerance)
   EigenMap(XtX) = X.transpose()*X;
   Tensor2_double B, Binv;
 
-  int rank = qb_decomposition(XtX, B, Binv, 1.e-3, false);
+  int rank = qb_decomposition(XtX, B, Binv, 1.e-3, 999, false);
   EXPECT_EQ(1, rank);
 
   mat invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
@@ -230,7 +230,7 @@ TEST(PITTS_Tensor2_qb_decomposition, relativeTolerance)
   mat qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
   EXPECT_NEAR(mat::Zero(1,4), qbErr, 1.e-13);
 
-  rank = qb_decomposition(XtX, B, Binv, 1.e-7, false);
+  rank = qb_decomposition(XtX, B, Binv, 1.e-7, 999, false);
   EXPECT_EQ(2, rank);
 
   invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
@@ -239,7 +239,7 @@ TEST(PITTS_Tensor2_qb_decomposition, relativeTolerance)
   qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
   EXPECT_NEAR(mat::Zero(2,4), qbErr, 1.e-13);
 
-  rank = qb_decomposition(XtX, B, Binv, 1.e-11, false);
+  rank = qb_decomposition(XtX, B, Binv, 1.e-11, 999, false);
   EXPECT_EQ(4, rank);
 
   invErr = ConstEigenMap(B) * ConstEigenMap(Binv);

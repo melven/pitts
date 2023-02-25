@@ -36,7 +36,7 @@ namespace PITTS
   //! @return                   detected rank of the matrix
   //!
   template<typename T>
-  auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance, bool absoluteTolerance = false)
+  auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance,  int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
   {
     const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -44,6 +44,9 @@ namespace PITTS
     if( M.r1() != M.r2() )
       throw std::invalid_argument("qb_decomposition requires a quadratic matrix!");
     const auto n = M.r1();
+    
+    auto rankTol = std::abs(rankTolerance);
+    rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
     // Helpful types
     using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
@@ -54,13 +57,15 @@ namespace PITTS
     const auto mapM = ConstEigenMap(M);
 
     // compute sqrt(diag(M)) and its inverse
-    const auto maxDiag = ConstEigenMap(M).diagonal().array().abs().maxCoeff();
-    const auto diagTol2 = rankTolerance*rankTolerance * (absoluteTolerance ? 1 : maxDiag);
+    auto maxDiag = std::abs(T(0));
+    for(int i = 0; i < n; i++)
+      maxDiag = std::max(maxDiag, std::abs(M(i,i)));
+    const auto diagTol2 = rankTol*rankTol * (absoluteTolerance ? 1 : maxDiag);
 
     vec d(n), dinv(n);
     for(int i = 0; i < n; i++)
     {
-      if( std::abs(M(i,i)) <= diagTol2 )
+      if( std::real(M(i,i)) <= diagTol2 )
       {
         d(i) = T(0);
         dinv(i) = T(0);
@@ -81,19 +86,16 @@ namespace PITTS
     // determine rank of the input matrix and set w = sqrt(lambda), winv = 1/w
     // Eigen orders eigenvalues with increasing value (smallest first)
     const auto evMax = std::abs(eigSolv.eigenvalues()(n-1));
-    if( evMax <= T(0) )
-    {
-      B.resize(0,n);
-      Binv.resize(n,0);
-      return 0;
-    }
 
     vec w(n), winv(n);
     int rank = n;
-    const auto eigTol2 = diagTol2 / maxDiag;
+    auto eigTol2 = diagTol2;
+    if( maxDiag > 0 )
+      eigTol2 /= maxDiag;
+    eigTol2 = std::max(eigTol2, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
     for(int i = 0; i < n; i++)
     {
-      if( eigSolv.eigenvalues()(i) <= eigTol2 )
+      if( std::real(eigSolv.eigenvalues()(i)) <= eigTol2 || rank > maxRank )
       {
         rank--;
         w(i) = T(0);
@@ -105,6 +107,8 @@ namespace PITTS
         winv(i) = T(1)/w(i);
       }
     }
+    const auto minRank = absoluteTolerance ? 0 : 1;
+    rank = std::max(rank, minRank);
 
     // calculate B and Binv
     B.resize(rank,n);
