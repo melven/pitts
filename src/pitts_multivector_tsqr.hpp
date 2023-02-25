@@ -659,8 +659,11 @@ namespace PITTS
   {
     // input dimensions
     const long long n = M.rows();
+    const long long nTotalChunks = M.rowChunks();
     const int m = M.cols();
     const int mChunks = (m-1) / Chunk<T>::size + 1;
+    // get the number of OpenMP threads
+    int nMaxThreads = omp_get_max_threads();
 
     // calculate performance tuning parameters
     {
@@ -677,6 +680,7 @@ namespace PITTS
 
         // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
         reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
+        reductionFactor = std::min<long long>(reductionFactor, nTotalChunks / (2*nMaxThreads));
         reductionFactor = std::max(1, reductionFactor);
       }
 
@@ -694,8 +698,7 @@ namespace PITTS
     const int ldaBuff = nChunks + mChunks+2;
     const int nBuffer = m*ldaBuff;
 //printf("nBuffer: %d\n", nBuffer);
-    const long long nTotalChunks = M.rowChunks();
-    const long long nIter = nTotalChunks / nChunks;
+    const long long nIter = (nTotalChunks-1) / nChunks + 1;
     const long long lda = M.colStrideChunks();
 
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
@@ -711,8 +714,6 @@ namespace PITTS
       return;
     }
 
-    // get the number of OpenMP threads
-    int nMaxThreads = omp_get_max_threads();
     // reduce #threads if there is not enough work to do...
     //int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
@@ -741,13 +742,8 @@ namespace PITTS
 #pragma omp for schedule(static)
       for(long long iter = 0; iter < nIter; iter++)
       {
-        internal::HouseholderQR::transformBlock(nChunks, m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
-      }
-      // remainder (missing bottom part that is smaller than nChunk*Chunk::size rows
-      if( iThread == nThreads-1 && nIter*nChunks < nTotalChunks )
-      {
-        const int nLastChunks = nTotalChunks-nIter*nChunks;
-        internal::HouseholderQR::transformBlock(nLastChunks, m, &M.chunk(nChunks*nIter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+        const int nRemainingChunks = nTotalChunks-iter*nChunks;
+        internal::HouseholderQR::transformBlock(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
       }
 
       if( nThreads == 1 )
