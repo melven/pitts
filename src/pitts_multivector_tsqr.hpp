@@ -390,8 +390,11 @@ namespace PITTS
         // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
         // (falls back to I - 2 e1 e1^T in that case)
         T alpha = std::sqrt(uTu_sum + std::numeric_limits<T>::min());
-        //alpha *= (pivot == 0 ? -1. : -pivot / std::abs(pivot));
-        alpha *= (pivot > 0 ? -1 : 1);
+        if constexpr ( requires(T x){x > 0;} )
+          alpha *= (pivot > 0 ? -1 : 1);
+        else
+          alpha *= (pivot == T(0) ? T(-1) : -pivot / std::abs(pivot));
+
 
 
         // calculate reflection vector
@@ -401,7 +404,7 @@ namespace PITTS
           uTu_sum -= pivot*alpha;
           pivot -= alpha;
           index_bcast(pivotChunk, idx, pivot, pivotChunk);
-          T beta = 1/std::sqrt(uTu_sum);
+          T beta = T(1)/std::sqrt(uTu_sum);
           mul(beta, pivotChunk, vtmp[0]);
           int i = firstRow+1;
           for(; i < nChunks; i++)

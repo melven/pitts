@@ -19,6 +19,9 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
+#include "pitts_multivector_tsqr.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -55,13 +58,62 @@ namespace PITTS
     template<typename T>
     auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
     {
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       // get reasonable rank tolerance
       auto rankTol = std::abs(rankTolerance);
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      //    M = Q R = Q U S V^T
+      // => M = (QU) (SV^T)
+      // => (QU) = M V S^(-1)
+      MultiVector<T> mv;
+      if( leftOrthog )
+      {
+        mv.resize(M.r1(), M.r2());
+        EigenMap(mv) = ConstEigenMap(M);
+      }
+      else // rightOrthog
+      {
+        mv.resize(M.r2(), M.r1());
+        EigenMap(mv) = ConstEigenMap(M).transpose();
+      }
+      Tensor2<T> R;
+      block_TSQR(mv, R, 0, false);
+
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(R));
+#else
+      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(R), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
+
+      // we might want to consider an absolute tolerance, e.g. when orthogonalizing w.r.t. another set of orthogonal vectors...
+      if( absoluteTolerance && svd.singularValues()(0) > 0 )
+        rankTol /= svd.singularValues()(0);
+      svd.setThreshold(rankTol);
+      const auto minRank = absoluteTolerance ? 0 : 1;
+      using Index = decltype(svd.rank());
+      const auto r = std::max(Index(minRank), std::min(svd.rank(), Index(maxRank)));
+
+      std::pair<Tensor2<T>,Tensor2<T>> result;
+      result.first.resize(M.r1(), r);
+      result.second.resize(r, M.r2());
+      if( leftOrthog )
+      {
+        // return QB
+        EigenMap(result.first) = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
+        EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+      }
+      else
+      {
+        // return BQ
+        EigenMap(result.first) = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+        EigenMap(result.second) = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
+      }
+      return result;
+      /*
 
       auto qr = normalize_qr_only(M, leftOrthog);
 
@@ -99,6 +151,7 @@ namespace PITTS
       }
 
       return result;
+      */
     }
 
     //! small wrapper around SVD only with data size
