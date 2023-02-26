@@ -54,6 +54,30 @@ namespace PITTS
       return qr;
     }
 
+    //! small wrapper around SVD only with data size
+    template<typename T>
+    auto normalize_svd_only(const Tensor2<T>& M)
+    {
+      const int n = M.r1();
+      const int m = M.r2();
+      // 6.67 N^3 flops reported by LAPACK, round it to 7
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{(7*n*m*std::min(n,m))/2*kernel_info::FMA<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + ((n+m+1)*std::min(n,m))*kernel_info::Store<T>()}} // data transfers
+        );
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M));
+#else
+      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
+
+      return svd;
+    }
+
     //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
     template<typename T>
     auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
@@ -83,11 +107,7 @@ namespace PITTS
       Tensor2<T> R;
       block_TSQR(mv, R, 0, false);
 
-#if EIGEN_VERSION_AT_LEAST(3,4,90)
-      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(R));
-#else
-      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(R), Eigen::ComputeThinV | Eigen::ComputeThinU);
-#endif
+      auto svd = normalize_svd_only(R);
 
       // we might want to consider an absolute tolerance, e.g. when orthogonalizing w.r.t. another set of orthogonal vectors...
       if( absoluteTolerance && svd.singularValues()(0) > 0 )
@@ -154,35 +174,13 @@ namespace PITTS
       */
     }
 
-    //! small wrapper around SVD only with data size
-    template<typename T>
-    auto normalize_svd_only(const Tensor2<T>& M)
-    {
-      const int n = M.r1();
-      const int m = M.r2();
-      // 6.67 N^3 flops reported by LAPACK, round it to 7
-      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
-        {{"n", "m"},{n, m}}, // arguments
-        {{(7*n*m*std::min(n,m))/2*kernel_info::FMA<T>()}, // flops
-         {(n*m)*kernel_info::Load<T>() + ((n+m+1)*std::min(n,m))*kernel_info::Store<T>()}} // data transfers
-        );
-
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-
-#if EIGEN_VERSION_AT_LEAST(3,4,90)
-      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M));
-#else
-      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
-#endif
-
-      return svd;
-    }
-
     //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
     template<typename T>
     auto normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
     {
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+      return normalize_qb(M, leftOrthog, rankTolerance, maxRank);
+      /*
 
       // get reasonable rank tolerance
       auto rankTol = std::abs(rankTolerance);
@@ -208,6 +206,7 @@ namespace PITTS
       }
 
       return result;
+      */
     }
   }
 
