@@ -21,6 +21,7 @@
 #include "pitts_chunk_ops.hpp"
 #include <cassert>
 #include <memory>
+#include <vector>
 #include <cstdint>
 #include <cmath>
 #include <bit>
@@ -75,10 +76,10 @@ namespace PITTS
           // fast case: in-place operation
           Chunk<T> vTx{};
           for(int i = firstRow; i <= nChunks+firstRow; i++)
-              fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+            fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
           bcast_sum(vTx);
           for(int i = firstRow; i <= nChunks+firstRow; i++)
-              fnmadd(vTx, v[i], pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col]);
+            fnmadd(vTx, v[i], pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col]);
         }
         else
         {
@@ -155,12 +156,18 @@ namespace PITTS
           }
           for(int i = firstRow; i <= nChunks+firstRow; i++)
           {
+            Chunk<T> tmp[NC];
+            for(int j = 0; j < NC; j++)
+              tmp[j] = pdataResult[i+ldaResult*(col+j)];
+
             for(int j = 0; j < NC; j++)
             {
-              Chunk<T> tmp;
-              fnmadd(wTx[j], w[i], pdataResult[i+ldaResult*(col+j)], tmp);
-              fnmadd(vTx[j], v[i], tmp, pdataResult[i+ldaResult*(col+j)]);
+              fnmadd(wTx[j], w[i], tmp[j]);
+              fnmadd(vTx[j], v[i], tmp[j]);
             }
+
+            for(int j = 0; j < NC; j++)
+              pdataResult[i+ldaResult*(col+j)] = tmp[j];
           }
         }
         else
@@ -193,21 +200,33 @@ namespace PITTS
           }
           for(int i = firstRow; i < nChunks; i++)
           {
+            Chunk<T> tmp[NC];
+            for(int j = 0; j < NC; j++)
+              tmp[j] = pdata[i+lda*(col+j)];
+
             for(int j = 0; j < NC; j++)
             {
-              Chunk<T> tmp;
-              fnmadd(wTx[j], w[i], pdata[i+lda*(col+j)], tmp);
-              fnmadd(vTx[j], v[i], tmp, pdataResult[i+ldaResult*(col+j)]);
+              fnmadd(wTx[j], w[i], tmp[j]);
+              fnmadd(vTx[j], v[i], tmp[j]);
             }
+
+            for(int j = 0; j < NC; j++)
+              pdataResult[i+ldaResult*(col+j)] = tmp[j];
           }
           for(int i = nChunks; i <= nChunks+firstRow; i++)
           {
-            Chunk<T> tmp;
+            Chunk<T> tmp[NC];
+            for(int j = 0; j < NC; j++)
+              tmp[j] = pdataResult[i+ldaResult*(col+j)];
+
             for(int j = 0; j < NC; j++)
             {
-              fnmadd(wTx[j], w[i], pdataResult[i+ldaResult*(col+j)], tmp);
-              fnmadd(vTx[j], v[i], tmp, pdataResult[i+ldaResult*(col+j)]);
+              fnmadd(wTx[j], w[i], tmp[j]);
+              fnmadd(vTx[j], v[i], tmp[j]);
             }
+
+            for(int j = 0; j < NC; j++)
+              pdataResult[i+ldaResult*(col+j)] = tmp[j];
           }
         }
       }
@@ -680,7 +699,7 @@ namespace PITTS
 
         // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
         reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
-        reductionFactor = std::min<long long>(reductionFactor, nTotalChunks / (2*nMaxThreads));
+        reductionFactor = std::min<long long>(reductionFactor, std::max<long long>(reductionFactor/2, nTotalChunks / (2*nMaxThreads)));
         reductionFactor = std::max(1, reductionFactor);
       }
 
@@ -695,8 +714,10 @@ namespace PITTS
 
     // calculate dimensions and block sizes
     const int nChunks = reductionFactor;
-    const int ldaBuff = nChunks + mChunks+2;
+    const int ldaBuff = std::max(nChunks, mChunks) + mChunks + 2;
     const int nBuffer = m*ldaBuff;
+    // index to the next free block in plocalBuff
+    const int localBuffOffset = std::max(nChunks, mChunks) + 2;
 //printf("nBuffer: %d\n", nBuffer);
     const long long nIter = (nTotalChunks-1) / nChunks + 1;
     const long long lda = M.colStrideChunks();
@@ -717,7 +738,7 @@ namespace PITTS
     // reduce #threads if there is not enough work to do...
     //int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
-    std::unique_ptr<Chunk<T>[]> psharedBuff(new Chunk<T>[(mChunks*nMaxThreads+2)*m]);
+    std::unique_ptr<Chunk<T>[]> pThread0Buff;
     std::unique_ptr<Chunk<T>[]> presultBuff(new Chunk<T>[mChunks*m]);
 
 // avoid omp parallel with the num_threads-argument because it might stop a running thread that needs to respawn later (GCC 10 behavior in some cases?).
@@ -726,54 +747,53 @@ namespace PITTS
 // Simple reduce the number of threads later instead...
 //
 
-#pragma omp parallel if(nMaxThreads < 2*nIter)
+    constexpr int falseSharingStride = 16;
+    std::vector<Chunk<T>*> plocalBuff_otherThreads(falseSharingStride*nMaxThreads);
+
+#pragma omp parallel
     {
-      const auto& [iThread,nThreads] = internal::parallel::ompThreadInfo();
+      auto [iThread,nThreads] = internal::parallel::ompThreadInfo();
+      // only work on a subset of threads if the input dimension is too small
+      if( nIter < nThreads*2 )
+        nThreads = 1 + (nIter-1)/2;
 
-      std::unique_ptr<Chunk<T>[]> plocalBuff{new Chunk<T>[nBuffer]};
-
-      // fill with zero
-      for(int i = 0; i < nBuffer; i++)
-          plocalBuff[i] = Chunk<T>{};
-
-      // index to the next free block in plocalBuff
-      int localBuffOffset = nChunks+2;
-
-#pragma omp for schedule(static)
-      for(long long iter = 0; iter < nIter; iter++)
+      std::unique_ptr<Chunk<T>[]> plocalBuff;
+      if( iThread < nThreads )
       {
-        const int nRemainingChunks = nTotalChunks-iter*nChunks;
-        internal::HouseholderQR::transformBlock(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
-      }
+        plocalBuff.reset(new Chunk<T>[nBuffer]);
+        if( nThreads > 1 )
+          plocalBuff_otherThreads[falseSharingStride*iThread] = &plocalBuff[localBuffOffset];
 
-      if( nThreads == 1 )
-      {
-        // compress result
+        // fill with zero
         for(int j = 0; j < m; j++)
           for(int i = 0; i < mChunks; i++)
-            presultBuff[i+mChunks*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
-      }
-      else
-      {
-        const int offset = iThread*mChunks;
-        const int ldaSharedBuff = nThreads*mChunks+2;
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < mChunks; i++)
-            psharedBuff[offset + i + ldaSharedBuff*j] = plocalBuff[localBuffOffset + i + ldaBuff*j];
+            plocalBuff[localBuffOffset + i + j*ldaBuff] = Chunk<T>{};
 
-#pragma omp barrier
+        const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
 
-#pragma omp master
+        for(long long iter = firstIter; iter <= lastIter; iter++)
         {
-          // reduce shared buffer
-          internal::HouseholderQR::transformBlock((nThreads-1)*mChunks, m, &psharedBuff[0], ldaSharedBuff, &psharedBuff[0], ldaSharedBuff, (nThreads-1)*mChunks, colBlockingSize);
-
-          // compress result
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              presultBuff[i+mChunks*j] = psharedBuff[i+ldaSharedBuff*j];
+          const int nRemainingChunks = nTotalChunks-iter*nChunks;
+          internal::HouseholderQR::transformBlock(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
         }
       }
+
+      // tree reduction over threads
+      for(int nextThread = 1; nextThread < nThreads; nextThread*=2)
+      {
+#pragma omp barrier
+        if( iThread % (nextThread*2) == 0 && iThread+nextThread < nThreads )
+        {
+          const auto otherLocalBuff = plocalBuff_otherThreads[falseSharingStride*(iThread+nextThread)];
+          internal::HouseholderQR::transformBlock(mChunks, m, &otherLocalBuff[0], ldaBuff, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+        }
+      }
+
+      if( iThread == 0 )
+        pThread0Buff = std::move(plocalBuff);
+
+      // wait for other threads to finish so the otherLocalBuff pointers are still valid
+#pragma omp barrier
     }
 
     if( mpiGlobal )
@@ -781,6 +801,11 @@ namespace PITTS
       const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
       if( nProcs > 1 )
       {
+        // compress result
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < mChunks; i++)
+            presultBuff[i+mChunks*j] = pThread0Buff[localBuffOffset + i+ldaBuff*j];
+
 //#define MPI_TIMINGS
 #ifdef MPI_TIMINGS
         double wtime = omp_get_wtime();
@@ -799,8 +824,8 @@ namespace PITTS
           throw std::runtime_error("Failure returned from MPI_Op_create");
 
         // actual MPI reduction, reusing buffers
-        std::swap(psharedBuff, presultBuff);
-        if( MPI_Allreduce(psharedBuff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+        std::swap(pThread0Buff, presultBuff);
+        if( MPI_Allreduce(pThread0Buff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
           throw std::runtime_error("Failure returned from MPI_Allreduce");
 
         // unregister MPI reduction operation
@@ -816,14 +841,23 @@ namespace PITTS
         if( iProc == 0 )
           std::cout << "TSQR MPI wtime: " << wtime << "\n";
 #endif
+
+        // copy result to R
+        R.resize(m,m);
+        for(int j = 0; j < m; j++)
+          for(int i = 0; i < m; i++)
+            R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
+
+        return;
       }
     }
 
+    // not handled through MPI
     // copy result to R
     R.resize(m,m);
     for(int j = 0; j < m; j++)
       for(int i = 0; i < m; i++)
-        R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
+        R(i,j) = pThread0Buff[ localBuffOffset + i/Chunk<T>::size + ldaBuff*j ][ i%Chunk<T>::size ];
   }
 }
 
