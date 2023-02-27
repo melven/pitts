@@ -102,6 +102,32 @@ namespace PITTS
 
   // specialization for float for dumb compilers
   template<>
+  inline void mul<float>(const Chunk<float>& a, const Chunk<float>& b, Chunk<float>& c)
+  {
+    for(short i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256 ai = _mm256_load_ps(&a[8*i]);
+      __m256 bi = _mm256_load_ps(&b[8*i]);
+      __m256 ci = _mm256_mul_ps(ai,bi);
+      _mm256_store_ps(&c[8*i],ci);
+    }
+  }
+
+  // specialization for double for dumb compilers
+  template<>
+  inline void mul<double>(const Chunk<double>& a, const Chunk<double>& b, Chunk<double>& c)
+  {
+    for(short i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256d ai = _mm256_load_pd(&a[4*i]);
+      __m256d bi = _mm256_load_pd(&b[4*i]);
+      __m256d ci = _mm256_mul_pd(ai,bi);
+      _mm256_store_pd(&c[4*i],ci);
+    }
+  }
+
+  // specialization for float for dumb compilers
+  template<>
   inline void fnmadd<float>(const Chunk<float>& a, const Chunk<float>& b, const Chunk<float>& c, Chunk<float>& d)
   {
     for(short i = 0; i < ALIGNMENT/32; i++)
