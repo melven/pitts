@@ -375,8 +375,8 @@ namespace PITTS
         // u = x - alpha e_1 with alpha = +- ||x||
         // v = u / ||u||
         T pivot = pdata[firstRow+lda*col][idx];
-        Chunk<T> uTu{};
-        fmadd(pivotChunk, pivotChunk, uTu);
+        Chunk<T> uTu;
+        mul(pivotChunk, pivotChunk, uTu);
         {
           int i = firstRow+1;
           for(; i < nChunks; i++)
@@ -389,7 +389,9 @@ namespace PITTS
 
         // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
         // (falls back to I - 2 e1 e1^T in that case)
-        T alpha = std::sqrt(uTu_sum + std::numeric_limits<T>::min());
+        using RealType = decltype(std::abs(T(0)));
+        static_assert(RealType(0) != std::numeric_limits<RealType>::min());
+        T alpha = std::sqrt(uTu_sum + std::numeric_limits<RealType>::min());
         if constexpr ( requires(T x){x > 0;} )
           alpha *= (pivot > 0 ? -1 : 1);
         else
