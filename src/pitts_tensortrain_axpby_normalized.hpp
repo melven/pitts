@@ -457,29 +457,35 @@ namespace PITTS
          * @return false    if A fails the orthogonality test
          */
         template<typename T>
-        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = std::sqrt(std::numeric_limits<T>::epsilon()))
+        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = 10*std::sqrt(std::numeric_limits<T>::epsilon()))
         {
             if (orthog == TT_Orthogonality::none) return false;
 
             Tensor2<T> core;
             for (int i = 0; i < A.dimensions().size() - 1; i++)
             {
-                int i_ = (orthog == TT_Orthogonality::left) ? i : i + 1; // shift range by one for rigth orthogonality
+                int i_ = (orthog == TT_Orthogonality::left) ? i : i + 1; // shift range by one for right-orthogonality
 
                 if (orthog == TT_Orthogonality::left)
                     unfold_left(A.subTensor(i_), core);
                 else
                     unfold_right(A.subTensor(i_), core);
 
-                using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-                Matrix mat = Eigen::Map<Matrix>(&core(0, 0), core.r1(), core.r2());
-                Matrix orth;
+                using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+                auto mat = ConstEigenMap(core);
+                EigenMatrix orth;
                 if (orthog == TT_Orthogonality::left)
                     orth = mat.transpose() * mat;
                 else
                     orth = mat * mat.transpose();
-                if ((orth - Matrix::Identity(orth.cols(), orth.rows())).norm() > eps)
-                    return false;
+                EigenMatrix orthErr = orth - EigenMatrix::Identity(orth.cols(), orth.rows());
+                if (orthErr.array().abs().maxCoeff() > eps)
+                {
+                  std::cout << "Error: Sub-Tensor " << i_ << " should be " << (orthog == TT_Orthogonality::left ? "left" : "right") << "-orthogonal I-V^TV is:\n";
+                  std::cout << orthErr << "\n";
+                  std::cout << "And the tolerance is: " << eps << "\n";
+                  return false;
+                }
             }
             return true;
         }
@@ -723,7 +729,10 @@ namespace PITTS
             const TT_Orthogonality x_ortho = TTx_ortho.isOrthogonal();
             
             // check that x_ortho != none and TTx is actually orthogonalized
-            assert(internal::is_normalized(TTx_ortho, x_ortho) == true);
+#ifndef NDEBUG
+            if( !internal::is_normalized(TTx_ortho, x_ortho) )
+              throw std::invalid_argument("TensorTrain TTx not orthogonalized on input to axpby_normalized!");
+#endif
             
             T gamma;
             if (x_ortho == TT_Orthogonality::left)

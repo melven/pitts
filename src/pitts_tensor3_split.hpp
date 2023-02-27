@@ -119,7 +119,37 @@ namespace PITTS
       const auto minRank = absoluteTolerance ? 0 : 1;
       using Index = decltype(qr.rank());
       const auto r = std::max(Index(minRank), std::min(qr.rank(), Index(maxRank)));
-      const EigenMatrix R2 = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
+
+      // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
+      using RealType = decltype(std::abs(T(0)));
+      const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
+      if( std::abs(qr.maxPivot()) < 1000*tsqrError )
+      {
+        // this is actually a zero input...
+        std::pair<Tensor2<T>,Tensor2<T>> result;
+        result.first.resize(M.r1(), minRank);
+        result.second.resize(minRank, M.r2());
+        if( minRank == 1 )
+        {
+          if( leftOrthog )
+          {
+            // return QR = e_1 * 0
+            EigenMap(result.first) = EigenMatrix::Identity(M.r1(), 1);
+            EigenMap(result.second) = EigenMatrix::Zero(1, M.r2());
+          }
+          else
+          {
+            // return LQ = 0 * e_1^T
+            EigenMap(result.first) = EigenMatrix::Zero(M.r1(), 1);
+            EigenMap(result.second) = EigenMatrix::Identity(1, M.r2());
+          }
+        }
+        return result;
+      }
+
+      auto mvMap = EigenMap(mv);
+      mvMap.leftCols(r) = (mvMap * qr.colsPermutation()).leftCols(r);
+      mvMap.leftCols(r) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>().template solve<Eigen::OnTheRight>(mvMap.leftCols(r));
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
@@ -130,15 +160,19 @@ namespace PITTS
         {
           // return QR
           // X = QR,  RP = Q_2 R_2  =>  X P = Q Q_2 R_2  => X P R_2^(-1) = Q Q_2
-          EigenMap(result.first) = R2.topLeftCorner(r,r).template triangularView<Eigen::Upper>().template solve<Eigen::OnTheRight>((ConstEigenMap(mv) * qr.colsPermutation()).leftCols(r));
-          EigenMap(result.second) = R2 * qr.colsPermutation().transpose();
+          EigenMap(result.first) = mvMap.leftCols(r);
+          auto B = EigenMap(result.second);
+          B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
+          B = B * qr.colsPermutation().transpose();
         }
         else
         {
           // return LQ
           // (Q Q_2)^T = R_2^(-T) P^T X^T
-          EigenMap(result.first) = qr.colsPermutation() * R2.transpose();
-          EigenMap(result.second) = R2.topLeftCorner(r,r).template triangularView<Eigen::Upper>().transpose().template solve<Eigen::OnTheLeft>((qr.colsPermutation().transpose() * ConstEigenMap(mv).transpose()).topRows(r));
+          auto B = EigenMap(result.first);
+          B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>().transpose();
+          B = qr.colsPermutation() * B;
+          EigenMap(result.second) = mvMap.leftCols(r).transpose();
         }
       }
 
@@ -180,6 +214,30 @@ namespace PITTS
       svd.setThreshold(rankTol);
       using Index = decltype(svd.rank());
       const auto r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
+
+      // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
+      using RealType = decltype(std::abs(T(0)));
+      const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
+      if( std::abs(svd.singularValues()(0)) < 1000*tsqrError )
+      {
+        // this is actually a zero input...
+        std::pair<Tensor2<T>,Tensor2<T>> result;
+        result.first.resize(M.r1(), 1);
+        result.second.resize(1, M.r2());
+        if( leftOrthog )
+        {
+          // return QB = e_1 * 0
+          EigenMap(result.first) = EigenMatrix::Identity(M.r1(), 1);
+          EigenMap(result.second) = EigenMatrix::Zero(1, M.r2());
+        }
+        else
+        {
+          // return BQ = 0 * e_1^T
+          EigenMap(result.first) = EigenMatrix::Zero(M.r1(), 1);
+          EigenMap(result.second) = EigenMatrix::Identity(1, M.r2());
+        }
+        return result;
+      }
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
