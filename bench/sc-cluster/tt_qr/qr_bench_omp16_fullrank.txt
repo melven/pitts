@@ -1,0 +1,104 @@
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140154232407936 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140154224011264 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140154215614592 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140154207217920 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140154198821248 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140154190424576 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140153842559616 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140153834162944 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140153825766272 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140153817369600 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140153808972928 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140153800576256 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140153792179584 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 140153238580736 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 140153230184064 -> hwthread 15 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
+[1;34mRoundrobin placement triggered
+	threadid 140153221789440 -> hwthread 0 - OK[0m[1;34m
+[0m[1;34m	threadid 140153213396736 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: MPI #procs: 1
+Performance statistics:
+function                                                                                                                               	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4104, m: 4104)	 20.0094   	 10        	 0.268834  	 0         	 0.202036  	 1.33063   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 2056, m: 4104)	 6.64916   	 10        	 0.404897  	 0         	 0.253925  	 1.59455   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4104, m: 2056)	 5.63666   	 10        	 0.477628  	 0         	 0.299537  	 1.59455   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 1032, m: 4104)	 2.17036   	 10        	 -2.67676  	 0         	 0.351525  	 -7.61471  
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 2056, m: 2056)	 1.97215   	 10        	 0.683229  	 0         	 0.514504  	 1.32794   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4104, m: 1032)	 1.40281   	 10        	 -4.14136  	 0         	 0.543864  	 -7.61471  
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 1032, m: 2056)	 0.800139  	 10        	 9.78993   	 0         	 0.530871  	 18.4412   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 2056, m: 1032)	 0.51818   	 10        	 15.117    	 0         	 0.819736  	 18.4412   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 264, m: 4104) 	 0.36005   	 10        	 15.5478   	 0         	 0.497014  	 31.2824   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 4104, r2: 4104)                                   	 0.357086  	 2         	 0         	 0         	 0.754678  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 1032, m: 1032)	 0.287485  	 10        	 -48.623   	 0         	 0.889397  	 -54.6696  
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 2056, r2: 2056)                                   	 0.189221  	 4         	 0         	 0         	 0.71487   	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4104, m: 264) 	 0.160988  	 10        	 34.7727   	 0         	 1.11157   	 31.2824   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 264, m: 2056) 	 0.147892  	 10        	 18.5489   	 0         	 0.625067  	 29.6751   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 2056, r2: 4104)                                   	 0.0975372 	 1         	 0         	 0         	 0.69207   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 4104, r2: 2056)                                   	 0.0949869 	 1         	 0         	 0         	 0.710652  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 2056, m: 264) 	 0.0820502 	 10        	 33.4336   	 0         	 1.12666   	 29.6751   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 70, m: 4104)  	 0.0791308 	 10        	 5.05372   	 0         	 0.585896  	 8.62564   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 264, m: 1032) 	 0.0708128 	 10        	 18.5822   	 0         	 0.694627  	 26.7514   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1032, r2: 1032)                                   	 0.0646328 	 6         	 0         	 0         	 0.790948  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1032, r2: 4104)                                   	 0.0484986 	 1         	 0         	 0         	 0.698631  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 1032, m: 264) 	 0.0479842 	 10        	 27.4228   	 0         	 1.0251    	 26.7514   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 4104, r2: 1032)                                   	 0.0465617 	 1         	 0         	 0         	 0.727693  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 70, m: 2056)  	 0.0396587 	 10        	 5.02289   	 0         	 0.590659  	 8.50386   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4104, m: 70)  	 0.0341707 	 10        	 11.7032   	 0         	 1.35679   	 8.62564   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 70, m: 1032)  	 0.022094  	 10        	 4.47403   	 0         	 0.541142  	 8.26776   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1032, r2: 2056)                                   	 0.0219084 	 1         	 0         	 0         	 0.774787  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 264, m: 264)  	 0.0203223 	 10        	 12.0719   	 0         	 0.824126  	 14.6482   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 2056, r2: 1032)                                   	 0.0184884 	 1         	 0         	 0         	 0.918108  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 2056, m: 70)  	 0.0179386 	 10        	 11.1046   	 0         	 1.30583   	 8.50386   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 16, m: 4104)  	 0.0161778 	 10        	 1.29716   	 0         	 0.650769  	 1.99327   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 264, r2: 4104)                                    	 0.0111765 	 1         	 0         	 0         	 0.775527  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 1032, m: 70)  	 0.0103294 	 10        	 9.5697    	 0         	 1.15747   	 8.26776   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 4104, r2: 264)                                    	 0.00989406	 1         	 0         	 0         	 0.876046  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 16, m: 2056)  	 0.00959847	 10        	 1.09386   	 0         	 0.550621  	 1.9866    
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 70, m: 264)   	 0.00698089	 10        	 3.37856   	 0         	 0.480512  	 7.03116   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 16, m: 1032)  	 0.00636451	 10        	 0.825912  	 0         	 0.418521  	 1.97341   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 264, r2: 2056)                                    	 0.00500983	 1         	 0         	 0         	 0.866751  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 2056, r2: 264)                                    	 0.00482803	 1         	 0         	 0         	 0.899389  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 264, r2: 264)                                     	 0.00448511	 8         	 0         	 0         	 0.994523  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 264, m: 70)   	 0.00350703	 10        	 6.72516   	 0         	 0.95648   	 7.03116   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 4104, m: 16)  	 0.0034501 	 10        	 6.08248   	 0         	 3.05151   	 1.99327   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 4104, r2: 70)                                     	 0.00310876	 1         	 0         	 0         	 0.739278  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1032, r2: 264)                                    	 0.00296785	 1         	 0         	 0         	 0.7344    	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 70, r2: 4104)                                     	 0.00222579	 1         	 0         	 0         	 1.03255   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 264, r2: 1032)                                    	 0.00207472	 1         	 0         	 0         	 1.05054   	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 16, m: 264)   	 0.00198975	 10        	 0.665591  	 0         	 0.350597  	 1.89845   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 2056, m: 16)  	 0.00167296	 10        	 6.27596   	 0         	 3.15915   	 1.9866    
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 2056, r2: 70)                                     	 0.00159313	 1         	 0         	 0         	 0.722704  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 70, r2: 2056)                                     	 0.00118474	 1         	 0         	 0         	 0.971825  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 70, m: 70)    	 0.00090753	 10        	 5.0393    	 0         	 1.302     	 3.87045   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1032, r2: 70)                                     	 0.000841479	 1         	 0         	 0         	 0.686791  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 1032, m: 16)  	 0.00083574	 10        	 6.28966   	 0         	 3.18721   	 1.97341   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 70, r2: 1032)                                     	 0.000684693	 1         	 0         	 0         	 0.844057  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 16, r2: 4104)                                     	 0.000585835	 1         	 0         	 0         	 0.896689  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 4104, r2: 16)                                     	 0.000507637	 1         	 0         	 0         	 1.03482   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 70, r2: 70)                                       	 0.000482449	 10        	 0         	 0         	 0.812521  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 16, r2: 2056)                                     	 0.000421617	 1         	 0         	 0         	 0.624187  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 16, m: 16)    	 0.000325461	 10        	 0.167762  	 0         	 0.192711  	 0.870536  
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 2056, r2: 16)                                     	 0.000273769	 1         	 0         	 0         	 0.961278  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 16, m: 70)    	 0.000211532	 10        	 1.56515   	 0         	 0.950022  	 1.64749   
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 264, m: 16)   	 0.000201601	 10        	 6.56921   	 0         	 3.4603    	 1.89845   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 16, r2: 1032)                                     	 0.000182571	 1         	 0         	 0         	 0.723532  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 70, r2: 264)                                      	 0.000174367	 1         	 0         	 0         	 0.847867  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 264, r2: 70)                                      	 0.000171958	 1         	 0         	 0         	 0.859745  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1032, r2: 16)                                     	 0.000157887	 1         	 0         	 0         	 0.836649  	 0         
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double](n: 70, m: 16)    	 9.6266e-05	 10        	 3.43922   	 0         	 2.08755   	 1.64749   
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 16, r2: 16)                                       	 7.829e-05 	 12        	 0         	 0         	 0.31391   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 264, r2: 16)                                      	 5.9931e-05	 1         	 0         	 0         	 0.563848  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 16, r2: 264)                                      	 4.0328e-05	 1         	 0         	 0         	 0.837929  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 16, r2: 70)                                       	 1.613e-05 	 1         	 0         	 0         	 0.555487  	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 70, r2: 16)                                       	 1.2743e-05	 1         	 0         	 0         	 0.703131  	 0         
+Timing statistics:
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qb(const PITTS::Tensor2<T>&, bool, T, int, bool) [with T = double]	 55.1757   	 360       
+<PITTS::Tensor2<double>> :: auto PITTS::internal::normalize_qr_only(const PITTS::Tensor2<T>&, bool) [with T = double]         	 40.5921   	 360       
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                              	 0.992161  	 72        
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                    	 0.00247931	 828       
