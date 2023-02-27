@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 {
     PITTS::initialize(&argc, &argv);
 
-    std::vector<std::size_t> rows = {10, 20, 50, 100}, cols = {10, 20, 50, 100};
+    std::vector<std::size_t> rows = {16,70,264,1032,2056,4104}, cols = {16,70,264,1032,2056,4104};
     float rank_multiplier = 0.75;
     std::size_t rnk;
 
@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
             randomize(C);
             EigenMap(A) = ConstEigenMap(B) * ConstEigenMap(C);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
-                auto [Q,B] = PITTS::internal::normalize_qb(A, true, 0.0, row+col);
+                auto [Q,R] = PITTS::internal::normalize_qb(A, true, 0.0, row+col);
             }
         }
     }
