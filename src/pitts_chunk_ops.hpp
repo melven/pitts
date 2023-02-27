@@ -33,6 +33,10 @@ namespace PITTS
   template<typename T>
   inline void mul(T a, const Chunk<T>& b, Chunk<T>& c);
 
+  //! element-wise product of two chunks ( c_i = a_i * b_i )
+  template<typename T>
+  inline void mul(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c);
+
   //! add the negative element-wise product of two chunks ( d_i = - a_i * b_i + c_i )
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, const Chunk<T>& c, Chunk<T>& d);
