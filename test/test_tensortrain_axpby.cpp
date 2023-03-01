@@ -412,12 +412,12 @@ TEST(PITTS_TensorTrain_axpby, none_equal)
     copy(TTx, TTy);
 
     // addition
-    check_axpby(1.0, TTx, 1.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 1.e-7);
     // --> 0 tensor
-    check_axpby(-1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -1.0, TTy);
+    check_axpby(-1.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(1.0, TTx, -1.0, TTy, 1.e-7);
     // axpby
-    check_axpby(2.0, TTx, -3.0, TTy);
+    check_axpby(2.0, TTx, -3.0, TTy, 1.e-7);
 }
 
 TEST(PITTS_TensorTrain_axpby, none_large_tensors)

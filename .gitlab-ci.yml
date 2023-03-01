@@ -1,6 +1,7 @@
 before_script:
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited
+  - ulimit -l unlimited
   - export OMP_STACKSIZE=20M
   - export SLURM_OVERLAP=1
 
