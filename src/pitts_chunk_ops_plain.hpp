@@ -48,6 +48,14 @@ namespace PITTS
       c[i] = a*b[i];
   }
 
+  // Chunk MUL default implementation
+  template<typename T>
+  inline void mul(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c)
+  {
+    for(short i = 0; i < Chunk<T>::size; i++)
+      c[i] = a[i]*b[i];
+  }
+
   // negative FMA4 default implementation
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, const Chunk<T>& c, Chunk<T>& d)

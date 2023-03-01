@@ -2,6 +2,8 @@ import functools
 import timeit
 import argparse
 import numpy as np
+import scipy as sp
+import scipy.linalg
 
 
 def timer(func):
@@ -22,6 +24,12 @@ def qr_numpy(X, nIter=1):
     return r
 
 @timer
+def qr_scipy(X, nIter=1):
+    for i in range(nIter):
+        r = sp.linalg.qr(X, mode='economic', check_finite=False, pivoting=True)
+    return r
+
+@timer
 def random(shape):
     return np.random.rand(*shape).astype(dtype=np.float64, order='F')
 
@@ -38,6 +46,9 @@ def main():
     X = random([args.n, args.m])
     qr_numpy(X, nIter=args.nIter)
     qr_numpy(X, nIter=args.nIter)
+
+    qr_scipy(X, nIter=args.nIter)
+    qr_scipy(X, nIter=args.nIter)
 
 
 if __name__ == '__main__':
