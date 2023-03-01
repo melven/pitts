@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "pitts_tensor2_qb_decomposition.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "eigen_test_helper.hpp"
 
 TEST(PITTS_Tensor2_qb_decomposition, diagonal_full_rank)
 {
@@ -150,7 +151,7 @@ TEST(PITTS_Tensor2_qb_decomposition, zero)
   Tensor2_double B;
   Tensor2_double Binv;
   constexpr double eps = 1.e-10;
-  int rank = qb_decomposition(t2, B, Binv, eps);
+  int rank = qb_decomposition(t2, B, Binv, eps, 999, true);
   ASSERT_EQ(0, rank);
 
   const auto mapB = ConstEigenMap(B);
@@ -158,4 +159,92 @@ TEST(PITTS_Tensor2_qb_decomposition, zero)
 
   ASSERT_NEAR(0, mapB.norm(), eps);
   ASSERT_NEAR(0, mapBinv.norm(), eps);
+}
+
+TEST(PITTS_Tensor2_qb_decomposition, absoluteTolerance)
+{
+  using Tensor2_double = PITTS::Tensor2<double>;
+  using mat = Eigen::MatrixXd;
+
+  // example matrix to orthognalize:
+  mat X = mat::Zero(10,4);
+  X(0,0) = 1000;
+  X(1,1) = 1.1e-4;
+  X(2,2) = 0.9e-4;
+  X(3,3) = 1.1e-8;
+
+  Tensor2_double XtX(4,4);
+  EigenMap(XtX) = X.transpose()*X;
+  Tensor2_double B, Binv;
+
+  int rank = qb_decomposition(XtX, B, Binv, 1., 999, true);
+  EXPECT_EQ(1, rank);
+
+  mat invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
+  invErr.topLeftCorner(1,1) -= mat::Identity(1,1);
+  EXPECT_NEAR(mat::Zero(1,1), invErr, 1.e-13);
+  mat qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
+  EXPECT_NEAR(mat::Zero(1,4), qbErr, 1.e-13);
+
+  rank = qb_decomposition(XtX, B, Binv, 1.e-4, 999, true);
+  EXPECT_EQ(2, rank);
+
+  invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
+  invErr.topLeftCorner(2,2) -= mat::Identity(2,2);
+  EXPECT_NEAR(mat::Zero(2,2), invErr, 1.e-13);
+  qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
+  EXPECT_NEAR(mat::Zero(2,4), qbErr, 1.e-13);
+
+  rank = qb_decomposition(XtX, B, Binv, 1.e-8, 999, true);
+  EXPECT_EQ(4, rank);
+
+  invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
+  invErr.topLeftCorner(4,4) -= mat::Identity(4,4);
+  EXPECT_NEAR(mat::Zero(4,4), invErr, 1.e-13);
+  qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
+  EXPECT_NEAR(mat::Zero(4,4), qbErr, 1.e-13);
+}
+
+TEST(PITTS_Tensor2_qb_decomposition, relativeTolerance)
+{
+  using Tensor2_double = PITTS::Tensor2<double>;
+  using mat = Eigen::MatrixXd;
+
+  // example matrix to orthognalize:
+  mat X = mat::Zero(10,4);
+  X(0,0) = 1000;
+  X(1,1) = 1.1e-4;
+  X(2,2) = 0.9e-4;
+  X(3,3) = 1.1e-8;
+
+  Tensor2_double XtX(4,4);
+  EigenMap(XtX) = X.transpose()*X;
+  Tensor2_double B, Binv;
+
+  int rank = qb_decomposition(XtX, B, Binv, 1.e-3, 999, false);
+  EXPECT_EQ(1, rank);
+
+  mat invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
+  invErr.topLeftCorner(1,1) -= mat::Identity(1,1);
+  EXPECT_NEAR(mat::Zero(1,1), invErr, 1.e-13);
+  mat qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
+  EXPECT_NEAR(mat::Zero(1,4), qbErr, 1.e-13);
+
+  rank = qb_decomposition(XtX, B, Binv, 1.e-7, 999, false);
+  EXPECT_EQ(2, rank);
+
+  invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
+  invErr.topLeftCorner(2,2) -= mat::Identity(2,2);
+  EXPECT_NEAR(mat::Zero(2,2), invErr, 1.e-13);
+  qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
+  EXPECT_NEAR(mat::Zero(2,4), qbErr, 1.e-13);
+
+  rank = qb_decomposition(XtX, B, Binv, 1.e-11, 999, false);
+  EXPECT_EQ(4, rank);
+
+  invErr = ConstEigenMap(B) * ConstEigenMap(Binv);
+  invErr.topLeftCorner(4,4) -= mat::Identity(4,4);
+  EXPECT_NEAR(mat::Zero(4,4), invErr, 1.e-13);
+  qbErr = ConstEigenMap(Binv).transpose() * ConstEigenMap(XtX) - ConstEigenMap(B);
+  EXPECT_NEAR(mat::Zero(4,4), qbErr, 1.e-13);
 }
