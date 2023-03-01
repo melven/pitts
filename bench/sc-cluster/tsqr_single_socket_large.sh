@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -c 16
-#SBATCH -t 60
+#SBATCH -t 600
 #SBATCH --nodelist=be-cpu05
 #SBATCH --output="%x-%j.out"
 

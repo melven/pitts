@@ -1,10 +1,9 @@
 #!/bin/bash
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH -c 64
+#SBATCH -c 16
 #SBATCH -t 600
 #SBATCH --nodelist=be-cpu05
-#SBATCH --exclusive
 #SBATCH --output="%x-%j.out"
 
 for ((i=2; i <= 100; i+=2)); do
