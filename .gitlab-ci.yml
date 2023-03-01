@@ -2,6 +2,7 @@ before_script:
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited
   - export OMP_STACKSIZE=20M
+  - export SLURM_OVERLAP=1
 
 build_release:
   stage: build
