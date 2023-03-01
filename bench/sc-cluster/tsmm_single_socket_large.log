@@ -1,370 +1,380 @@
-Sleeping longer as likwid_sleep() called without prior initialization
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140567718254464 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140567635814400 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140567627417728 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140567619021056 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140567610624384 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140567602227712 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140567593831040 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140567585434368 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140567098944384 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140567090547712 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140567082151040 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140567073754368 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140567065357696 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140299021145984 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140299012749312 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140298931923072 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140298923526400 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140298915129728 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140298906733056 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140298898336384 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140298889939712 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140298881543040 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140298327944192 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140298319547520 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140298311150848 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140298302754176 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140298294357504 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140298285960832 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140567056963328 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140567047493376 -> core 1 - OK[0m[1;34m
+	threadid 140298277566208 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140297791076096 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.0260734
+wtime: 0.0196467
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 100, Yrows: 500000, Ycols: 100, fast: 1)	 1.30355   	 50        	 383.569   	 0         	 46.0298   	 8.33306   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 100)                                      	 0.112683  	 1         	 0         	 0         	 7.09958   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 100, r2: 50)                                                   	 5.657e-05 	 1         	 0         	 0         	 0.707089  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 100, Yrows: 500000, Ycols: 100, fast: 1)	 0.982198  	 50        	 509.062   	 0         	 61.0895   	 8.33306   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 100)                                                                                                              	 0.0745444 	 1         	 0         	 0         	 10.7319   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 100, r2: 50)                                                                                                                               	 7.685e-05 	 1         	 0         	 0         	 0.520494  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 1.30355   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.112683  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.000934234	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 5.657e-05 	 1         
-<PITTS::Tensor2<double> >::resize               	 3.594e-06 	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.982198  	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.0745444 	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.000798893	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 7.685e-05 	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 1.0318e-05	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140190526478208 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140190518081536 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140190509684864 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140190501288192 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140190492891520 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140190148454912 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140190140058240 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140190131661568 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140190123264896 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140190114868224 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140190106471552 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140190098074880 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140189611584896 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140468290865024 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140468282468352 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140468274071680 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140468265675008 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140468257278336 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140467912043008 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140467903646336 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140467895249664 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140467886852992 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140467878456320 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140467870059648 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140467861662976 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140467375172992 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140467366776320 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140467358379648 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140189603190528 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140189587330816 -> core 1 - OK[0m[1;34m
+	threadid 140467349985024 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140467341592320 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.0834919
+wtime: 0.068089
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 200, Yrows: 500000, Ycols: 200, fast: 1)	 4.17444   	 50        	 479.107   	 0         	 28.7483   	 16.6656   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 200)                                      	 0.212903  	 1         	 0         	 0         	 7.51516   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 200, r2: 100)                                                  	 0.000220013	 1         	 0         	 0         	 0.72723   	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 200, Yrows: 500000, Ycols: 200, fast: 1)	 3.40429   	 50        	 587.495   	 0         	 35.252    	 16.6656   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 200)                                                                                                              	 0.140748  	 1         	 0         	 0         	 11.3678   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 200, r2: 100)                                                                                                                              	 0.00022544	 1         	 0         	 0         	 0.709723  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 4.17444   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.212903  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.00177621	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.000220013	 1         
-<PITTS::Tensor2<double> >::resize               	 1.0274e-05	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 3.40429   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.140748  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00139595	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00022544	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 8.711e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140195241539456 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140195233142784 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140195224746112 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140195216349440 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140195207952768 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140195199556096 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140195191159424 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140194711857920 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140194703461248 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140194695064576 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140194686667904 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140194678271232 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140194669874560 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140350755174272 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140350672857088 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140350664460416 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140350656063744 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140350647667072 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140350639270400 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140350630873728 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140350622477056 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140350135987072 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140350127590400 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140350119193728 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140350110797056 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140350102400384 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140350094003712 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140350085607040 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140194661480192 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140194168596224 -> core 1 - OK[0m[1;34m
+	threadid 140349599119104 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140349590726400 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.167647
+wtime: 0.143907
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 300, Yrows: 500000, Ycols: 300, fast: 1)	 8.38215   	 50        	 536.855   	 0         	 21.4764   	 24.9975   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 300)                                      	 0.307619  	 1         	 0         	 0         	 7.80187   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 300, r2: 150)                                                  	 0.000474607	 1         	 0         	 0         	 0.758522  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 300, Yrows: 500000, Ycols: 300, fast: 1)	 7.19515   	 50        	 625.421   	 0         	 25.0193   	 24.9975   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 300)                                                                                                              	 0.209207  	 1         	 0         	 0         	 11.4719   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 300, r2: 150)                                                                                                                              	 0.000493357	 1         	 0         	 0         	 0.729695  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 8.38215   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.307619  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.00320142	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.000474607	 1         
-<PITTS::Tensor2<double> >::resize               	 1.0689e-05	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 7.19515   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.209207  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00165466	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.000493357	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 8.569e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139865889535872 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139865811314688 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139865802918016 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139865794521344 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139865786124672 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139865777728000 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139865769331328 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139865760934656 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139865274444672 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139865266048000 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139865257651328 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139865249254656 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139865240857984 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140525758510976 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140525750114304 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140525741717632 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140525733320960 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140525724924288 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140525716527616 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140525708130944 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140525223013120 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140525214616448 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140525206219776 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140525197823104 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140525189426432 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140525181029760 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140525172633088 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140524686143104 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 139865232463616 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139865218754304 -> core 1 - OK[0m[1;34m
+	threadid 140524677748480 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140524669355776 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.280845
+wtime: 0.24249
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 400, Yrows: 500000, Ycols: 400, fast: 1)	 14.042    	 50        	 569.719   	 0         	 17.0938   	 33.3289   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 400)                                      	 0.400998  	 1         	 0         	 0         	 7.9801    	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 400, r2: 200)                                                  	 0.000843597	 1         	 0         	 0         	 0.758656  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 400, Yrows: 500000, Ycols: 400, fast: 1)	 12.1243   	 50        	 659.833   	 0         	 19.7976   	 33.3289   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 400)                                                                                                              	 0.281567  	 1         	 0         	 0         	 11.365    	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 400, r2: 200)                                                                                                                              	 0.00085104	 1         	 0         	 0         	 0.752021  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 14.042    	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.400998  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.00470607	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.000843597	 1         
-<PITTS::Tensor2<double> >::resize               	 1.318e-05 	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 12.1243   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.281567  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00267885	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00085104	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 9.438e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140694798051200 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140694789654528 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140694781257856 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140694772861184 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140694764464512 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140694756067840 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140694404459136 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140694396062464 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140694387665792 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140694379269120 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140694370872448 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140694362475776 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140694354079104 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140528224618368 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140528216221696 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140528207825024 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140528199428352 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140528191031680 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140527840258560 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140527831861888 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140527823465216 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140527815068544 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140527806671872 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140527798275200 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140527789878528 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140527303388544 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140527294991872 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140527286595200 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140693800482560 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140693791012608 -> core 1 - OK[0m[1;34m
+	threadid 140527278200576 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140527269807872 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.438946
+wtime: 0.400609
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 500, Yrows: 500000, Ycols: 500, fast: 1)	 21.9471   	 50        	 569.551   	 0         	 13.6715   	 41.6597   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 500)                                      	 0.494385  	 1         	 0         	 0         	 8.09085   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 500, r2: 250)                                                  	 0.0013331 	 1         	 0         	 0         	 0.750129  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 500, Yrows: 500000, Ycols: 500, fast: 1)	 20.0303   	 50        	 624.055   	 0         	 14.9798   	 41.6597   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 500)                                                                                                              	 0.344719  	 1         	 0         	 0         	 11.6036   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 500, r2: 250)                                                                                                                              	 0.00134344	 1         	 0         	 0         	 0.744356  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 21.9471   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.494385  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.00452078	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.0013331 	 1         
-<PITTS::Tensor2<double> >::resize               	 1.0585e-05	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 20.0303   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.344719  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00404092	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00134344	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 1.1651e-05	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139957713397632 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139957705000960 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139957696604288 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139957482023168 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139957473626496 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139957465229824 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139957456833152 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139957448436480 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139957440039808 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139957431643136 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139956945153152 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139956936756480 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139956928359808 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140156916201344 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140156907804672 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140156899408000 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140156891011328 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140156882614656 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140156874217984 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140156526914176 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140156518517504 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140156510120832 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140156501724160 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140156493327488 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140156484930816 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140156476534144 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140155922935296 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140155914538624 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 139956919965440 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139956908373760 -> core 1 - OK[0m[1;34m
+	threadid 140155906144000 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140155897751296 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.636108
+wtime: 0.577506
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 600, Yrows: 500000, Ycols: 600, fast: 1)	 31.8052   	 50        	 565.945   	 0         	 11.3212   	 49.99     
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 600)                                      	 0.586246  	 1         	 0         	 0         	 8.1877    	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 600, r2: 300)                                                  	 0.00190394	 1         	 0         	 0         	 0.756326  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 600, Yrows: 500000, Ycols: 600, fast: 1)	 28.8751   	 50        	 623.375   	 0         	 12.47     	 49.99     
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 600)                                                                                                              	 0.41324   	 1         	 0         	 0         	 11.6155   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 600, r2: 300)                                                                                                                              	 0.00191765	 1         	 0         	 0         	 0.750918  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 31.8052   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.586246  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.0067019 	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.00190394	 1         
-<PITTS::Tensor2<double> >::resize               	 1.4783e-05	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 28.8751   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.41324   	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00440428	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00191765	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 1.0092e-05	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140444764481408 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140444756084736 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140444747688064 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140444739291392 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140444730894720 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140444722498048 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140444714101376 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140444705704704 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140444222614400 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140444214217728 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140444205821056 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140444197424384 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140444189027712 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140223806158720 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140223797762048 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140223789365376 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140223780968704 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140223568669056 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140223560272384 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140223551875712 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140223543479040 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140223535082368 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140223526685696 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140223518289024 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140222964690176 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140222956293504 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140222947896832 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140222939500160 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140444180633344 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140443752855296 -> core 1 - OK[0m[1;34m
+	threadid 140222931105536 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140222922712832 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 0.870967
+wtime: 0.785259
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 700, Yrows: 500000, Ycols: 700, fast: 1)	 43.5481   	 50        	 562.596   	 0         	 9.64676   	 58.3197   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 700)                                      	 0.678996  	 1         	 0         	 0         	 8.24747   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 700, r2: 350)                                                  	 0.00259401	 1         	 0         	 0         	 0.755587  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 700, Yrows: 500000, Ycols: 700, fast: 1)	 39.2627   	 50        	 624.001   	 0         	 10.6997   	 58.3197   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 700)                                                                                                              	 0.479274  	 1         	 0         	 0         	 11.6843   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 700, r2: 350)                                                                                                                              	 0.00259591	 1         	 0         	 0         	 0.755033  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 43.5481   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.678996  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.00614948	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.00259401	 1         
-<PITTS::Tensor2<double> >::resize               	 9.037e-06 	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 39.2627   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.479274  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00431603	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00259591	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 8.247e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140561429833600 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140561421436928 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140561413040256 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140561404643584 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140561193363840 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140561184967168 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140561176570496 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140561168173824 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140561159777152 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140561151380480 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140561142983808 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140560589384960 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140560580988288 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 139738535012224 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 139738526615552 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 139738518218880 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 139738304473344 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 139738296076672 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 139738287680000 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 139738279283328 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 139738270886656 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 139738262489984 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 139738254093312 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 139737767603328 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 139737759206656 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 139737750809984 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 139737742413312 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 139737734016640 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140560572593920 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140560557807360 -> core 1 - OK[0m[1;34m
+	threadid 139737725622016 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 139737717229312 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 1.18224
+wtime: 1.11295
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 800, Yrows: 500000, Ycols: 800, fast: 1)	 59.1117   	 50        	 541.348   	 0         	 8.12239   	 66.6489   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 800)                                      	 0.773373  	 1         	 0         	 0         	 8.27544   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 800, r2: 400)                                                  	 0.00343067	 1         	 0         	 0         	 0.746211  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 800, Yrows: 500000, Ycols: 800, fast: 1)	 55.6471   	 50        	 575.053   	 0         	 8.62809   	 66.6489   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 800)                                                                                                              	 0.548367  	 1         	 0         	 0         	 11.671    	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 800, r2: 400)                                                                                                                              	 0.00344002	 1         	 0         	 0         	 0.744182  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 59.1117   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.773373  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.00815175	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.00343067	 1         
-<PITTS::Tensor2<double> >::resize               	 8.593e-06 	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 55.6471   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.548367  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.0045663 	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00344002	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 8.125e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140418656016256 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140418647619584 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140418639222912 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140418630826240 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140418622429568 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140418614032896 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140418605636224 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140418597239552 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140418117266304 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140418108869632 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140418100472960 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140418092076288 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140418083679616 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140096105535360 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140096097138688 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140096088742016 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140096080345344 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140096071948672 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140095726283264 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140095717886592 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140095709489920 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140095701093248 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140095692696576 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140095684299904 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140095675903232 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140095189413248 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140095181016576 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140095172619904 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140418075285248 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140417647507200 -> core 1 - OK[0m[1;34m
+	threadid 140095164225280 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140095155832576 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 1.51485
+wtime: 1.52686
 Performance statistics:
-function                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 900, Yrows: 500000, Ycols: 900, fast: 1)	 75.7424   	 50        	 534.707   	 0         	 7.13157   	 74.9775   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 900)                                      	 0.868223  	 1         	 0         	 0         	 8.2928    	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 900, r2: 450)                                                  	 0.00427698	 1         	 0         	 0         	 0.757544  	 0         
+function                                                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 900, Yrows: 500000, Ycols: 900, fast: 1)	 76.3427   	 50        	 530.503   	 0         	 7.07549   	 74.9775   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 900)                                                                                                              	 0.613435  	 1         	 0         	 0         	 11.7372   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 900, r2: 450)                                                                                                                              	 0.00428184	 1         	 0         	 0         	 0.756684  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 75.7424   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.868223  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.0090853 	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.00427698	 1         
-<PITTS::Tensor2<double> >::resize               	 6.938e-06 	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
-Sleeping longer as likwid_sleep() called without prior initialization
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 76.3427   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.613435  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00651211	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00428184	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 1.1303e-05	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140281317209984 -> core 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140281308813312 -> core 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140281300416640 -> core 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140281292019968 -> core 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140281080965504 -> core 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140281072568832 -> core 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140281064172160 -> core 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140281055775488 -> core 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140281047378816 -> core 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140281038982144 -> core 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140281030585472 -> core 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140280476986624 -> core 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140280468589952 -> core 13 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 14
+[0m[1;34m	threadid 140692890158976 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 140692881762304 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 140692873365632 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 140692659628288 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 140692651231616 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 140692642834944 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 140692634438272 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 140692626041600 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 140692617644928 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 140692609248256 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 140692122758272 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 140692114361600 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 140692105964928 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 140692097568256 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 140692089171584 -> hwthread 31 - OK[0m[1;34m
+[0mPITTS: OpenMP #threads: 16
 [1;34mRoundrobin placement triggered
-	threadid 140280460195584 -> core 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140280445409024 -> core 1 - OK[0m[1;34m
+	threadid 140692080776960 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 140692072384256 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 2.20411
+wtime: 2.16546
 Performance statistics:
-function                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double> >::transform<double>(Xrows: 1000000, Xcols: 1000, Yrows: 500000, Ycols: 1000, fast: 1)	 110.205   	 50        	 453.699   	 0         	 5.44621   	 83.3056   
-<PITTS::MultiVector<double> >::randomize<double>(rows: 1000000, cols: 1000)                                       	 0.958207  	 1         	 0         	 0         	 8.34893   	 0         
-<PITTS::Tensor2<double> >::randomize<double>(r1: 1000, r2: 500)                                                   	 0.00553325	 1         	 0         	 0         	 0.722903  	 0         
+function                                                                                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1000000, Xcols: 1000, Yrows: 500000, Ycols: 1000, fast: 1)	 108.273   	 50        	 461.796   	 0         	 5.5434    	 83.3056   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1000000, cols: 1000)                                                                                                               	 0.692024  	 1         	 0         	 0         	 11.5603   	 0         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double](r1: 1000, r2: 500)                                                                                                                               	 0.00535224	 1         	 0         	 0         	 0.747351  	 0         
 Timing statistics:
-function                                        	 time [s]  	 #calls    
-<PITTS::MultiVector<double> >::transform<double>	 110.205   	 50        
-<PITTS::MultiVector<double> >::randomize<double>	 0.958207  	 1         
-<PITTS::MultiVector<double> >::resize           	 0.0107411 	 2         
-<PITTS::Tensor2<double> >::randomize<double>    	 0.00553325	 1         
-<PITTS::Tensor2<double> >::resize               	 6.85e-06  	 1         
-INFO: You are running LIKWID in a cpuset with 14 CPUs. Taking given IDs as logical ID in cpuset
+function                                                                                                                                                        	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 108.273   	 50        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                        	 0.692024  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]                                              	 0.00847637	 2         
+<PITTS::Tensor2<double>> :: void PITTS::randomize(Tensor2<T>&) [with T = double]                                                                                	 0.00535224	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                                                      	 7.474e-06 	 1         
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
