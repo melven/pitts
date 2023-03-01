@@ -6,7 +6,7 @@ before_script:
 build_release:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
@@ -15,8 +15,8 @@ build_release:
     - ccache -z
     - mkdir build_release && cd build_release
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
@@ -25,7 +25,7 @@ build_release:
 build_debug_with_coverage:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:15:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
@@ -34,8 +34,8 @@ build_debug_with_coverage:
     - ccache -z
     - mkdir build_coverage && cd build_coverage
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
   artifacts:
@@ -50,7 +50,7 @@ build_debug_with_coverage:
 build_debug_no_itensor:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
@@ -59,9 +59,9 @@ build_debug_no_itensor:
     - ccache -z
     - module unload -f itensor
     - mkdir build_debug && cd build_debug
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
@@ -70,7 +70,7 @@ build_debug_no_itensor:
 build_clang:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-23.1/share/spack/modules/linux-ubuntu20.04-x86_64_v3/
@@ -88,8 +88,8 @@ build_clang:
     - module unload -f itensor
     - mkdir build_clang && cd build_clang
     - cmake .. -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=clang++
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
