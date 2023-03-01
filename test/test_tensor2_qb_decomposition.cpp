@@ -151,7 +151,7 @@ TEST(PITTS_Tensor2_qb_decomposition, zero)
   Tensor2_double B;
   Tensor2_double Binv;
   constexpr double eps = 1.e-10;
-  int rank = qb_decomposition(t2, B, Binv, eps);
+  int rank = qb_decomposition(t2, B, Binv, eps, 999, true);
   ASSERT_EQ(0, rank);
 
   const auto mapB = ConstEigenMap(B);
