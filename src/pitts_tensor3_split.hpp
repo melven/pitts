@@ -32,8 +32,8 @@ namespace PITTS
     template<typename T>
     auto normalize_qr_only(const Tensor2<T>& M, bool leftOrthog)
     {
-      const int n = M.r1();
-      const int m = M.r2();
+      const long long n = M.r1();
+      const long long m = M.r2();
       // 2n^2m-2/3n^3 for m>=n flops reported by LAPACKE
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"n", "m"},{n, m}}, // arguments
