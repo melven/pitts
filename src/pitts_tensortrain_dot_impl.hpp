@@ -45,18 +45,18 @@ namespace PITTS
         );
 
 #pragma omp parallel for collapse(2) schedule(static)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(int j = 0; j < n; j++)
       {
         for(int i = 0; i < r1; i++)
         {
-          Chunk<T> tmp[r2_];
+          T tmp[r2_];
           for(int k = 0; k < r2_; k++)
-            tmp[k] = Chunk<T>{};
+            tmp[k] = 0;
           for(int l = 0; l < r2; l++)
             for(int k = 0; k < r2_; k++)
-              fmadd(B(k,l), A.chunk(i,jChunk,l), tmp[k]);
+              tmp[k] += B(k,l) * A(i,j,l);
           for(int k = 0; k < r2_; k++)
-            C.chunk(i,jChunk,k) = tmp[k];
+            C(i,j,k) = tmp[k];
         }
       }
     }
@@ -80,18 +80,18 @@ namespace PITTS
         );
 
 #pragma omp parallel for collapse(2) schedule(static)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(int j = 0; j < n; j++)
       {
         for(int i = 0; i < r1; i++)
         {
-          Chunk<T> tmp[r2_];
+          T tmp[r2_];
           for(int k = 0; k < r2_; k++)
-            tmp[k] = Chunk<T>{};
+            tmp[k] = 0;
           for(int l = 0; l < r2; l++)
             for(int k = 0; k < r2_; k++)
-              fmadd(B(l,k), A.chunk(i,jChunk,l), tmp[k]);
+              tmp[k] += B(l,k) * A(i,j,l);
           for(int k = 0; k < r2_; k++)
-            C.chunk(i,jChunk,k) = tmp[k];
+            C(i,j,k) = tmp[k];
         }
       }
     }
@@ -115,18 +115,18 @@ namespace PITTS
         );
 
 #pragma omp parallel for collapse(2) schedule(static)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(int j = 0; j < n; j++)
       {
         for (int k = 0; k < r2; k++)
         {
-          Chunk<T> tmp[r1_];
+          T tmp[r1_];
           for (int i = 0; i < r1_; i++)
-            tmp[i] = Chunk<T>{};
+            tmp[i] = 0;
           for (int l = 0; l < r1; l++)
             for (int i = 0; i < r1_; i++)
-              fmadd(A(l,i), B.chunk(l,jChunk,k), tmp[i]);
+              tmp[i] += A(l,i) * B(l,j,k);
           for (int i = 0; i < r1_; i++)
-            C.chunk(i, jChunk, k) = tmp[i];
+            C(i,j,k) = tmp[i];
         }
       }
     }
@@ -158,17 +158,17 @@ namespace PITTS
         for(int jb = 0; jb < r1_; jb+=bs)
           for(int ib = 0; ib < r1; ib+=bs)
           {
-            Chunk<T> tmp[bs*bs];
+            T tmp[bs*bs];
             for(int i = 0; i < bs*bs; i++)
-              tmp[i] = Chunk<T>{};
+              tmp[i] = 0;
             for(int l = 0; l < r2; l++)
-              for(int kChunk = 0; kChunk < nChunks; kChunk++)
+              for(int k = 0; k < n; k++)
                 for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
                   for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                    fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmp[i-ib+(j-jb)*bs]);
+                    tmp[i-ib+(j-jb)*bs] += A(i,k,l) * B(k,k,l);
             for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
               for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                C(i,j) = sum(tmp[i-ib+(j-jb)*bs]);
+                C(i,j) = tmp[i-ib+(j-jb)*bs];
           }
       }
       else // r1*r1_ < bs*bs*nChunks
@@ -182,20 +182,20 @@ namespace PITTS
                   tmp[i+j*bs] = T(0);
 #pragma omp parallel reduction(+:tmp)
               {
-                Chunk<T> tmpC[bs*bs];
+                T tmpC[bs*bs];
                 for(int i = 0; i < bs*bs; i++)
-                  tmpC[i] = Chunk<T>{};
+                  tmpC[i] = 0;
 #pragma omp for collapse(2) schedule(static)
               for(int l = 0; l < r2; l++)
-                for(int kChunk = 0; kChunk < nChunks; kChunk++)
+                for(int k = 0; k < n; k++)
                 {
                   for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
                     for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                      fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmpC[i-ib+(j-jb)*bs]);
+                      tmpC[i-ib+(j-jb)*bs] += A(i,k,l) * B(j,k,l);
                 }
               for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
                 for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                  tmp[i-ib+(j-jb)*bs] = sum(tmpC[i-ib+(j-jb)*bs]);
+                  tmp[i-ib+(j-jb)*bs] = tmpC[i-ib+(j-jb)*bs];
               }
               for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
                 for(int i = ib; i < std::min((int)r1, ib+bs); i++)
@@ -270,13 +270,13 @@ namespace PITTS
       for (int j = 0; j < rB2; j++)
         for (int i = 0; i < rA2; i++)
         {
-          Chunk<T> tmp{};
+          T tmp = 0;
 //#pragma omp for collapse(2) schedule(static) nowait
-          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+          for(int k = 0; k < n; k++)
             for(int l = 0; l < r1; l++)
-              fmadd(A.chunk(l,kChunk,i), B.chunk(l,kChunk,j), tmp);
+              tmp += A(l,k,i) * B(l,k,j);
           //tmpC[i+j*rA2] = sum(tmp);
-          C(i,j) = sum(tmp);
+          C(i,j) = tmp;
         }
 }
       //for(int i = 0; i < rA2; i++)
@@ -306,13 +306,13 @@ namespace PITTS
       T result{};
 #pragma omp parallel reduction(+:result)
       {
-        Chunk<T> tmp{};
+        T tmp = 0;
 #pragma omp for collapse(3) schedule(static) nowait
         for(int j = 0; j < r2; j++)
-          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+          for(int k = 0; k < n; k++)
             for(int i = 0; i < r1; i++)
-              fmadd(A.chunk(i,kChunk,j), B.chunk(i,kChunk,j), tmp);
-        result = sum(tmp);
+              tmp += A(i,k,j) * B(i,k,j);
+        result = tmp;
       }
 
       return result;

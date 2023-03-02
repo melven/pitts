@@ -50,18 +50,18 @@ namespace PITTS
         );
 
 #pragma omp parallel for collapse(2) schedule(static)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(int j = 0; j < n; j++)
       {
         for(int i = 0; i < r2; i++)
         {
-          Chunk<T> tmp[r1_];
+          T tmp[r1_];
           for(int k = 0; k < r1_; k++)
-            tmp[k] = Chunk<T>{};
+            tmp[k] = 0;
           for(int l = 0; l < r1; l++)
             for(int k = 0; k < r1_; k++)
-              fmadd(A(k,l), B.chunk(l,jChunk,i), tmp[k]);
+              tmp[k] += A(k,l) * B(l,j,i);
           for(int k = 0; k < r1_; k++)
-            C.chunk(k,jChunk,i) = tmp[k];
+            C(k,j,i) = tmp[k];
         }
       }
     }
@@ -97,17 +97,17 @@ namespace PITTS
       return;
 
 #pragma omp parallel for collapse(2) schedule(static)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(int j = 0; j < n; j++)
         for(int k = 0; k < r2; k++)
         {
-          Chunk<T> tmp[r1];
+          T tmp[r1];
           for(int i = 0; i < r1; i++)
-            tmp[i] = Chunk<T>{};
+            tmp[i] = 0;
           for(int l = 0; l < r; l++)
             for(int i = 0; i < r1; i++)
-              fmadd(B(l,k), A.chunk(i,jChunk,l), tmp[i]);
+              tmp[i] += B(l,k) * A(i,j,l);
           for(int i = 0; i < r1; i++)
-            C.chunk(i,jChunk,k) = tmp[i];
+            C(i,j,k) = tmp[i];
         }
     }
 
@@ -128,9 +128,9 @@ namespace PITTS
 
 #pragma omp parallel for collapse(3) schedule(static)
       for(int k = 0; k < r2; k++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int i = 0; i < r1; i++)
-            mul(alpha, x.chunk(i,jChunk,k), x.chunk(i,jChunk,k));
+            x(i,j,k) *= alpha;
     }
 
     // implement leftNormalize_range

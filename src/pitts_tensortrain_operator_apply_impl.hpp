@@ -89,7 +89,8 @@ namespace PITTS
             Chunk<T> tmp = Chunk<T>{};
             for(int l = 0; l < m; l++)
               fmadd(x(j1,l,j2), tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)], tmp);
-            y.chunk(i,kChunk,j) = tmp;
+            for (int k = 0; k < ALIGNMENT/sizeof(T); k++)
+              y(i,kChunk+k,j) = tmp[k];
           }
     }
 
@@ -128,21 +129,20 @@ namespace PITTS
          {(m*n*rA2+r1*xn*r2)*kernel_info::Load<Chunk<T>>() + (m*xn*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-      const int nChunks = y.nChunks();
 #pragma omp parallel for collapse(2) schedule(static)
       for(int j = 0; j < r2; j++)
-        for(int kChunk = 0; kChunk < nChunks; kChunk++)
+        for(int k = 0; k < n; k++)
         {
           for(int iy = 0; iy < n; iy++)
           {
-            Chunk<T> tmp{};
+            T tmp = 0;
             for(int ix = 0; ix < r1; ix++)
             {
               const int l = ix % m;
               const int j2 = ix / m;
-              fmadd(Aop(0,iy+n*l,j2), x.chunk(ix,kChunk,j), tmp);
+              tmp += Aop(0,iy+n*l,j2) * x(ix,k,j);
             }
-            y.chunk(iy,kChunk,j) = tmp;
+            y(iy,k,j) = tmp;
           }
         }
     }
@@ -182,22 +182,20 @@ namespace PITTS
          {(rA1*n*m+r1*xn*r2)*kernel_info::Load<Chunk<T>>() + (r1*xn*m)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-      const int nChunks = y.nChunks();
-
 #pragma omp parallel for collapse(2) schedule(static)
       for(int jy = 0; jy < n; jy++)
-        for(int kChunk = 0; kChunk < nChunks; kChunk++)
+        for(int k = 0; k < n; k++)
         {
           for(int i = 0; i < r1; i++)
           {
-            Chunk<T> tmp{};
+            T tmp = 0;
             for(int jx = 0; jx < r2; jx++)
             {
               const int l = jx % m;
               const int i2 = jx / m;
-              fmadd(Aop(i2,jy+l*n,0), x.chunk(i,kChunk,jx), tmp);
+              tmp += Aop(i2,jy+l*n,0) * x(i,k,jx);
             }
-            y.chunk(i,kChunk,jy) = tmp;
+            y(i,k,jy) = tmp;
           }
         }
     }

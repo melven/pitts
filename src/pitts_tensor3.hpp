@@ -72,9 +72,10 @@ namespace PITTS
         return;
       // ensure padding is zero
 #pragma omp parallel for schedule(static)
-      for(long long j = 0; j < r2_; j++)
-        for (long long i = 0; i < r1_; i++)
-          chunk(i,nChunks()-1,j) = Chunk<T>{};
+      for(int j = 0; j < r2_; j++)
+        for (int i = 0; i < r1_; i++)
+          for (int k = ALIGNMENT/sizeof(T); k > 0; k++)
+            operator()(i,nChunks()-k,j);
     }
 
     //! access tensor entries (some block ordering, const variant)
@@ -92,20 +93,20 @@ namespace PITTS
     }
 
     //! chunk-wise access
-    const Chunk<T>& chunk(long long i1, long long j, long long i2) const
-    {
-      const auto k = i1 + j*r1_ + i2*r1_*nChunks();
-      const auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
-      return pdata[k];
-    }
+    //const Chunk<T>& chunk(int i1, int j, int i2) const
+    //{
+    //  const int k = i1 + j*r1_ + i2*r1_*nChunks();
+    //  const auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
+    //  return pdata[k];
+    //}
 
     //! chunk-wise access
-    Chunk<T>& chunk(long long i1, long long j, long long i2)
-    {
-      const auto k = i1 + j*r1_ + i2*r1_*nChunks();
-      auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
-      return pdata[k];
-    }
+    //Chunk<T>& chunk(int i1, int j, int i2)
+    //{
+    //  const int k = i1 + j*r1_ + i2*r1_*nChunks();
+    //  auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
+    //  return pdata[k];
+    //}
 
     //! first dimension
     inline long long r1() const {return r1_;}

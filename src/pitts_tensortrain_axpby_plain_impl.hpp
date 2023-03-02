@@ -64,38 +64,38 @@ namespace PITTS
 {
 #pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1x; i++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int k = 0; k < r2new; k++)
           {
-            Chunk<T> tmp{};
+            T tmp = 0;
             for(int l = 0; l < r2x; l++)
-              fmadd(B(l,k), X.chunk(i,jChunk,l), tmp);
-            C.chunk(i,jChunk,k) = tmp;
+              tmp += B(l,k) * X(i,j,l);
+            C(i,j,k) = tmp;
           }
 if( !first )
 {
 #pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1y; i++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int k = 0; k < r2new; k++)
           {
-            Chunk<T> tmp{};
+            T tmp = 0;
             for(int l = 0; l < r2y; l++)
-              fmadd(B(r2x+l,k), Y.chunk(i,jChunk,l), tmp);
-            C.chunk(r1x+i,jChunk,k) = tmp;
+              tmp += B(r2x+l,k) * Y(i,j,l);
+            C(r1x+i,j,k) = tmp;
           }
 }
 else
 {
 #pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1y; i++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int k = 0; k < r2new; k++)
           {
-            Chunk<T> tmp = C.chunk(i,jChunk,k);
+            T tmp = C(i,j,k);
             for(int l = 0; l < r2y; l++)
-              fmadd(B(r2x+l,k), Y.chunk(i,jChunk,l), tmp);
-            C.chunk(i,jChunk,k) = tmp;
+              tmp += B(r2x+l,k) * Y(i,j,l);
+            C(i,j,k) = tmp;
           }
 }
 }
