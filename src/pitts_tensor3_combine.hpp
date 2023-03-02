@@ -11,7 +11,8 @@
 #define PITTS_TENSOR3_COMBINE_HPP
 
 // includes
-#include <array>
+#include <memory>
+#include <stdexcept>
 #include "pitts_tensor3.hpp"
 #include "pitts_performance.hpp"
 

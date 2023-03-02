@@ -12,7 +12,7 @@
 
 // includes
 #include <vector>
-#include <exception>
+#include <stdexcept>
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"

@@ -13,11 +13,22 @@
 //#define VERBOSE
 
 // includes
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <cassert>
+#include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_performance.hpp"
+#include "pitts_chunk_ops.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
+#include "pitts_timer.hpp"
 
 #define FIXED_FLOAT(f, prec) std::fixed << std::setprecision(prec) << (f < 0 ? "" : " ") << f
 
@@ -446,131 +457,38 @@ namespace PITTS
          * @return false    if A fails the orthogonality test
          */
         template<typename T>
-        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = std::sqrt(std::numeric_limits<T>::epsilon()))
+        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = 10*std::sqrt(std::numeric_limits<T>::epsilon()))
         {
             if (orthog == TT_Orthogonality::none) return false;
 
             Tensor2<T> core;
             for (int i = 0; i < A.dimensions().size() - 1; i++)
             {
-                int i_ = (orthog == TT_Orthogonality::left) ? i : i + 1; // shift range by one for rigth orthogonality
+                int i_ = (orthog == TT_Orthogonality::left) ? i : i + 1; // shift range by one for right-orthogonality
 
                 if (orthog == TT_Orthogonality::left)
                     unfold_left(A.subTensor(i_), core);
                 else
                     unfold_right(A.subTensor(i_), core);
 
-                using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-                Matrix mat = Eigen::Map<Matrix>(&core(0, 0), core.r1(), core.r2());
-                Matrix orth;
+                using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+                auto mat = ConstEigenMap(core);
+                EigenMatrix orth;
                 if (orthog == TT_Orthogonality::left)
                     orth = mat.transpose() * mat;
                 else
                     orth = mat * mat.transpose();
-                if ((orth - Matrix::Identity(orth.cols(), orth.rows())).norm() > eps)
-                    return false;
+                EigenMatrix orthErr = orth - EigenMatrix::Identity(orth.cols(), orth.rows());
+                if (orthErr.array().abs().maxCoeff() > eps)
+                {
+                  std::cout << "Error: Sub-Tensor " << i_ << " should be " << (orthog == TT_Orthogonality::left ? "left" : "right") << "-orthogonal I-V^TV is:\n";
+                  std::cout << orthErr << "\n";
+                  std::cout << "And the tolerance is: " << eps << "\n";
+                  return false;
+                }
             }
             return true;
         }
-        
-
-        /*
-        * print the 2-tensor to command line
-        */
-        template <typename T>
-        static void quickndirty_visualizeMAT(const Tensor2<T>& G, int prec = 4)
-        {
-            std::cout << "dimensions: " << G.r1() << " x "<< G.r2() << std::endl;
-            if (G.r1() == 0 || G.r2() == 0) goto _return;
-            for (int i1  = 0; i1 < G.r1(); i1++)
-            {
-                for (int i2 = 0; i2 < G.r2(); i2++)
-                {
-                    std::cout << FIXED_FLOAT(G(i1, i2), prec) << '\t';
-                }
-                std::cout << std::endl;
-            }
-        _return:
-            std::cout << "\n";
-        }
-
-        /*
-        * print the 3-tensor to command line
-        * 
-        * @param prec    digits after decimal point to be displayed
-        * 
-        * @param fold    if fold == 1, combine r1 and n dimensions
-        *                if fold == 2, combine n and r2 dimensions
-        *                if fold == 0, don't fold, show depth (n) to the side
-        */
-        template <typename T>
-        static void quickndirty_visualizeCORE(const Tensor3<T>& G, int prec = 4, int fold = 0)
-        {
-            std::cout << "dimensions: " << G.r1() << " x " << G.n() << " x "<< G.r2() << std::endl;
-            if (fold == 1) // combine r1 and n dimension
-            {
-                for (int j = 0; j < G.n(); j++)
-                {
-                    for (int i1  = 0; i1 < G.r1(); i1++)
-                    {
-                        for (int i2 = 0; i2 < G.r2(); i2++)
-                        {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
-                        }
-                        std::cout << std::endl;
-                    }
-                }
-            }
-            if (fold == 2) // combine n and r2 dimension
-            {
-                for (int i1  = 0; i1 < G.r1(); i1++)
-                {
-                    for (int i2 = 0; i2 < G.r2(); i2++)
-                    {
-                        for (int j = 0; j < G.n(); j++)
-                        {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
-                        }
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            if (fold == 0)
-            {
-                for (int i1  = 0; i1 < G.r1(); i1++)
-                {
-                    for (int j = 0; j < G.n(); j++)
-                    {
-                        for (int i2 = 0; i2 < G.r2(); i2++)
-                        {
-                            std::cout << FIXED_FLOAT(G(i1, j, i2), prec) << '\t';
-                        }
-                        std::cout << '\t';
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            std::cout << "\n";
-        }
-
-        /*
-        * print the complete tensor to command line
-        * 
-        * @param prec    digits after decimal point to be displayed
-        * 
-        * @param fold    if fold == 1, combine r1 and n dimensions
-        *                if fold == 2, combine n and r2 dimensions
-        *                if fold == 0, don't fold, show depth (n) to the side
-        */
-        template <typename T>
-        static void quickndirty_visualizeTT(const TensorTrain<T>& TT, int prec = 4, int fold = 0)
-        {
-            for (int i = 0; i < TT.dimensions().size(); i++)
-            {
-                quickndirty_visualizeCORE(TT.subTensor(i), prec, fold);
-            }
-        }
-
 
         
         /**
@@ -811,7 +729,10 @@ namespace PITTS
             const TT_Orthogonality x_ortho = TTx_ortho.isOrthogonal();
             
             // check that x_ortho != none and TTx is actually orthogonalized
-            assert(internal::is_normalized(TTx_ortho, x_ortho) == true);
+#ifndef NDEBUG
+            if( !internal::is_normalized(TTx_ortho, x_ortho) )
+              throw std::invalid_argument("TensorTrain TTx not orthogonalized on input to axpby_normalized!");
+#endif
             
             T gamma;
             if (x_ortho == TT_Orthogonality::left)

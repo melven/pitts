@@ -26,14 +26,17 @@ namespace PITTS
   //!
   //! Computes the decomposition B^TB = M using a SVD of M for a symmetric positive semi-definite matrix M
   //!
-  //! @tparam T     underlying data type (double, complex, ...)
+  //! @tparam T                 underlying data type (double, complex, ...)
   //!
-  //! @param  M     Symmetric positive semi-definite input matrix M, overwritten with the output matrix B
-  //! @param  Binv  Pseudo-Inverse of the output matrix
-  //! @return       detected rank of the matrix
+  //! @param  M                 Symmetric positive semi-definite input matrix M
+  //! @param  B                 Resulting matrix B with B^TB = M
+  //! @param  Binv              Pseudo-Inverse of the output matrix B
+  //! @param  rankTolerance     Desired accuracy / truncation tolerance
+  //! @param  absoluteTolerance Use rankTolerance as absolute truncation tolerance instead of relative to the biggest singular value.
+  //! @return                   detected rank of the matrix
   //!
   template<typename T>
-  auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance)
+  auto qb_decomposition(const Tensor2<T>& M, Tensor2<T>& B, Tensor2<T>& Binv, T rankTolerance,  int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
   {
     const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -41,6 +44,9 @@ namespace PITTS
     if( M.r1() != M.r2() )
       throw std::invalid_argument("qb_decomposition requires a quadratic matrix!");
     const auto n = M.r1();
+    
+    auto rankTol = std::abs(rankTolerance);
+    rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
     // Helpful types
     using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
@@ -51,10 +57,15 @@ namespace PITTS
     const auto mapM = ConstEigenMap(M);
 
     // compute sqrt(diag(M)) and its inverse
+    auto maxDiag = std::abs(T(0));
+    for(int i = 0; i < n; i++)
+      maxDiag = std::max(maxDiag, std::abs(M(i,i)));
+    const auto diagTol2 = rankTol*rankTol * (absoluteTolerance ? 1 : maxDiag);
+
     vec d(n), dinv(n);
     for(int i = 0; i < n; i++)
     {
-      if( std::abs(M(i,i)) <= rankTolerance )
+      if( std::real(M(i,i)) <= diagTol2 )
       {
         d(i) = T(0);
         dinv(i) = T(0);
@@ -74,49 +85,36 @@ namespace PITTS
 
     // determine rank of the input matrix and set w = sqrt(lambda), winv = 1/w
     // Eigen orders eigenvalues with increasing value (smallest first)
-    int rank = n;
     const auto evMax = std::abs(eigSolv.eigenvalues()(n-1));
+
     vec w(n), winv(n);
-    if( evMax <= rankTolerance )
-    {
-      w = vec::Zero(n);
-      winv = vec::Zero(n);
-      rank = 0;
-    }
-    else
-    {
-      for(int i = 0; i < n; i++)
-      {
-        if( eigSolv.eigenvalues()(i) <= rankTolerance*evMax )
-        {
-          rank--;
-          w(i) = T(0);
-          winv(i) = T(0);
-        }
-        else
-        {
-          w(i) = std::sqrt(eigSolv.eigenvalues()(i));
-          winv(i) = T(1)/w(i);
-        }
-      }
-    }
-
-    // calculate B and Binv
-    B.resize(n,n);
-    Binv.resize(n,n);
-    EigenMap(Binv) = dinv.asDiagonal() * eigSolv.eigenvectors() * winv.asDiagonal();
-    EigenMap(B) = w.asDiagonal() * eigSolv.eigenvectors().transpose() * d.asDiagonal();
-
-    // reorder, so the part corresponding to the largest eigenvalues are first
+    int rank = n;
+    auto eigTol2 = diagTol2;
+    if( maxDiag > 0 )
+      eigTol2 /= maxDiag;
+    eigTol2 = std::max(eigTol2, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
     for(int i = 0; i < n; i++)
     {
-      for(int j = 0; j < n/2; j++)
+      if( std::real(eigSolv.eigenvalues()(i)) <= eigTol2 || rank > maxRank )
       {
-        int k = n-j-1;
-        std::swap(B(j,i), B(k,i));
-        std::swap(Binv(i,j), Binv(i,k));
+        rank--;
+        w(i) = T(0);
+        winv(i) = T(0);
+      }
+      else
+      {
+        w(i) = std::sqrt(eigSolv.eigenvalues()(i));
+        winv(i) = T(1)/w(i);
       }
     }
+    const auto minRank = absoluteTolerance ? 0 : 1;
+    rank = std::max(rank, minRank);
+
+    // calculate B and Binv
+    B.resize(rank,n);
+    Binv.resize(n,rank);
+    EigenMap(Binv) = dinv.asDiagonal() * eigSolv.eigenvectors().rightCols(rank) * winv.bottomRows(rank).asDiagonal();
+    EigenMap(B) = w.bottomRows(rank).asDiagonal() * eigSolv.eigenvectors().rightCols(rank).transpose() * d.asDiagonal();
 
     return rank;
   }

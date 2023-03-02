@@ -10,7 +10,7 @@ namespace
   }
 
   template<typename T>
-  constexpr auto templateFunction(std::vector<T> x)
+  constexpr auto templateFunction(std::vector<T>)
   {
     auto scope = PITTS::internal::ScopeInfo::current();
     return scope;

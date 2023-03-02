@@ -1,9 +1,9 @@
-#include <iostream>
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_qubit_simulator.hpp"
 #include "pitts_eigen.hpp"
 #include <unsupported/Eigen/MatrixFunctions>
+#include <iostream>
 
 namespace
 {

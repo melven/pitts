@@ -1,23 +1,24 @@
 before_script:
-  - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
-  - module load PrgEnv/gcc11-openmpi-python
-  - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited
+  - ulimit -l unlimited
   - export OMP_STACKSIZE=20M
-  - export CXX=g++
+  - export SLURM_OVERLAP=1
 
 build_release:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
+    - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
+    - module load PrgEnv/gcc11-openmpi-python
+    - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - mkdir build_release && cd build_release
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
@@ -26,14 +27,17 @@ build_release:
 build_debug_with_coverage:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:15:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
   needs: []
   script:
+    - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
+    - module load PrgEnv/gcc11-openmpi-python
+    - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - mkdir build_coverage && cd build_coverage
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
   artifacts:
@@ -48,19 +52,50 @@ build_debug_with_coverage:
 build_debug_no_itensor:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 7 -c 4 -t 00:10:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
+    - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
+    - module load PrgEnv/gcc11-openmpi-python
+    - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - module unload -f itensor
     - mkdir build_debug && cd build_debug
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-    - cmake --build . -- -j 28
-    - cmake --build . --target check -j 28
+    - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
       junit: build_debug/test/pitts_tests*.xml
+
+build_clang:
+  stage: build
+  variables:
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
+  needs: []
+  script:
+    - export MODULEPATH=/scratch/spack-23.1/share/spack/modules/linux-ubuntu20.04-x86_64_v3/
+    - module load ninja
+    - module load llvm/llvm-main
+    - module load cmake/cmake-master
+    - module load openmpi
+    - module load py-pybind11
+    - module load py-numpy
+    - module load cereal
+    - module load intel-oneapi-mkl/intel-oneapi-mkl-2023.0.0/intel-oneapi-mkl-2023.0.0-gcc-9.4.0-eyvz5fy
+    - module load eigen/eigen-master
+    - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_clang/"
+    - ccache -z
+    - module unload -f itensor
+    - mkdir build_clang && cd build_clang
+    - cmake .. -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=clang++
+    - cmake --build . -- -j 15
+    - cmake --build . --target check -j 15
+    - ccache -s
+  artifacts:
+    reports:
+      junit: build_clang/test/pitts_tests*.xml
 
 pages:
   stage: deploy

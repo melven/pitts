@@ -19,6 +19,9 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
+#include "pitts_multivector_tsqr.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -51,55 +54,6 @@ namespace PITTS
       return qr;
     }
 
-    //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
-    template<typename T>
-    auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
-    {
-      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-
-      // get reasonable rank tolerance
-      auto rankTol = std::abs(rankTolerance);
-      rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
-
-      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-
-      auto qr = normalize_qr_only(M, leftOrthog);
-
-      // we might want to consider an absolute tolerance, e.g. when orthogonalizing w.r.t. another set of orthogonal vectors...
-      if( absoluteTolerance && qr.maxPivot() > 0 )
-        rankTol /= qr.maxPivot();
-      qr.setThreshold(rankTol);
-
-      // with an absolute tolerance, we can get rank 0, otherwise it should be (numerically) at least 1
-      // (Eigen / LAPACK / MKL don't like call with dimension zero, so avoid this when possible)
-      const auto minRank = absoluteTolerance ? 0 : 1;
-      const auto r = std::max(Eigen::Index(minRank), std::min(qr.rank(), Eigen::Index(maxRank)));
-      qr.householderQ().setLength(r);
-      const EigenMatrix R = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
-
-      std::pair<Tensor2<T>,Tensor2<T>> result;
-      result.first.resize(M.r1(), r);
-      result.second.resize(r, M.r2());
-
-      if( r > 0 )
-      {
-        if( leftOrthog )
-        {
-          // return QR
-          EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
-          EigenMap(result.second) = R * qr.colsPermutation().transpose();
-        }
-        else
-        {
-          // return LQ
-          EigenMap(result.first) = qr.colsPermutation() * R.transpose();
-          EigenMap(result.second) = (qr.householderQ() * EigenMatrix::Identity(M.r2(), r)).transpose();
-        }
-      }
-
-      return result;
-    }
-
     //! small wrapper around SVD only with data size
     template<typename T>
     auto normalize_svd_only(const Tensor2<T>& M)
@@ -115,39 +69,191 @@ namespace PITTS
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M));
+#else
       auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
 
       return svd;
     }
 
-    //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
+    //! wrapper for qr, allows to show timings, returns LQ decomposition for leftOrthog=false
     template<typename T>
-    auto normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
+    auto normalize_qb(const Tensor2<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false)
     {
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       // get reasonable rank tolerance
       auto rankTol = std::abs(rankTolerance);
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
-      auto svd = normalize_svd_only(M);
+      //    M = Q R = Q U S V^T
+      // => M = (QU) (SV^T)
+      // => (QU) = M V S^(-1)
+      MultiVector<T> mv;
+      if( leftOrthog )
+      {
+        mv.resize(M.r1(), M.r2());
+        EigenMap(mv) = ConstEigenMap(M);
+      }
+      else // rightOrthog
+      {
+        mv.resize(M.r2(), M.r1());
+        EigenMap(mv) = ConstEigenMap(M).transpose();
+      }
+      Tensor2<T> R;
+      block_TSQR(mv, R, 0, false);
+
+      auto qr = normalize_qr_only(R, true);
+
+      // we might want to consider an absolute tolerance, e.g. when orthogonalizing w.r.t. another set of orthogonal vectors...
+      if( absoluteTolerance && qr.maxPivot() > 0 )
+        rankTol /= qr.maxPivot();
+      qr.setThreshold(rankTol);
+
+      // with an absolute tolerance, we can get rank 0, otherwise it should be (numerically) at least 1
+      // (Eigen / LAPACK / MKL don't like call with dimension zero, so avoid this when possible)
+      const auto minRank = absoluteTolerance ? 0 : 1;
+      using Index = decltype(qr.rank());
+      const auto r = std::max(Index(minRank), std::min(qr.rank(), Index(maxRank)));
+
+      // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
+      using RealType = decltype(std::abs(T(0)));
+      const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
+      if( std::abs(qr.maxPivot()) < 1000*tsqrError )
+      {
+        // this is actually a zero input...
+        std::pair<Tensor2<T>,Tensor2<T>> result;
+        result.first.resize(M.r1(), minRank);
+        result.second.resize(minRank, M.r2());
+        if( minRank == 1 )
+        {
+          if( leftOrthog )
+          {
+            // return QR = e_1 * 0
+            EigenMap(result.first) = EigenMatrix::Identity(M.r1(), 1);
+            EigenMap(result.second) = EigenMatrix::Zero(1, M.r2());
+          }
+          else
+          {
+            // return LQ = 0 * e_1^T
+            EigenMap(result.first) = EigenMatrix::Zero(M.r1(), 1);
+            EigenMap(result.second) = EigenMatrix::Identity(1, M.r2());
+          }
+        }
+        return result;
+      }
+
+      auto mvMap = EigenMap(mv);
+      mvMap.leftCols(r) = (mvMap * qr.colsPermutation()).leftCols(r);
+      mvMap.leftCols(r) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>().template solve<Eigen::OnTheRight>(mvMap.leftCols(r));
+
+      std::pair<Tensor2<T>,Tensor2<T>> result;
+      result.first.resize(M.r1(), r);
+      result.second.resize(r, M.r2());
+      if( r > 0 )
+      {
+        if( leftOrthog )
+        {
+          // return QR
+          // X = QR,  RP = Q_2 R_2  =>  X P = Q Q_2 R_2  => X P R_2^(-1) = Q Q_2
+          EigenMap(result.first) = mvMap.leftCols(r);
+          auto B = EigenMap(result.second);
+          B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
+          B = B * qr.colsPermutation().transpose();
+        }
+        else
+        {
+          // return LQ
+          // (Q Q_2)^T = R_2^(-T) P^T X^T
+          auto B = EigenMap(result.first);
+          B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>().transpose();
+          B = qr.colsPermutation() * B;
+          EigenMap(result.second) = mvMap.leftCols(r).transpose();
+        }
+      }
+
+      return result;
+    }
+
+    //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
+    template<typename T>
+    auto normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max())
+    {
+
+      using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
+      // get reasonable rank tolerance
+      auto rankTol = std::abs(rankTolerance);
+      rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
+
+      //    M = Q R = Q U S V^T
+      // => M = (QU) (SV^T)
+      // => (QU) = M V S^(-1)
+      MultiVector<T> mv;
+      if( leftOrthog )
+      {
+        mv.resize(M.r1(), M.r2());
+        EigenMap(mv) = ConstEigenMap(M);
+      }
+      else // rightOrthog
+      {
+        mv.resize(M.r2(), M.r1());
+        EigenMap(mv) = ConstEigenMap(M).transpose();
+      }
+      Tensor2<T> R;
+      block_TSQR(mv, R, 0, false);
+
+      auto svd = normalize_svd_only(R);
+
       svd.setThreshold(rankTol);
-      const auto r = std::max(Eigen::Index(1), std::min(svd.rank(), Eigen::Index(maxRank)));
+      using Index = decltype(svd.rank());
+      const auto r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
+
+      // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
+      using RealType = decltype(std::abs(T(0)));
+      const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
+      if( std::abs(svd.singularValues()(0)) < 1000*tsqrError )
+      {
+        // this is actually a zero input...
+        std::pair<Tensor2<T>,Tensor2<T>> result;
+        result.first.resize(M.r1(), 1);
+        result.second.resize(1, M.r2());
+        if( leftOrthog )
+        {
+          // return QB = e_1 * 0
+          EigenMap(result.first) = EigenMatrix::Identity(M.r1(), 1);
+          EigenMap(result.second) = EigenMatrix::Zero(1, M.r2());
+        }
+        else
+        {
+          // return BQ = 0 * e_1^T
+          EigenMap(result.first) = EigenMatrix::Zero(M.r1(), 1);
+          EigenMap(result.second) = EigenMatrix::Identity(1, M.r2());
+        }
+        return result;
+      }
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
       result.second.resize(r, M.r2());
       if( leftOrthog )
       {
-        EigenMap(result.first) = svd.matrixU().leftCols(r);
+        // return QB
+        EigenMap(result.first) = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
         EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
       }
       else
       {
-        EigenMap(result.first) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-        EigenMap(result.second) = svd.matrixV().leftCols(r).adjoint();
+        // return BQ
+        EigenMap(result.first) = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+        EigenMap(result.second) = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
       }
-
       return result;
     }
   }

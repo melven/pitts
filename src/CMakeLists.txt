@@ -73,6 +73,7 @@ target_sources(pitts INTERFACE
   pitts_multivector_norm.hpp
   pitts_multivector_scale.hpp
   pitts_multivector_axpby.hpp
+  pitts_multivector_gramian.hpp
   pitts_gmres.hpp
   )
 

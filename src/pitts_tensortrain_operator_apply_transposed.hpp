@@ -11,10 +11,14 @@
 #define PITTS_TENSORTRAIN_OPERATOR_APPLY_TRANSPOSED_HPP
 
 // includes
-#include <cmath>
+#include <stdexcept>
+#include <vector>
+#include <cassert>
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_tensor3.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -24,7 +28,7 @@ namespace PITTS
   {
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along middle dimension: A(:,*,:,:) * x(:,*,:)
     template<typename T>
-    void applyT_contract(const TensorTrainOperator<T>& TTOp, int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
+    void applyT_contract([[maybe_unused]] const TensorTrainOperator<T>& TTOp, [[maybe_unused]] int iDim, const Tensor3<T>& Aop, const Tensor3<T>& x, Tensor3<T>& y)
     {
       const auto rA1 = Aop.r1();
       const auto rA2 = Aop.r2();

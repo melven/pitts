@@ -315,8 +315,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   auto mapX = ConstEigenMap(X);
   auto mapX_ref = ConstEigenMap(X_ref);
   //std::cout << "X:\n" << mapX << std::endl;
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapX.topRows(m));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+#else
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+#endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -383,8 +388,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   auto mapXresult = ConstEigenMap(Xresult);
   //std::cout << "X:\n" << mapXresult << std::endl;
   auto mapX_ref = ConstEigenMap(X_ref);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapXresult.bottomRows(n-nChunks*Chunk::size));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+#else
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+#endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part
@@ -455,18 +465,20 @@ TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
 namespace
 {
   // helper function for testing block_TSQR with different data dimensions, etc
+  template<typename T = double>
   void test_block_TSQR(int n, int m)
   {
     constexpr auto eps = 1.e-8;
-    using Chunk = PITTS::Chunk<double>;
-    using MultiVector = PITTS::MultiVector<double>;
-    using Tensor2 = PITTS::Tensor2<double>;
+    using Chunk = PITTS::Chunk<T>;
+    using MultiVector = PITTS::MultiVector<T>;
+    using Tensor2 = PITTS::Tensor2<T>;
+    using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
     MultiVector M(n,m);
     randomize(M);
 
     // store the original matrix for later
-    Eigen::MatrixXd M_ref = ConstEigenMap(M);
+    EigenMatrix M_ref = ConstEigenMap(M);
 
     Tensor2 R;
     block_TSQR(M, R, 4, false);
@@ -476,13 +488,19 @@ namespace
     {
       for(int i = j+1; i < m; i++)
       {
-        ASSERT_NEAR(0., R(i,j), eps);
+        ASSERT_NEAR(0., std::real(R(i,j)), eps);
+        ASSERT_NEAR(0., std::imag(R(i,j)), eps);
       }
     }
 
     // check that the singular values and right singular vectors match...
-    Eigen::BDCSVD<Eigen::MatrixXd> svd(PITTS::ConstEigenMap(R), Eigen::ComputeThinV);
-    Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(M_ref, Eigen::ComputeThinV);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+    Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV> svd(PITTS::ConstEigenMap(R));
+    Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV> svd_ref(M_ref);
+#else
+    Eigen::BDCSVD<EigenMatrix> svd(PITTS::ConstEigenMap(R), Eigen::ComputeThinV);
+    Eigen::BDCSVD<EigenMatrix> svd_ref(M_ref, Eigen::ComputeThinV);
+#endif
 
     ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
     // V can differ by sign, only consider absolute part
@@ -508,6 +526,16 @@ TEST(PITTS_MultiVector_tsqr, block_TSQR_small_serial)
 
   omp_set_num_threads(1);
   test_block_TSQR(50, 10);
+  omp_set_num_threads(nThreads);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, DISABLED_complex_block_TSQR_small_serial)
+{
+  int nThreads = get_default_num_threads();
+
+  omp_set_num_threads(1);
+  test_block_TSQR<std::complex<double>>(50, 10);
   omp_set_num_threads(nThreads);
 }
 
@@ -606,8 +634,13 @@ TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
   }
 
   // check that the singular values and right singular vectors match...
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(ConstEigenMap(R));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(Mglobal);
+#else
   Eigen::BDCSVD<Eigen::MatrixXd> svd(ConstEigenMap(R), Eigen::ComputeThinV);
   Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(Mglobal, Eigen::ComputeThinV);
+#endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   // V can differ by sign, only consider absolute part

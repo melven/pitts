@@ -16,7 +16,7 @@
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 #include <array>
-#include <exception>
+#include <stdexcept>
 #include <memory>
 #include <tuple>
 

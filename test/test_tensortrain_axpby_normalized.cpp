@@ -32,7 +32,7 @@ static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double bet
     const double gamma = internal::axpby_plain(alpha, TTx, beta, TTy, accuracy);
     const double _norm_ = norm2(_TTy_);
 
-    const double absolute_accuracy = accuracy * norm2(TTy); // scale by norm of "correct" result
+    const double absolute_accuracy = std::max(1.e-60, accuracy * norm2(TTy)); // scale by norm of "correct" result
     
     MultiVector<double> _y_, y;
     toDense(TTy, y);
@@ -413,10 +413,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_large_tensors)
     randomize(TTy);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(1.0, TTx, -2.0, TTy, 1.e-7);
+    check_axpby(3.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(-4.0, TTx, -5.0, TTy, 1.e-7);
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_long_tensors)
@@ -439,10 +439,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_long_tensors)
     randomize(TTy);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(1.0, TTx, -2.0, TTy, 1.e-7);
+    check_axpby(3.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(-4.0, TTx, -5.0, TTy, 1.e-7);
 }
 
 
@@ -773,10 +773,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
     randomize(TTy);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(1.0, TTx, -2.0, TTy, 1.e-7);
+    check_axpby(3.0, TTx, 1.0, TTy, 1.e-7);
+    check_axpby(-4.0, TTx, -5.0, TTy, 1.e-7);
 }
 
 

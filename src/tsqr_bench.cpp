@@ -6,9 +6,9 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_eigen.hpp"
-#include <exception>
 #include <charconv>
 #include <iostream>
+#include <stdexcept>
 
 
 int main(int argc, char* argv[])

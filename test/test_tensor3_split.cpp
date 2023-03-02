@@ -11,7 +11,9 @@ class PITTS_Tensor3_split : public ::testing::Test
     using Type = T;
 };
 
-using TestTypes = ::testing::Types<double, std::complex<double>>;
+// std::complex does currently not work because block_TSQR doesn't support std::complex, yet
+//using TestTypes = ::testing::Types<double, std::complex<double>>;
+using TestTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(PITTS_Tensor3_split, TestTypes);
 
 TYPED_TEST(PITTS_Tensor3_split, n_equals_one)

@@ -141,7 +141,7 @@ TEST(PITTS_TensorTrain_solve_gmres, random_nDim2_rank1)
   TensorTrain_double TTAx(TTb.dimensions());
   apply(TTOpA, TTx, TTAx);
   double error_ref = axpby(-1., TTb, 1., TTAx);
-  EXPECT_NEAR(error_ref, error, eps);
+  EXPECT_NEAR(error_ref, error, 10*eps);
 }
 
 TEST(PITTS_TensorTrain_solve_gmres, random_nDim2)

@@ -5,6 +5,8 @@
 #include "pitts_tensortrain_from_dense_twosided.hpp"
 #include <charconv>
 #include <vector>
+#include <stdexcept>
+#include <iostream>
 
 
 

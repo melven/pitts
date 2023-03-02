@@ -12,7 +12,7 @@
 
 // includes
 #include <array>
-#include <exception>
+#include <stdexcept>
 #include "pitts_eigen.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"

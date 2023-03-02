@@ -98,7 +98,7 @@ TEST(PITTS_TensorTrain_laplace_operator, rank_2_matrix)
     }
   }
 
-  TT.setTTranks({2});
+  TT.setTTranks(2);
   randomize(TT);
   std::array<std::array<double, 7>,5> oldMat;
   for(int i = 0; i < 5; i++)
@@ -153,7 +153,7 @@ TEST(PITTS_TensorTrain_laplace_operator, large_rank_2_matrix)
     }
   }
 
-  TT.setTTranks({2});
+  TT.setTTranks(2);
   randomize(TT);
   std::array<std::array<double, n+2>,n+2> oldMat;
   for(int i = 0; i < n+2; i++)

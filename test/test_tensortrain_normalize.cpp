@@ -194,7 +194,11 @@ namespace
         X(i,j) = distribution(randomGenerator);
 
     // calculate the SVD X = U S V^T
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+    Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::ComputeThinV | Eigen::ComputeThinU> svd(X);
+#else
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
     // now we can robustly calculate X(X^TX)^(-1/2) = U S V^T ( V S U^T U S V^T )^(-1/2) = U S V^T ( V S^2 V^T )^(-1/2) = U S V^T ( V S^(-1) V^T ) = U V^T
     return svd.matrixU() * svd.matrixV().transpose();
   }
