@@ -121,6 +121,9 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensor3_combine.cpp
     pitts_tensor3_random.cpp
     pitts_tensor3_split.cpp
+    pitts_tensortrain_axpby.cpp
+    pitts_tensortrain_axpby_plain.cpp
+    pitts_tensortrain_axpby_normalized.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
