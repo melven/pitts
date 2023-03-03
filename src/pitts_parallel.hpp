@@ -19,17 +19,10 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include <sstream>
 #include <functional>
 #include <tuple>
-#include <stdexcept>
 #include <type_traits>
 #include <complex>
-
-#include <cereal/cereal.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/unordered_map.hpp>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -38,6 +31,11 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+    // small helper type that defers static_assert evaluation to template instantiation
+    // (copied from https://www.fluentcpp.com/2019/08/23/how-to-make-sfinae-pretty-and-robust/)
+    template<typename>
+    inline constexpr bool dependent_false_v{ false };
+
     //! helper functionality for distribution of data and parallelization
     namespace parallel
     {
@@ -108,11 +106,6 @@ namespace PITTS
         return std::make_pair(firstElem, lastElem);
       }
 
-      // small helper type that defers static_assert evaluation to template instantiation
-      // (copied from https://www.fluentcpp.com/2019/08/23/how-to-make-sfinae-pretty-and-robust/)
-      template<typename>
-      inline constexpr bool dependent_false_v{ false };
-
       //! Return corresponding MPI data type
       //!
       //! @warning Only implemented for a few commonly used types
@@ -121,7 +114,7 @@ namespace PITTS
       //! @returns    MPI data type
       //!
       template<typename T>
-      inline MPI_Datatype mpiType() noexcept
+      constexpr MPI_Datatype mpiType() noexcept
       {
         if constexpr( std::is_same<T, double>:: value )
           return MPI_DOUBLE;
@@ -143,30 +136,7 @@ namespace PITTS
       //! @param comm         (optional) MPI communicator, must be identical on all MPI processes
       //! @returns            pair(data,offsets) with the gathered data from process i at data[offset[i]...offset[i+1]-1] on the root process (otherwise empty)
       //!
-      inline std::pair<std::string,std::vector<int>> mpiGather(const std::string_view& localData, int root = 0, MPI_Comm comm = MPI_COMM_WORLD)
-      {
-        const auto& [iProc,nProcs] = mpiProcInfo(comm);
-
-        // gather sizes
-        std::vector<int> sizes(nProcs,0);
-        int localSize = localData.size();
-        if( MPI_Gather(&localSize, 1, MPI_INT, sizes.data(), 1, MPI_INT, root, comm) != MPI_SUCCESS )
-          throw std::runtime_error("failure returned from MPI_Gather");
-
-        // calculate offsets
-        std::vector<int> offsets;
-        offsets.reserve(nProcs+1);
-        offsets.push_back(0);
-        std::inclusive_scan(sizes.begin(), sizes.end(), std::back_inserter(offsets));
-
-        // allocate buffer and gather data
-        std::string globalData(offsets.back(), '\0');
-        if( MPI_Gatherv(localData.data(), localData.size(), MPI_CHAR, globalData.data(), sizes.data(), offsets.data(), MPI_CHAR, root, comm) != MPI_SUCCESS )
-          throw std::runtime_error("failure returned from MPI_Gatherv");
-
-        // return the result
-        return {std::move(globalData),std::move(offsets)};
-      }
+      std::pair<std::string,std::vector<int>> mpiGather(const std::string_view& localData, int root = 0, MPI_Comm comm = MPI_COMM_WORLD);
 
 
       //! combine std::unordered_map from multiple MPI processes
@@ -181,48 +151,14 @@ namespace PITTS
       //! @param comm               (optional) MPI communicator, must be identical on all MPI processes
       //! @returns                  combined map of all process on the root process, otherwise an empty
       //!
-      template<typename Key, typename Value, class BinaryOperation = std::function<Value(Value,Value)>>
-      std::unordered_map<Key,Value> mpiCombineMaps(const std::unordered_map<Key,Value>& localMap, BinaryOperation op = std::plus<Value>(), int root = 0, MPI_Comm comm = MPI_COMM_WORLD)
-      {
-        // serialize data
-        std::ostringstream oss;
-        {
-          cereal::BinaryOutputArchive ar(oss);
-          ar( localMap );
-        }
-
-        const auto& [iProc,nProcs] = mpiProcInfo(comm);
-
-        // communicate raw data: all processes -> root
-        const auto& [rawData,offsets] = mpiGather(oss.str(), root, comm);
-
-        // put result from all processes into a global map
-        std::unordered_map<Key,Value> globalMap;
-        if( iProc == root )
-        {
-          for(int i = 0; i < nProcs; i++)
-          {
-            std::unordered_map<Key,Value> otherMap;
-            {
-              std::istringstream iss(rawData.substr(offsets[i], offsets[i+1]-offsets[i]));
-              cereal::BinaryInputArchive ar(iss);
-              ar( otherMap );
-            }
-            for(const auto& [key,val]: otherMap)
-            {
-              // try to insert the new key, merge key using op when it's already there
-              auto [iter,didInsert] = globalMap.insert({key,val});
-              if( !didInsert )
-                iter->second = op(iter->second, val);
-            }
-          }
-        }
-        return globalMap;
-      }
-
+      template<typename Key, typename Value, class BinaryOperation = decltype(std::plus())>
+      std::unordered_map<Key,Value> mpiCombineMaps(const std::unordered_map<Key,Value>& localMap, BinaryOperation op = std::plus(), int root = 0, MPI_Comm comm = MPI_COMM_WORLD);
     }
   }
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_parallel_impl.hpp"
+#endif
 
 #endif // PITTS_PARALLEL_HPP

@@ -13,6 +13,7 @@
 // includes
 #include "pitts_parallel.hpp"
 #include "pitts_scope_info.hpp"
+#include "pitts_missing_cereal.hpp"
 #include <chrono>
 #include <limits>
 #include <unordered_map>
@@ -21,7 +22,6 @@
 #include <numeric>
 #include <vector>
 #include <string>
-#include <cereal/cereal.hpp>
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>

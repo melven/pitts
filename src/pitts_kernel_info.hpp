@@ -13,6 +13,7 @@
 // includes
 #include <type_traits>
 #include <complex>
+#include "pitts_missing_cereal.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)

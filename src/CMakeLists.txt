@@ -98,6 +98,7 @@ install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 if(PITTS_DEVELOP_BUILD)
   add_library(pitts_impl OBJECT
     pitts_common.cpp
+    pitts_parallel.cpp
     pitts_gmres.cpp
     pitts_multivector.cpp
     pitts_multivector_axpby.cpp

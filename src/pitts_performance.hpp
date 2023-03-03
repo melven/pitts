@@ -51,6 +51,15 @@ namespace PITTS
             CEREAL_NVP(kernel),
             CEREAL_NVP(nProcs) );
       }
+
+      // operator that only adds up timings
+      PerformanceStatistics operator+(const PerformanceStatistics& other)
+      {
+        // check that kernel data matches!!
+        if( kernel != other.kernel )
+          throw std::invalid_argument("Trying to combine timings of functions with different performance characteristics (Flops, Bytes)!");
+        return PerformanceStatistics{timings+other.timings, kernel, nProcs+other.nProcs};
+      };
     };
 
 
@@ -116,17 +125,7 @@ namespace PITTS
       }
 
       if( mpiGlobal )
-      {
-        // operator that only adds up timings
-        const auto combineOp = [](const PerformanceStatistics& a, const PerformanceStatistics& b)
-        {
-          // check that kernel data matches!!
-          if( a.kernel != b.kernel )
-            throw std::invalid_argument("Trying to combine timings of functions with different performance characteristics (Flops, Bytes)!");
-          return PerformanceStatistics{a.timings+b.timings, a.kernel, a.nProcs+b.nProcs};
-        };
-        namedMap = parallel::mpiCombineMaps(namedMap, combineOp);
-      }
+        namedMap = parallel::mpiCombineMaps(namedMap);
 
       std::vector<NamedPerformance> result;
       result.reserve(namedMap.size());
