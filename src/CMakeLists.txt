@@ -86,6 +86,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_gmres_impl.cpp
     pitts_multivector_axpby_impl.cpp
     pitts_multivector_cdist_impl.cpp
+    pitts_multivector_centroids_impl.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)

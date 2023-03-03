@@ -19,13 +19,7 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! calculate the squared distance of each vector in one multi-vector with each vector in another multi-vector
-  //!
-  //! @tparam T  underlying data type (double, complex, ...)
-  //! @param X  first multi-vector  (assumed to have a high number of columns)
-  //! @param Y  second multi-vector (assumed to have a low number of columns)
-  //! @param D  pair-wise squared distance of each column in X and Y, dimension (X.cols() x Y.rows())
-  //!
+  // implement multivector cdist
   template<typename T>
   void cdist2(const MultiVector<T>& X, const MultiVector<T>& Y, Tensor2<T>& D)
   {
