@@ -168,16 +168,7 @@ namespace PITTS
 
   //! explicitly copy a TensorTrain object
   template<typename T>
-  void copy(const TensorTrainOperator<T>& a, TensorTrainOperator<T>& b)
-  {
-    // check that dimensions match
-    if( a.row_dimensions() != b.row_dimensions() )
-      throw std::invalid_argument("TensorTrainOperator copy row dimension mismatch!");
-    if( a.column_dimensions() != b.column_dimensions() )
-      throw std::invalid_argument("TensorTrainOperator copy column dimension mismatch!");
-
-    copy(a.tensorTrain(), b.tensorTrain());
-  }
+  void copy(const TensorTrainOperator<T>& a, TensorTrainOperator<T>& b);
 
 
   //! Scale and add one tensor train operator to another
@@ -196,24 +187,7 @@ namespace PITTS
   //! @return               norm of the the resulting tensor TTy
   //!
   template<typename T>
-  void axpby(T alpha, const TensorTrainOperator<T>& TTOpx, T beta, TensorTrainOperator<T>& TTOpy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()))
-  {
-    // check that dimensions match
-    if( TTOpx.row_dimensions() != TTOpy.row_dimensions() )
-      throw std::invalid_argument("TensorTrainOperator axpby row dimension mismatch!");
-    if( TTOpx.column_dimensions() != TTOpy.column_dimensions() )
-      throw std::invalid_argument("TensorTrainOperator axpby column dimension mismatch!");
-
-    const auto gamma = axpby(alpha, TTOpx.tensorTrain(), beta, TTOpy.tensorTrain(), rankTolerance);
-    const int nDim = TTOpy.tensorTrain().dimensions().size();
-    if( nDim > 0 )
-    {
-      Tensor3<T> newSubT;
-      copy(TTOpy.tensorTrain().subTensor(nDim-1), newSubT);
-      internal::t3_scale(gamma, newSubT);
-      TTOpy.tensorTrain().setSubTensor(nDim-1, std::move(newSubT));
-    }
-  }
+  void axpby(T alpha, const TensorTrainOperator<T>& TTOpx, T beta, TensorTrainOperator<T>& TTOpy, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()));
 
 
   //! fill a tensor train operator with random values (keeping current TT-ranks)
@@ -221,10 +195,7 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  void randomize(TensorTrainOperator<T>& TTOp)
-  {
-    randomize(TTOp.tensorTrain());
-  }
+  void randomize(TensorTrainOperator<T>& TTOp);
 
 
   //! normalize a tensor train operator (reducing its' ranks if possible)
@@ -232,11 +203,11 @@ namespace PITTS
   //! @tparam T underlying data type (double, complex, ...)
   //!
   template<typename T>
-  T normalize(TensorTrainOperator<T>& TTOp, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
-  {
-    return normalize(TTOp.tensorTrain(), rankTolerance, maxRank);
-  }
+  T normalize(TensorTrainOperator<T>& TTOp, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max());
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_tensortrain_operator_impl.hpp"
+#endif
 
 #endif // PITTS_TENSORTRAIN_OPERATOR_HPP
