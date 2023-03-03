@@ -114,6 +114,9 @@ if(PITTS_DEVELOP_BUILD)
     pitts_multivector_transform.cpp
     pitts_multivector_transpose.cpp
     pitts_multivector_tsqr.cpp
+    pitts_tensor2.cpp
+    pitts_tensor2_random.cpp
+    pitts_tensor2_qb_decomposition.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
