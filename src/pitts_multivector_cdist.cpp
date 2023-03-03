@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template void PITTS::cdist2<double>(const MultiVector<double>& X, const MultiVector<double>& Y, Tensor2<double>& D);
+template void PITTS::cdist2<float>(const MultiVector<float>& X, const MultiVector<float>& Y, Tensor2<float>& D);

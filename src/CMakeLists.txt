@@ -12,6 +12,7 @@ target_sources(pitts INTERFACE
   pitts_timer.hpp
   pitts_performance.hpp
   pitts_common.hpp
+  pitts_common_impl.hpp
   pitts_parallel.hpp
   pitts_tensor2.hpp
   pitts_tensor2_random.hpp
@@ -61,20 +62,34 @@ target_sources(pitts INTERFACE
   pitts_fixed_tensortrain_dot.hpp
   pitts_fixed_tensortrain_axpby.hpp
   pitts_multivector.hpp
+  pitts_multivector_impl.hpp
   pitts_multivector_random.hpp
+  pitts_multivector_random_impl.hpp
   pitts_multivector_cdist.hpp
+  pitts_multivector_cdist_impl.hpp
   pitts_multivector_centroids.hpp
+  pitts_multivector_centroids_impl.hpp
   pitts_multivector_tsqr.hpp
+  pitts_multivector_tsqr_impl.hpp
   pitts_multivector_eigen_adaptor.hpp
   pitts_multivector_transform.hpp
+  pitts_multivector_transform_impl.hpp
   pitts_multivector_transpose.hpp
+  pitts_multivector_transpose_impl.hpp
   pitts_multivector_reshape.hpp
+  pitts_multivector_reshape_impl.hpp
   pitts_multivector_dot.hpp
+  pitts_multivector_dot_impl.hpp
   pitts_multivector_norm.hpp
+  pitts_multivector_norm_impl.hpp
   pitts_multivector_scale.hpp
+  pitts_multivector_scale_impl.hpp
   pitts_multivector_axpby.hpp
+  pitts_multivector_axpby_impl.hpp
   pitts_multivector_gramian.hpp
+  pitts_multivector_gramian_impl.hpp
   pitts_gmres.hpp
+  pitts_gmres_impl.hpp
   )
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
@@ -82,11 +97,21 @@ install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 # speed up compile times through external template
 if(PITTS_DEVELOP_BUILD)
   add_library(pitts_impl OBJECT
-    pitts_common_impl.cpp
-    pitts_gmres_impl.cpp
-    pitts_multivector_axpby_impl.cpp
-    pitts_multivector_cdist_impl.cpp
-    pitts_multivector_centroids_impl.cpp
+    pitts_common.cpp
+    pitts_gmres.cpp
+    pitts_multivector.cpp
+    pitts_multivector_axpby.cpp
+    pitts_multivector_cdist.cpp
+    pitts_multivector_centroids.cpp
+    pitts_multivector_dot.cpp
+    pitts_multivector_gramian.cpp
+    pitts_multivector_norm.cpp
+    pitts_multivector_random.cpp
+    pitts_multivector_reshape.cpp
+    pitts_multivector_scale.cpp
+    pitts_multivector_transform.cpp
+    pitts_multivector_transpose.cpp
+    pitts_multivector_tsqr.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
@@ -149,6 +174,9 @@ if(pybind11_FOUND)
     pitts_multivector_pybind.cpp
     ${PITTS_PYBIND_ITENSOR_SOURCE}
     )
+  if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_link_options(pitts_py PRIVATE "-fuse-ld=lld")
+  endif()
 
   if(ITensor_FOUND)
     target_compile_definitions(pitts_py PRIVATE -DPITTS_HAVE_ITENSOR)

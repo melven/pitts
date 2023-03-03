@@ -11,12 +11,8 @@
 #define PITTS_MULTIVECTOR_SCALE_HPP
 
 // includes
-#include <array>
-#include <stdexcept>
 #include "pitts_eigen.hpp"
 #include "pitts_multivector.hpp"
-#include "pitts_performance.hpp"
-#include "pitts_chunk_ops.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -31,30 +27,12 @@ namespace PITTS
   //! @param X        input multi-vector, dimensions (n, m)
   //!
   template<typename T>
-  void scale(const Eigen::ArrayX<T>& alpha, MultiVector<T>& X)
-  {
-    const auto nChunks = X.rowChunks();
-    const auto nCols = X.cols();
-
-    // gather performance data
-    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
-        {{"nChunks", "nCols"},{nChunks, nCols}}, // arguments
-        {{nCols*nChunks*Chunk<T>::size*kernel_info::Mult<T>()}, // flops
-         {nCols*kernel_info::Load<T>() + nChunks*nCols*kernel_info::Update<Chunk<T>>()}} // data transfers
-        );
-
-#pragma omp parallel
-    {
-      for(int iCol = 0; iCol < nCols; iCol++)
-      {
-#pragma omp for schedule(static) nowait
-        for(int iChunk = 0; iChunk < nChunks; iChunk++)
-          mul(alpha(iCol), X.chunk(iChunk,iCol), X.chunk(iChunk,iCol));
-      }
-    }
-  }
+  void scale(const Eigen::ArrayX<T>& alpha, MultiVector<T>& X);
 
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_multivector_scale_impl.hpp"
+#endif
 
 #endif // PITTS_MULTIVECTOR_SCALE_HPP

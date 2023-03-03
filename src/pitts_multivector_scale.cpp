@@ -4,8 +4,8 @@
 #endif
 
 // actually generate code for corresponding _impl.hpp file
-#include "pitts_multivector_centroids_impl.hpp"
+#include "pitts_multivector_scale_impl.hpp"
 
 using namespace PITTS;
 
-template void PITTS::centroids<double>(const MultiVector<double>& X, const std::vector<long long>& idx, const std::vector<double>& w, MultiVector<double>& Y);
+template void PITTS::scale<double>(const Eigen::ArrayX<double>& alpha, MultiVector<double>& X);

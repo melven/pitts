@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "pitts_multivector_tsqr.hpp"
+#include "pitts_multivector_tsqr_impl.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"

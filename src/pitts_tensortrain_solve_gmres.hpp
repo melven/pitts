@@ -147,7 +147,7 @@ namespace PITTS
       const int m = V.size() - 1;
       const mat Ri = R.topLeftCorner(m, m);
       const vec bi = b_hat.topRows(m);
-      const vec y = R.template triangularView<Eigen::Upper>().solve(bi);
+      const vec y = Ri.template triangularView<Eigen::Upper>().solve(bi);
 
       // first add up the delta x (better accuracy as it is probably much smaller than the old x)
       auto& TTdelta_x = V[m-1];

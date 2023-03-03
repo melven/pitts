@@ -12,9 +12,8 @@
 
 // includes
 #include <memory>
-#include "pitts_chunk_ops.hpp"
+#include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -146,31 +145,12 @@ namespace PITTS
 
   //! explicitly copy a MultiVector object
   template<typename T>
-  void copy(const MultiVector<T>& a, MultiVector<T>& b)
-  {
-    const auto rows = a.rows();
-    const auto rowChunks = a.rowChunks();
-    const auto cols = a.cols();
-
-    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
-        {{"ros", "cols"}, {rows, cols}},   // arguments
-        {{double(rows)*cols*kernel_info::NoOp<T>()},    // flops
-         {double(rows)*cols*kernel_info::Store<T>() + double(rows)*cols*kernel_info::Load<T>()}}  // data
-        );
-
-    b.resize(rows, cols);
-
-#pragma omp parallel
-    {
-      for(long long j = 0; j < cols; j++)
-      {
-#pragma omp for schedule(static) nowait
-        for(long long iChunk = 0; iChunk < rowChunks; iChunk++)
-          streaming_store(a.chunk(iChunk,j), b.chunk(iChunk,j));
-      }
-    }
-  }
+  void copy(const MultiVector<T>& a, MultiVector<T>& b);
+  
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_multivector_impl.hpp"
+#endif
 
 #endif // PITTS_MULTIVECTOR_HPP
