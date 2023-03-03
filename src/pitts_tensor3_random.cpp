@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template void PITTS::randomize<double>(Tensor3<double>&);
+template void PITTS::randomize<float>(Tensor3<float>&);

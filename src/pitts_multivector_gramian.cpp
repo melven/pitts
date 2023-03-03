@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template void PITTS::gramian<double>(const MultiVector<double>& X, Tensor2<double>& G);
+template void PITTS::gramian<float>(const MultiVector<float>& X, Tensor2<float>& G);

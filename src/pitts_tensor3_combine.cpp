@@ -10,4 +10,5 @@
 using namespace PITTS;
 
 template Tensor3<double> PITTS::combine<double>(const Tensor3<double>& t3a, const Tensor3<double>& t3b, bool swap);
+template Tensor3<float> PITTS::combine<float>(const Tensor3<float>& t3a, const Tensor3<float>& t3b, bool swap);
 template Tensor3<std::complex<double>> PITTS::combine<std::complex<double>>(const Tensor3<std::complex<double>>& t3a, const Tensor3<std::complex<double>>& t3b, bool swap);

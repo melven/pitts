@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template void PITTS::copy<double>(const Tensor3<double>&, Tensor3<double>&);
+template void PITTS::copy<float>(const Tensor3<float>&, Tensor3<float>&);

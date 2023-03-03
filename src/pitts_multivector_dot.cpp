@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template Eigen::ArrayX<double> PITTS::dot<double>(const MultiVector<double>& X, const MultiVector<double>& Y);
+template Eigen::ArrayX<float> PITTS::dot<float>(const MultiVector<float>& X, const MultiVector<float>& Y);

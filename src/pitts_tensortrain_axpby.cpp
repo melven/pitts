@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template double PITTS::axpby<double>(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double rankTolerance, int maxRank);
+template float PITTS::axpby<float>(float alpha, const TensorTrain<float>& TTx, float beta, TensorTrain<float>& TTy, float rankTolerance, int maxRank);

@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template void PITTS::transpose<double>(const MultiVector<double>& X, MultiVector<double>& Y, std::array<long long,2> reshape = {0, 0}, bool reverse = false);
+template void PITTS::transpose<float>(const MultiVector<float>& X, MultiVector<float>& Y, std::array<long long,2> reshape = {0, 0}, bool reverse = false);

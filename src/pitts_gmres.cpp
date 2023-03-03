@@ -18,3 +18,4 @@
 using namespace PITTS;
 
 template Eigen::ArrayXd PITTS::GMRES<Eigen::ArrayXd, TensorTrainOperator<double>, MultiVector<double>>(const TensorTrainOperator<double>&, bool, const MultiVector<double>&, MultiVector<double>&, int, const Eigen::ArrayXd&, const Eigen::ArrayXd&, const std::string_view&, bool);
+template Eigen::ArrayXf PITTS::GMRES<Eigen::ArrayXf, TensorTrainOperator<float>, MultiVector<float>>(const TensorTrainOperator<float>&, bool, const MultiVector<float>&, MultiVector<float>&, int, const Eigen::ArrayXf&, const Eigen::ArrayXf&, const std::string_view&, bool);

@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template void PITTS::scale<double>(const Eigen::ArrayX<double>& alpha, MultiVector<double>& X);
+template void PITTS::scale<float>(const Eigen::ArrayX<float>& alpha, MultiVector<float>& X);

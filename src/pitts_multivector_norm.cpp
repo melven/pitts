@@ -9,3 +9,4 @@
 using namespace PITTS;
 
 template Eigen::ArrayX<double> PITTS::norm2<double>(const MultiVector<double>& X);
+template Eigen::ArrayX<float> PITTS::norm2<float>(const MultiVector<float>& X);
