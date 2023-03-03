@@ -1,4 +1,4 @@
-/*! @file pitts_tensortrain_normalize.hpp
+/*! @file pitts_tensortrain_normalize_impl.hpp
 * @brief orthogonalization for simple tensor train format
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2019-10-17
@@ -7,22 +7,19 @@
 **/
 
 // include guard
-#ifndef PITTS_TENSORTRAIN_NORMALIZE_HPP
-#define PITTS_TENSORTRAIN_NORMALIZE_HPP
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_IMPL_HPP
+#define PITTS_TENSORTRAIN_NORMALIZE_IMPL_HPP
 
 // includes
-#include <cmath>
-#include <limits>
 #include <algorithm>
 #include <cassert>
 #include <vector>
 #include <stdexcept>
-#include "pitts_tensor2.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
-#include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
@@ -125,18 +122,9 @@ namespace PITTS
             mul(alpha, x.chunk(i,jChunk,k), x.chunk(i,jChunk,k));
     }
 
-    //! Make a subset of sub-tensors left-orthogonal sweeping the given index range (left to right)
-    //!
-    //! @tparam T  underlying data type (double, complex, ...)
-    //!
-    //! @param TT             tensor in tensor train format
-    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
-    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
-    //! @param rankTolerance  approximation tolerance
-    //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
-    //!
+    // implement leftNormalize_range
     template<typename T>
-    void leftNormalize_range(TensorTrain<T>& TT, int firstIdx, int lastIdx, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+    void leftNormalize_range(TensorTrain<T>& TT, int firstIdx, int lastIdx, T rankTolerance, int maxRank)
     {
       const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -170,18 +158,9 @@ namespace PITTS
       }
     }
 
-    //! Make a subset of sub-tensors right-orthogonal sweeping the given index range (right to left)
-    //!
-    //! @tparam T  underlying data type (double, complex, ...)
-    //!
-    //! @param TT             tensor in tensor train format
-    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
-    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
-    //! @param rankTolerance  approximation tolerance
-    //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
-    //!
+    // implement rightNormalize_range
     template<typename T>
-    void rightNormalize_range(TensorTrain<T>& TT, int firstIdx, int lastIdx, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+    void rightNormalize_range(TensorTrain<T>& TT, int firstIdx, int lastIdx, T rankTolerance, int maxRank)
     {
       const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -215,14 +194,7 @@ namespace PITTS
       }
     }
 
-    //! Ensure a subset of sub-tensors is left-orthogonal and call leftNormalize_range if it is not.
-    //!
-    //! @tparam T  underlying data type (double, complex, ...)
-    //!
-    //! @param TT             tensor in tensor train format
-    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
-    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
-    //!
+    // implement ensureLeftOrtho_range
     template<typename T>
     void ensureLeftOrtho_range(TensorTrain<T>& TT, int firstIdx, int lastIdx)
     {
@@ -242,14 +214,7 @@ namespace PITTS
       }
     }
 
-    //! Ensure a subset of sub-tensors is right-orthogonal and call rightNormalize_range if it is not.
-    //!
-    //! @tparam T  underlying data type (double, complex, ...)
-    //!
-    //! @param TT             tensor in tensor train format
-    //! @param firstIdx       index of the first sub-tensor to orthogonalize (0 <= firstIdx <= lastIdx)
-    //! @param lastIdx        index of the last sub-tensor to orthogonalize (firstIdx <= lastIdx < nDim)
-    //!
+    // implement ensureRightOrtho_range
     template<typename T>
     void ensureRightOrtho_range(TensorTrain<T>& TT, int firstIdx, int lastIdx)
     {
@@ -270,19 +235,9 @@ namespace PITTS
     }
   }
 
-  //! TT-rounding: truncate tensor train by two normalization sweeps (first right to left, then left to right or vice-versa)
-  //!
-  //! Omits the first sweep if the tensor-train is already left- or right-orthogonal.
-  //!
-  //! @tparam T  underlying data type (double, complex, ...)
-  //!
-  //! @param TT             tensor in tensor train format, left-normalized on output
-  //! @param rankTolerance  approximation tolerance
-  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
-  //! @return               norm of the tensor
-  //!
+  // implement TT normalize
   template<typename T>
-  T normalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+  T normalize(TensorTrain<T>& TT, T rankTolerance, int maxRank)
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -315,17 +270,9 @@ namespace PITTS
     return nrm;
   }
 
-  //! Make all sub-tensors orthogonal sweeping left to right
-  //!
-  //! @tparam T  underlying data type (double, complex, ...)
-  //!
-  //! @param TT             tensor in tensor train format
-  //! @param rankTolerance  approximation tolerance
-  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
-  //! @return               norm of the tensor
-  //!
+  // implement TT leftNormalize
   template<typename T>
-  T leftNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+  T leftNormalize(TensorTrain<T>& TT, T rankTolerance, int maxRank)
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -356,17 +303,9 @@ namespace PITTS
   }
 
 
-  //! Make all sub-tensors orthogonal sweeping right to left
-  //!
-  //! @tparam T  underlying data type (double, complex, ...)
-  //!
-  //! @param TT             tensor in tensor train format
-  //! @param rankTolerance  approximation tolerance
-  //! @param maxRank        maximal allowed TT-rank, enforced even if this violates the rankTolerance
-  //! @return               norm of the tensor
-  //!
+  // implement TT rightNormalize
   template<typename T>
-  T rightNormalize(TensorTrain<T>& TT, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = std::numeric_limits<int>::max())
+  T rightNormalize(TensorTrain<T>& TT, T rankTolerance, int maxRank)
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -388,4 +327,4 @@ namespace PITTS
 }
 
 
-#endif // PITTS_TENSORTRAIN_NORMALIZE_HPP
+#endif // PITTS_TENSORTRAIN_NORMALIZE_IMPL_HPP
