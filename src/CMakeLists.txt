@@ -10,57 +10,95 @@ target_sources(pitts INTERFACE
   pitts_type_name.hpp
   pitts_scope_info.hpp
   pitts_timer.hpp
+  pitts_timer_impl.hpp
   pitts_performance.hpp
+  pitts_performance_impl.hpp
   pitts_common.hpp
   pitts_common_impl.hpp
   pitts_parallel.hpp
+  pitts_parallel_impl.hpp
+  pitts_eigen.hpp
+  pitts_missing_cereal.hpp
   pitts_tensor2.hpp
+  pitts_tensor2_impl.hpp
   pitts_tensor2_random.hpp
+  pitts_tensor2_random_impl.hpp
   pitts_tensor2_eigen_adaptor.hpp
   pitts_tensor2_qb_decomposition.hpp
+  pitts_tensor2_qb_decomposition_impl.hpp
   pitts_tensor3.hpp
+  pitts_tensor3_impl.hpp
   pitts_tensor3_random.hpp
+  pitts_tensor3_random_impl.hpp
   pitts_tensor3_combine.hpp
+  pitts_tensor3_combine_impl.hpp
   pitts_tensor3_split.hpp
+  pitts_tensor3_split_impl.hpp
   pitts_tensor3_unfold.hpp
   pitts_tensor3_fold.hpp
   pitts_tensortrain.hpp
+  pitts_tensortrain_impl.hpp
   pitts_tensortrain_norm.hpp
+  pitts_tensortrain_norm_impl.hpp
   pitts_tensortrain_dot.hpp
+  pitts_tensortrain_dot_impl.hpp
   pitts_tensortrain_random.hpp
+  pitts_tensortrain_random_impl.hpp
   pitts_tensortrain_normalize.hpp
+  pitts_tensortrain_normalize_impl.hpp
   pitts_tensortrain_axpby_normalized.hpp
+  pitts_tensortrain_axpby_normalized_impl.hpp
+  pitts_tensortrain_axpby_plain.hpp
+  pitts_tensortrain_axpby_plain_impl.hpp
   pitts_tensortrain_axpby.hpp
+  pitts_tensortrain_axpby_impl.hpp
   pitts_tensortrain_laplace_operator.hpp
+  pitts_tensortrain_laplace_operator_impl.hpp
   pitts_tensortrain_from_dense.hpp
+  pitts_tensortrain_from_dense_impl.hpp
   pitts_tensortrain_from_dense_classical.hpp
+  pitts_tensortrain_from_dense_classical_impl.hpp
   pitts_tensortrain_from_dense_twosided.hpp
+  pitts_tensortrain_from_dense_twosided_impl.hpp
   pitts_tensortrain_to_dense.hpp
+  pitts_tensortrain_to_dense_impl.hpp
   pitts_tensortrain_debug.hpp
   pitts_tensortrain_from_itensor.hpp
   pitts_tensortrain_to_itensor.hpp
   pitts_tensortrain_gram_schmidt.hpp
+  pitts_tensortrain_gram_schmidt_impl.hpp
   pitts_tensortrain_solve_gmres.hpp
+  pitts_tensortrain_solve_gmres_impl.hpp
   pitts_tensortrain_operator.hpp
+  pitts_tensortrain_operator_impl.hpp
   pitts_tensortrain_operator_apply.hpp
+  pitts_tensortrain_operator_apply_impl.hpp
   pitts_tensortrain_operator_apply_transposed.hpp
+  pitts_tensortrain_operator_apply_transposed_impl.hpp
   pitts_tensortrain_operator_apply_op.hpp
+  pitts_tensortrain_operator_apply_op_impl.hpp
   pitts_tensortrain_operator_apply_transposed_op.hpp
+  pitts_tensortrain_operator_apply_transposed_op_impl.hpp
   pitts_tensortrain_operator_apply_dense.hpp
+  pitts_tensortrain_operator_apply_dense_impl.hpp
   pitts_tensortrain_operator_apply_transposed_dense.hpp
+  pitts_tensortrain_operator_apply_transposed_dense_impl.hpp
   pitts_tensortrain_operator_from_itensor.hpp
   pitts_tensortrain_operator_to_itensor.hpp
   pitts_tensortrain_operator_debug.hpp
   pitts_tensortrain_sweep_index.hpp
   pitts_tensortrain_solve_mals.hpp
+  pitts_tensortrain_solve_mals_impl.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp
   pitts_fixed_tensor3_apply.hpp
   pitts_fixed_tensor3_combine.hpp
   pitts_fixed_tensor3_split.hpp
+  pitts_fixed_tensortrain.hpp
   pitts_fixed_tensortrain_random.hpp
   pitts_fixed_tensortrain_dot.hpp
   pitts_fixed_tensortrain_axpby.hpp
+  pitts_qubit_simulator.hpp
   pitts_multivector.hpp
   pitts_multivector_impl.hpp
   pitts_multivector_random.hpp
