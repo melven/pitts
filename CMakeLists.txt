@@ -17,7 +17,6 @@ set(CMAKE_CXX_EXTENSIONS Off)
 ###
 ### Use our own cmake modules
 ###
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 
@@ -43,6 +42,11 @@ elseif( CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   endif()
 else()
   message(WARNING "Unknown CXX compiler ID '${CMAKE_CXX_COMPILER_ID}', cannot determine correct flags!")
+endif()
+# Speed up build time for developing
+option(PITTS_DEVELOP_BUILD "Enable development build (speeds up rebuilding with small changes through external template definitions).")
+if(PITTS_DEVELOP_BUILD)
+  add_definitions(-DPITTS_DEVELOP_BUILD)
 endif()
 
 

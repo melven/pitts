@@ -79,6 +79,15 @@ target_sources(pitts INTERFACE
 
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 
+# speed up compile times through external template
+if(PITTS_DEVELOP_BUILD)
+  add_library(pitts_impl OBJECT
+    pitts_common_impl.cpp)
+  set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
+  link_libraries($<TARGET_OBJECTS:pitts_impl>)
+endif()
+
+
 # test executables
 add_executable(axpby_left_ortho_bench axpby_left_ortho_bench.cpp)
 add_executable(axpby_right_ortho_bench axpby_right_ortho_bench.cpp)
