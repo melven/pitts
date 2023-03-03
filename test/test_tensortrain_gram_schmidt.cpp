@@ -5,6 +5,7 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "eigen_test_helper.hpp"
 
 namespace
