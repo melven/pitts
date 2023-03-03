@@ -124,6 +124,8 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_axpby.cpp
     pitts_tensortrain_axpby_plain.cpp
     pitts_tensortrain_axpby_normalized.cpp
+    pitts_tensortrain_dot.cpp
+    pitts_tensortrain_norm.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
