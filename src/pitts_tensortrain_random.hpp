@@ -12,7 +12,6 @@
 
 // includes
 #include "pitts_tensortrain.hpp"
-#include "pitts_tensor3_random.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -22,16 +21,12 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  void randomize(TensorTrain<T>& TT)
-  {
-    for(int iDim = 0; iDim < TT.dimensions().size(); iDim++)
-    {
-      constexpr auto randomizeFcn = [](Tensor3<T>& subT) {randomize(subT);};
-      TT.editSubTensor(iDim, randomizeFcn, TT_Orthogonality::none);
-    }
-  }
+  void randomize(TensorTrain<T>& TT);
 
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_tensortrain_random_impl.hpp"
+#endif
 
 #endif // PITTS_TENSORTRAIN_RANDOM_HPP

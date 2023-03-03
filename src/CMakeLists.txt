@@ -133,6 +133,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_gram_schmidt.cpp
     pitts_tensortrain_laplace_operator.cpp
     pitts_tensortrain_normalize.cpp
+    pitts_tensortrain_random.cpp
     pitts_tensortrain_operator.cpp
     pitts_tensortrain_operator_apply.cpp
     pitts_tensortrain_operator_apply_transposed.cpp
