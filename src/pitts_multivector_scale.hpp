@@ -31,7 +31,7 @@ namespace PITTS
   //! @param X        input multi-vector, dimensions (n, m)
   //!
   template<typename T>
-  void scale(const Eigen::Array<T,1,Eigen::Dynamic>& alpha, MultiVector<T>& X)
+  void scale(const Eigen::ArrayX<T>& alpha, MultiVector<T>& X)
   {
     const auto nChunks = X.rowChunks();
     const auto nCols = X.cols();

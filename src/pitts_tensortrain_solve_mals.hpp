@@ -361,9 +361,9 @@ namespace PITTS
 
       template<typename T>
       T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
-                        int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix = "", bool verbose = false)
+                        int maxRank, int maxIter, T absTol, T relTol, const std::string_view& outputPrefix = "", bool verbose = false)
       {
-        using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
+        using arr = Eigen::ArrayX<T>;
         const int nDim = tt_x.dimensions().size();
         // GMRES with dense vectors...
         MultiVector<T> mv_x, mv_rhs;

@@ -10,7 +10,7 @@
 namespace
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
-  using arr = Eigen::Array<double, Eigen::Dynamic, 1>;
+  using arr = Eigen::ArrayXd;
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
   constexpr auto eps = 1.e-10;
 }

@@ -4,7 +4,3 @@
 #endif
 // actually generate code for corresponding _impl.hpp file
 #include "pitts_common_impl.hpp"
-
-
-void initialize(int* argc, char** argv[], bool verbose);
-void finalize(bool verbose);

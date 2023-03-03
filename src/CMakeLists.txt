@@ -82,7 +82,9 @@ install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 # speed up compile times through external template
 if(PITTS_DEVELOP_BUILD)
   add_library(pitts_impl OBJECT
-    pitts_common_impl.cpp)
+    pitts_common_impl.cpp
+    pitts_gmres_impl.cpp
+  )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
 endif()

@@ -12,6 +12,10 @@ file(GLOB CPP_SRCUNITTESTS *.cpp *.hpp)
 # ITensor adapters
 add_subdirectory(itensor)
 
+# speed up compilation times in dev builds
+if(PITTS_DEVELOP_BUILD)
+  link_libraries($<TARGET_OBJECTS:pitts_impl>)
+endif()
 
 # executable for the unit tests
 add_executable(pitts_tests EXCLUDE_FROM_ALL ${CPP_SRCUNITTESTS} ${GTEST_SOURCES})

@@ -66,7 +66,7 @@ namespace PITTS
       }
     }
 
-    using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
+    using arr = Eigen::ArrayX<T>;
     arr result = Eigen::Map<arr>(tmp, nCols);
     return result;
   }

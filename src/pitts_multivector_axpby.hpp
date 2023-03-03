@@ -32,7 +32,7 @@ namespace PITTS
   //! @param Y        resulting multi-vector, dimensions (n, m)
   //!
   template<typename T>
-  void axpy(const Eigen::Array<T, 1, Eigen::Dynamic>& alpha, const MultiVector<T>& X, MultiVector<T>& Y)
+  void axpy(const Eigen::ArrayX<T>& alpha, const MultiVector<T>& X, MultiVector<T>& Y)
   {
     // check dimensions
     if( X.cols() != Y.cols() || alpha.size() != X.cols() )
@@ -75,7 +75,7 @@ namespace PITTS
   //! @returns        array of norms of the resulting y, dimension (m)
   //!
   template<typename T>
-  auto axpy_norm2(const Eigen::Array<T, 1, Eigen::Dynamic>& alpha, const MultiVector<T>& X, MultiVector<T>& Y)
+  auto axpy_norm2(const Eigen::ArrayX<T>& alpha, const MultiVector<T>& X, MultiVector<T>& Y)
   {
     // check dimensions
     if( X.cols() != Y.cols() || alpha.size() != X.cols() )
@@ -112,7 +112,7 @@ namespace PITTS
       }
     }
 
-    using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
+    using arr = Eigen::ArrayX<T>;
     arr result = Eigen::Map<arr>(tmp, nCols).sqrt();
     return result;
   }
@@ -132,7 +132,7 @@ namespace PITTS
   //! @returns        array of dot products between Y and Z, dimension (m)
   //!
   template<typename T>
-  auto axpy_dot(const Eigen::Array<T, 1, Eigen::Dynamic>& alpha, const MultiVector<T>& X, MultiVector<T>& Y, const MultiVector<T>& Z)
+  auto axpy_dot(const Eigen::ArrayX<T>& alpha, const MultiVector<T>& X, MultiVector<T>& Y, const MultiVector<T>& Z)
   {
     // check dimensions
     if( X.cols() != Y.cols() || X.cols() != Z.cols() || alpha.size() != X.cols() )
@@ -169,7 +169,7 @@ namespace PITTS
       }
     }
 
-    using arr = Eigen::Array<T, 1, Eigen::Dynamic>;
+    using arr = Eigen::ArrayX<T>;
     arr result = Eigen::Map<arr>(tmp, nCols);
     return result;
   }

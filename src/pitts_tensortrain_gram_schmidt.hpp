@@ -29,7 +29,7 @@ namespace PITTS
   {
     //! index of maximal absolute value of an Eigen vector
     template<typename T>
-    auto argmaxabs(const Eigen::Array<T, Eigen::Dynamic, 1>& v)
+    auto argmaxabs(const Eigen::ArrayX<T>& v)
     {
       if( v.size() == 0 )
         throw std::invalid_argument("Called argmax for an empty array");
@@ -83,7 +83,7 @@ namespace PITTS
                     const std::string& outputPrefix = "", bool verbose = false,
                     int nIter = 4, bool pivoting = true, bool modified = true, bool skipDirs = true)
   {
-    using arr = Eigen::Array<T, Eigen::Dynamic, 1>;
+    using arr = Eigen::ArrayX<T>;
 
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
