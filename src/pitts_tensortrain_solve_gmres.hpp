@@ -56,5 +56,8 @@ namespace PITTS
 
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_tensortrain_solve_gmres_impl.hpp"
+#endif
 
 #endif // PITTS_TENSORTRAIN_SOLVE_GMRES_HPP

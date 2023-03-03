@@ -12,7 +12,6 @@
 
 // includes
 #include "pitts_scope_info.hpp"
-#include "pitts_missing_cereal.hpp"
 #include <chrono>
 #include <limits>
 #include <unordered_map>
@@ -20,6 +19,12 @@
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>
+#endif
+
+#ifdef PITTS_DEVELOP_BUILD
+#include "pitts_missing_cereal.hpp"
+#else
+#include <cereal/cereal.hpp>
 #endif
 
 

@@ -13,11 +13,15 @@
 // includes
 #include "pitts_kernel_info.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_missing_cereal.hpp"
-
 #include <stdexcept>
 #include <unordered_map>
 #include <iostream>
+
+#ifdef PITTS_DEVELOP_BUILD
+#include "pitts_missing_cereal.hpp"
+#else
+#include <cereal/cereal.hpp>
+#endif
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
