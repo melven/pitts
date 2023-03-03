@@ -142,6 +142,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_operator_apply_dense.cpp
     pitts_tensortrain_operator_apply_transposed_dense.cpp
     pitts_tensortrain_solve_gmres.cpp
+    pitts_tensortrain_solve_mals.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
