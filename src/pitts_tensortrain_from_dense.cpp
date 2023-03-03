@@ -10,4 +10,3 @@ using namespace PITTS;
 
 template TensorTrain<double> PITTS::fromDense<double>(MultiVector<double>& X, MultiVector<double>& work, const std::vector<int>& dimensions, double rankTolerance , int maxRank, bool, int, int);
 template TensorTrain<float> PITTS::fromDense<float>(MultiVector<float>& X, MultiVector<float>& work, const std::vector<int>& dimensions, float rankTolerance , int maxRank, bool, int, int);
-
