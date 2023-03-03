@@ -117,6 +117,10 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensor2.cpp
     pitts_tensor2_random.cpp
     pitts_tensor2_qb_decomposition.cpp
+    pitts_tensor3.cpp
+    pitts_tensor3_combine.cpp
+    pitts_tensor3_random.cpp
+    pitts_tensor3_split.cpp
   )
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
