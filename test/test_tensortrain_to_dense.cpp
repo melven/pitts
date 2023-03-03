@@ -163,7 +163,7 @@ TEST(PITTS_TensorTrain_toDense, tensor_5d_from_to_dense_random)
   constexpr auto eps = 1.e-8;
 
   const std::vector<int> dimensions = {2,4,3,5,2};
-  Eigen::VectorXd refData = Eigen::VectorXd::Random(2*4*3*5*2);
+  const Eigen::VectorXd refData = Eigen::VectorXd::Random(2*4*3*5*2);
 
   // to TT format
   const TensorTrain_double TT = PITTS::fromDense_classical(refData.data(), refData.data()+refData.size(), dimensions);
