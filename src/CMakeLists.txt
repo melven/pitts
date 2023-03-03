@@ -99,6 +99,7 @@ if(PITTS_DEVELOP_BUILD)
   add_library(pitts_impl OBJECT
     pitts_common.cpp
     pitts_parallel.cpp
+    pitts_timer.cpp
     pitts_performance.cpp
     pitts_gmres.cpp
     pitts_multivector.cpp

@@ -19,7 +19,9 @@
 #include <string_view>
 #include <unordered_map>
 #include <algorithm>
+#include <cereal/cereal.hpp>
 #include "pitts_performance.hpp"
+#include "pitts_parallel.hpp"
 
 // workaround for speeding up compile times during development
 #ifndef PITTS_DEVELOP_BUILD

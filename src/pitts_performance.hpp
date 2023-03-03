@@ -11,7 +11,6 @@
 #define PITTS_PERFORMANCE_HPP
 
 // includes
-#include "pitts_parallel.hpp"
 #include "pitts_kernel_info.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_missing_cereal.hpp"
