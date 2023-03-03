@@ -89,7 +89,7 @@ build_clang:
     - ccache -z
     - module unload -f itensor
     - mkdir build_clang && cd build_clang
-    - cmake .. -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=clang++
+    - cmake .. -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=clang++ -DPITTS_DEVELOP_BUILD
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
