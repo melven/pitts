@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_to_dense.hpp"

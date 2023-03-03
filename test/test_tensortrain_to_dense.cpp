@@ -3,6 +3,7 @@
 #include "pitts_tensortrain_from_dense_classical.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensor3_random.hpp"
 #include "eigen_test_helper.hpp"
 
 TEST(PITTS_TensorTrain_toDense, scalar)

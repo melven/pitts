@@ -3,6 +3,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor3_random.hpp"
 #include "pitts_tensortrain_axpby_plain.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_dot.hpp"
