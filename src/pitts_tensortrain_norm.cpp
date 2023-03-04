@@ -10,3 +10,6 @@ using namespace PITTS;
 
 template double PITTS::norm2<double>(const TensorTrain<double>& TTx);
 template float PITTS::norm2<float>(const TensorTrain<float>& TTx);
+
+template double PITTS::internal::t3_nrm<double>(const PITTS::Tensor3<double>&);
+template float PITTS::internal::t3_nrm<float>(const PITTS::Tensor3<float>&);

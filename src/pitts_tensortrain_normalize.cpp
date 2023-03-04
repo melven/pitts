@@ -28,3 +28,6 @@ template float PITTS::leftNormalize<float>(TensorTrain<float>& TT, float rankTol
 
 template double PITTS::rightNormalize<double>(TensorTrain<double>& TT, double rankTolerance, int maxRank);
 template float PITTS::rightNormalize<float>(TensorTrain<float>& TT, float rankTolerance, int maxRank);
+
+template void PITTS::internal::t3_scale<double>(double, PITTS::Tensor3<double>&);
+template void PITTS::internal::t3_scale<float>(float, PITTS::Tensor3<float>&);
