@@ -3,11 +3,11 @@
 # abort on errors
 set -xe
 
-time source ~/load_modules_pitts_modules.sh > /dev/null
+time -p source ~/load_modules_pitts.sh > /dev/null
 
 BUILD_DIR=$(mktemp -d -p . build.XXXX) && cd $BUILD_DIR
 
-time -p cmake -Wno-dev -G Ninja -DCMAKE_BUILD_TYPE=$1 -DPITTS_EIGEN_USE_LAPACKE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_USE_MODULES=Off -DCMAKE_CXX_COMPILER=clang++ ../../.. > cmake.log
+time -p cmake -Wno-dev -G Ninja -DCMAKE_BUILD_TYPE=$1 -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_USE_MODULES=Off -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=On ../../.. > cmake.log
 
 time -p ninja > ninja1.log
 
