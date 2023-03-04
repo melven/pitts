@@ -13,8 +13,8 @@ time -p ninja > ninja1.log
 
 time -p ninja pitts_tests > ninja2.log
 
-touch ../../../src/pitts_tensortrain_dot.hpp
+touch ../../../src/pitts_tensortrain_dot_impl.hpp
 time -p ninja > ninja3.log
 
-touch ../../../src/pitts_tensortrain_dot.hpp
+touch ../../../src/pitts_tensortrain_dot_impl.hpp
 time -p ninja pitts_tests > ninja4.log

@@ -245,7 +245,7 @@ if(pybind11_FOUND)
     pitts_multivector_pybind.cpp
     ${PITTS_PYBIND_ITENSOR_SOURCE}
     )
-  if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  if(PITTS_DEVELOP_BUILD)
     target_link_options(pitts_py PRIVATE "-fuse-ld=lld")
   endif()
 
