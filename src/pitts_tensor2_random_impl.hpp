@@ -11,8 +11,8 @@
 #define PITTS_TENSOR2_RANDOM_IMPL_HPP
 
 // includes
-#include <random>
 #include "pitts_tensor2_random.hpp"
+#include "pitts_random.hpp"
 #include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -29,15 +29,12 @@ namespace PITTS
         {{r1*r2*kernel_info::NoOp<T>()},    // flops
          {r1*r2*kernel_info::Store<T>()}}  // data
         );
-
-
-    std::random_device randomSeed;
-    std::mt19937 randomGenerator(randomSeed());
-    std::uniform_real_distribution<T> distribution(T(-1), T(1));
+    
+    internal::UniformUnitDistribution<T> distribution;
 
     for(long long i = 0; i < r1; i++)
       for(long long j = 0; j < r2; j++)
-          t2(i,j) = distribution(randomGenerator);
+          t2(i,j) = distribution(internal::randomGenerator);
   }
 
 }
