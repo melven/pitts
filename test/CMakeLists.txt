@@ -12,6 +12,10 @@ file(GLOB CPP_SRCUNITTESTS *.cpp *.hpp)
 # ITensor adapters
 add_subdirectory(itensor)
 
+# speed up compilation times in dev builds
+if(PITTS_DEVELOP_BUILD)
+  link_libraries($<TARGET_OBJECTS:pitts_impl>)
+endif()
 
 # executable for the unit tests
 add_executable(pitts_tests EXCLUDE_FROM_ALL ${CPP_SRCUNITTESTS} ${GTEST_SOURCES})
@@ -75,7 +79,7 @@ endif()
 
 # useful target to (re)build and test
 add_custom_target (check
-                   COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> -V --timeout 300
+                   COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> -V --timeout 300 --output-on-failure
                    SOURCES CMakeLists.txt ${PY_UNITTESTS})
 add_dependencies(check pitts_tests)
 if( CODE_COVERAGE )

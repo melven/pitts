@@ -13,8 +13,8 @@
 // includes
 #include <memory>
 #include "pitts_chunk.hpp"
-#include "pitts_performance.hpp"
 #include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -175,29 +175,11 @@ namespace PITTS
 
   //! explicitly copy a Tensor3 object
   template<typename T>
-  void copy(const Tensor3<T>& a, Tensor3<T>& b)
-  {
-    const auto r1 = a.r1();
-    const auto n = a.n();
-    const auto r2 = a.r2();
-
-    const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-        {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
-         {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
-        );
-
-    b.resize(r1, n, r2, false);
-
-    const auto nChunks = a.nChunks();
-
-#pragma omp parallel for collapse(3) schedule(static)
-    for(int k = 0; k < r2; k++)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
-        for(int i = 0; i < r1; i++)
-          b.chunk(i,jChunk,k) = a.chunk(i,jChunk,k);
-  }
+  void copy(const Tensor3<T>& a, Tensor3<T>& b);
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_tensor3_impl.hpp"
+#endif
 
 #endif // PITTS_TENSOR3_HPP

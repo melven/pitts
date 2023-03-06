@@ -2,6 +2,10 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_axpby_normalized.hpp"
+#include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 
 using namespace PITTS;
 

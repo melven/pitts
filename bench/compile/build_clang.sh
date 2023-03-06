@@ -7,14 +7,14 @@ time source ~/load_modules_pitts_modules.sh > /dev/null
 
 BUILD_DIR=$(mktemp -d -p . build.XXXX) && cd $BUILD_DIR
 
-time cmake -Wno-dev -G Ninja -DCMAKE_BUILD_TYPE=$1 -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_USE_MODULES=Off -DCMAKE_CXX_COMPILER=clang++ ../../.. > cmake.log
+time -p cmake -Wno-dev -G Ninja -DCMAKE_BUILD_TYPE=$1 -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_USE_MODULES=Off -DCMAKE_CXX_COMPILER=clang++ ../../.. > cmake.log
 
-time ninja > ninja1.log
+time -p ninja > ninja1.log
 
-time ninja pitts_tests > ninja2.log
-
-touch ../../../src/pitts_tensortrain_dot.hpp
-time ninja > ninja3.log
+time -p ninja pitts_tests > ninja2.log
 
 touch ../../../src/pitts_tensortrain_dot.hpp
-time ninja pitts_tests > ninja4.log
+time -p ninja > ninja3.log
+
+touch ../../../src/pitts_tensortrain_dot.hpp
+time -p ninja pitts_tests > ninja4.log

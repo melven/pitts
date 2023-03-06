@@ -8,7 +8,7 @@
 TEST(PITTS_MultiVector_axpby, axpy_invalid_args)
 {
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,3), Y(49,3);
   arr alpha(3);
@@ -32,7 +32,7 @@ TEST(PITTS_MultiVector_axpby, axpy_random)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(51,5), Y(51,5), Y_ref(51,5);
   randomize(X);
@@ -51,7 +51,7 @@ TEST(PITTS_MultiVector_axpby, axpy_random)
 TEST(PITTS_MultiVector_axpby, axpy_norm2_invalid_args)
 {
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,3), Y(49,3);
   arr alpha(3);
@@ -75,7 +75,7 @@ TEST(PITTS_MultiVector_axpby, axpy_norm2_random)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(51,5), Y(51,5), Y_ref(51,5);
   randomize(X);
@@ -97,7 +97,7 @@ TEST(PITTS_MultiVector_axpby, axpy_norm2_random)
 TEST(PITTS_MultiVector_axpby, axpy_dot_invalid_args)
 {
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,3), Y(49,3), Z(50,3);
   arr alpha(3);
@@ -121,7 +121,7 @@ TEST(PITTS_MultiVector_axpby, axpy_dot_random)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(51,5), Y(51,5), Y_ref(51,5), Z(51,5);
   randomize(X);

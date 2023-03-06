@@ -9,7 +9,7 @@ TEST(PITTS_MultiVector_scale, single_col)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,1), X_ref(50,1);
 
@@ -28,7 +28,7 @@ TEST(PITTS_MultiVector_scale, simple)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(2,3), X_ref(2,3);
 
@@ -61,7 +61,7 @@ TEST(PITTS_MultiVector_scale, multi_col)
 {
   const auto eps = 1.e-8;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
 
   MultiVector_double X(51,5), X_ref(51,5);
 

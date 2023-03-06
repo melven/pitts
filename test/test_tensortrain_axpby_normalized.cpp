@@ -5,6 +5,7 @@
 #include "pitts_tensortrain_axpby_plain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"
 #include "pitts_tensortrain_normalize.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "eigen_test_helper.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"

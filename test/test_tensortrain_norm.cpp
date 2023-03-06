@@ -2,6 +2,7 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensor3_random.hpp"
 
 TEST(PITTS_TensorTrain_norm, rank_1_vector)
 {
