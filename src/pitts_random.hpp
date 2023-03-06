@@ -12,6 +12,9 @@
 
 // includes
 #include <random>
+#include <complex>
+#include <numeric>
+#include <cmath>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -34,6 +37,51 @@ namespace PITTS
         result = (result << 32) | randomDevice();
         return result;
     }
+
+    //! uniform distribution with abs(x) <= 1
+    template<typename T>
+    struct UniformUnitDistribution
+    {
+        //! sample from the distribution using a random generator
+        template<std::uniform_random_bit_generator Generator>
+        [[nodiscard]] T operator()(Generator& g) const
+        {
+            std::uniform_real_distribution<T> distribution(-1, 1);
+            return distribution(g);
+        }
+
+        //! discard n elements from the random generator
+        template<std::uniform_random_bit_generator Generator>
+        void discard(unsigned long long n, Generator& g) const
+        {
+            constexpr auto wordsPerNumber = 1 + (sizeof(T)-1) / Generator::word_size;
+            g.discard(n*wordsPerNumber);
+        }
+    };
+
+    //! specialization for complex types
+    template<typename T>
+    struct UniformUnitDistribution<std::complex<T>>
+    {
+        //! sample from the distribution using a random generator
+        template<std::uniform_random_bit_generator Generator>
+        [[nodiscard]] std::complex<T> operator()(Generator& g)
+        {
+            std::uniform_real_distribution<T> distributionR2(0, 1);
+            std::uniform_real_distribution<T> distributionPhi(0, 2*std::numbers::pi);
+            const T r = std::sqrt(distributionR2(g));
+            const T phi = distributionPhi(g);
+            return std::complex<T>(r*std::cos(phi), r*std::sin(phi));
+        }
+
+        //! discard n elements from the random generator
+        template<std::uniform_random_bit_generator Generator>
+        void discard(unsigned long long n, Generator& g) const
+        {
+            constexpr auto wordsPerNumber = 1 + (sizeof(T)-1) / Generator::word_size;
+            g.discard(2*n*wordsPerNumber);
+        }
+    };
   }
 }
 
