@@ -40,7 +40,7 @@ namespace PITTS
 
 
   // implement initialize
-  INLINE void initialize(int* argc, char** argv[], bool verbose)
+  INLINE void initialize(int* argc, char** argv[], bool verbose, std::uint_fast64_t randomSeed)
   {
     // first init OpenMP threads (before MPI, to make it easier to pin)
 #pragma omp parallel
@@ -68,6 +68,9 @@ namespace PITTS
       LIKWID_MARKER_THREADINIT;
     }
 #endif
+
+    // seed random number generator
+    internal::randomGenerator.seed(randomSeed);
   }
 
 

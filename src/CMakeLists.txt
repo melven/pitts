@@ -19,6 +19,7 @@ target_sources(pitts INTERFACE
   pitts_parallel_impl.hpp
   pitts_eigen.hpp
   pitts_missing_cereal.hpp
+  pitts_random.hpp
   pitts_tensor2.hpp
   pitts_tensor2_impl.hpp
   pitts_tensor2_random.hpp
