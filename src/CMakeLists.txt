@@ -192,6 +192,7 @@ endif()
 
 
 # test executables
+add_executable(qr_bench qr_bench.cpp)
 add_executable(axpby_left_ortho_bench axpby_left_ortho_bench.cpp)
 add_executable(axpby_right_ortho_bench axpby_right_ortho_bench.cpp)
 add_executable(norm2_bench norm2_bench.cpp)
