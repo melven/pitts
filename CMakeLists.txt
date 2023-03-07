@@ -2,6 +2,7 @@
 ### Minimal cmake version
 ###
 cmake_minimum_required(VERSION 3.14.0) # not really needed
+cmake_policy(VERSION 3.14.0...3.26)
 
 
 ###
