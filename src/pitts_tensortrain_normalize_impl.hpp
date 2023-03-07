@@ -67,6 +67,9 @@ namespace PITTS
     }
 
     //! contract Tensor3 and Tensor2 : A(:,:,*) * B(*,:)
+    //!
+    //! Identical to dot_contract1t but dedicated timer, so we get distinct timing results...
+    //!
     template<typename T>
     void normalize_contract2(const Tensor3<T>& A, const Tensor2<T>& B, Tensor3<T>& C)
     {

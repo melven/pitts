@@ -27,6 +27,9 @@ namespace PITTS
   namespace internal
   {
     //! contract Tensor3 and Tensor2 along last dimensions: A(:,:,*) * B(:,*)
+    //!
+    //! Identical to dot_contract1 but could exploit symmetry of B.
+    //!
     template<typename T>
     void norm2_contract1(const Tensor3<T>& A, const Tensor2<T>& B, Tensor3<T>& C)
     {
@@ -63,7 +66,7 @@ namespace PITTS
 
     //! contract Tensor3 and Tensor3 along the last two dimensions: A(:,*,*) * B(:,*,*)
     //!
-    //! exploits the symmetry of the result in the norm calculation
+    //! Similar to dot_contract2 but actually exploits the symmetry of the result in the norm calculation.
     //!
     template<typename T>
     void norm2_contract2(const Tensor3<T>& A, const Tensor3<T>& B, Tensor2<T>& C)
