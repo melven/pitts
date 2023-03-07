@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "pitts_parallel.hpp"
+#include "pitts_parallel_impl.hpp"
 
 namespace
 {

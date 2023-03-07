@@ -15,7 +15,7 @@ namespace
 {
   using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
   using MultiVector_double = PITTS::MultiVector<double>;
-  using arr = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using arr = Eigen::ArrayXd;
   constexpr auto eps = 1.e-10;
 
   void zero(MultiVector_double& mv)

@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
   for(int iter = 0; iter < nIter; iter++)
   {
-    const auto TT = PITTS::fromDense_classical(&data(0,0), &data(0,0)+nTotal, shape, 1.e-8, max_r);
+    const auto TT = PITTS::fromDense_classical<const double*>(&data(0,0), &data(0,0)+nTotal, shape, 1.e-8, max_r);
   }
 
   PITTS::finalize();

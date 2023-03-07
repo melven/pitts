@@ -11,8 +11,10 @@
 #define PITTS_TENSORTRAIN_HPP
 
 // includes
-#include <vector>
+#include <memory>
 #include <stdexcept>
+#include <vector>
+#include <algorithm>
 #include "pitts_tensor3.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -369,22 +371,12 @@ namespace PITTS
 
   //! explicitly copy a TensorTrain object
   template<typename T>
-  void copy(const TensorTrain<T>& a, TensorTrain<T>& b)
-  {
-    // check that dimensions match
-    if( a.dimensions() != b.dimensions() )
-      throw std::invalid_argument("TensorTrain copy dimension mismatch!");
-    
-    b.setTTranks(a.getTTranks());
-
-    for(int i = 0; i < a.dimensions().size(); i++)
-    {
-      const auto& t3a = a.subTensor(i);
-      const auto copyFcn = [&t3a](Tensor3<T>& t3b){copy(t3a, t3b);};
-      b.editSubTensor(i, copyFcn, a.isOrthonormal(i));
-    }
-  }
+  void copy(const TensorTrain<T>& a, TensorTrain<T>& b);
 }
+
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_tensortrain_impl.hpp"
+#endif
 
 
 #endif // PITTS_TENSORTRAIN_HPP

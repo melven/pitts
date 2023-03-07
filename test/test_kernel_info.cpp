@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cereal/cereal.hpp>
 #include "pitts_kernel_info.hpp"
 #include <complex>
 

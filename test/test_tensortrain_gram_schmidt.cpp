@@ -5,12 +5,13 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "eigen_test_helper.hpp"
 
 namespace
 {
   using TensorTrain_double = PITTS::TensorTrain<double>;
-  using arr = Eigen::Array<double, Eigen::Dynamic, 1>;
+  using arr = Eigen::ArrayXd;
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
   constexpr auto eps = 1.e-10;
 }

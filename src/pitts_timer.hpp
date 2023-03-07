@@ -11,20 +11,20 @@
 #define PITTS_TIMER_HPP
 
 // includes
-#include "pitts_parallel.hpp"
 #include "pitts_scope_info.hpp"
 #include <chrono>
 #include <limits>
 #include <unordered_map>
 #include <iostream>
-#include <iomanip>
-#include <numeric>
-#include <vector>
-#include <string>
-#include <cereal/cereal.hpp>
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>
+#endif
+
+#ifdef PITTS_DEVELOP_BUILD
+#include "pitts_missing_cereal.hpp"
+#else
+#include <cereal/cereal.hpp>
 #endif
 
 
@@ -163,41 +163,8 @@ namespace PITTS
 #endif
 
 
-    //! helper type for a timing result with a name
-    struct NamedTiming final
-    {
-      //! description (function name, parameters, etc)
-      std::string name;
-
-      //! timing results
-      TimingStatistics timings;
-    };
-
     //! gather timings in a vector, so they can be sorted and printed more easily
-    inline auto gatherTimings(const TimingStatisticsMap& map, bool mpiGlobal = true)
-    {
-      // copy to serializable map (ScopeInfo is read-only)
-      std::unordered_map<std::string,TimingStatistics> namedMap;
-      for(const auto& [scope, timings]: map)
-      {
-        std::string fullName;
-        if( !std::string_view(scope.type_name()).empty() )
-          fullName.append("<").append(scope.type_name()).append(std::string("> :: "));
-        fullName.append(scope.function_name());
-
-        namedMap.insert({std::move(fullName),timings});
-      }
-
-      if( mpiGlobal )
-        namedMap = parallel::mpiCombineMaps(namedMap);
-
-      std::vector<NamedTiming> result;
-      result.reserve(namedMap.size());
-      for(const auto& [name, timings]: namedMap)
-        result.emplace_back(NamedTiming{name, timings});
-
-      return result;
-    }
+    auto gatherTimings(const TimingStatisticsMap& map, bool mpiGlobal = true);
   }
 
 
@@ -230,53 +197,12 @@ namespace PITTS
 
 
     //! print nice statistics using globalTimingStatisticsMap
-    inline void printStatistics(bool clear = true, std::ostream& out = std::cout, bool mpiGlobal = true)
-    {
-      using internal::NamedTiming;
-      std::vector<NamedTiming> lines = gatherTimings(globalTimingStatisticsMap, mpiGlobal);
-
-      // sort by decreasing time
-      std::sort(lines.begin(), lines.end(), [](const NamedTiming& l1, const NamedTiming& l2){return l1.timings.totalTime > l2.timings.totalTime;});
-      // get maximal length of the name string
-      const auto maxNameLen = std::accumulate(lines.begin(), lines.end(), 10, [](std::size_t n, const NamedTiming& l){return std::max(n, l.name.size());});
-
-      // prevent output on non-root with mpiGlobal == true (but omit mpiProcInfo call when mpiGlobal == false)
-      bool doOutput = true;
-
-      if( mpiGlobal )
-      {
-        // divide data by number of processes (average timings/calls)
-        const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
-        for(auto& line: lines)
-        {
-          line.timings.totalTime /= nProcs;
-          line.timings.calls /= nProcs;
-        }
-
-        doOutput = iProc == 0;
-      }
-
-      if( doOutput )
-      {
-        // actual output
-        out << "Timing statistics:\n";
-        out << std::left;
-        out << std::setw(maxNameLen) << "function" << "\t "
-            << std::setw(10) << "time [s]" << "\t "
-            << std::setw(10) << "#calls" << "\n";
-        for(const auto& line: lines)
-        {
-          out << std::setw(maxNameLen) << line.name << "\t "
-              << std::setw(10) << line.timings.totalTime << "\t "
-              << std::setw(10) << line.timings.calls << "\n";
-        }
-      }
-
-      if( clear )
-        globalTimingStatisticsMap.clear();
-    }
+    void printStatistics(bool clear = true, std::ostream& out = std::cout, bool mpiGlobal = true);
   }
 }
 
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_timer_impl.hpp"
+#endif
 
 #endif // PITTS_TIMER_HPP

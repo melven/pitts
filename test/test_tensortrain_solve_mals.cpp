@@ -6,7 +6,11 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
+#include "pitts_tensortrain_operator_apply_transposed.hpp"
+#include "pitts_tensortrain_operator_apply_op.hpp"
+#include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "eigen_test_helper.hpp"
 
 namespace
 {
