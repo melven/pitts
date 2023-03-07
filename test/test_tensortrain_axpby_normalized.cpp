@@ -124,9 +124,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order1)
     //  |
     //  11
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(1, 11), TTy(1, 11);
 
     randomize(TTx);
@@ -146,9 +143,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order2_0)
     //  o -- o
     //  |    |
     //  4    4
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx(2, 4, 3), TTy(2, 4, 3);
 
@@ -170,9 +164,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order2_1)
     //  |    |       |    |
     //  4    4       4    4
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(2, 4, 4), TTy(2, 4, 2);
 
     randomize(TTx);
@@ -192,9 +183,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order2_2)
     //  o -- o       o -- o
     //  |    |       |    |
     //  4    4       4    4
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx(2, 4, 2), TTy(2, 4, 4);
 
@@ -216,9 +204,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order3)
     //  |    |    |
     //  3    3    3
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(3, 3, 3), TTy(3, 3, 3);
 
     randomize(TTx);
@@ -239,9 +224,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order4)
     //  |    |    |    |
     //  2    2    2    2
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(4, 2, 3), TTy(4, 2, 3);
 
     randomize(TTx);
@@ -261,9 +243,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_order5)
     //  o -- o -- o -- o -- o
     //  |    |    |    |    |
     //  2    2    2    2    2
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx(5, 2, 2), TTy(5, 2, 2);
 
@@ -286,9 +265,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_special_cases)
     //  4    3    2    5        4    3    2    5
 
     // only testing special cases (alpha = 0, beta = 0, ...)
-
-    // tensor core entries are random
-    srand(1); 
 
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
@@ -318,9 +294,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_highrank)
     //  |    |    |    |        |    |    |    |
     //  4    3    2    5        4    3    2    5
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({4,12,5});
@@ -348,9 +321,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_lowrank)
     //  |    |    |    |        |    |    |    |
     //  4    3    2    5        4    3    2    5
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({1,3,2});
@@ -373,9 +343,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_equal)
     //  o -- o -- o -- o
     //  |    |    |    |
     //  4    3    2    5
-
-    // tensor core entries are random
-    srand(1);
 
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
@@ -402,9 +369,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_large_tensors)
     //  |    |    |    |        |    |    |    |
     //  40   30   25   20       40   30   25   20
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {40,30,25,20};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({5,10,5});
@@ -428,9 +392,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_long_tensors)
     //  |    |    |    |    |    |    |        |    |    |    |    |    |    |
     //  8    9    3    6    5    9    7        8    9    3    6    5    9    7
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {8,9,3,6,5,9,7};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({4,6,7,9,8,5});
@@ -458,9 +419,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order1)
     //  |
     //  11
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(1, 11), TTy(1, 11);
 
     randomize(TTx);
@@ -480,9 +438,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order2_0)
     //  o -- o
     //  |    |
     //  4    4
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx(2, 4, 3), TTy(2, 4, 3);
 
@@ -504,9 +459,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order2_1)
     //  |    |       |    |
     //  4    4       4    4
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(2, 4, 4), TTy(2, 4, 2);
 
     randomize(TTx);
@@ -526,9 +478,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order2_2)
     //  o -- o       o -- o
     //  |    |       |    |
     //  4    4       4    4
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx(2, 4, 2), TTy(2, 4, 4);
 
@@ -550,9 +499,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order3)
     //  |    |    |
     //  3    3    3
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(3, 3, 3), TTy(3, 3, 3);
 
     randomize(TTx);
@@ -573,9 +519,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order4)
     //  |    |    |    |
     //  2    2    2    2
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx(4, 2, 3), TTy(4, 2, 3);
 
     randomize(TTx);
@@ -595,9 +538,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_order5)
     //  o -- o -- o -- o -- o
     //  |    |    |    |    |
     //  2    2    2    2    2
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx(5, 2, 2), TTy(5, 2, 2);
 
@@ -620,9 +560,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_special_cases)
     //  4    3    2    5        4    3    2    5
 
     // only testing special cases (alpha = 0, beta = 0, ...)
-
-    // tensor core entries are random
-    srand(1); 
 
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
@@ -652,9 +589,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_highrank)
     //  |    |    |    |        |    |    |    |
     //  4    3    2    5        4    3    2    5
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({4,12,5});
@@ -682,9 +616,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_lowrank)
     //  |    |    |    |        |    |    |    |
     //  4    3    2    5        4    3    2    5
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({1,3,2});
@@ -707,9 +638,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_equal)
     //  o -- o -- o -- o
     //  |    |    |    |
     //  4    3    2    5
-
-    // tensor core entries are random
-    srand(1);
 
     const std::vector<int> dimensions = {4,3,2,5};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
@@ -736,9 +664,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_large_tensors)
     //  |    |    |    |        |    |    |    |
     //  40   30   25   20       40   30   25   20
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {40,30,25,20};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({5,10,5});
@@ -762,9 +687,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
     //  |    |    |    |    |    |    |        |    |    |    |    |    |    |
     //  8    9    3    6    5    9    7        8    9    3    6    5    9    7
     
-    // tensor core entries are random
-    srand(1);
-
     const std::vector<int> dimensions = {8,9,3,6,5,9,7};
     TensorTrain<double> TTx(dimensions), TTy(dimensions);
     TTx.setTTranks({4,6,7,9,8,5});
@@ -793,8 +715,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_boundaryRank_order1)
     //     |
     //     5
 
-    // tensor core entries are random
-    srand(1); 
     TensorTrain<double> TTx(1, 5), TTy(1, 5);
     TTx.setSubTensor(0, Tensor3<double>(3,5,4));
     TTy.setSubTensor(0, Tensor3<double>(3,5,4));
@@ -813,9 +733,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_boundaryRank_order2)
     //  -- o -- o --
     //     |    |
     //     5    4
-
-    // tensor core entries are random
-    srand(1);
 
     TensorTrain<double> TTx({5,4}, 3), TTy({5,4}, 3);
     TTx.setSubTensor(0, Tensor3<double>(2,5,3));
@@ -837,9 +754,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_boundaryRank_order3)
     //  -- o -- o -- o --
     //     |    |    |
     //     5    3    2
-
-    // tensor core entries are random
-    srand(1);
 
     TensorTrain<double> TTx({5,3,2}, 0), TTy({5,3,2}, 0);
     TTx.setTTranks({5,3});
@@ -865,9 +779,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_boundaryRank_order4)
     //     |    |    |    |
     //     2    3    4    2
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx({2,3,4,2},0), TTy({2,3,4,2}, 0);
     TTx.setTTranks({2,4,3});
     TTy.setTTranks({4,5,2});
@@ -890,9 +801,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_boundaryRank_order5)
     //  -- o -- o -- o -- o -- o --
     //     |    |    |    |    |
     //     2    4    5    3    2    
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx({2,4,5,3,2}, 0), TTy({2,4,5,3,2}, 0);
     TTx.setTTranks({3,6,3,4});
@@ -922,8 +830,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_boundaryRank_order1)
     //     |
     //     5
 
-    // tensor core entries are random
-    srand(1); 
     TensorTrain<double> TTx(1, 5), TTy(1, 5);
     TTx.setSubTensor(0, Tensor3<double>(3,5,4));
     TTy.setSubTensor(0, Tensor3<double>(3,5,4));
@@ -942,9 +848,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_boundaryRank_order2)
     //  -- o -- o --
     //     |    |
     //     5    4
-
-    // tensor core entries are random
-    srand(1);
 
     TensorTrain<double> TTx({5,4}, 3), TTy({5,4}, 3);
     TTx.setSubTensor(0, Tensor3<double>(2,5,3));
@@ -966,9 +869,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_boundaryRank_order3)
     //  -- o -- o -- o --
     //     |    |    |
     //     5    3    2
-
-    // tensor core entries are random
-    srand(1);
 
     TensorTrain<double> TTx({5,3,2}, 0), TTy({5,3,2}, 0);
     TTx.setTTranks({5,3});
@@ -994,9 +894,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_boundaryRank_order4)
     //     |    |    |    |
     //     2    3    4    2
 
-    // tensor core entries are random
-    srand(1); 
-
     TensorTrain<double> TTx({2,3,4,2},0), TTy({2,3,4,2}, 0);
     TTx.setTTranks({2,4,3});
     TTy.setTTranks({4,5,2});
@@ -1019,9 +916,6 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_boundaryRank_order5)
     //  -- o -- o -- o -- o -- o --
     //     |    |    |    |    |
     //     2    4    5    3    2    
-
-    // tensor core entries are random
-    srand(1); 
 
     TensorTrain<double> TTx({2,4,5,3,2}, 0), TTy({2,4,5,3,2}, 0);
     TTx.setTTranks({3,6,3,4});
