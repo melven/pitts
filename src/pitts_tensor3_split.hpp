@@ -35,20 +35,21 @@ namespace PITTS
   //! split a fixed-size rank-3 tensor into 2 smaller tensors
   //!
   //! Split t3c into t3a and t3b such that
-  //!   t3c_(i,k,j) = sum_l t3a_(i,k1,l) * t3b_(l,k2,j)   with k=k2*na+k1
+  //!   t3c_(i,k,j) = sum_l t3a_(i,k1,l) * t3b_(l,k2,j)   with k=k2*na+k1 (respectively k=k1*nb+k2)
   //!
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   //! @param[in]  t3c           rank-3 tensor
   //! @param[in]  na            second dimension (n) of the first result tensor t3a
   //! @param[in]  nb            second dimension (n) of the second result tensor t3b
+  //! @param[in]  transpose     transpose second dimension (n): uses k = k1+k2*nb instead of k = k2*na+nb
   //! @param[in]  leftOrtog     make left part (t3a) orthogonal if true, otherwise t3b is made orthogonal
   //! @param[in]  rankTolerance truncation tolerance for determining the rank between t3a and t3b
   //! @param[in]  maxRank       maximal rank of the decomposition of t3c into t3a and t3b
   //! @return     [t3a, t3b]    the two parts of the splitted rank-3 tensor
   //!
   template<typename T>
-  std::pair<Tensor3<T>,Tensor3<T>> split(const Tensor3<T>& t3c, int na, int nb, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max());
+  std::pair<Tensor3<T>,Tensor3<T>> split(const Tensor3<T>& t3c, int na, int nb, bool transpose, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max());
 }
 
 #ifndef PITTS_DEVELOP_BUILD
