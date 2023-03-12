@@ -159,6 +159,229 @@ namespace PITTS
         const std::vector<Tensor3<T>> *subTs_ = nullptr;
       };
 
+      //! set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
+      template<typename T>
+      TensorTrainOperator<T> setupProjectionOperator(const TensorTrain<T>& TTx, SweepIndex swpIdx)
+      {
+        const auto& rowDims = TTx.dimensions();
+        const int nDim = rowDims.size();
+        std::vector<int> colDims(nDim);
+        for(int iDim = 0; iDim < nDim; iDim++)
+        {
+          if( iDim+1 == swpIdx.leftDim() )
+            colDims[iDim] = TTx.subTensor(iDim).r2();
+          else if( iDim-1 == swpIdx.rightDim() )
+            colDims[iDim] = TTx.subTensor(iDim).r1();
+          else if( iDim >= swpIdx.leftDim() && iDim <= swpIdx.rightDim() )
+            colDims[iDim] = rowDims[iDim];
+          else // < leftDim or > rightDim
+            colDims[iDim] = 1;
+        }
+
+        TensorTrainOperator<T> TTOp(rowDims, colDims);
+        std::vector<Tensor3<T>> subTensors(nDim);
+        std::vector<TT_Orthogonality> ortho(nDim);
+        for(int iDim = 0; iDim < nDim; iDim++)
+        {
+          Tensor3<T>& subTOp = subTensors[iDim];
+          const Tensor3<T>& subTx = TTx.subTensor(iDim);
+          if( iDim+1 == swpIdx.leftDim() )
+          {
+            subTOp.resize(subTx.r1(),rowDims[iDim]*colDims[iDim],1);
+            for(int i = 0; i < subTx.r1(); i++)
+              for(int j = 0; j < rowDims[iDim]; j++)
+                for(int k = 0; k < colDims[iDim]; k++)
+                  subTOp(i ,TTOp.index(iDim, j, k), 0) = subTx(i, j, k);
+            ortho[iDim] = TT_Orthogonality::none;
+          }
+          else if( iDim-1 == swpIdx.rightDim() )
+          {
+            subTOp.resize(1,rowDims[iDim]*colDims[iDim],subTx.r2());
+            for(int i = 0; i < rowDims[iDim]; i++)
+              for(int j = 0; j < colDims[iDim]; j++)
+                for(int k = 0; k < subTx.r2(); k++)
+                  subTOp(0, TTOp.index(iDim, i, j), k) = subTx(j, i, k);
+            ortho[iDim] = TT_Orthogonality::none;
+          }
+          else if( iDim >= swpIdx.leftDim() && iDim <= swpIdx.rightDim() )
+          {
+            // create identity operator
+            subTOp.resize(1,rowDims[iDim]*colDims[iDim],1);
+            subTOp.setConstant(T(0));
+            for(int i = 0; i < rowDims[iDim]; i++)
+              subTOp(0, TTOp.index(iDim, i, i), 0) = T(1);
+            ortho[iDim] = TT_Orthogonality::none;
+          }
+          else // < leftDim or > rightDim
+          {
+            copy(subTx, subTOp);
+            ortho[iDim] = TTx.isOrthonormal(iDim);
+          }
+        }
+        TTOp.tensorTrain().setSubTensors(0, std::move(subTensors), ortho);
+
+        return TTOp;
+      }
+
+      template<typename T>
+      TensorTrain<T> calculatePetrovGalerkinProjection(TensorTrainOperator<T>& TTAv, SweepIndex swpIdx, const TensorTrain<T>& TTx)
+      {
+        internal::ensureLeftOrtho_range(TTAv.tensorTrain(), 0, swpIdx.leftDim());
+        internal::ensureRightOrtho_range(TTAv.tensorTrain(), swpIdx.rightDim(), swpIdx.nDim()-1);
+
+        std::vector<Tensor3<T>> subTensors;
+        std::vector<TT_Orthogonality> ortho;
+        subTensors.reserve(swpIdx.nDim()+2);
+        ortho.reserve(swpIdx.nDim()+2);
+        for(int iDim = 0; iDim < swpIdx.leftDim()-1; iDim++)
+        {
+          Tensor3<T> subT;
+          copy(TTAv.tensorTrain().subTensor(iDim), subT);
+          subTensors.emplace_back(std::move(subT));
+          ortho.push_back(TTAv.tensorTrain().isOrthonormal(iDim));
+        }
+        if( swpIdx.leftDim()-1 >= 0 )
+        {
+          const int iDim = swpIdx.leftDim()-1;
+          const int n = TTAv.row_dimensions()[iDim];
+          const int rleft = TTAv.column_dimensions()[iDim];
+          auto [t3a, t3b] = split(TTAv.tensorTrain().subTensor(iDim), n, rleft, false, true);
+          subTensors.emplace_back(std::move(t3a));
+          ortho.push_back(TT_Orthogonality::left);
+          subTensors.emplace_back(std::move(t3b));
+          ortho.push_back(TT_Orthogonality::none);
+        }
+        for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
+        {
+          Tensor3<T> subT;
+          copy(TTAv.tensorTrain().subTensor(iDim), subT);
+          subTensors.emplace_back(std::move(subT));
+          ortho.push_back(TTAv.tensorTrain().isOrthonormal(iDim));
+        }
+        if( swpIdx.rightDim()+1 < swpIdx.nDim() )
+        {
+          const int iDim = swpIdx.rightDim()+1;
+          const int n = TTAv.row_dimensions()[iDim];
+          const int rright = TTAv.column_dimensions()[iDim];
+          auto [t3a, t3b] = split(TTAv.tensorTrain().subTensor(iDim), rright, n, true, false);
+          subTensors.emplace_back(std::move(t3a));
+          ortho.push_back(TT_Orthogonality::none);
+          subTensors.emplace_back(std::move(t3b));
+          ortho.push_back(TT_Orthogonality::right);
+        }
+        for(int iDim = swpIdx.rightDim()+2; iDim < swpIdx.nDim(); iDim++)
+        {
+          Tensor3<T> subT;
+          copy(TTAv.tensorTrain().subTensor(iDim), subT);
+          subTensors.emplace_back(std::move(subT));
+          ortho.push_back(TTAv.tensorTrain().isOrthonormal(iDim));
+        }
+
+        const int nDim = subTensors.size();
+        TensorTrain<T> TTw(std::move(subTensors), ortho);
+
+        // we now need to truncate such that the ranks at leftDim and rightDim match with TTx
+        if( swpIdx.leftDim()-1 >= 0 )
+        {
+          const int rleft = TTw.dimensions()[swpIdx.leftDim()];
+          internal::ensureRightOrtho_range(TTw, swpIdx.leftDim()-1, nDim-1);
+          internal::leftNormalize_range(TTw, swpIdx.leftDim()-1, swpIdx.leftDim(), T(0), rleft);
+        }
+        if( swpIdx.rightDim()+1 < swpIdx.nDim() )
+        {
+          const int rightDim = nDim - (swpIdx.nDim()-swpIdx.rightDim());
+          const int rright = TTw.dimensions()[rightDim];
+          internal::ensureLeftOrtho_range(TTw, 0, rightDim+1);
+          internal::rightNormalize_range(TTw, rightDim, rightDim+1, T(0), rright);
+        }
+
+        // return TTw;
+        // store in same format as TTx would be (for testing, we could return TTw here!)
+        subTensors = std::vector<Tensor3<T>>(swpIdx.nDim());
+        ortho.resize(swpIdx.nDim());
+        for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
+        {
+          copy(TTw.subTensor(iDim), subTensors[iDim]);
+          ortho[iDim] = TTw.isOrthonormal(iDim);
+        }
+        for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
+        {
+          copy(TTx.subTensor(iDim), subTensors[iDim]);
+          ortho[iDim] = TTx.isOrthonormal(iDim);
+        }
+        for(int iDim = swpIdx.rightDim()+1; iDim < swpIdx.nDim(); iDim++)
+        {
+          copy(TTw.subTensor(nDim - (swpIdx.nDim()-iDim)), subTensors[iDim]);
+          ortho[iDim] = TTw.isOrthonormal(nDim - (swpIdx.nDim()-iDim));
+        }
+        TensorTrain<T> TTw_(std::move(subTensors), ortho);
+
+        return TTw_;
+      }
+
+#ifndef NDEBUG
+      //! helper function: return TensorTrain with additional dimension instead of boundary rank
+      template<typename T>
+      TensorTrain<T> removeBoundaryRank(const TensorTrain<T>& tt)
+      {
+        const int nDim = tt.dimensions().size();
+        std::vector<Tensor3<T>> subTensors(nDim);
+        for(int iDim = 0; iDim < nDim; iDim++)
+          copy(tt.subTensor(iDim), subTensors[iDim]);
+        const int rleft = subTensors.front().r1();
+        const int rright = subTensors.back().r2();
+        if( rleft != 1 )
+        {
+          // generate identity
+          Tensor3<T> subT(1, rleft, rleft);
+          subT.setConstant(T(0));
+          for(int i = 0; i < rleft; i++)
+            subT(0, i, i) = T(1);
+          subTensors.insert(subTensors.begin(), std::move(subT));
+        }
+        if( rright != 1 )
+        {
+          // generate identity again
+          Tensor3<T> subT(rright, rright, 1);
+          subT.setConstant(T(0));
+          for(int i = 0; i < rright; i++)
+            subT(i, i, 0) = T(1);
+          subTensors.insert(subTensors.end(), std::move(subT));
+        }
+
+        TensorTrain<T> extendedTT(std::move(subTensors));
+        return extendedTT;
+      }
+
+      //! helper function: return TensorTrainTrain without additional empty (1x1) dimension
+      template<typename T>
+      TensorTrain<T> removeBoundaryRankOne(const TensorTrainOperator<T>& ttOp)
+      {
+        std::vector<int> rowDims = ttOp.row_dimensions();
+        std::vector<int> colDims = ttOp.column_dimensions();
+        std::vector<Tensor3<T>> subTensors(rowDims.size());
+        for(int iDim = 0; iDim < rowDims.size(); iDim++)
+          copy(ttOp.tensorTrain().subTensor(iDim), subTensors[iDim]);
+        
+        if( rowDims.front() == 1 && colDims.front() == 1 && subTensors.front()(0,0,0) == T(1) )
+        {
+          rowDims.erase(rowDims.begin());
+          colDims.erase(colDims.begin());
+          subTensors.erase(subTensors.begin());
+        }
+        if( rowDims.back() == 1 && colDims.back() == 1 && subTensors.back()(0,0,0) == T(1) )
+        {
+          rowDims.pop_back();
+          colDims.pop_back();
+          subTensors.pop_back();
+        }
+
+        TensorTrain<T> ttOp_(std::move(subTensors));
+
+        return ttOp_;
+      }
+#endif
+
       //! calculate next part of v^Tw from right to left or discard last part
       //!
       //! Like TT dot product fused with TT apply but allows to store all intermediate results.
@@ -518,6 +741,8 @@ if( projection == MALS_projection::PetrovGalerkin )
 
       LeftPartialTT<T> left_v;
       RightPartialTT<T> right_v;
+      // dummy tensortrain, filled later for Petrov-Galerkin case
+      TensorTrain<T> TTw(0,0);
 
       Tensor3<T> tmp_last_left_v, tmp_last_right_v;
       if( projection == MALS_projection::RitzGalerkin )
@@ -527,78 +752,55 @@ if( projection == MALS_projection::PetrovGalerkin )
       }
       else // projection == MALS_projection::PetrovGalerkin
       {
-        Tensor2<T> t2;
-        for(int i = left_v_subT.size(); i < left_Ax.size(); i++)
-        {
-          Tensor3<T> newSubT;
-          if( i > 0 )
-            internal::normalize_contract1(tmp_left_v, left_Ax[i], newSubT);
-          else
-            copy(left_Ax[i], newSubT);
-          unfold_left(newSubT, t2);
-          auto [U,Vt] = internal::normalize_svd(t2, true);
-          fold_left(U, newSubT.n(), newSubT);
-          std::swap(tmp_left_v, Vt);
-          left_v_subT.emplace_back(std::move(newSubT));
-        }
-        while(left_v_subT.size() > left_Ax.size())
-          left_v_subT.pop_back();
-        for(int i = right_v_subT.size(); i < right_Ax.size(); i++)
-        {
-          Tensor3<T> newSubT;
-          if( i > 0 )
-            internal::normalize_contract2(right_Ax[i], tmp_right_v, newSubT);
-          else
-            copy(right_Ax[i], newSubT);
-          unfold_right(newSubT, t2);
-          auto [U,Vt] = internal::normalize_svd(t2, false);
-          fold_right(Vt, newSubT.n(), newSubT);
-          std::swap(tmp_right_v, U);
-          right_v_subT.emplace_back(std::move(newSubT));
-        }
-        while(right_v_subT.size() > right_Ax.size())
-          right_v_subT.pop_back();
-        
+        // stupid implementation for testing
+        TensorTrainOperator<T> TTv = setupProjectionOperator(TTx, swpIdx);
+        TensorTrainOperator<T> TTAv(TTOpA.row_dimensions(), TTv.column_dimensions());
+        apply(TTOpA, TTv, TTAv);
 
-        // we need to enforce the size of the last sub-tensor in left/right_v_subT to obtain a quadratic local problem
-        if( left_v_subT.size() > 0 )
-        {
-          const int left_r = TTx.subTensor(swpIdx.leftDim()).r1();
-          if( left_v_subT.back().r2() < left_r )
-            throw std::runtime_error("TensorTrain solveMALS: enlarging subspace for Petrov-Galerkin case not implemented yet!");
-          tmp_last_left_v.resize(left_v_subT.back().r1(), left_v_subT.back().n(), left_r);
-          for(int i = 0; i < tmp_last_left_v.r1(); i++)
-            for (int j = 0; j < tmp_last_left_v.n(); j++)
-              for (int k = 0; k < tmp_last_left_v.r2(); k++)
-                tmp_last_left_v(i,j,k) = left_v_subT.back()(i,j,k);
-          std::swap(tmp_last_left_v, left_v_subT.back());
-          // when we truncate here, this also makes the last left_vTAx and left_vTb invalid
-          while( left_vTAx.size() >= left_v_subT.size() )
-            left_vTAx.pop_back();
-          while( left_vTb.size() >= left_v_subT.size() )
-            left_vTb.pop_back();
-        }
+#ifndef NDEBUG
+{
+  // check orthogonality
+  TensorTrainOperator<T> TTOpI(TTv.column_dimensions(), TTv.column_dimensions());
+  TTOpI.setEye();
+  assert(norm2((transpose(TTv) * TTv - TTOpI).tensorTrain()) < sqrt_eps);
+  // check A V x_local = A x
+  TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
+  TensorTrain<T> TTXlocal(TTv.column_dimensions());
+  TTXlocal.setOnes();
+  const int leftOffset = ( tt_x.subTensor(0).r1() > 1 ) ? -1 :  0;
+  TTXlocal.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_x));
+  assert(norm2( TTOpA * TTx - TTAv * TTXlocal ) < sqrt_eps);
+}
+#endif
+        TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx);
+        left_v = TTw;
+        right_v = TTw;
 
-        if( right_v_subT.size() >  0 )
-        {
-          const int right_r = TTx.subTensor(swpIdx.rightDim()).r2();
-          if( right_v_subT.back().r1() < right_r )
-            throw std::runtime_error("TensorTrain solveMALS: enlarging subspace for Petrov-Galerkin case not implemented yet!");
-          tmp_last_right_v.resize(right_r, right_v_subT.back().n(), right_v_subT.back().r2());
-          for(int i = 0; i < tmp_last_right_v.r1(); i++)
-            for (int j = 0; j < tmp_last_right_v.n(); j++)
-              for (int k = 0; k < tmp_last_right_v.r2(); k++)
-                tmp_last_right_v(i,j,k) = right_v_subT.back()(i,j,k);
-          std::swap(tmp_last_right_v, right_v_subT.back());
-          // when we truncate here, this also makes the last right_vTAx and right_vTb invalid
-          while( right_vTAx.size() >= right_v_subT.size() )
-            right_vTAx.pop_back();
-          while( right_vTb.size() >= right_v_subT.size() )
-            right_vTb.pop_back();
-        }
+#ifndef NDEBUG
+{
+  // check dimensions
+  assert(TTw.dimensions() == TTx.dimensions());
+  assert(TTw.subTensor(swpIdx.leftDim()).r1() == TTx.subTensor(swpIdx.leftDim()).r1());
+  assert(TTw.subTensor(swpIdx.rightDim()).r2() == TTx.subTensor(swpIdx.rightDim()).r2());
 
-        left_v = left_v_subT;
-        right_v = right_v_subT;
+  // check orthogonality
+  TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
+  TensorTrainOperator<T> TTOpI(TTOpW.column_dimensions(), TTOpW.column_dimensions());
+  TTOpI.setEye();
+  assert(norm2((transpose(TTOpW) * TTOpW - TTOpI).tensorTrain()) < sqrt_eps);
+  // check W x_local = TTw
+  TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
+  TensorTrain<T> TTXlocal(TTOpW.column_dimensions());
+  TTXlocal.setOnes();
+  const int leftOffset = ( tt_x.subTensor(0).r1() > 1 ) ? -1 :  0;
+  TTXlocal.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_x));
+  const TensorTrain<T> TTw_ref = TTOpW * TTXlocal;
+  const TensorTrain<T> TTw_err = TTw - TTw_ref;
+  const T TTw_err_norm = norm2(TTw_err);
+  const T TTw_ref_norm = norm2(TTw_ref);
+  assert(TTw_err_norm < 0.001*TTw_ref_norm);
+}
+#endif
       }
 
       update_left_vTw<T>(left_v, TTb, 0, swpIdx.leftDim() - 1, left_vTb);
@@ -616,6 +818,37 @@ if( projection == MALS_projection::PetrovGalerkin )
       {
         assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) <= sqrt_eps*std::abs(dot(TTx, TTb)));
       }
+      else if( projection == MALS_projection::PetrovGalerkin )
+      {
+#ifndef NDEBUG
+{
+  TensorTrainOperator<T> TTOpV = setupProjectionOperator(TTx, swpIdx);
+  TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
+  // check W^T b = tt_b
+  TensorTrain<T> TTblocal(TTOpW.column_dimensions());
+  TTblocal.setOnes();
+  int leftOffset = ( tt_b.subTensor(0).r1() > 1 ) ? -1 :  0;
+  TTblocal.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_b));
+  assert(norm2( transpose(TTOpW) * TTb -  TTblocal ) < sqrt_eps);
+
+  // check localTTOp = W^T A V
+  TensorTrainOperator<T> WtAV_ref = transpose(TTOpW) * TTOpA * TTOpV;
+  TensorTrainOperator<T> WtAV(TTOpW.column_dimensions(), TTOpV.column_dimensions());
+  WtAV.setOnes();
+  leftOffset = ( localTTOp.tensorTrain().subTensor(0).n() == 1 && localTTOp.tensorTrain().subTensor(0)(0,0,0) == T(1) ) ? 0 : -1;
+  WtAV.tensorTrain().setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRankOne(localTTOp));
+  assert(norm2( WtAV.tensorTrain() - WtAV_ref.tensorTrain() ) < sqrt_eps);
+
+  // check dot products
+  const T wTb = dot(TTw,TTb);
+  const T xtb = dot(tt_x, tt_b);
+  assert(std::abs(xtb - wTb) <= sqrt_eps*std::abs(wTb));
+  const T wAx = dot(TTw, TTOpA * TTx);
+  const T xMx = dot(tt_x, localTTOp * tt_x);
+  assert(std::abs(wAx - xMx) <= sqrt_eps*std::abs(wAx));
+}
+#endif
+      }
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
@@ -630,19 +863,15 @@ if( projection == MALS_projection::PetrovGalerkin )
       if( projection == MALS_projection::PetrovGalerkin )
       {
         // recover original sub-tensor of projection space
-        if( left_v_subT.size() > 0 )
         {
-          std::swap(tmp_last_left_v, left_v_subT.back());
           // this also invalidates left_vTb and left_vTAx!
-          left_vTb.pop_back();
-          left_vTAx.pop_back();
+          left_vTb.clear();
+          left_vTAx.clear();
         }
-        if( right_v_subT.size() > 0 )
         {
-          std::swap(tmp_last_right_v, right_v_subT.back());
           // this also invalidates right_vTb and right_vTAx!
-          right_vTb.pop_back();
-          right_vTAx.pop_back();
+          right_vTb.clear();
+          right_vTAx.clear();
         }
       }
     };
