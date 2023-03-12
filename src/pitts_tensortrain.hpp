@@ -100,12 +100,12 @@ namespace PITTS
       }
 
       //! construct from given sub-tensors, dimensions are obtained from the sub-tensor dimensions
-      TensorTrain(std::vector<Tensor3<T>>&& subTensors) :
+      TensorTrain(std::vector<Tensor3<T>>&& subTensors, const std::vector<TT_Orthogonality>& orthonormal = {}) :
         dimensions_(internal::dimensionsFromSubTensors(subTensors)),
         orthonormal_(dimensions_.size(), TT_Orthogonality::none)
       {
         subTensors_.resize(dimensions_.size());
-        setSubTensors(0, std::move(subTensors));
+        setSubTensors(0, std::move(subTensors), orthonormal);
       }
 
       //! no implicit copy assignment
