@@ -86,6 +86,8 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_operator_apply_transposed_dense_impl.hpp
   pitts_tensortrain_operator_from_itensor.hpp
   pitts_tensortrain_operator_to_itensor.hpp
+  pitts_tensortrain_operator_to_dense.hpp
+  pitts_tensortrain_operator_to_dense_impl.hpp
   pitts_tensortrain_operator_debug.hpp
   pitts_tensortrain_sweep_index.hpp
   pitts_tensortrain_solve_mals.hpp
@@ -182,6 +184,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_operator_apply_transposed_op.cpp
     pitts_tensortrain_operator_apply_dense.cpp
     pitts_tensortrain_operator_apply_transposed_dense.cpp
+    pitts_tensortrain_operator_to_dense.cpp
     pitts_tensortrain_solve_gmres.cpp
     pitts_tensortrain_solve_mals.cpp
   )
