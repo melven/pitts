@@ -53,7 +53,7 @@ namespace PITTS
       py::array_t<T> TensorTrainOperator_getSubTensor(const TensorTrainOperator<T>& TTOp, int d)
       {
         const auto& subT = TTOp.tensorTrain().subTensor(d);
-        py::array_t<T> array({subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()});
+        py::array_t<T> array({(int)subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), (int)subT.r2()});
 
         for(int i = 0; i < subT.r1(); i++)
           for(int j = 0; j < TTOp.row_dimensions()[d]; j++)
@@ -70,10 +70,10 @@ namespace PITTS
         Tensor3<T> subT(TTOp.tensorTrain().subTensor(d).r1(), TTOp.tensorTrain().subTensor(d).n(), TTOp.tensorTrain().subTensor(d).r2());
         if( array.ndim() != 4 )
           throw std::invalid_argument("array must have 4 dimensions");
-        const std::vector<int> required_shape = {subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()};
-        const std::vector<int> shape = {array.shape(), array.shape()+array.ndim()};
+        const std::vector<long long> required_shape = {subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()};
+        const std::vector<long long> shape = {array.shape(), array.shape()+array.ndim()};
         if( shape != required_shape )
-          throw std::invalid_argument("array has incompatible shape, expected " + to_string<int>(required_shape) + ", got " + to_string<int>(shape));
+          throw std::invalid_argument("array has incompatible shape, expected " + to_string<long long>(required_shape) + ", got " + to_string<long long>(shape));
 
         for(int i = 0; i < shape[0]; i++)
           for(int j = 0; j < shape[1]; j++)
