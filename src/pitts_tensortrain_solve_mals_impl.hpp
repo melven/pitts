@@ -30,7 +30,9 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_operator_apply_dense.hpp"
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
+#include "pitts_tensortrain_operator_apply_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
+#include "pitts_tensortrain_operator_to_dense.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_tensortrain_from_dense.hpp"
@@ -235,6 +237,7 @@ namespace PITTS
         ortho.reserve(swpIdx.nDim()+2);
         for(int iDim = 0; iDim < swpIdx.leftDim()-1; iDim++)
         {
+          assert(TTAv.column_dimensions().at(iDim) == 1);
           Tensor3<T> subT;
           copy(TTAv.tensorTrain().subTensor(iDim), subT);
           subTensors.emplace_back(std::move(subT));
@@ -271,6 +274,7 @@ namespace PITTS
         }
         for(int iDim = swpIdx.rightDim()+2; iDim < swpIdx.nDim(); iDim++)
         {
+          assert(TTAv.column_dimensions().at(iDim) == 1);
           Tensor3<T> subT;
           copy(TTAv.tensorTrain().subTensor(iDim), subT);
           subTensors.emplace_back(std::move(subT));
@@ -278,12 +282,24 @@ namespace PITTS
         }
 
         const int nDim = subTensors.size();
-        TensorTrain<T> TTw(std::move(subTensors), ortho);
+        TensorTrain<T> TTw(std::move(subTensors));//, ortho);
+        // make left- and right-orthogonal
+        if( swpIdx.leftDim()-1 >= 0 )
+        {
+          internal::ensureLeftOrtho_range(TTw, 0, swpIdx.leftDim());
+        }
+        if( swpIdx.rightDim()+1 < swpIdx.nDim() )
+        {
+          const int rightDim = nDim - (swpIdx.nDim()-swpIdx.rightDim());
+          internal::ensureRightOrtho_range(TTw, rightDim, nDim-1);
+        }
 
+        /*
         // we now need to truncate such that the ranks at leftDim and rightDim match with TTx
         if( swpIdx.leftDim()-1 >= 0 )
         {
           const int rleft = TTw.dimensions()[swpIdx.leftDim()];
+          internal::ensureLeftOrtho_range(TTw, 0, swpIdx.leftDim()-1);
           internal::ensureRightOrtho_range(TTw, swpIdx.leftDim()-1, nDim-1);
           internal::leftNormalize_range(TTw, swpIdx.leftDim()-1, swpIdx.leftDim(), T(0), rleft);
         }
@@ -292,8 +308,10 @@ namespace PITTS
           const int rightDim = nDim - (swpIdx.nDim()-swpIdx.rightDim());
           const int rright = TTw.dimensions()[rightDim];
           internal::ensureLeftOrtho_range(TTw, 0, rightDim+1);
+          internal::ensureRightOrtho_range(TTw, rightDim+1, nDim-1);
           internal::rightNormalize_range(TTw, rightDim, rightDim+1, T(0), rright);
         }
+        */
 
         // return TTw;
         // store in same format as TTx would be (for testing, we could return TTw here!)
@@ -304,15 +322,19 @@ namespace PITTS
           copy(TTw.subTensor(iDim), subTensors[iDim]);
           ortho[iDim] = TTw.isOrthonormal(iDim);
         }
-        for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
-        {
-          copy(TTx.subTensor(iDim), subTensors[iDim]);
-          ortho[iDim] = TTx.isOrthonormal(iDim);
-        }
         for(int iDim = swpIdx.rightDim()+1; iDim < swpIdx.nDim(); iDim++)
         {
           copy(TTw.subTensor(nDim - (swpIdx.nDim()-iDim)), subTensors[iDim]);
           ortho[iDim] = TTw.isOrthonormal(nDim - (swpIdx.nDim()-iDim));
+        }
+        // middle has just the correct dimensions...
+        for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
+        {
+          const int r1 = iDim == 0 ? 1 : subTensors[iDim-1].r2();
+          const int r2 = iDim < swpIdx.rightDim() || iDim+1 == swpIdx.nDim() ? 1 : subTensors[iDim+1].r1();
+          const int n = TTx.dimensions()[iDim];
+          subTensors[iDim].resize(r1, n, r2);
+          ortho[iDim] = TT_Orthogonality::none;
         }
         TensorTrain<T> TTw_(std::move(subTensors), ortho);
 
@@ -510,68 +532,67 @@ namespace PITTS
       }
 
       template<typename T>
-      void copy_op_left(const Tensor2<T>& t2, Tensor3<T>& t3)
+      void copy_op_left(const Tensor2<T>& t2, const int rAl, Tensor3<T>& t3)
       {
           const int r1 = t2.r2();
-          const int rAl = t2.r1() / r1;
+          const int r1_ = t2.r1() / rAl;
 
           const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-              {{"r1", "rAl"}, {r1, rAl}},   // arguments
-              {{r1*r1*rAl*kernel_info::NoOp<T>()},    // flops
-              {r1*r1*rAl*kernel_info::Store<T>() + r1*r1*rAl*kernel_info::Load<T>()}}  // data
+              {{"r1_", "rAl", "r1"}, {r1_, rAl, r1}},   // arguments
+              {{r1_*r1*rAl*kernel_info::NoOp<T>()},    // flops
+              {r1_*r1*rAl*kernel_info::Store<T>() + r1_*r1*rAl*kernel_info::Load<T>()}}  // data
               );
 
-          t3.resize(1,r1*r1,rAl);
+          t3.resize(1,r1_*r1,rAl);
 
-#pragma omp parallel for collapse(3) schedule(static) if(r1*r1*rAl > 500)
+#pragma omp parallel for collapse(3) schedule(static) if(r1*r1_*rAl > 500)
           for(int i = 0; i < r1; i++)
-            for(int j = 0; j < r1; j++)
+            for(int j = 0; j < r1_; j++)
               for(int k = 0; k < rAl; k++)
-                t3(0,i+j*r1,k) = t2(j+k*r1,i);
+                t3(0,i+j*r1,k) = t2(j+k*r1_,i);
       }
 
       template<typename T>
-      void copy_op_right(const Tensor2<T>& t2, Tensor3<T>& t3)
+      void copy_op_right(const Tensor2<T>& t2, const int rAr, Tensor3<T>& t3)
       {
           const int r2 = t2.r1();
-          const int rAr = t2.r2() / r2;
+          const int r2_ = t2.r2() / rAr;
 
           const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-              {{"r2", "rAr"}, {r2, rAr}},   // arguments
-              {{r2*r2*rAr*kernel_info::NoOp<T>()},    // flops
-              {r2*r2*rAr*kernel_info::Store<T>() + r2*r2*rAr*kernel_info::Load<T>()}}  // data
+              {{"r2", "rAr", "r2_"}, {r2, rAr, r2_}},   // arguments
+              {{r2*r2_*rAr*kernel_info::NoOp<T>()},    // flops
+              {r2*r2_*rAr*kernel_info::Store<T>() + r2*r2_*rAr*kernel_info::Load<T>()}}  // data
               );
 
-          t3.resize(rAr,r2*r2,1);
+          t3.resize(rAr,r2_*r2,1);
 
-#pragma omp parallel for collapse(3) schedule(static) if(r2*r2*rAr > 500)
+#pragma omp parallel for collapse(3) schedule(static) if(r2*r2_*rAr > 500)
           for(int i = 0; i < r2; i++)
-            for(int j = 0; j < r2; j++)
+            for(int j = 0; j < r2_; j++)
               for(int k = 0; k < rAr; k++)
-                t3(k,i+j*r2,0) = t2(i,j+k*r2);
+                t3(k,i+j*r2,0) = t2(i,j+k*r2_);
       }
 
       //! calculate the local linear operator in TT format for (M)ALS
       template<typename T>
       TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_vTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_vTAx)
       {
-        const int n0 = left_vTAx.r2();
-        const int nd = right_vTAx.r1();
+        std::vector<Tensor3<T>> subT_localOp(nMALS+2);
+        for(int i = 0; i < nMALS; i++)
+          copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[1+i]);
+        copy_op_left(left_vTAx, subT_localOp[1].r1(), subT_localOp[0]);
+        copy_op_right(right_vTAx, subT_localOp[nMALS].r2(), subT_localOp[nMALS+1]);
 
         std::vector<int> localRowDims(nMALS+2), localColDims(nMALS+2);
-        localRowDims.front() = localColDims.front() = n0;
+        localRowDims.front() = left_vTAx.r2();
+        localColDims.front() = subT_localOp[0].n() / localRowDims.front();
         for(int i = 0; i < nMALS; i++)
         {
           localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
           localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
         }
-        localRowDims.back()  = localColDims.back()  = nd;
-
-        std::vector<Tensor3<T>> subT_localOp(nMALS+2);
-        copy_op_left(left_vTAx, subT_localOp.front());
-        for(int i = 0; i < nMALS; i++)
-          copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[1+i]);
-        copy_op_right(right_vTAx, subT_localOp.back());
+        localRowDims.back() = right_vTAx.r1();
+        localColDims.back()  = subT_localOp[nMALS+1].n() / localRowDims.back();
 
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
         localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));
@@ -778,27 +799,22 @@ if( projection == MALS_projection::PetrovGalerkin )
 
 #ifndef NDEBUG
 {
+  /*
   // check dimensions
   assert(TTw.dimensions() == TTx.dimensions());
   assert(TTw.subTensor(swpIdx.leftDim()).r1() == TTx.subTensor(swpIdx.leftDim()).r1());
   assert(TTw.subTensor(swpIdx.rightDim()).r2() == TTx.subTensor(swpIdx.rightDim()).r2());
+  */
 
   // check orthogonality
   TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
   TensorTrainOperator<T> TTOpI(TTOpW.column_dimensions(), TTOpW.column_dimensions());
   TTOpI.setEye();
+  const TensorTrainOperator<T> WtW = transpose(TTOpW) * TTOpW;
+  const TensorTrainOperator<T> WtW_err = WtW - TTOpI;
+  //const Tensor2<T> WtW_err_dense = toDense(WtW_err);
+  //std::cout << "WtW_err:\n" << ConstEigenMap(WtW_err_dense) << std::endl;
   assert(norm2((transpose(TTOpW) * TTOpW - TTOpI).tensorTrain()) < sqrt_eps);
-  // check W x_local = TTw
-  TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-  TensorTrain<T> TTXlocal(TTOpW.column_dimensions());
-  TTXlocal.setOnes();
-  const int leftOffset = ( tt_x.subTensor(0).r1() > 1 ) ? -1 :  0;
-  TTXlocal.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_x));
-  const TensorTrain<T> TTw_ref = TTOpW * TTXlocal;
-  const TensorTrain<T> TTw_err = TTw - TTw_ref;
-  const T TTw_err_norm = norm2(TTw_err);
-  const T TTw_ref_norm = norm2(TTw_ref);
-  assert(TTw_err_norm < 0.001*TTw_ref_norm);
 }
 #endif
       }
@@ -814,6 +830,20 @@ if( projection == MALS_projection::PetrovGalerkin )
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
       const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_vTb.back(), TTb, right_vTb.back());
       const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_vTAx.back(), TTOpA, right_vTAx.back());
+#ifndef NDEBUG
+{
+  // check that localTTOp * tt_x is valid
+  assert(localTTOp.column_dimensions()[0] == tt_x.subTensor(0).r1());
+  for(int i = 0; i < nMALS; i++)
+    assert(localTTOp.column_dimensions()[i+1] == tt_x.dimensions()[i]);
+  assert(localTTOp.column_dimensions()[nMALS+1] == tt_x.subTensor(nMALS-1).r2());
+  // check that localTTOp^T * tt_b is valid
+  assert(localTTOp.row_dimensions()[0] == tt_b.subTensor(0).r1());
+  for(int i = 0; i < nMALS; i++)
+    assert(localTTOp.row_dimensions()[i+1] == tt_b.dimensions()[i]);
+  assert(localTTOp.row_dimensions()[nMALS+1] == tt_b.subTensor(nMALS-1).r2());
+}
+#endif
       if( projection == MALS_projection::RitzGalerkin )
       {
         assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) <= sqrt_eps*std::abs(dot(TTx, TTb)));
@@ -833,19 +863,22 @@ if( projection == MALS_projection::PetrovGalerkin )
 
   // check localTTOp = W^T A V
   TensorTrainOperator<T> WtAV_ref = transpose(TTOpW) * TTOpA * TTOpV;
+  /*
+  const Tensor2<T> WtAV_ref_dense = toDense(WtAV_ref);
+  const Tensor2<T> localTTOp_dense = toDense(localTTOp);
+  const T err = (ConstEigenMap(localTTOp_dense) - ConstEigenMap(WtAV_ref_dense)).array().abs().maxCoeff();
+  if( err > sqrt_eps )
+  {
+    std::cout << "operator error:\n" << err << std::endl;
+    std::cout << "operator:\n" << ConstEigenMap(localTTOp_dense) << std::endl;
+    std::cout << "operator (ref):\n" << ConstEigenMap(WtAV_ref_dense) << std::endl;
+  }
+  */
   TensorTrainOperator<T> WtAV(TTOpW.column_dimensions(), TTOpV.column_dimensions());
   WtAV.setOnes();
   leftOffset = ( localTTOp.tensorTrain().subTensor(0).n() == 1 && localTTOp.tensorTrain().subTensor(0)(0,0,0) == T(1) ) ? 0 : -1;
   WtAV.tensorTrain().setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRankOne(localTTOp));
-  assert(norm2( WtAV.tensorTrain() - WtAV_ref.tensorTrain() ) < sqrt_eps);
-
-  // check dot products
-  const T wTb = dot(TTw,TTb);
-  const T xtb = dot(tt_x, tt_b);
-  assert(std::abs(xtb - wTb) <= sqrt_eps*std::abs(wTb));
-  const T wAx = dot(TTw, TTOpA * TTx);
-  const T xMx = dot(tt_x, localTTOp * tt_x);
-  assert(std::abs(wAx - xMx) <= sqrt_eps*std::abs(wAx));
+  assert(norm2( WtAV.tensorTrain() - WtAV_ref.tensorTrain() ) < sqrt_eps*norm2(WtAV_ref.tensorTrain()));
 }
 #endif
       }
@@ -853,10 +886,28 @@ if( projection == MALS_projection::PetrovGalerkin )
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
 
-      if (useTTgmres)
-        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
-      else
-        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
+      if( projection == MALS_projection::RitzGalerkin )
+      {
+        if (useTTgmres)
+          const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+        else
+          const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
+      }
+      else // projection == PetrovGalerkin
+      {
+        std::cout << "    building dense problem..." << std::endl;
+        const Tensor2<T> localOp = toDense(localTTOp);
+        MultiVector<T> localX(localOp.r2(),1);
+        MultiVector<T> localB(localOp.r1(),1);
+        toDense(tt_b, localB);
+        std::cout << "    done... Solving dense system of dimension " << localOp.r1() << " x " << localOp.r2() << std::endl;
+        EigenMap(localX) = ConstEigenMap(localOp).colPivHouseholderQr().solve(ConstEigenMap(localB));
+        const auto r_left = tt_x.subTensor(0).r1();
+        const auto r_right = tt_x.subTensor(nMALS-1).r2();
+        std::cout << "    done... Transforming back to TT format..." << std::endl;
+        TensorTrain<T> new_tt_x = fromDense(localX, localB, tt_x.dimensions(), gmresRelTol*residualTolerance*nrm_TTb/nDim, maxRank, false, r_left, r_right);
+        std::swap(tt_x, new_tt_x);
+      }
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
 

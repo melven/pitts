@@ -442,6 +442,33 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim6_nonsymmetric_PetrovGalerkin)
   EXPECT_NEAR(error_ref, error, eps);
 }
 
+TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim3_nonsymmetric_PetrovGalerkin)
+{
+  TensorTrainOperator_double TTOpA(3,2,2);
+  TTOpA.setTTranks(1);
+  randomize(TTOpA);
+  normalize(TTOpA);
+  TensorTrainOperator_double TTOpI(3,2,2);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/100, TTOpA);
+  
+
+  TensorTrain_double TTx(3,2), TTb(3,2);
+  TTb.setOnes();
+  TTx.setTTranks(2);
+  randomize(TTx);
+
+  double error = solveMALS(TTOpA, false, MALS_projection::PetrovGalerkin, TTb, TTx, 2, eps, 5, 1, 0);
+  EXPECT_NEAR(0, error, 0.05*norm2(TTb));
+
+  TensorTrain_double TTAx(TTb.dimensions());
+  apply(TTOpA, TTx, TTAx);
+  double error_ref = axpby(-1., TTb, 1., TTAx);
+  EXPECT_NEAR(error_ref, error, eps);
+}
+
+
 TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim6_nonsymmetric_RitzGalerkin)
 {
   TensorTrainOperator_double TTOpA(6,4,4);
@@ -485,7 +512,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim6_nonsymmetric_PetrovGalerkin
   TTx.setTTranks(3);
   randomize(TTx);
 
-  double error = solveMALS(TTOpA, false, MALS_projection::PetrovGalerkin, TTb, TTx, 3, eps, 5);
+  double error = solveMALS(TTOpA, false, MALS_projection::PetrovGalerkin, TTb, TTx, 2, eps, 5);
   EXPECT_NEAR(0, error, 0.005*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -670,7 +697,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6_rank1_PetrovGaler
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  double residualNorm = solveMALS(TTOpA, true, MALS_projection::PetrovGalerkin, TTb, TTx, 5, eps, 2);
+  double residualNorm = solveMALS(TTOpA, true, MALS_projection::PetrovGalerkin, TTb, TTx, 2, eps, 2);
 
 
   apply(TTOpA, TTx, TTr);
