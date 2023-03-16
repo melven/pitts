@@ -165,6 +165,8 @@ namespace PITTS
       template<typename T>
       TensorTrainOperator<T> setupProjectionOperator(const TensorTrain<T>& TTx, SweepIndex swpIdx)
       {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
         const auto& rowDims = TTx.dimensions();
         const int nDim = rowDims.size();
         std::vector<int> colDims(nDim);
@@ -226,8 +228,10 @@ namespace PITTS
       }
 
       template<typename T>
-      TensorTrain<T> calculatePetrovGalerkinProjection(TensorTrainOperator<T>& TTAv, SweepIndex swpIdx, const TensorTrain<T>& TTx)
+      TensorTrain<T> calculatePetrovGalerkinProjection(TensorTrainOperator<T>& TTAv, SweepIndex swpIdx, const TensorTrain<T>& TTx, bool symmetrize)
       {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
         internal::ensureLeftOrtho_range(TTAv.tensorTrain(), 0, swpIdx.leftDim());
         internal::ensureRightOrtho_range(TTAv.tensorTrain(), swpIdx.rightDim(), swpIdx.nDim()-1);
 
@@ -282,7 +286,7 @@ namespace PITTS
         }
 
         const int nDim = subTensors.size();
-        TensorTrain<T> TTw(std::move(subTensors));//, ortho);
+        TensorTrain<T> TTw(std::move(subTensors), ortho);
         // make left- and right-orthogonal
         if( swpIdx.leftDim()-1 >= 0 )
         {
@@ -294,7 +298,6 @@ namespace PITTS
           internal::ensureRightOrtho_range(TTw, rightDim, nDim-1);
         }
 
-        /*
         // we now need to truncate such that the ranks at leftDim and rightDim match with TTx
         if( swpIdx.leftDim()-1 >= 0 )
         {
@@ -302,6 +305,38 @@ namespace PITTS
           internal::ensureLeftOrtho_range(TTw, 0, swpIdx.leftDim()-1);
           internal::ensureRightOrtho_range(TTw, swpIdx.leftDim()-1, nDim-1);
           internal::leftNormalize_range(TTw, swpIdx.leftDim()-1, swpIdx.leftDim(), T(0), rleft);
+
+          // try to make it as symmetric as possible (locally)
+          if( symmetrize )
+          {
+            if( swpIdx.leftDim()+1 < nDim )
+              internal::ensureLeftOrtho_range(TTw, 0, swpIdx.leftDim()+1);
+            Tensor2<T> Q(rleft, rleft);
+            const Tensor3<T>& subT = TTw.subTensor(swpIdx.leftDim());
+            if( subT.r1() != rleft )
+              throw std::runtime_error("solveMALS: (case not implemented) couldn't make local problem quadratic...");
+            // SVD subT(:,:,0) to make more symmetric
+            for(int i = 0; i < rleft; i++)
+              for(int j = 0; j < rleft; j++)
+                Q(i,j) = subT(i,j,0);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+            const Eigen::BDCSVD<Eigen::MatrixX<T>, Eigen::ComputeFullU | Eigen::ComputeFullV> svd(ConstEigenMap(Q));
+#else
+            const Eigen::BDCSVD<Eigen::MatrixX<T>> svd(ConstEigenMap(tmp), Eigen::ComputeFullU | Eigen::ComputeFullV);
+#endif
+            // std::cout << "  leftSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
+            // if( svd.rank() > 1 )
+            //   std::cout << "  distinct singular values: " << (svd.singularValues().head(svd.rank()-1) - svd.singularValues().tail(svd.rank()-1)).minCoeff() << "\n";
+            EigenMap(Q) = svd.matrixV() * svd.matrixU().transpose();
+            std::vector<Tensor3<T>> newSubT(2);
+            internal::normalize_contract1(Q, subT, newSubT[1]);
+            internal::dot_contract1(TTw.subTensor(swpIdx.leftDim()-1), Q, newSubT[0]);
+            std::vector<TT_Orthogonality> newOrtho(2);
+            newOrtho[0] = TTw.isOrthonormal(swpIdx.leftDim()-1);
+            newOrtho[1] = TTw.isOrthonormal(swpIdx.leftDim());
+            TTw.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT), newOrtho);
+            // TODO: check that symmetry stays the same (and not later destroyed by another operation!!)
+          }
         }
         if( swpIdx.rightDim()+1 < swpIdx.nDim() )
         {
@@ -310,8 +345,38 @@ namespace PITTS
           internal::ensureLeftOrtho_range(TTw, 0, rightDim+1);
           internal::ensureRightOrtho_range(TTw, rightDim+1, nDim-1);
           internal::rightNormalize_range(TTw, rightDim, rightDim+1, T(0), rright);
+
+          // try to make it as symmetric as possible (locally)
+          {
+            if( rightDim-1 >= 0 )
+              internal::ensureRightOrtho_range(TTw, rightDim-1, nDim-1);
+            Tensor2<T> Q(rright, rright);
+            const Tensor3<T>& subT = TTw.subTensor(rightDim);
+            if( subT.r2() != rright )
+              throw std::runtime_error("solveMALS: (case not implemented) couldn't make local problem quadratic...");
+            // SVD of subT(0,:,:) to make it more symmetric
+            for(int i = 0; i < rright; i++)
+              for(int j = 0; j < rright; j++)
+                Q(i,j) = subT(0,i,j);
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+          const Eigen::BDCSVD<Eigen::MatrixX<T>, Eigen::ComputeFullU | Eigen::ComputeFullV> svd(ConstEigenMap(Q));
+#else
+          const Eigen::BDCSVD<Eigen::MatrixX<T>> svd(ConstEigenMap(tmp), Eigen::ComputeFullU | Eigen::ComputeFullV);
+#endif
+            // std::cout << "  rightSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
+            // if( svd.rank() > 1 )
+            //   std::cout << "  distinct singular values: " << (svd.singularValues().head(svd.rank()-1) - svd.singularValues().tail(svd.rank()-1)).minCoeff() << "\n";
+            EigenMap(Q) = svd.matrixV() * svd.matrixU().transpose();
+            std::vector<Tensor3<T>> newSubT(2);
+            internal::normalize_contract2(subT, Q, newSubT[0]);
+            internal::reverse_dot_contract1(Q, TTw.subTensor(rightDim+1), newSubT[1]);
+            std::vector<TT_Orthogonality> newOrtho(2);
+            newOrtho[0] = TTw.isOrthonormal(rightDim);
+            newOrtho[1] = TTw.isOrthonormal(rightDim+1);
+            TTw.setSubTensors(rightDim, std::move(newSubT), newOrtho);
+            // TODO: check that symmetry stays the same (and not later destroyed by another operation!!)
+          }
         }
-        */
 
         // return TTw;
         // store in same format as TTx would be (for testing, we could return TTw here!)
@@ -793,19 +858,12 @@ if( projection == MALS_projection::PetrovGalerkin )
   assert(norm2( TTOpA * TTx - TTAv * TTXlocal ) < sqrt_eps);
 }
 #endif
-        TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx);
+        TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx, true);
         left_v = TTw;
         right_v = TTw;
 
 #ifndef NDEBUG
 {
-  /*
-  // check dimensions
-  assert(TTw.dimensions() == TTx.dimensions());
-  assert(TTw.subTensor(swpIdx.leftDim()).r1() == TTx.subTensor(swpIdx.leftDim()).r1());
-  assert(TTw.subTensor(swpIdx.rightDim()).r2() == TTx.subTensor(swpIdx.rightDim()).r2());
-  */
-
   // check orthogonality
   TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
   TensorTrainOperator<T> TTOpI(TTOpW.column_dimensions(), TTOpW.column_dimensions());
@@ -863,17 +921,6 @@ if( projection == MALS_projection::PetrovGalerkin )
 
   // check localTTOp = W^T A V
   TensorTrainOperator<T> WtAV_ref = transpose(TTOpW) * TTOpA * TTOpV;
-  /*
-  const Tensor2<T> WtAV_ref_dense = toDense(WtAV_ref);
-  const Tensor2<T> localTTOp_dense = toDense(localTTOp);
-  const T err = (ConstEigenMap(localTTOp_dense) - ConstEigenMap(WtAV_ref_dense)).array().abs().maxCoeff();
-  if( err > sqrt_eps )
-  {
-    std::cout << "operator error:\n" << err << std::endl;
-    std::cout << "operator:\n" << ConstEigenMap(localTTOp_dense) << std::endl;
-    std::cout << "operator (ref):\n" << ConstEigenMap(WtAV_ref_dense) << std::endl;
-  }
-  */
   TensorTrainOperator<T> WtAV(TTOpW.column_dimensions(), TTOpV.column_dimensions());
   WtAV.setOnes();
   leftOffset = ( localTTOp.tensorTrain().subTensor(0).n() == 1 && localTTOp.tensorTrain().subTensor(0)(0,0,0) == T(1) ) ? 0 : -1;
@@ -885,29 +932,11 @@ if( projection == MALS_projection::PetrovGalerkin )
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
-
-      if( projection == MALS_projection::RitzGalerkin )
-      {
-        if (useTTgmres)
-          const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
-        else
-          const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
-      }
-      else // projection == PetrovGalerkin
-      {
-        std::cout << "    building dense problem..." << std::endl;
-        const Tensor2<T> localOp = toDense(localTTOp);
-        MultiVector<T> localX(localOp.r2(),1);
-        MultiVector<T> localB(localOp.r1(),1);
-        toDense(tt_b, localB);
-        std::cout << "    done... Solving dense system of dimension " << localOp.r1() << " x " << localOp.r2() << std::endl;
-        EigenMap(localX) = ConstEigenMap(localOp).colPivHouseholderQr().solve(ConstEigenMap(localB));
-        const auto r_left = tt_x.subTensor(0).r1();
-        const auto r_right = tt_x.subTensor(nMALS-1).r2();
-        std::cout << "    done... Transforming back to TT format..." << std::endl;
-        TensorTrain<T> new_tt_x = fromDense(localX, localB, tt_x.dimensions(), gmresRelTol*residualTolerance*nrm_TTb/nDim, maxRank, false, r_left, r_right);
-        std::swap(tt_x, new_tt_x);
-      }
+      
+      if (useTTgmres)
+        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+      else
+        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
 
