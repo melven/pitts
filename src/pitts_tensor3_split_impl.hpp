@@ -260,7 +260,7 @@ namespace PITTS
 
   // implement tensor3 split
   template<typename T>
-  std::pair<Tensor3<T>, Tensor3<T>> split(const Tensor3<T>& t3c, int na, int nb, bool leftOrthog, T rankTolerance, int maxRank)
+  std::pair<Tensor3<T>, Tensor3<T>> split(const Tensor3<T>& t3c, int na, int nb, bool transpose, bool leftOrthog, T rankTolerance, int maxRank)
   {
     const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
@@ -280,7 +280,7 @@ namespace PITTS
       for(int j = 0; j < r2; j++)
         for(int k1 = 0; k1 < na; k1++)
           for(int k2 = 0; k2 < nb; k2++)
-            t3cMat(i+k1*r1, k2+nb*j) = t3c(i, k1+na*k2, j);
+            t3cMat(i+k1*r1, k2+nb*j) = transpose ? t3c(i, k2+nb*k1, j) : t3c(i, k1+na*k2, j);
 
     const auto [U,Vt] = rankTolerance != T(0) ?
       internal::normalize_svd(t3cMat, leftOrthog, rankTolerance, maxRank) :
