@@ -71,7 +71,8 @@ namespace PITTS
     template<typename T>
     [[nodiscard]] TensorTrain<T> operator*(const TensorTrainOperator<T>& ttOp, const TensorTrain<T>& ttX)
     {
-      TensorTrain<T> ttY(ttOp.row_dimensions());
+      // workaround for boundary rank
+      TensorTrain<T> ttY( ttOp.row_dimensions() == ttOp.column_dimensions() ? ttX.dimensions() : ttOp.row_dimensions() );
       apply(ttOp, ttX, ttY);
       return ttY;
     }
