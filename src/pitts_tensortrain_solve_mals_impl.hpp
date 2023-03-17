@@ -322,7 +322,7 @@ namespace PITTS
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
             const Eigen::BDCSVD<Eigen::MatrixX<T>, Eigen::ComputeFullU | Eigen::ComputeFullV> svd(ConstEigenMap(Q));
 #else
-            const Eigen::BDCSVD<Eigen::MatrixX<T>> svd(ConstEigenMap(tmp), Eigen::ComputeFullU | Eigen::ComputeFullV);
+            const Eigen::BDCSVD<Eigen::MatrixX<T>> svd(ConstEigenMap(Q), Eigen::ComputeFullU | Eigen::ComputeFullV);
 #endif
             // std::cout << "  leftSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
             // if( svd.rank() > 1 )
@@ -361,7 +361,7 @@ namespace PITTS
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
           const Eigen::BDCSVD<Eigen::MatrixX<T>, Eigen::ComputeFullU | Eigen::ComputeFullV> svd(ConstEigenMap(Q));
 #else
-          const Eigen::BDCSVD<Eigen::MatrixX<T>> svd(ConstEigenMap(tmp), Eigen::ComputeFullU | Eigen::ComputeFullV);
+          const Eigen::BDCSVD<Eigen::MatrixX<T>> svd(ConstEigenMap(Q), Eigen::ComputeFullU | Eigen::ComputeFullV);
 #endif
             // std::cout << "  rightSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
             // if( svd.rank() > 1 )
