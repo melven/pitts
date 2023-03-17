@@ -86,10 +86,10 @@ namespace PITTS
     }
 
     //! first dimension 
-    inline auto r1() const {return r1_;}
+    inline long long r1() const {return r1_;}
 
     //! second dimension 
-    inline auto r2() const {return r2_;}
+    inline long long r2() const {return r2_;}
 
   protected:
     //! the array dimension of chunks

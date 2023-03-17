@@ -77,11 +77,11 @@ namespace PITTS
         if( array.ndim() != 3 )
           throw std::invalid_argument("array must have 3 dimensions");
         if( array.shape(0) != subT.r1() || array.shape(1) != subT.n() || array.shape(2) != subT.r2() )
-          throw std::invalid_argument("array has incompatible shape, expected " + to_string<int>({subT.r1(), subT.n(), subT.r2()}) + ", got " + to_string<int>({array.shape(), array.shape()+array.ndim()}));
+          throw std::invalid_argument("array has incompatible shape, expected " + to_string<long long>({subT.r1(), subT.n(), subT.r2()}) + ", got " + to_string<long long>({array.shape(), array.shape()+array.ndim()}));
 
-        for(int i2 = 0; i2 < subT.r2(); i2++)
-          for(int j = 0; j < subT.n(); j++)
-            for(int i1 = 0; i1 < subT.r1(); i1++)
+        for(long long i2 = 0; i2 < subT.r2(); i2++)
+          for(long long j = 0; j < subT.n(); j++)
+            for(long long i1 = 0; i1 < subT.r1(); i1++)
               subT(i1,j,i2) = *array.data(i1,j,i2);
 
         TT.setSubTensor(d, std::move(subT));

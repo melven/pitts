@@ -161,11 +161,11 @@ namespace PITTS
               tmp[i] = Chunk<T>{};
             for(int l = 0; l < r2; l++)
               for(int kChunk = 0; kChunk < nChunks; kChunk++)
-                for(int j = jb; j < std::min(r1_, jb+bs); j++)
-                  for(int i = ib; i < std::min(r1, ib+bs); i++)
+                for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
+                  for(int i = ib; i < std::min((int)r1, ib+bs); i++)
                     fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmp[i-ib+(j-jb)*bs]);
-            for(int j = jb; j < std::min(r1_, jb+bs); j++)
-              for(int i = ib; i < std::min(r1, ib+bs); i++)
+            for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
+              for(int i = ib; i < std::min((int)r1, ib+bs); i++)
                 C(i,j) = sum(tmp[i-ib+(j-jb)*bs]);
           }
       }
@@ -187,16 +187,16 @@ namespace PITTS
               for(int l = 0; l < r2; l++)
                 for(int kChunk = 0; kChunk < nChunks; kChunk++)
                 {
-                  for(int j = jb; j < std::min(r1_, jb+bs); j++)
-                    for(int i = ib; i < std::min(r1, ib+bs); i++)
+                  for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
+                    for(int i = ib; i < std::min((int)r1, ib+bs); i++)
                       fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmpC[i-ib+(j-jb)*bs]);
                 }
-              for(int j = jb; j < std::min(r1_, jb+bs); j++)
-                for(int i = ib; i < std::min(r1, ib+bs); i++)
+              for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
+                for(int i = ib; i < std::min((int)r1, ib+bs); i++)
                   tmp[i-ib+(j-jb)*bs] = sum(tmpC[i-ib+(j-jb)*bs]);
               }
-              for(int j = jb; j < std::min(r1_, jb+bs); j++)
-                for(int i = ib; i < std::min(r1, ib+bs); i++)
+              for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
+                for(int i = ib; i < std::min((int)r1, ib+bs); i++)
                   C(i,j) = tmp[i-ib+(j-jb)*bs];
             }
         /*
