@@ -35,7 +35,7 @@ build_debug_with_coverage:
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - mkdir build_coverage && cd build_coverage
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=On -DPITTS_EIGEN_USE_LAPACKE=On
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
