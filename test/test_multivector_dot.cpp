@@ -14,6 +14,8 @@ TEST(PITTS_MultiVector_dot, invalid_args)
   EXPECT_THROW(dot(X, Y), std::invalid_argument);
 
   Y.resize(50,3);
+  randomize(X);
+  randomize(Y);
 
   EXPECT_NO_THROW(dot(X, Y));
 

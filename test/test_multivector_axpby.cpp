@@ -11,11 +11,13 @@ TEST(PITTS_MultiVector_axpby, axpy_invalid_args)
   using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,3), Y(49,3);
-  arr alpha(3);
+  const arr alpha = arr::Ones(3);
 
   EXPECT_THROW(axpy(alpha, X, Y), std::invalid_argument);
 
   Y.resize(50,3);
+  randomize(X);
+  randomize(Y);
 
   EXPECT_NO_THROW(axpy(alpha, X, Y));
 
@@ -54,11 +56,13 @@ TEST(PITTS_MultiVector_axpby, axpy_norm2_invalid_args)
   using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,3), Y(49,3);
-  arr alpha(3);
+  const arr alpha = arr::Ones(3);
 
   EXPECT_THROW(axpy_norm2(alpha, X, Y), std::invalid_argument);
 
   Y.resize(50,3);
+  randomize(X);
+  randomize(Y);
 
   EXPECT_NO_THROW(axpy_norm2(alpha, X, Y));
 
@@ -100,11 +104,14 @@ TEST(PITTS_MultiVector_axpby, axpy_dot_invalid_args)
   using arr = Eigen::ArrayXd;
 
   MultiVector_double X(50,3), Y(49,3), Z(50,3);
-  arr alpha(3);
+  const arr alpha = arr::Ones(3);
 
   EXPECT_THROW(axpy_dot(alpha, X, Y, Z), std::invalid_argument);
 
   Y.resize(50,3);
+  randomize(X);
+  randomize(Y);
+  randomize(Z);
 
   EXPECT_NO_THROW(axpy_dot(alpha, X, Y, Z));
 
