@@ -31,11 +31,11 @@ build_debug_with_coverage:
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
-    - module load PrgEnv/gcc11-openmpi-python
+    - module load PrgEnv/gcc12-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - mkdir build_coverage && cd build_coverage
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=On -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_OPTIMIZE_FOR_HOST=False
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
