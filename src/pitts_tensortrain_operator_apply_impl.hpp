@@ -90,7 +90,7 @@ namespace PITTS
             for(int l = 0; l < m; l++)
               fmadd(x(j1,l,j2), tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)], tmp);
             for (int k = 0; k < ALIGNMENT/sizeof(T); k++)
-              y(i,kChunk+k,j) = tmp[k];
+              y(i,kChunk*ALIGNMENT/sizeof(T)+k,j) = tmp[k];
           }
     }
 
@@ -131,7 +131,7 @@ namespace PITTS
 
 #pragma omp parallel for collapse(2) schedule(static)
       for(int j = 0; j < r2; j++)
-        for(int k = 0; k < n; k++)
+        for(int k = 0; k < xn; k++)
         {
           for(int iy = 0; iy < n; iy++)
           {
@@ -184,7 +184,7 @@ namespace PITTS
 
 #pragma omp parallel for collapse(2) schedule(static)
       for(int jy = 0; jy < n; jy++)
-        for(int k = 0; k < n; k++)
+        for(int k = 0; k < xn; k++)
         {
           for(int i = 0; i < r1; i++)
           {

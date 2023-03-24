@@ -165,7 +165,7 @@ namespace PITTS
               for(int k = 0; k < n; k++)
                 for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
                   for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                    tmp[i-ib+(j-jb)*bs] += A(i,k,l) * B(k,k,l);
+                    tmp[i-ib+(j-jb)*bs] += A(i,k,l) * B(j,k,l);
             for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
               for(int i = ib; i < std::min((int)r1, ib+bs); i++)
                 C(i,j) = tmp[i-ib+(j-jb)*bs];

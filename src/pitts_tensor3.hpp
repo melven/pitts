@@ -74,8 +74,8 @@ namespace PITTS
 #pragma omp parallel for schedule(static)
       for(int j = 0; j < r2_; j++)
         for (int i = 0; i < r1_; i++)
-          for (int k = ALIGNMENT/sizeof(T); k > 0; k++)
-            operator()(i,nChunks()-k,j);
+          for (int k = 0; k < chunkSize; k++)
+            operator()(i, (nChunks()-1)*chunkSize + k, j) = 0;
     }
 
     //! access tensor entries (some block ordering, const variant)
