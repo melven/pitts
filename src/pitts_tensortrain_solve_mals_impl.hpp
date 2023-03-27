@@ -131,8 +131,8 @@ namespace PITTS
           assert( tt_ || subTs_ );
           if( tt_ )
             return tt_->subTensor(tt_->dimensions().size() - 1 - i);
-          else
-            return subTs_->at(i);
+
+          return subTs_->at(i);
         }
       private:
         const TensorTrain<T> *tt_ = nullptr;
