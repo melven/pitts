@@ -50,8 +50,11 @@ namespace PITTS
     void resize(long long rows, long long cols)
     {
       // fast return without timer!
-      if( rows == rows_ && cols == cols_ )
+      if( rows == rows_ && cols <= cols_ )
+      {
+        cols_ = cols;
         return;
+      }
       const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
 
       const auto newRowChunks = (rows-1)/chunkSize+1;

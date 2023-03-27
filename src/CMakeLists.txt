@@ -115,6 +115,8 @@ target_sources(pitts INTERFACE
   pitts_multivector_eigen_adaptor.hpp
   pitts_multivector_transform.hpp
   pitts_multivector_transform_impl.hpp
+  pitts_multivector_triangular_solve.hpp
+  pitts_multivector_triangular_solve_impl.hpp
   pitts_multivector_transpose.hpp
   pitts_multivector_transpose_impl.hpp
   pitts_multivector_reshape.hpp
@@ -154,6 +156,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_multivector_reshape.cpp
     pitts_multivector_scale.cpp
     pitts_multivector_transform.cpp
+    pitts_multivector_triangular_solve.cpp
     pitts_multivector_transpose.cpp
     pitts_multivector_tsqr.cpp
     pitts_tensor2.cpp
@@ -211,6 +214,7 @@ add_executable(kmeans_bench kmeans_bench.cpp)
 add_executable(tsqr_bench tsqr_bench.cpp)
 add_executable(tsqr_single_bench tsqr_single_bench.cpp)
 add_executable(tsmm_bench tsmm_bench.cpp)
+add_executable(trsm_bench trsm_bench.cpp)
 add_executable(normalize_qb_bench normalize_qb_bench.cpp)
 add_executable(tsmm_single_bench tsmm_single_bench.cpp)
 add_executable(transpose_bench transpose_bench.cpp)
