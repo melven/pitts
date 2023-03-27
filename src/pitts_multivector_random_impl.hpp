@@ -30,7 +30,8 @@ namespace PITTS
     const auto cols = X.cols();
 
     // gather performance data
-    const double rowsd = rows, colsd = cols;
+    const double rowsd = rows;
+    const double colsd = cols;
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"rows", "cols"},{rows, cols}}, // arguments
         {{rowsd*colsd*kernel_info::NoOp<T>()}, // flops
