@@ -289,6 +289,32 @@ MY_TYPED_TEST(fnmadd4)
 }
 
 
+MY_TYPED_TEST(scalar_fnmadd)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Type a;
+  Chunk b, c;
+  randomize(a);
+  randomize(b);
+  randomize(c);
+
+  const Type a_ref = a;
+  const Chunk b_ref = b, c_in = c;
+
+  fnmadd(a, b, c);
+
+  Chunk c_ref;
+  for(int i = 0; i < Chunk::size; i++)
+    c_ref[i] = -a_ref*b_ref[i] + c_in[i];
+
+  EXPECT_EQ(a_ref, a);
+  EXPECT_EQ(b_ref, b);
+  EXPECT_NEAR(c_ref, c, eps);
+}
+
+
 MY_TYPED_TEST(sum)
 {
   using Type = TestFixture::Type;

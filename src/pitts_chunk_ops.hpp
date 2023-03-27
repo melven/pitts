@@ -45,6 +45,10 @@ namespace PITTS
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c);
 
+  //! add the negative element-wise product of a scalar and a chunk ( c_i -= a * b_i )
+  template<typename T>
+  inline void fnmadd(T a, const Chunk<T>& b, Chunk<T>& c);
+
   //! sum up all elements of a chunk ( return a_1 + ... + a_n )
   template<typename T>
   inline T sum(const Chunk<T>& a);

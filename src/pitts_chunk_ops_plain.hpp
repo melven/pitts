@@ -71,6 +71,14 @@ namespace PITTS
     fnmadd(a, b, c, c);
   }
 
+  // negative FMA3 default implementation
+  template<typename T>
+  inline void fnmadd(T a, const Chunk<T>& b, Chunk<T>& c)
+  {
+    for(short i = 0; i < Chunk<T>::size; i++)
+      c[i] = c[i] - a*b[i];
+  }
+
   // horizontal add default implementation
   template<typename T>
   inline T sum(const Chunk<T>& a)

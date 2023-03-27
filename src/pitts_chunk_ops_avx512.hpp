@@ -211,6 +211,34 @@ namespace PITTS
     }
   }
 
+  // specialization for float for dumb compilers
+  template<>
+  inline void fnmadd<float>(float a, const Chunk<float>& b, Chunk<float>& c)
+  {
+    __m512 ai = _mm512_set1_ps(a);
+    for(short i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512 bi = _mm512_load_ps(&b[16*i]);
+      __m512 ci = _mm512_load_ps(&c[16*i]);
+      ci = _mm512_fnmadd_ps(ai,bi,ci);
+      _mm512_store_ps(&c[16*i],ci);
+    }
+  }
+
+  // specialization for double for dumb compilers
+  template<>
+  inline void fnmadd<double>(double a, const Chunk<double>& b, Chunk<double>& c)
+  {
+    __m512d ai = _mm512_set1_pd(a);
+    for(short i = 0; i < ALIGNMENT/64; i++)
+    {
+      __m512d bi = _mm512_load_pd(&b[8*i]);
+      __m512d ci = _mm512_load_pd(&c[8*i]);
+      ci = _mm512_fnmadd_pd(ai,bi,ci);
+      _mm512_store_pd(&c[8*i],ci);
+    }
+  }
+
   // specialization for double for dumb compilers
   template<>
   inline float sum<float>(const Chunk<float>& v)

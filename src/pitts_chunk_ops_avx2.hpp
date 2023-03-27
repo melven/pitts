@@ -154,6 +154,34 @@ namespace PITTS
     }
   }
 
+  // specialization for float for dumb compilers
+  template<>
+  inline void fnmadd<float>(float a, const Chunk<float>& b, Chunk<float>& c)
+  {
+    __m256 ai = _mm256_set1_ps(a);
+    for(short i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256 bi = _mm256_load_ps(&b[8*i]);
+      __m256 ci = _mm256_load_ps(&c[8*i]);
+      ci = _mm256_fnmadd_ps(ai,bi,ci);
+      _mm256_store_ps(&c[8*i],ci);
+    }
+  }
+
+  // specialization for double for dumb compilers
+  template<>
+  inline void fnmadd<double>(double a, const Chunk<double>& b, Chunk<double>& c)
+  {
+    __m256d ai = _mm256_set1_pd(a);
+    for(short i = 0; i < ALIGNMENT/32; i++)
+    {
+      __m256d bi = _mm256_load_pd(&b[4*i]);
+      __m256d ci = _mm256_load_pd(&c[4*i]);
+      ci = _mm256_fnmadd_pd(ai,bi,ci);
+      _mm256_store_pd(&c[4*i],ci);
+    }
+  }
+
   // unaligned load
   template<>
   inline void unaligned_load<float>(const float* src, Chunk<float>& result)
