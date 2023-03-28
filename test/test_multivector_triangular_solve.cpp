@@ -274,3 +274,27 @@ TEST(PITTS_MultiVector_triangularSolve, large_random_nx5_pivoted_rankDeficient)
 
   test_triangularSolve(X, R, {3,1,0});
 }
+
+TEST(PITTS_MultiVector_triangularSolve, random_QR)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+  using mat = Eigen::MatrixXd;
+
+  MultiVector_double X(20,8);
+  randomize(X);
+  for(int i = 0; i < X.cols(); i++)
+    X(i,i) += 3;
+  EigenMap(X).col(5).setZero();
+  Eigen::ColPivHouseholderQR<mat> qr(ConstEigenMap(X));
+  EXPECT_EQ(7, qr.rank());
+  Tensor2_double R(qr.rank(), qr.rank());
+  EigenMap(R) = qr.matrixR().topLeftCorner(qr.rank(), qr.rank()).template triangularView<Eigen::Upper>();
+  std::vector<int> colPerm(qr.rank());
+  Eigen::Map<Eigen::VectorXi>(colPerm.data(), colPerm.size()) = qr.colsPermutation().indices().head(qr.rank());
+
+  test_triangularSolve(X, R, colPerm);
+  qr.householderQ().setLength(qr.rank());
+  mat Q = qr.householderQ();
+  EXPECT_NEAR(Q.leftCols(qr.rank()), ConstEigenMap(X), eps);
+}

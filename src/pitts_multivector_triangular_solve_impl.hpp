@@ -11,6 +11,7 @@
 #define PITTS_MULTIVECTOR_TRIANGULAR_SOLVE_IMPL_HPP
 
 // includes
+#include <omp.h>
 #include <stdexcept>
 #include <memory>
 #include "pitts_multivector_triangular_solve.hpp"
@@ -68,7 +69,7 @@ namespace PITTS
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"Xrows", "Xcols", "r", "streamingCols"},{X.rows(),X.cols(),R.r1(),streamingCols}}, // arguments
         {{(0.5*X.rows()*R.r1()*R.r2())*kernel_info::FMA<T>()}, // flops
-         {(R.r1()*R.r2())*kernel_info::Load<T>() +
+         {(0.5*R.r1()*R.r2())*kernel_info::Load<T>() +
           (double(X.rows())*(R.r2()-streamingCols))*kernel_info::Update<T>() +
           (double(X.rows())*streamingCols)*(kernel_info::Store<T>()+kernel_info::Load<T>())}} // data transfers
         );
@@ -78,42 +79,232 @@ namespace PITTS
     for(int i = 0; i < R.r1(); i++)
       invDiag[i] = 1/R(i,i);
     
-    constexpr int rowBlockSize = 4;
-    const long long nChunks = X.rowChunks();
+    // dimensions
+    const long long nTotalChunks = X.rowChunks();
     const int m = R.r2();
-    // TODO: blocking over columns?
+    // for small m, problem is memory-bound => optimize for simple code, small overhead, n.t.-store where applicable
+    // for large m, problem is compute-bound, but only if we handle enough rows at once!
+    constexpr int nChunks = 10;
+    //int nMaxThreads = omp_get_max_threads();
+    //nChunks = std::min<long long>(nChunks, nTotalChunks / (2*nMaxThreads));
+    //nChunks = std::max(1, nChunks);
+    
+    constexpr int rowBlockSize = 2;
+    constexpr int colBlockSize = 60;
 
 #pragma omp parallel
     {
-      std::unique_ptr<Chunk<T>[]> buff(new Chunk<T>[m*rowBlockSize]);
+      std::unique_ptr<Chunk<T>[]> buff(new Chunk<T>[m*nChunks]);
 
 #pragma omp for schedule(static)
-      for(long long iChunk = 0; iChunk < nChunks; iChunk+=rowBlockSize)
+      for(long long iChunk = 0; iChunk < nTotalChunks; iChunk+=nChunks)
       {
-        const long long rowChunks = std::min<long long>(rowBlockSize, nChunks-iChunk);
+        const int nRemainingChunks = std::min<long long>(nChunks, nTotalChunks-iChunk);
+
+        // copy data to buff
         for(int j = 0; j < m; j++)
         {
           int piv_j = j;
           if( !colsPermutation.empty() )
             piv_j = colsPermutation[j];
-          for(int i = 0; i < rowChunks; i++)
-            buff[j*rowBlockSize+i] = X.chunk(iChunk+i, piv_j);
-          for(int i = rowChunks; i < rowBlockSize; i++)
-            buff[j*rowBlockSize+i] = Chunk<T>{};
-
-          for(int k = 0; k < j; k++)
-            for(int i = 0; i < rowBlockSize; i++)
-              fnmadd(R(k,j), buff[k*rowBlockSize+i], buff[j*rowBlockSize+i]);
-          for(int i = 0; i < rowBlockSize; i++)
-            mul(invDiag[j], buff[j*rowBlockSize+i], buff[j*rowBlockSize+i]);
+          for(int i = 0; i < nRemainingChunks; i++)
+            buff[j*nChunks+i] = X.chunk(iChunk+i, piv_j);
+          for(int i = nRemainingChunks; i < nChunks; i++)
+            buff[j*nChunks+i] = Chunk<T>{};
         }
+
+        // perform calculation with buff
+        for(int jb = 0; jb < m; jb+=colBlockSize)
+        {
+          // blocks above the diagonal
+          for(int kb = 0; kb < jb; kb+=colBlockSize)
+            for(int ib = 0; ib < nChunks; ib+=rowBlockSize)
+            {
+              int j = jb;
+              for(; j+1 < std::min(m, jb+colBlockSize); j+=4)
+              {
+                Chunk<T> tmp00 = buff[(j+0)*nChunks+ib+0];
+                Chunk<T> tmp10 = buff[(j+0)*nChunks+ib+1];
+                Chunk<T> tmp01 = buff[(j+1)*nChunks+ib+0];
+                Chunk<T> tmp11 = buff[(j+1)*nChunks+ib+1];
+                Chunk<T> tmp02 = buff[(j+2)*nChunks+ib+0];
+                Chunk<T> tmp12 = buff[(j+2)*nChunks+ib+1];
+                Chunk<T> tmp03 = buff[(j+3)*nChunks+ib+0];
+                Chunk<T> tmp13 = buff[(j+3)*nChunks+ib+1];
+                for(int k = kb; k < kb+colBlockSize; k++)
+                {
+                  fnmadd(R(k,j+0), buff[k*nChunks+ib+0], tmp00);
+                  fnmadd(R(k,j+0), buff[k*nChunks+ib+1], tmp10);
+                  fnmadd(R(k,j+1), buff[k*nChunks+ib+0], tmp01);
+                  fnmadd(R(k,j+1), buff[k*nChunks+ib+1], tmp11);
+                  fnmadd(R(k,j+2), buff[k*nChunks+ib+0], tmp02);
+                  fnmadd(R(k,j+2), buff[k*nChunks+ib+1], tmp12);
+                  fnmadd(R(k,j+3), buff[k*nChunks+ib+0], tmp03);
+                  fnmadd(R(k,j+3), buff[k*nChunks+ib+1], tmp13);
+                }
+                buff[(j+0)*nChunks+ib+0] = tmp00;
+                buff[(j+0)*nChunks+ib+1] = tmp10;
+                buff[(j+1)*nChunks+ib+0] = tmp01;
+                buff[(j+1)*nChunks+ib+1] = tmp11;
+                buff[(j+2)*nChunks+ib+0] = tmp02;
+                buff[(j+2)*nChunks+ib+1] = tmp12;
+                buff[(j+3)*nChunks+ib+0] = tmp02;
+                buff[(j+3)*nChunks+ib+1] = tmp12;
+              }
+              for(; j < std::min(m, jb+colBlockSize); j++)
+              {
+                Chunk<T> tmp0 = buff[j*nChunks+ib+0];
+                Chunk<T> tmp1 = buff[j*nChunks+ib+1];
+                for(int k = kb; k < kb+colBlockSize; k++)
+                {
+                  fnmadd(R(k,j), buff[k*nChunks+ib+0], tmp0);
+                  fnmadd(R(k,j), buff[k*nChunks+ib+1], tmp1);
+                }
+                buff[j*nChunks+ib+0] = tmp0;
+                buff[j*nChunks+ib+1] = tmp1;
+              }
+            }
+          // diagonal block
+          {
+            const int kb = jb;
+            for(int j = jb; j < std::min(m, jb+colBlockSize); j++)
+            {
+              for(int k = kb; k < j; k++)
+                for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(k,j), buff[k*nChunks+i], buff[j*nChunks+i]);
+              for(int i = 0; i < nChunks; i++)
+                mul(invDiag[j], buff[(j+0)*nChunks+i], buff[(j+0)*nChunks+i]);
+            }
+          }
+        }
+        /*
+        {
+          int j = 0;
+          //for(; j+2 < m; j+=3)
+          for(; j+0 < m; j+=1)
+          {
+            for(int k = 0; k < j; k++)
+              for(int i = 0; i < nChunks; i++)
+              {
+                fnmadd(R(k+0,j+0), buff[(k+0)*nChunks+i], buff[(j+0)*nChunks+i]);
+                //fnmadd(R(k+0,j+1), buff[(k+0)*nChunks+i], buff[(j+1)*nChunks+i]);
+                //fnmadd(R(k+0,j+2), buff[(k+0)*nChunks+i], buff[(j+2)*nChunks+i]);
+                //fnmadd(R(k+1,j+0), buff[(k+1)*nChunks+i], buff[(j+0)*nChunks+i]);
+                //fnmadd(R(k+1,j+1), buff[(k+1)*nChunks+i], buff[(j+1)*nChunks+i]);
+                //fnmadd(R(k+1,j+2), buff[(k+1)*nChunks+i], buff[(j+2)*nChunks+i]);
+              }
+            for(int i = 0; i < nChunks; i++)
+            {
+              mul(invDiag[j], buff[(j+0)*nChunks+i], buff[(j+0)*nChunks+i]);
+
+              //fnmadd(R(j+0,j+1), buff[(j+0)*nChunks+i], buff[(j+1)*nChunks+i]);
+              //mul(invDiag[j+1], buff[(j+1)*nChunks+i], buff[(j+1)*nChunks+i]);
+
+              //fnmadd(R(j+0,j+2), buff[(j+0)*nChunks+i], buff[(j+2)*nChunks+i]);
+              //fnmadd(R(j+1,j+2), buff[(j+1)*nChunks+i], buff[(j+2)*nChunks+i]);
+              //mul(invDiag[j+2], buff[(j+2)*nChunks+i], buff[(j+2)*nChunks+i]);
+            }
+          }
+          for(; j < m; j++)
+          {
+            for(int k = 0; k < j; k++)
+              for(int i = 0; i < nChunks; i++)
+                fnmadd(R(k,j), buff[k*nChunks+i], buff[j*nChunks+i]);
+            for(int i = 0; i < nChunks; i++)
+              mul(invDiag[j], buff[j*nChunks+i], buff[j*nChunks+i]);
+          }
+        }
+        */
+
+/*
+        // this is an approach for hierarchical blocking of
+        // for(int j = 0; j < m; j++)
+        //   calc j
+        //   for(int k = j+1; k < m; k++)
+        //     apply j to k
+
+        const int bs = colBlockSize;
+
+        const auto tree_apply = [&](const auto& tree_apply, int beginCol, int endCol, int applyBeginCol, int applyEndCol) -> void
+        {
+          int nCol = endCol - beginCol;
+          // could also split by nApplyCol but doesn't seem to be help
+          //int nApplyCol = applyEndCol - applyBeginCol;
+
+          if( nCol < 2*bs )
+          {
+            {
+              int j = beginCol;
+              for(; j+1 < endCol; j+=2)
+              {
+                int k = applyBeginCol;
+                for(; k+1 < applyEndCol; k+=2)
+                {
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j+0,k+0), buff[(j+0)*nChunks+i], buff[(k+0)*nChunks+i]);
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j+0,k+1), buff[(j+0)*nChunks+i], buff[(k+1)*nChunks+i]);
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j+1,k+0), buff[(j+1)*nChunks+i], buff[(k+0)*nChunks+i]);
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j+1,k+1), buff[(j+1)*nChunks+i], buff[(k+1)*nChunks+i]);
+                }
+                for(; k < applyEndCol; k++)
+                {
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j+0,k), buff[(j+0)*nChunks+i], buff[k*nChunks+i]);
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j+1,k), buff[(j+1)*nChunks+i], buff[k*nChunks+i]);
+                }
+              }
+              for(; j < endCol; j++)
+                for(int k = applyBeginCol; k < applyEndCol; k++)
+            for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j,k), buff[j*nChunks+i], buff[k*nChunks+i]);
+            }
+          }
+          else
+          {
+            int middle = beginCol + (nCol/2/bs)*bs;
+            tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
+            tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
+          }
+        };
+
+        const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
+        {
+          int nCol = endCol - beginCol;
+          if( nCol < 2*bs )
+          {
+            for(int j = beginCol; j < endCol; j++)
+            {
+              for(int i = 0; i < nChunks; i++)
+                mul(invDiag[j], buff[j*nChunks+i], buff[j*nChunks+i]);
+              for(int k = j+1; k < endCol; k++)
+                for(int i = 0; i < nChunks; i++)
+                  fnmadd(R(j,k), buff[j*nChunks+i], buff[k*nChunks+i]);
+            }
+          }
+          else
+          {
+            int middle = beginCol + (nCol/2/bs)*bs;
+            tree_calc(tree_calc, beginCol, middle);
+            tree_apply(tree_apply, beginCol, middle, middle, endCol);
+            tree_calc(tree_calc, middle, endCol);
+          }
+        };
+
+        tree_calc(tree_calc,0,m);
+*/
+
+        // store result
         for(int j = 0; j < m; j++)
-          for(int i = 0; i < rowChunks; i++)
+          for(int i = 0; i < nRemainingChunks; i++)
           {
             if( streamingStore[j] )
-              streaming_store(buff[j*rowBlockSize+i], X.chunk(iChunk+i, j));
+              streaming_store(buff[j*nChunks+i], X.chunk(iChunk+i, j));
             else
-              X.chunk(iChunk+i,j) = buff[j*rowBlockSize+i];
+              X.chunk(iChunk+i,j) = buff[j*nChunks+i];
           }
       }
     }
