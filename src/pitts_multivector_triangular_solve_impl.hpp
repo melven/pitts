@@ -155,8 +155,8 @@ namespace PITTS
                 buff[(j+1)*nChunks+ib+1] = tmp11;
                 buff[(j+2)*nChunks+ib+0] = tmp02;
                 buff[(j+2)*nChunks+ib+1] = tmp12;
-                buff[(j+3)*nChunks+ib+0] = tmp02;
-                buff[(j+3)*nChunks+ib+1] = tmp12;
+                buff[(j+3)*nChunks+ib+0] = tmp03;
+                buff[(j+3)*nChunks+ib+1] = tmp13;
               }
               for(; j < std::min(m, jb+colBlockSize); j++)
               {
@@ -184,125 +184,6 @@ namespace PITTS
             }
           }
         }
-        /*
-        {
-          int j = 0;
-          //for(; j+2 < m; j+=3)
-          for(; j+0 < m; j+=1)
-          {
-            for(int k = 0; k < j; k++)
-              for(int i = 0; i < nChunks; i++)
-              {
-                fnmadd(R(k+0,j+0), buff[(k+0)*nChunks+i], buff[(j+0)*nChunks+i]);
-                //fnmadd(R(k+0,j+1), buff[(k+0)*nChunks+i], buff[(j+1)*nChunks+i]);
-                //fnmadd(R(k+0,j+2), buff[(k+0)*nChunks+i], buff[(j+2)*nChunks+i]);
-                //fnmadd(R(k+1,j+0), buff[(k+1)*nChunks+i], buff[(j+0)*nChunks+i]);
-                //fnmadd(R(k+1,j+1), buff[(k+1)*nChunks+i], buff[(j+1)*nChunks+i]);
-                //fnmadd(R(k+1,j+2), buff[(k+1)*nChunks+i], buff[(j+2)*nChunks+i]);
-              }
-            for(int i = 0; i < nChunks; i++)
-            {
-              mul(invDiag[j], buff[(j+0)*nChunks+i], buff[(j+0)*nChunks+i]);
-
-              //fnmadd(R(j+0,j+1), buff[(j+0)*nChunks+i], buff[(j+1)*nChunks+i]);
-              //mul(invDiag[j+1], buff[(j+1)*nChunks+i], buff[(j+1)*nChunks+i]);
-
-              //fnmadd(R(j+0,j+2), buff[(j+0)*nChunks+i], buff[(j+2)*nChunks+i]);
-              //fnmadd(R(j+1,j+2), buff[(j+1)*nChunks+i], buff[(j+2)*nChunks+i]);
-              //mul(invDiag[j+2], buff[(j+2)*nChunks+i], buff[(j+2)*nChunks+i]);
-            }
-          }
-          for(; j < m; j++)
-          {
-            for(int k = 0; k < j; k++)
-              for(int i = 0; i < nChunks; i++)
-                fnmadd(R(k,j), buff[k*nChunks+i], buff[j*nChunks+i]);
-            for(int i = 0; i < nChunks; i++)
-              mul(invDiag[j], buff[j*nChunks+i], buff[j*nChunks+i]);
-          }
-        }
-        */
-
-/*
-        // this is an approach for hierarchical blocking of
-        // for(int j = 0; j < m; j++)
-        //   calc j
-        //   for(int k = j+1; k < m; k++)
-        //     apply j to k
-
-        const int bs = colBlockSize;
-
-        const auto tree_apply = [&](const auto& tree_apply, int beginCol, int endCol, int applyBeginCol, int applyEndCol) -> void
-        {
-          int nCol = endCol - beginCol;
-          // could also split by nApplyCol but doesn't seem to be help
-          //int nApplyCol = applyEndCol - applyBeginCol;
-
-          if( nCol < 2*bs )
-          {
-            {
-              int j = beginCol;
-              for(; j+1 < endCol; j+=2)
-              {
-                int k = applyBeginCol;
-                for(; k+1 < applyEndCol; k+=2)
-                {
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j+0,k+0), buff[(j+0)*nChunks+i], buff[(k+0)*nChunks+i]);
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j+0,k+1), buff[(j+0)*nChunks+i], buff[(k+1)*nChunks+i]);
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j+1,k+0), buff[(j+1)*nChunks+i], buff[(k+0)*nChunks+i]);
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j+1,k+1), buff[(j+1)*nChunks+i], buff[(k+1)*nChunks+i]);
-                }
-                for(; k < applyEndCol; k++)
-                {
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j+0,k), buff[(j+0)*nChunks+i], buff[k*nChunks+i]);
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j+1,k), buff[(j+1)*nChunks+i], buff[k*nChunks+i]);
-                }
-              }
-              for(; j < endCol; j++)
-                for(int k = applyBeginCol; k < applyEndCol; k++)
-            for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j,k), buff[j*nChunks+i], buff[k*nChunks+i]);
-            }
-          }
-          else
-          {
-            int middle = beginCol + (nCol/2/bs)*bs;
-            tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
-            tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
-          }
-        };
-
-        const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
-        {
-          int nCol = endCol - beginCol;
-          if( nCol < 2*bs )
-          {
-            for(int j = beginCol; j < endCol; j++)
-            {
-              for(int i = 0; i < nChunks; i++)
-                mul(invDiag[j], buff[j*nChunks+i], buff[j*nChunks+i]);
-              for(int k = j+1; k < endCol; k++)
-                for(int i = 0; i < nChunks; i++)
-                  fnmadd(R(j,k), buff[j*nChunks+i], buff[k*nChunks+i]);
-            }
-          }
-          else
-          {
-            int middle = beginCol + (nCol/2/bs)*bs;
-            tree_calc(tree_calc, beginCol, middle);
-            tree_apply(tree_apply, beginCol, middle, middle, endCol);
-            tree_calc(tree_calc, middle, endCol);
-          }
-        };
-
-        tree_calc(tree_calc,0,m);
-*/
 
         // store result
         for(int j = 0; j < m; j++)
