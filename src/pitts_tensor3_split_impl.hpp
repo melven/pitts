@@ -21,6 +21,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_multivector_tsqr.hpp"
+#include "pitts_multivector_triangular_solve.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -146,9 +147,16 @@ namespace PITTS
         return result;
       }
 
+      std::vector<int> colsPermutation(r);
+      Eigen::Map<Eigen::VectorXi>(colsPermutation.data(), r) = qr.colsPermutation().indices().head(r);
+      Tensor2<T> tmpR(r, r);
+      EigenMap(tmpR) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>();
+      triangularSolve(mv, tmpR, colsPermutation);
+      /*
       auto mvMap = EigenMap(mv);
       mvMap.leftCols(r) = (mvMap * qr.colsPermutation()).leftCols(r);
       mvMap.leftCols(r) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>().template solve<Eigen::OnTheRight>(mvMap.leftCols(r));
+      */
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
@@ -159,7 +167,7 @@ namespace PITTS
         {
           // return QR
           // X = QR,  RP = Q_2 R_2  =>  X P = Q Q_2 R_2  => X P R_2^(-1) = Q Q_2
-          EigenMap(result.first) = mvMap.leftCols(r);
+          EigenMap(result.first) = ConstEigenMap(mv).leftCols(r);
           auto B = EigenMap(result.second);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
           B = B * qr.colsPermutation().transpose();
@@ -171,7 +179,7 @@ namespace PITTS
           auto B = EigenMap(result.first);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>().transpose();
           B = qr.colsPermutation() * B;
-          EigenMap(result.second) = mvMap.leftCols(r).transpose();
+          EigenMap(result.second) = ConstEigenMap(mv).leftCols(r).transpose();
         }
       }
 
