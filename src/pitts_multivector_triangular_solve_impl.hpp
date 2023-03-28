@@ -25,6 +25,13 @@ namespace PITTS
   template<typename T>
   void triangularSolve(MultiVector<T>& X, const Tensor2<T>& R, const std::vector<int>& colsPermutation)
   {
+    // special case: zero rank => dimensions are zero
+    if( R.r1() == 0 && R.r2() == 0 && colsPermutation.empty() )
+    {
+      X.resize(X.rows(), 0);
+      return;
+    }
+
     if( colsPermutation.empty() )
     {
       // no column permutation: matrix dimensions must match
@@ -121,7 +128,7 @@ namespace PITTS
             for(int ib = 0; ib < nChunks; ib+=rowBlockSize)
             {
               int j = jb;
-              for(; j+1 < std::min(m, jb+colBlockSize); j+=4)
+              for(; j+3 < std::min(m, jb+colBlockSize); j+=4)
               {
                 Chunk<T> tmp00 = buff[(j+0)*nChunks+ib+0];
                 Chunk<T> tmp10 = buff[(j+0)*nChunks+ib+1];
