@@ -101,6 +101,9 @@ namespace PITTS
     //! second dimension 
     inline auto cols() const {return cols_;}
 
+    //! total size
+    inline auto size() const {return rows_*cols_;}
+
     //! number of chunks in first dimension
     inline auto rowChunks() const {return (rows_-1)/chunkSize+1;}
 
