@@ -966,7 +966,7 @@ if( projection == MALS_projection::PetrovGalerkin )
     };
 
     // AMEn idea: enrich subspace with some directions of the global residual (AMEn method)
-    const auto enrichSubSpace = [&](const internal::SweepIndex &swpIdx, bool leftToRight)
+    const auto enrichSubspace = [&](const internal::SweepIndex &swpIdx, bool leftToRight)
     {
       const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
       if( leftToRight && swpIdx.rightDim() == swpIdx.nDim()-1 )
@@ -1093,9 +1093,6 @@ if( projection == MALS_projection::PetrovGalerkin )
         // skip iteration if this is the same as in the last right-to-left sweep
         if( nMALS != nDim && swpIdx == lastSwpIdx )
           continue;
-
-        if( nMALS == 1 && swpIdx.leftDim() > 0 && nAMEnEnrichment > 0 )
-          enrichSubSpace(swpIdx.previous(), true);
 
         solveLocalProblem(swpIdx, iSweep == 0);
 
