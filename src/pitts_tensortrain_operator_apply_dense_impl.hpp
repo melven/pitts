@@ -53,10 +53,11 @@ namespace PITTS
       // copy operator to better format
       // todo simpler memory layout for Tensor3 -> this is not needed any more...
       Eigen::MatrixX<T> tmpA(r1*n,m*r2);
-      for(long long k1 = 0; k1 < r1; k1++)
-        for(long long i = 0; i < n; i++)
-          for(long long j = 0; j < m; j++)
-            for(long long k2 = 0; k2 < r2; k2++)
+#pragma omp parallel for collapse(3) schedule(static)
+      for(long long k2 = 0; k2 < r2; k2++)
+        for(long long j = 0; j < m; j++)
+          for(long long i = 0; i < n; i++)
+            for(long long k1 = 0; k1 < r1; k1++)
               tmpA(k1+i*r1, j+m*k2) = Aop(k1, TTOp.index(iDim, i, j), k2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
@@ -80,24 +81,21 @@ namespace PITTS
         {
             Eigen::Map<Eigen::MatrixX<T>> yMap(&y(0, iCol), r1n, n_right);
             Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(0, iCol), mr2, n_right);
-            yMap = tmpA * xMap;
+            yMap.noalias() = tmpA * xMap;
         }
         else if( n_right == 1 )
         {
           Eigen::Map<Eigen::MatrixX<T>> yMap(&y(0, iCol), m_left, r1n);
           Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(0, iCol), m_left, mr2);
-          yMap = xMap * tmpA.transpose();
+          yMap.noalias() = xMap * tmpA.transpose();
         }
         else // n_right and m_left != 1
         {
-#ifndef __clang__
-#pragma omp parallel for schedule(static) if(n_right >= 16)
-#endif
           for(int ir = 0; ir < n_right; ir++)
           {
             Eigen::Map<Eigen::MatrixX<T>> yMap(&y(ir * m_left * r1n, iCol), m_left, r1n);
             Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(ir * m_left * mr2, iCol), m_left, mr2);
-            yMap = xMap * tmpA.transpose();
+            yMap.noalias() = xMap * tmpA.transpose();
           }
         }
       }
