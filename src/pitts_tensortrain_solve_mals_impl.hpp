@@ -724,7 +724,7 @@ namespace PITTS
               int nSweeps,
               T residualTolerance,
               int maxRank,
-              int nMALS, int nOverlap,
+              int nMALS, int nOverlap, int nAMEnEnrichment,
               bool useTTgmres, int gmresMaxIter, T gmresRelTol)
   {
     using namespace internal::solve_mals;
@@ -742,7 +742,7 @@ namespace PITTS
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
 
-      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, useTTgmres, gmresMaxIter, gmresRelTol);
+      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, useTTgmres, gmresMaxIter, gmresRelTol);
     }
 
     if( symmetric && projection == MALS_projection::PetrovGalerkin )
@@ -965,8 +965,8 @@ if( projection == MALS_projection::PetrovGalerkin )
       }
     };
 
-    // AMEn idea: enhance subspace for ALS with some directions of the global residual
-    const auto enhanceSubSpace = [&](const internal::SweepIndex &swpIdx, bool leftToRight, int maxAdditionalRank)
+    // AMEn idea: enrich subspace with some directions of the global residual (AMEn method)
+    const auto enrichSubSpace = [&](const internal::SweepIndex &swpIdx, bool leftToRight)
     {
       const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
       if( leftToRight && swpIdx.rightDim() == swpIdx.nDim()-1 )
@@ -993,7 +993,10 @@ if( projection == MALS_projection::PetrovGalerkin )
         for(int i = 0; i < right_Ax.size(); i++)
           copy(right_Ax[i], subT_Ax[nDim-i-1]);
         subT_Ax = TTr.setSubTensors(0, std::move(subT_Ax));
-        axpby(T(1), TTb, T(-1), TTr, T(0));
+        T residualNorm = axpby(T(1), TTb, T(-1), TTr, T(0));
+        // nothing to do if already converged...
+        if( residualNorm / nrm_TTb < residualTolerance )
+          return;
         //T rTx = dot(TTr, TTx);
         //axpby(rTx, TTx, T(-1), TTr, T(0));
         internal::ensureLeftOrtho_range(TTr, 0, iDim);
@@ -1007,7 +1010,7 @@ if( projection == MALS_projection::PetrovGalerkin )
           const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
           const Tensor3<T>& subTr = TTr.subTensor(swpIdx.rightDim());
           const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
-          const int addRank = std::min<int>(maxAdditionalRank, subTr.r2());
+          const int addRank = std::min<int>(nAMEnEnrichment, subTr.r2());
           std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
           //MultiVector<T> mv0, mvr;
           //unfold_left(subT0, mv0);
@@ -1048,7 +1051,7 @@ if( projection == MALS_projection::PetrovGalerkin )
           const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
           const Tensor3<T>& subTr = TTr.subTensor(swpIdx.leftDim());
           const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
-          const int addRank = std::min<int>(maxAdditionalRank, subTr.r1());
+          const int addRank = std::min<int>(nAMEnEnrichment, subTr.r1());
           std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
           newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+addRank);
           newSubT[1].resize(subT1.r1()+addRank, subT1.n(), subT1.r2());
@@ -1091,10 +1094,13 @@ if( projection == MALS_projection::PetrovGalerkin )
         if( nMALS != nDim && swpIdx == lastSwpIdx )
           continue;
 
-        if( nMALS == 1 && swpIdx.leftDim() > 0 )
-          enhanceSubSpace(swpIdx.previous(), true, 2);
+        if( nMALS == 1 && swpIdx.leftDim() > 0 && nAMEnEnrichment > 0 )
+          enrichSubSpace(swpIdx.previous(), true);
 
         solveLocalProblem(swpIdx, iSweep == 0);
+
+        if( nAMEnEnrichment > 0 )
+          enrichSubspace(swpIdx, true);
         
         /* // not needed/useful: truncate again
         if( nMALS == 1 && swpIdx.leftDim() > 0 )
@@ -1137,8 +1143,8 @@ if( projection == MALS_projection::PetrovGalerkin )
         if( nMALS != nDim && swpIdx == lastSwpIdx )
           continue;
 
-        //if( nMALS == 1 && swpIdx.rightDim() < nDim-1 )
-        //  enhanceSubSpace(swpIdx.next(), false, 4);
+        //if( nMALS == 1 && swpIdx.rightDim() < nDim-1 && nAMEnEnrichment > 0 )
+        //  enrichSubSpace(swpIdx.next(), false);
 
         solveLocalProblem(swpIdx);
         lastSwpIdx = swpIdx;
