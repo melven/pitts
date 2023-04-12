@@ -793,8 +793,6 @@ namespace PITTS
     // for the Petrov-Galerkin variant:
     // sub-tensors to represent projection space v that approximately spans Ax
     std::vector<Tensor3<T>> left_v_subT, right_v_subT;
-    // temporary from orthogonalization
-    Tensor2<T> tmp_left_v, tmp_right_v;
 
     // calculate the error norm
     apply(TTOpA, TTx, TTAx);
@@ -848,7 +846,18 @@ if( projection == MALS_projection::PetrovGalerkin )
   // check orthogonality
   TensorTrainOperator<T> TTOpI(TTv.column_dimensions(), TTv.column_dimensions());
   TTOpI.setEye();
-  assert(norm2((transpose(TTv) * TTv - TTOpI).tensorTrain()) < sqrt_eps);
+  const TensorTrainOperator<T> vTv = transpose(TTv) * TTv;
+  const T vTv_err_norm = norm2((vTv - TTOpI).tensorTrain());
+  if( nMALS == 1 )
+  {
+    if( vTv_err_norm >= 1000*sqrt_eps )
+      std::cout << "vTv-I err: " << vTv_err_norm << std::endl;
+    assert(vTv_err_norm < 1000*sqrt_eps);
+  }
+  else
+  {
+    assert(vTv_err_norm < sqrt_eps);
+  }
   // check A V x_local = A x
   TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
   TensorTrain<T> TTXlocal(TTv.column_dimensions());
@@ -956,6 +965,119 @@ if( projection == MALS_projection::PetrovGalerkin )
       }
     };
 
+    // AMEn idea: enhance subspace for ALS with some directions of the global residual
+    const auto enhanceSubSpace = [&](const internal::SweepIndex &swpIdx, bool leftToRight, int maxAdditionalRank)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+      if( leftToRight && swpIdx.rightDim() == swpIdx.nDim()-1 )
+        return;
+      if( (!leftToRight) && swpIdx.leftDim() == 0 )
+        return;
+      
+      // only intended for nMALS == 1
+      assert(swpIdx.leftDim() == swpIdx.rightDim());
+      TensorTrain<T> TTr(TTb.dimensions());
+      {
+        const int iDim = leftToRight ? swpIdx.rightDim() + 1 : swpIdx.leftDim() - 1;
+
+        // also needed in solveLocalProblem but should not be extra work if called twice
+        internal::ensureLeftOrtho_range(TTx, 0, iDim);
+        internal::ensureRightOrtho_range(TTx, iDim, nDim - 1);
+        update_left_Ax(TTOpA, TTx, 0, iDim, left_Ax);
+        update_right_Ax(TTOpA, TTx, iDim + 1, nDim - 1, right_Ax);
+
+        std::vector<Tensor3<T>> subT_Ax(nDim);
+        for(int i = 0; i < left_Ax.size(); i++)
+          copy(left_Ax[i], subT_Ax[i]);
+        left_Ax.pop_back();
+        for(int i = 0; i < right_Ax.size(); i++)
+          copy(right_Ax[i], subT_Ax[nDim-i-1]);
+        subT_Ax = TTr.setSubTensors(0, std::move(subT_Ax));
+        axpby(T(1), TTb, T(-1), TTr, T(0));
+        //T rTx = dot(TTr, TTx);
+        //axpby(rTx, TTx, T(-1), TTr, T(0));
+        internal::ensureLeftOrtho_range(TTr, 0, iDim);
+        internal::ensureRightOrtho_range(TTr, iDim, nDim-1);
+      }
+
+      if( leftToRight )
+      {
+        std::vector<Tensor3<T>> newSubT(2);
+        {
+          const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
+          const Tensor3<T>& subTr = TTr.subTensor(swpIdx.rightDim());
+          const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
+          const int addRank = std::min<int>(maxAdditionalRank, subTr.r2());
+          std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
+          //MultiVector<T> mv0, mvr;
+          //unfold_left(subT0, mv0);
+          //unfold_left(subTr, mvr);
+          //std::cout << "subT0:\n" << ConstEigenMap(mv0) << "\n";
+          //std::cout << "subTr:\n" << ConstEigenMap(mvr) << "\n";
+          newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+addRank);
+          newSubT[1].resize(subT1.r1()+addRank, subT1.n(), subT1.r2());
+          newSubT[0].setConstant(T(0));
+          newSubT[1].setConstant(T(0));
+          for(int i = 0; i < subT0.r1(); i++)
+            for(int j = 0; j < subT0.n(); j++)
+              for(int k = 0; k < subT0.r2(); k++)
+                newSubT[0](i,j,k) = subT0(i,j,k);
+          for(int i = 0; i < std::min(subT0.r1(), subTr.r1()); i++)
+            for(int j = 0; j < subT0.n(); j++)
+              for(int k = 0; k < addRank; k++)
+                newSubT[0](i,j,subT0.r2()+k) = subTr(i,j,k);
+          for(int i = 0; i < subT1.r1(); i++)
+            for(int j = 0; j < subT1.n(); j++)
+              for(int k = 0; k < subT1.r2(); k++)
+                newSubT[1](i,j,k) = subT1(i,j,k);
+        }
+        TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT));
+
+        // these are not valid any more
+        left_Ax.pop_back();
+        if( !left_vTAx.empty() )
+          left_vTAx.pop_back();
+        if( !left_vTb.empty() )
+          left_vTb.pop_back();
+      }
+      else // right-to-left
+      {
+
+        std::vector<Tensor3<T>> newSubT(2);
+        {
+          const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
+          const Tensor3<T>& subTr = TTr.subTensor(swpIdx.leftDim());
+          const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
+          const int addRank = std::min<int>(maxAdditionalRank, subTr.r1());
+          std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
+          newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+addRank);
+          newSubT[1].resize(subT1.r1()+addRank, subT1.n(), subT1.r2());
+          newSubT[0].setConstant(T(0));
+          newSubT[1].setConstant(T(0));
+          for(int i = 0; i < subT0.r1(); i++)
+            for(int j = 0; j < subT0.n(); j++)
+              for(int k = 0; k < subT0.r2(); k++)
+                newSubT[0](i,j,k) = subT0(i,j,k);
+          for(int i = 0; i < subT1.r1(); i++)
+            for(int j = 0; j < subT1.n(); j++)
+              for(int k = 0; k < subT1.r2(); k++)
+                newSubT[1](i,j,k) = subT1(i,j,k);
+          for(int i = 0; i < addRank; i++)
+            for(int j = 0; j < subT0.n(); j++)
+              for(int k = 0; k < std::min(subT1.r2(), subTr.r2()); k++)
+                newSubT[1](subT1.r1()+i,j,k) = subTr(i,j,k);
+        }
+        TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT));
+
+        // these are not valid any more
+        right_Ax.pop_back();
+        if( !right_vTAx.empty() )
+          right_vTAx.pop_back();
+        if( !right_vTb.empty() )
+          right_vTb.pop_back();
+       }
+    };
+
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
@@ -969,14 +1091,32 @@ if( projection == MALS_projection::PetrovGalerkin )
         if( nMALS != nDim && swpIdx == lastSwpIdx )
           continue;
 
+        if( nMALS == 1 && swpIdx.leftDim() > 0 )
+          enhanceSubSpace(swpIdx.previous(), true, 2);
+
         solveLocalProblem(swpIdx, iSweep == 0);
+        
+        /* // not needed/useful: truncate again
+        if( nMALS == 1 && swpIdx.leftDim() > 0 )
+        {
+          internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, nDim-1);
+          internal::leftNormalize_range(TTx, swpIdx.leftDim()-1, swpIdx.leftDim(), gmresRelTol*residualTolerance);
+          right_vTb.clear();
+          right_vTAx.clear();
+          right_Ax.clear();
+          left_vTb.clear();
+          left_vTAx.clear();
+          left_Ax.clear();
+        }
+        */
+
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of left_Ax
       update_left_Ax(TTOpA, TTx, 0, nDim - 1, left_Ax);
       left_Ax = TTAx.setSubTensors(0, std::move(left_Ax));
       // for non-symm. cases, we still need left_Ax
-      if( projection == MALS_projection::PetrovGalerkin )
+      if( projection == MALS_projection::PetrovGalerkin || nMALS == 1 )
         for(int iDim = 0; iDim < nDim; iDim++)
           copy(TTAx.subTensor(iDim), left_Ax[iDim]);
 
@@ -997,6 +1137,9 @@ if( projection == MALS_projection::PetrovGalerkin )
         if( nMALS != nDim && swpIdx == lastSwpIdx )
           continue;
 
+        //if( nMALS == 1 && swpIdx.rightDim() < nDim-1 )
+        //  enhanceSubSpace(swpIdx.next(), false, 4);
+
         solveLocalProblem(swpIdx);
         lastSwpIdx = swpIdx;
       }
@@ -1005,7 +1148,7 @@ if( projection == MALS_projection::PetrovGalerkin )
       // TODO: that's wrong -> need a reverse
       right_Ax = TTAx.setSubTensors(0, reverse(std::move(right_Ax)));
       // for non-symm. cases, we still need right_Ax
-      if( projection == MALS_projection::PetrovGalerkin )
+      if( projection == MALS_projection::PetrovGalerkin || nMALS == 1 )
         for(int iDim = 0; iDim < nDim; iDim++)
           copy(TTAx.subTensor(iDim), right_Ax[nDim-iDim-1]);
 
