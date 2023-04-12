@@ -68,6 +68,8 @@ namespace PITTS
   //! @param maxRank            maximal allowed TT-rank, enforced even if this violates the residualTolerance
   //! @param nMALS              number of sub-tensors to combine as one local problem (1 for ALS, 2 for MALS, nDim for global GMRES)
   //! @param nOverlap           overlap (number of sub-tensors) of two consecutive local problems in one sweep (0 for ALS 1 for MALS, must be < nMALS)
+  //! @param nAMEnEnrichment    increases the rank after each step by nAMEnEnrichtment using directions from the current residual
+  //!                           So with nMALS=1, nOverlap=0, nAMEnEnrichment > 0, one obtains the AMEn method.
   //! @param useTTgmres         use TT-GMRES for the local problem instead of normal GMRES with dense vectors
   //! @param gmresMaxITer       max. number of iterations for the inner (TT-)GMRES iteration
   //! @param gmresRelTol        relative residual tolerance for the inner (TT-)GMRES iteration
@@ -82,7 +84,7 @@ namespace PITTS
               int nSweeps,
               T residualTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
               int maxRank = std::numeric_limits<int>::max(),
-              int nMALS = 2, int nOverlap = 1,
+              int nMALS = 2, int nOverlap = 1, int nAMEnEnrichment = 0,
               bool useTTgmres = false, int gmresMaxIter = 25, T gmresRelTol = T(1.e-4));
 
 }
