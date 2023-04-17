@@ -59,37 +59,35 @@ namespace PITTS
         return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
-      const auto requiredChunks = r1 * r2 * std::max<long long>(1, (n-1)/chunkSize+1);
-      if( requiredChunks > reservedChunks_ )
+      const auto requiredSize = r1 * r2 * std::max<long long>(1, n);
+      if( requiredSize > reservedSize_ )
       {
-        data_.reset(new Chunk<T>[requiredChunks]);
-        reservedChunks_ = requiredChunks;
+        data_.reset(new T[requiredSize]);
+        reservedSize_ = requiredSize;
       }
       r1_ = r1;
       r2_ = r2;
       n_ = n;
-      if( !setPaddingToZero )
-        return;
-      // ensure padding is zero
-#pragma omp parallel for schedule(static)
-      for(int j = 0; j < r2_; j++)
-        for (int i = 0; i < r1_; i++)
-          for (int k = 0; k < chunkSize; k++)
-            operator()(i, (nChunks()-1)*chunkSize + k, j) = 0;
+//      if( !setPaddingToZero )
+//        return;
+//      // ensure padding is zero
+//#pragma omp parallel for schedule(static)
+//      for(int j = 0; j < r2_; j++)
+//        for (int i = 0; i < r1_; i++)
+//          for (int k = 0; k < chunkSize; k++)
+//            operator()(i, (nChunks()-1)*chunkSize + k, j) = 0;
     }
 
     //! access tensor entries (some block ordering, const variant)
     inline const T& operator()(long long i1, long long j, long long i2) const
     {
-      const auto k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
-      return data_[k][j%chunkSize];
+      return data_[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
     inline T& operator()(long long i1, long long j, long long i2)
     {
-      const auto k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
-      return data_[k][j%chunkSize];
+      return data_[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! chunk-wise access
@@ -159,7 +157,7 @@ namespace PITTS
 
   private:
     //! size of the buffer
-    long long reservedChunks_ = 0;
+    long long reservedSize_ = 0;
 
     //! first dimension
     long long r1_ = 0;
@@ -171,7 +169,7 @@ namespace PITTS
     long long r2_ = 0;
 
     //! the actual data...
-    std::unique_ptr<Chunk<T>[]> data_ = nullptr;
+    std::unique_ptr<T[]> data_ = nullptr;
   };
 
   //! explicitly copy a Tensor3 object
