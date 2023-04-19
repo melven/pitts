@@ -89,8 +89,9 @@ namespace PITTS
             Chunk<T> tmp = Chunk<T>{};
             for(int l = 0; l < m; l++)
               fmadd(x(j1,l,j2), tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)], tmp);
-            for (int k = 0; k < ALIGNMENT/sizeof(T); k++)
-              y(i,kChunk*ALIGNMENT/sizeof(T)+k,j) = tmp[k];
+            int kmax = Chunk<T>::size <= n - kChunk*Chunk<T>::size ? Chunk<T>::size : n - kChunk*Chunk<T>::size; // minimum value (std::min don't mean me well rn...)
+            for (int k = 0; k < kmax; k++)
+              y(i,kChunk*Chunk<T>::size+k,j) = tmp[k];
           }
     }
 

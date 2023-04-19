@@ -15,6 +15,7 @@
 #include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
+#include<cassert>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -81,12 +82,18 @@ namespace PITTS
     //! access tensor entries (some block ordering, const variant)
     inline const T& operator()(long long i1, long long j, long long i2) const
     {
+      assert(0 <= i1 && i1 < r1_);
+      assert(0 <= j  &&  j < n_);
+      assert(0 <= i2 && i2 < r2_);
       return data_[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
     inline T& operator()(long long i1, long long j, long long i2)
     {
+      assert(0 <= i1 && i1 < r1_);
+      assert(0 <= j  &&  j < n_);
+      assert(0 <= i2 && i2 < r2_);
       return data_[i1 + j*r1_ + i2*r1_*n_];
     }
 
