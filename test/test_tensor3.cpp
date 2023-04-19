@@ -146,7 +146,7 @@ TEST(PITTS_Tensor3, chunkSize_small)
 
   // we expect gaps in memory that we don't use as the dimension 2 is too small to use the chunk size
   const auto arraySize = 3*2*7;
-  const auto allocatedSize = std::distance(&(M(0,0,0)), &(M(2,1,6)));
+  const auto allocatedSize = 1 + std::distance(&(M(0,0,0)), &(M(2,1,6)));
   EXPECT_GT(allocatedSize, arraySize);
 }
 
