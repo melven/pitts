@@ -54,15 +54,15 @@ if __name__ == '__main__':
         TTOp_unprecond = TTOp
         TTOp = pitts_py.TensorTrainOperator_double(dims, dims)
         TTtmp = pitts_py.TensorTrainOperator_double(dims, dims)
-        pitts_py.applyT(precond.TTOp, TTOp_unprecond, TTtmp)
-        pitts_py.apply(TTtmp, precond.TTOp, TTOp)
+        pitts_py.apply(precond.TTOpL, TTOp_unprecond, TTtmp)
+        pitts_py.apply(TTtmp, precond.TTOpR, TTOp)
         nrm_TTOp = pitts_py.normalize(TTOp)
 
         # apply to b
         TTb_unprecond = TTb
         nrm_b_unprecond = nrm_b
         TTb = pitts_py.TensorTrain_double(dims)
-        pitts_py.applyT(precond.TTOp, TTb_unprecond, TTb)
+        pitts_py.apply(precond.TTOpL, TTb_unprecond, TTb)
         nrm_b *= pitts_py.normalize(TTb)
         nrm_b *= 1/nrm_TTOp
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     if precondition:
         TTx_unprecond = pitts_py.TensorTrain_double(dims)
-        pitts_py.apply(precond.TTOp, TTx, TTx_unprecond)
+        pitts_py.apply(precond.TTOpR, TTx, TTx_unprecond)
 
         TTr = pitts_py.TensorTrain_double(TTb.dimensions())
         pitts_py.apply(TTOp, TTx, TTr)
