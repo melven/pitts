@@ -71,6 +71,16 @@ namespace PITTS
                 sgn *= leftNormalize(TTy, rankTolerance, maxRank);
             return beta * sgn;
         }
+        if (d == 1)
+        {
+          const auto axpy_1d = [&](Tensor3<T>& subTy)
+          {
+            internal::t3_scale(beta, subTy);
+            internal::t3_axpy(alpha, TTx.subTensor(0), subTy);
+          };
+          TTy.editSubTensor(0, axpy_1d);
+          return leftNormalize(TTy, rankTolerance, maxRank);
+        }
 
         // dispatch
 
