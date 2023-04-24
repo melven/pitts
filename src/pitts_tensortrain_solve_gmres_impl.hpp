@@ -100,7 +100,7 @@ namespace PITTS
       if( adaptiveTolerance )
         rankTolerance *= beta / rho;
 
-      H.col(i).segment(0, i+2) = gramSchmidt(V, w, rankTolerance, maxRank, symmetric, outputPrefix_gramSchmidt, verbose);
+      H.col(i).segment(0, i+2) = gramSchmidt(V, w, rankTolerance, maxRank, symmetric, outputPrefix_gramSchmidt, verbose); // for standard MGS: , 1, false, true, false);
 
       // least squares solve using Givens rotations
       R(0,i) = H(0,i);
