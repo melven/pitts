@@ -117,6 +117,18 @@ namespace PITTS
       }
     }
 
+    if( verbose )
+    {
+      if( (!pivoting) && modified )
+      {
+        for (int i = firstV; i < nV; i++)
+          Vtw(i) = dot(V[i], w);
+
+        const T maxErr = Vtw.abs().maxCoeff();
+        std::cout << outputPrefix << "orthog. max. error: " << maxErr << ", w max. rank: " << internal::maxRank(w) << "\n";
+      }
+    }
+
     V.emplace_back(std::move(w));
     h(nV) = alpha;
     return h;
