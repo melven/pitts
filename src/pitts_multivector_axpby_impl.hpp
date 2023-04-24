@@ -42,7 +42,7 @@ namespace PITTS
          {nChunks*nCols*kernel_info::Load<Chunk<T>>() + nChunks*nCols*kernel_info::Update<T>()}} // data transfers
         );
 
-#pragma omp parallel
+#pragma omp parallel if(nChunks > 50)
     {
       for(int iCol = 0; iCol < nCols; iCol++)
       {
@@ -77,7 +77,7 @@ namespace PITTS
     T tmp[nCols];
     for(int iCol = 0; iCol < nCols; iCol++)
       tmp[iCol] = T(0);
-#pragma omp parallel reduction(+:tmp)
+#pragma omp parallel reduction(+:tmp) if(nChunks > 50)
     {
       for(int iCol = 0; iCol < nCols; iCol++)
       {
@@ -121,7 +121,7 @@ namespace PITTS
     T tmp[nCols];
     for(int iCol = 0; iCol < nCols; iCol++)
       tmp[iCol] = T(0);
-#pragma omp parallel reduction(+:tmp)
+#pragma omp parallel reduction(+:tmp) if(nChunks > 50)
     {
       for(int iCol = 0; iCol < nCols; iCol++)
       {
