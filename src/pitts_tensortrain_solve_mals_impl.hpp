@@ -681,7 +681,7 @@ namespace PITTS
 
         const auto r_left = tt_x.subTensor(0).r1();
         const auto r_right = tt_x.subTensor(nDim-1).r2();
-        TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), relTol/nDim, maxRank, false, r_left, r_right);
+        TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), absTol/nDim, maxRank, false, r_left, r_right);
         std::swap(tt_x, new_tt_x);
 
         return localRes(0);
@@ -799,7 +799,7 @@ namespace PITTS
 
     // calculate the error norm
     apply(TTOpA, TTx, TTAx);
-    T residualNorm = axpby(T(1), TTb, T(-1), TTAx);
+    T residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
     std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
     // lambda to avoid code duplication: performs one step in a sweep
@@ -1192,7 +1192,7 @@ if( projection == MALS_projection::PetrovGalerkin )
       assert(norm2(TTOpA * TTx - TTAx) < sqrt_eps);
 
       // check error
-      residualNorm = axpby(T(1), TTb, T(-1), TTAx);
+      residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
       std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 
