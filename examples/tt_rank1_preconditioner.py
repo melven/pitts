@@ -21,6 +21,9 @@ class TT_Rank1_preconditioner:
         dims = TTOp.row_dimensions()
 
         self.TTOp = pitts_py.TensorTrainOperator_double(dims, dims)
+        if twosided:
+            self.TTOpL = pitts_py.TensorTrainOperator_double(dims, dims)
+            self.TTOpR = pitts_py.TensorTrainOperator_double(dims, dims)
         pitts_py.copy(TTOp, self.TTOp)
         pitts_py.normalize(self.TTOp, 0, 1)
 
@@ -36,13 +39,16 @@ class TT_Rank1_preconditioner:
             invS = np.ones(len(S))
             if twosided:
                 invS[0:rank] = 1/np.sqrt(S[0:rank])
+                subT[0,:,:,0] = np.diag(invS) @ U.T
+                self.TTOpL.setSubTensor(iDim, subT)
+                subT[0,:,:,0] = Vt.T @ np.diag(invS)
+                self.TTOpR.setSubTensor(iDim, subT)
             else:
                 invS[0:rank] = 1/S[0:rank]
             subT[0,:,:,0] = Vt.T @ np.diag(invS) @ U.T
-            #S = np.sqrt(np.abs(S)) / S
-            #subT[0,:,:,0] = U @ np.diag(S) @ Vt
-            #subT[0,:,:,0] = np.linalg.pinv(subT[0,:,:,0])
             self.TTOp.setSubTensor(iDim, subT)
+        if twosided:
+            self.TTOp = None
 
     def apply(self, x, y, rankTolerance, maxRank):
 
