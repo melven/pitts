@@ -297,6 +297,22 @@ namespace PITTS
         return result;
       }
 
+      //! current orthonormality state of the tensor-train (orthogonal + norm 1)
+      //!
+      //! Calculated from the orthogonality state of the sub-tensors
+      //!
+      [[nodiscard]] TT_Orthogonality isOrthonormal() const noexcept
+      {
+        const bool leftOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end(), [](TT_Orthogonality o){return o & TT_Orthogonality::left;});
+        const bool rightOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end(), [](TT_Orthogonality o){return o & TT_Orthogonality::right;});
+        TT_Orthogonality result = TT_Orthogonality::none;
+        if( leftOrtho )
+          result = result | TT_Orthogonality::left;
+        if( rightOrtho )
+          result = result | TT_Orthogonality::right;
+        return result;
+      }
+
       //! make this a tensor of zeros
       //!
       //! \warning intended for testing purposes

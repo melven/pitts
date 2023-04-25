@@ -80,13 +80,21 @@ namespace PITTS
       assert(A.r2() == B.r1());
       const auto r2 = B.r2();
 
-      C.resize(r1, n, r2);
-
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "nChunks", "r", "r2"},{r1, nChunks, r, r2}}, // arguments
         {{r1*nChunks*r*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
          {(r1*nChunks*r+r*r2)*kernel_info::Load<Chunk<T>>() + (r1*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
+
+      C.resize(r1, n, r2);
+
+      const auto stride = &A(0,0,1) - &A(0,0,0);
+      using mat = Eigen::MatrixX<T>;
+      Eigen::Map<const mat> mapA(&A(0,0,0), stride, r);
+      const auto mapB = ConstEigenMap(B);
+      Eigen::Map<mat> mapC(&C(0,0,0), stride, r2);
+      mapC = mapA * mapB;
+      return;
 
 #pragma omp parallel for collapse(2) schedule(static)
       for(int jChunk = 0; jChunk < nChunks; jChunk++)

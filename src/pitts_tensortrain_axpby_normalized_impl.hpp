@@ -492,6 +492,9 @@ namespace PITTS
             const int d = TTx.dimensions().size(); // order d
             std::vector<Tensor3<T>> Tdummy(2); // dummy 3Tensor to update TTy with: [Tdummy[0], Tdummy[1] = [Tz, dimension_dummy]
 
+            // check if both are normalized -> then we can use an absolute tolerance
+            const bool bothNormalized = TTx.isOrthonormal() != TT_Orthogonality::none && TTy.isOrthonormal() != TT_Orthogonality::none;
+
             // scale last tensor cores
             Tensor3<T> x_last_core;
             copy(TTx.subTensor(d-1), x_last_core);
@@ -556,7 +559,7 @@ namespace PITTS
                 const int n_k = Tx.n(); // n_k
                 const int r2 = Tx.r2(); // r_k
                 assert(r1*n_k - r2 >= 0);
-                const auto& [Q, R] = internal::normalize_qb(Mtmp, true, T(0), r1*n_k - r2, true);
+                const auto& [Q, R] = internal::normalize_qb(Mtmp, true, T(0), r1*n_k - r2, bothNormalized);
                 
                 // TQ <- fold(Q), Txt <- concat(Tx, 0, dim=1), Tdummy[0] <- concat(Txt, TQ, dim=3)
                 fold_left(Q, n_k, TQ);
@@ -591,6 +594,9 @@ namespace PITTS
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
             std::vector<Tensor3<T>> Tdummy(2); // dummy 3Tensor to update TTy with: [Tdummy[0], Tdummy[1] = [dimension_dummy, Tz]
+
+            // check if both are normalized -> then we can use an absolute tolerance
+            const bool bothNormalized = TTx.isOrthonormal() != TT_Orthogonality::none && TTy.isOrthonormal() != TT_Orthogonality::none;
 
             // scale first tensor cores
             Tensor3<T> x_first_core;
@@ -649,7 +655,7 @@ namespace PITTS
                 const int n_k = Tx.n(); // n_k
                 const int r1 = Tx.r1(); // r_{k-1}
                 assert(r2*n_k - r1 >= 0);
-                const auto& [L, Q] = internal::normalize_qb(Mtmp, false, T(0), r2*n_k - r1, true);
+                const auto& [L, Q] = internal::normalize_qb(Mtmp, false, T(0), r2*n_k - r1, bothNormalized);
                 
                 // TQ <- fold(Q), Txt - concat(Tx, 0, dim=3), Tdummy[1] <- concat(Txt, TQ, dim=1)
                 fold_right(Q, n_k, TQ);
