@@ -61,7 +61,7 @@ namespace PITTS
               tmpA(k1+i*r1, j+m*k2) = Aop(k1, TTOp.index(iDim, i, j), k2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"nCols", "m_right", "r2", "n", "n_left", "m", "r1"},{nCols, m_right, r2, n, n_left, m, r1}}, // arguments
+        {{"nCols", "m_left", "r2", "n", "n_right", "m", "r1"},{nCols, m_left, r2, n, n_right, m, r1}}, // arguments
         {{nCols*m_right*r2*n*n_left*m*r1*kernel_info::FMA<T>()}, // flops
          {(r1*n*m*r2+nCols*n_left*r1*m*m_right)*kernel_info::Load<T>() + (nCols*n_left*n*r2*m_right)*kernel_info::Store<T>()}} // data transfers
         );
@@ -91,6 +91,9 @@ namespace PITTS
         }
         else // n_right and m_left != 1
         {
+#ifndef __clang__
+#pragma omp parallel for schedule(dynamic) if(n_right > 50)
+#endif
           for(int ir = 0; ir < n_right; ir++)
           {
             Eigen::Map<Eigen::MatrixX<T>> yMap(&y(ir * m_left * r1n, iCol), m_left, r1n);
