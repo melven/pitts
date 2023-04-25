@@ -152,12 +152,6 @@ if __name__ == '__main__':
         raise ValueError("Unknown preconditioner type '"+args.preconditioner+'"')
 
 
-    b_ = b
-    b = pitts_py.TensorTrain_double(dims)
-    b.setTTranks(b_.getTTranks())
-    for i in range(len(dims)):
-        b.setSubTensor(i, b_.getSubTensor(i))
-
     resNorm = pitts_py.solveMALS(
             TTOp, symmetric, projection, b, x,
             nSweeps=args.nSweeps, residualTolerance=args.eps, maxRank=args.maxRank, nMALS=args.nMALS, nOverlap=args.nOverlap,
