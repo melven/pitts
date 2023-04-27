@@ -959,6 +959,28 @@ if( projection == MALS_projection::PetrovGalerkin )
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
 
+#ifndef NDEBUG
+if( nAMEnEnrichment > 0 )
+{
+  TensorTrainOperator<T> TTOpW = projection == MALS_projection::PetrovGalerkin ? setupProjectionOperator(TTw, swpIdx) : setupProjectionOperator(TTx, swpIdx);
+  std::vector<int> colDimOpW_left(TTOpW.column_dimensions().size());
+  for(int iDim = 0; iDim < nDim; iDim++)
+    colDimOpW_left[iDim] = iDim < swpIdx.rightDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
+  TensorTrainOperator<T> TTOpW_left(TTOpW.row_dimensions(), colDimOpW_left);
+  TTOpW_left.setEye();
+  std::vector<Tensor3<T>> tmpSubT(swpIdx.leftDim());
+  for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
+    copy(TTOpW.tensorTrain().subTensor(iDim), tmpSubT[iDim]);
+  TTOpW_left.tensorTrain().setSubTensors(0, std::move(tmpSubT));
+  TensorTrain<T> TTz = transpose(TTOpW_left) * (TTb - TTOpA * TTx);
+  rightNormalize(TTz);
+  tmpSubT.resize(nMALS);
+  for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
+    copy(TTz.subTensor(iDim), tmpSubT[iDim-swpIdx.leftDim()]);
+  tt_r->setSubTensors(0, std::move(tmpSubT));
+}
+#endif
+
       if( projection == MALS_projection::PetrovGalerkin )
       {
         // recover original sub-tensor of projection space
