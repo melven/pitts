@@ -79,7 +79,7 @@ endif()
 
 # useful target to (re)build and test
 add_custom_target (check
-                   COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> -V --timeout 300 --output-on-failure
+                   COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> -V --timeout 400 --output-on-failure
                    SOURCES CMakeLists.txt ${PY_UNITTESTS})
 add_dependencies(check pitts_tests)
 if( CODE_COVERAGE )

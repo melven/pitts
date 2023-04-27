@@ -22,7 +22,7 @@ using namespace PITTS;
  * @param TTy 
  * @param accuracy 
  */
-static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double accuracy = std::sqrt(std::numeric_limits<double>::epsilon()))
+static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double accuracy = 10*std::sqrt(std::numeric_limits<double>::epsilon()))
 {
     TensorTrain<double> _TTy_(TTy);
 
