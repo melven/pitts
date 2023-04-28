@@ -21,6 +21,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_multivector_tsqr.hpp"
+#include "pitts_multivector_triangular_solve.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -77,6 +78,15 @@ namespace PITTS
       return svd;
     }
 
+    // just for timings
+    template<typename T>
+    void normalize_qb_block_TSQR(const MultiVector<T>& X, Tensor2<T>& R)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
+      block_TSQR(X, R, 0, false);
+    }
+
     // implement normalize_qb
     template<typename T>
     std::pair<Tensor2<T>, Tensor2<T>> normalize_qb(const Tensor2<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance)
@@ -104,7 +114,7 @@ namespace PITTS
         EigenMap(mv) = ConstEigenMap(M).transpose();
       }
       Tensor2<T> R;
-      block_TSQR(mv, R, 0, false);
+      normalize_qb_block_TSQR(mv, R);
 
       auto qr = normalize_qr_only(R, true);
 
@@ -146,9 +156,16 @@ namespace PITTS
         return result;
       }
 
+      std::vector<int> colsPermutation(r);
+      Eigen::Map<Eigen::VectorXi>(colsPermutation.data(), r) = qr.colsPermutation().indices().head(r);
+      Tensor2<T> tmpR(r, r);
+      EigenMap(tmpR) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>();
+      triangularSolve(mv, tmpR, colsPermutation);
+      /*
       auto mvMap = EigenMap(mv);
       mvMap.leftCols(r) = (mvMap * qr.colsPermutation()).leftCols(r);
       mvMap.leftCols(r) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>().template solve<Eigen::OnTheRight>(mvMap.leftCols(r));
+      */
 
       std::pair<Tensor2<T>,Tensor2<T>> result;
       result.first.resize(M.r1(), r);
@@ -159,7 +176,7 @@ namespace PITTS
         {
           // return QR
           // X = QR,  RP = Q_2 R_2  =>  X P = Q Q_2 R_2  => X P R_2^(-1) = Q Q_2
-          EigenMap(result.first) = mvMap.leftCols(r);
+          EigenMap(result.first) = ConstEigenMap(mv).leftCols(r);
           auto B = EigenMap(result.second);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
           B = B * qr.colsPermutation().transpose();
@@ -171,11 +188,20 @@ namespace PITTS
           auto B = EigenMap(result.first);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>().transpose();
           B = qr.colsPermutation() * B;
-          EigenMap(result.second) = mvMap.leftCols(r).transpose();
+          EigenMap(result.second) = ConstEigenMap(mv).leftCols(r).transpose();
         }
       }
 
       return result;
+    }
+
+    // just for timings
+    template<typename T>
+    void normalize_svd_block_TSQR(const MultiVector<T>& X, Tensor2<T>& R)
+    {
+      const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
+      block_TSQR(X, R, 0, false);
     }
 
     // implement normalize_svd
@@ -206,7 +232,7 @@ namespace PITTS
         EigenMap(mv) = ConstEigenMap(M).transpose();
       }
       Tensor2<T> R;
-      block_TSQR(mv, R, 0, false);
+      normalize_svd_block_TSQR(mv, R);
 
       auto svd = normalize_svd_only(R);
 
@@ -238,22 +264,31 @@ namespace PITTS
         return result;
       }
 
-      std::pair<Tensor2<T>,Tensor2<T>> result;
-      result.first.resize(M.r1(), r);
-      result.second.resize(r, M.r2());
-      if( leftOrthog )
+      return [&]()
       {
-        // return QB
-        EigenMap(result.first) = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
-        EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
-      }
-      else
-      {
-        // return BQ
-        EigenMap(result.first) = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-        EigenMap(result.second) = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
-      }
-      return result;
+        const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"r1", "r", "r2", "leftOrthog"},{M.r1(), r, M.r2(), leftOrthog}}, // arguments
+        {{M.r1()*M.r2()*r*kernel_info::FMA<T>()}, // flops
+         {(M.r1()*M.r2()+r*M.r1()+r*M.r2())*kernel_info::Load<T>() + (M.r1()*r+M.r2()*r)*kernel_info::Store<T>()}} // data transfers
+        );
+
+        std::pair<Tensor2<T>,Tensor2<T>> result;
+        result.first.resize(M.r1(), r);
+        result.second.resize(r, M.r2());
+        if( leftOrthog )
+        {
+          // return QB
+          EigenMap(result.first) = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
+          EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+        }
+        else
+        {
+          // return BQ
+          EigenMap(result.first) = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+          EigenMap(result.second) = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
+        }
+        return result;
+      }();
     }
   }
 

@@ -274,3 +274,78 @@ TEST(PITTS_MultiVector_triangularSolve, large_random_nx5_pivoted_rankDeficient)
 
   test_triangularSolve(X, R, {3,1,0});
 }
+
+TEST(PITTS_MultiVector_triangularSolve, random_QR)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+  using mat = Eigen::MatrixXd;
+
+  MultiVector_double X(20,8);
+  randomize(X);
+  for(int i = 0; i < X.cols(); i++)
+    X(i,i) += 3;
+  EigenMap(X).col(5).setZero();
+  Eigen::ColPivHouseholderQR<mat> qr(ConstEigenMap(X));
+  EXPECT_EQ(7, qr.rank());
+  Tensor2_double R(qr.rank(), qr.rank());
+  EigenMap(R) = qr.matrixR().topLeftCorner(qr.rank(), qr.rank()).template triangularView<Eigen::Upper>();
+  std::vector<int> colPerm(qr.rank());
+  Eigen::Map<Eigen::VectorXi>(colPerm.data(), colPerm.size()) = qr.colsPermutation().indices().head(qr.rank());
+
+  test_triangularSolve(X, R, colPerm);
+  qr.householderQ().setLength(qr.rank());
+  mat Q = qr.householderQ();
+  EXPECT_NEAR(Q.leftCols(qr.rank()), ConstEigenMap(X), eps);
+}
+
+#ifdef NDEBUG
+TEST(PITTS_MultiVector_triangularSolve, large_random_different_dimensions)
+#else
+TEST(PITTS_MultiVector_triangularSolve, DISABLED_large_random_different_dimensions)
+#endif
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  constexpr auto test_with_dim = [](int n, int m, int k) -> bool
+  {
+    MultiVector_double X(n, m);
+    randomize(X);
+    Tensor2_double R(k,k);
+    randomize(R);
+    for(int i = 0; i < k; i++)
+      R(i,i) += 3;
+    std::vector<int> colsPerm(k);
+    for(int i = 0; i < k; i++)
+      colsPerm[i] = m - i - 1;
+    
+    test_triangularSolve(X, R, colsPerm);
+
+    return HasFailure();
+  };
+
+  for(int i = 1; i <= 20; i++)
+  {
+    std::cout << "testing 1 x " << i << "\n";
+    ASSERT_FALSE(test_with_dim(1, i, i));
+  }
+  ASSERT_FALSE(test_with_dim(1, 1, 1));
+  ASSERT_FALSE(test_with_dim(100, 10, 10));
+  ASSERT_FALSE(test_with_dim(1000, 10, 10));
+  ASSERT_FALSE(test_with_dim(10000, 10, 10));
+  ASSERT_FALSE(test_with_dim(1000, 37, 13));
+  ASSERT_FALSE(test_with_dim(1000, 37, 37));
+  ASSERT_FALSE(test_with_dim(1, 19, 18));
+  ASSERT_FALSE(test_with_dim(1, 65, 65));
+  ASSERT_FALSE(test_with_dim(1, 99, 65));
+  ASSERT_FALSE(test_with_dim(1, 99, 95));
+  ASSERT_FALSE(test_with_dim(1, 99, 98));
+  ASSERT_FALSE(test_with_dim(10, 99, 98));
+  ASSERT_FALSE(test_with_dim(10, 599, 598));
+  ASSERT_FALSE(test_with_dim(100, 599, 598));
+  ASSERT_FALSE(test_with_dim(1000, 599, 598));
+  //ASSERT_FALSE(test_with_dim(10000, 599, 598));
+  ASSERT_FALSE(test_with_dim(33337, 312, 207));
+  ASSERT_FALSE(test_with_dim(10, 312, 207));
+}
