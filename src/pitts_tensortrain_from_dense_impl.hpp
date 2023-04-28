@@ -18,6 +18,7 @@
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_reshape.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_fold.hpp"
@@ -50,6 +51,15 @@ namespace PITTS
     // for convenience, we also handle X.cols() == 1 != dims[-1]*rd with a warning
     if( X.cols() == 1 && dimensions[nDims-1]*rd != 1 )
     {
+      // special case: nDim = 1
+      if( nDims == 1 )
+      {
+        Tensor3<T> subT;
+        fold(X, r0, dimensions[0], rd, subT);
+        TensorTrain<T> result(dimensions);
+        result.setSubTensor(0, std::move(subT));
+        return result;
+      }
       std::cout << "Warning: sub-optimal input dimension in fromDense, performing an additional copy...\n";
       std::swap(X, work);
       reshape(work, totalSize/(dimensions[nDims-1]*rd), dimensions[nDims-1]*rd, X);

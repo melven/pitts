@@ -48,10 +48,17 @@ namespace PITTS
     auto elem(const T& v, int i)
     {
       constexpr bool has_bracket_operator = requires(const T& t, int i){t[i];};
+      constexpr bool has_unary_paren_operator = requires(const T& t, int i){t(i);};
+      constexpr bool has_binary_paren_operator = requires(const T& t, int i, int j){t(i, j);};
+      static_assert(has_bracket_operator || has_unary_paren_operator || has_binary_paren_operator);
       if constexpr (has_bracket_operator)
         return v[i];
-      else
+      else if constexpr (has_unary_paren_operator)
         return v(i);
+      else //if constexpr (has_binary_paren_operator)
+      {
+        return v(i % rows(v), i / rows(v));
+      }
     }
   }
 
