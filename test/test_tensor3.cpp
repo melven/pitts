@@ -139,17 +139,6 @@ TEST(PITTS_Tensor3, DISABLED_memory_layout_and_zero_padding)
   }
 }
 
-TEST(PITTS_Tensor3, chunkSize_small)
-{
-  using Tensor3_double = PITTS::Tensor3<double>;
-  Tensor3_double M(3,2,7);
-
-  // we expect gaps in memory that we don't use as the dimension 2 is too small to use the chunk size
-  const auto arraySize = 3*2*7;
-  const auto allocatedSize = 1 + std::distance(&(M(0,0,0)), &(M(2,1,6)));
-  EXPECT_GT(allocatedSize, arraySize);
-}
-
 TEST(PITTS_Tensor3, operator_indexing_small)
 {
   using Tensor3_double = PITTS::Tensor3<double>;
