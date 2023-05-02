@@ -16,6 +16,8 @@
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_eigen.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -242,14 +244,22 @@ namespace PITTS
       assert(A.r1() == B.r1());
       assert(A.n() == B.n());
       const auto rB2 = B.r2();
-      C.resize(rA2,rB2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "nChunks", "rA2", "rB2"},{r1, nChunks, rA2, rB2}}, // arguments
         {{r1*nChunks*rA2*rB2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*rA2+r1*nChunks*rB2)*kernel_info::Load<Chunk<T>>() + (rA2*rB2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+         {(r1*nChunks*rA2+r1*nChunks*rB2)*kernel_info::Load<Chunk<T>>() + (rA2*rB2)*kernel_info::Store<T>()}} // data transfers
         );
 
+      C.resize(rA2,rB2);
+      const auto stride = &A(0,0,1) - &A(0,0,0);
+      using mat = Eigen::MatrixX<T>;
+      auto mapC = EigenMap(C);
+      Eigen::Map<const mat> mapA(&A(0,0,0), stride, rA2);
+      Eigen::Map<const mat> mapB(&B(0,0,0), stride, rB2);
+
+      mapC = mapA.transpose() * mapB;
+      return;
       //double tmpC[rA2*rB2];
       //for(int j = 0; j < rA2; j++)
       //  for(int i = 0; i < rB2; i++)

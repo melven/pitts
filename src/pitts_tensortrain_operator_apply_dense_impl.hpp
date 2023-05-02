@@ -21,6 +21,7 @@
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_tensor3.hpp"
+#include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -35,109 +36,69 @@ namespace PITTS
       constexpr auto partial_products = [](const auto& v, int middle)
       {
         assert(middle < v.size());
-        const long n_left = std::accumulate(v.begin(), v.begin()+middle, 1, std::multiplies<long>());
-        const long n_right = std::accumulate(v.begin()+middle+1, v.end(), 1, std::multiplies<long>());
+        const long long n_left = std::accumulate(v.begin(), v.begin()+middle, 1, std::multiplies<long long>());
+        const long long n_right = std::accumulate(v.begin()+middle+1, v.end(), 1, std::multiplies<long long>());
         return std::make_pair(n_left, n_right);
       };
       
-      const long nCols = x.cols();
-      const long n = TTOp.row_dimensions()[iDim];
-      const long m = TTOp.column_dimensions()[iDim];
-      const long r1 = Aop.r1();
-      const long r2 = Aop.r2();
+      const long long nCols = x.cols();
+      const long long n = TTOp.row_dimensions()[iDim];
+      const long long m = TTOp.column_dimensions()[iDim];
+      const long long r1 = Aop.r1();
+      const long long r2 = Aop.r2();
       const int nDim = TTOp.row_dimensions().size();
       const auto [n_left, n_right] = partial_products(TTOp.row_dimensions(), iDim);
       const auto [m_left, m_right] = partial_products(TTOp.column_dimensions(), iDim);
-      
+
+      // copy operator to better format
+      // todo simpler memory layout for Tensor3 -> this is not needed any more...
+      Eigen::MatrixX<T> tmpA(r1*n,m*r2);
+#pragma omp parallel for collapse(3) schedule(static)
+      for(long long k2 = 0; k2 < r2; k2++)
+        for(long long j = 0; j < m; j++)
+          for(long long i = 0; i < n; i++)
+            for(long long k1 = 0; k1 < r1; k1++)
+              tmpA(k1+i*r1, j+m*k2) = Aop(k1, TTOp.index(iDim, i, j), k2);
+
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"nCols", "m_right", "r2", "n", "n_left", "m", "r1"},{nCols, m_right, r2, n, n_left, m, r1}}, // arguments
+        {{"nCols", "m_left", "r2", "n", "n_right", "m", "r1"},{nCols, m_left, r2, n, n_right, m, r1}}, // arguments
         {{nCols*m_right*r2*n*n_left*m*r1*kernel_info::FMA<T>()}, // flops
-         {(r1*n*m*r2+nCols*n_left*r1*m*m_right)*kernel_info::Load<Chunk<T>>() + (nCols*n_left*n*r2*m_right)*kernel_info::Store<Chunk<T>>()}} // data transfers
+         {(r1*n*m*r2+nCols*n_left*r1*m*m_right)*kernel_info::Load<T>() + (nCols*n_left*n*r2*m_right)*kernel_info::Store<T>()}} // data transfers
         );
 
-      // x should have n_left * r1 * m * m_right #rows
-      // y should get n_left * n * r2 * m_right #rows
+      // x should have m_left * m * r2 * n_right #rows
+      // y should get m_left * r1 * n * n_right #rows
       // both stored column major in this order...
-      assert(n_left * r1 * m * m_right == x.rows());
+      assert(m_left * m * r2 * n_right == x.rows());
+      y.resize(m_left * r1 * n * n_right, nCols);
 
-      y.resize(n_left * n * r2 * m_right, nCols);
+      const auto r1n = r1*n;
+      const auto mr2 = m*r2;
 
-      if( n_left >= Chunk<T>::size )
+      for(int iCol = 0; iCol < nCols; iCol++)
       {
-        const long nLeftChunks = n_left / Chunk<T>::size;
-#ifndef __clang__
-#pragma omp parallel
-#endif
+        if( m_left == 1 )
         {
-          for(int iCol = 0; iCol < nCols; iCol++)
-          {
-#ifndef __clang__
-#pragma omp for collapse(3) schedule(static) nowait
-#endif
-            for(long jr = 0; jr < m_right; jr++)
-              for(long i = 0; i < n; i++)
-                for(long jlChunk = 0; jlChunk < nLeftChunks; jlChunk++)
-                {
-                  const long jl = jlChunk*Chunk<T>::size;
-                  for(long k2 = 0; k2 < r2; k2++)
-                  {
-                    Chunk<T> tmp{};
-                    for(long j = 0; j < m; j++)
-                      for(long k1 = 0; k1 < r1; k1++)
-                      {
-                        Chunk<T> xChunk;
-                        unaligned_load(&x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol), xChunk);
-                        fmadd(Aop(k1,TTOp.index(iDim,i,j),k2), xChunk, tmp);
-                      }
-                    unaligned_store(tmp, &y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol));
-                  }
-                }
-            if( nLeftChunks*Chunk<T>::size < n_left )
-            {
-#ifndef __clang__
-#pragma omp for collapse(2) schedule(static) nowait
-#endif
-              for(long jr = 0; jr < m_right; jr++)
-                for(long i = 0; i < n; i++)
-                  for(long jl = nLeftChunks*Chunk<T>::size; jl < n_left; jl++)
-                  {
-                    for(long k2 = 0; k2 < r2; k2++)
-                    {
-                      T tmp{};
-                      for(long j = 0; j < m; j++)
-                        for(long k1 = 0; k1 < r1; k1++)
-                          tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
-                      y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
-                    }
-                  }
-            }
-          }
+            Eigen::Map<Eigen::MatrixX<T>> yMap(&y(0, iCol), r1n, n_right);
+            Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(0, iCol), mr2, n_right);
+            yMap.noalias() = tmpA * xMap;
         }
-      }
-      else // generic case
-      {
-#ifndef __clang__
-#pragma omp parallel
-#endif
+        else if( n_right == 1 )
         {
-          for(int iCol = 0; iCol < nCols; iCol++)
-          {
+          Eigen::Map<Eigen::MatrixX<T>> yMap(&y(0, iCol), m_left, r1n);
+          Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(0, iCol), m_left, mr2);
+          yMap.noalias() = xMap * tmpA.transpose();
+        }
+        else // n_right and m_left != 1
+        {
 #ifndef __clang__
-#pragma omp for collapse(3) schedule(static) nowait
+#pragma omp parallel for schedule(dynamic) if(n_right > 50)
 #endif
-            for(long jr = 0; jr < m_right; jr++)
-              for(long i = 0; i < n; i++)
-                for(long jl = 0; jl < n_left; jl++)
-                {
-                  for(long k2 = 0; k2 < r2; k2++)
-                  {
-                    T tmp{};
-                    for(long j = 0; j < m; j++)
-                      for(long k1 = 0; k1 < r1; k1++)
-                        tmp += Aop(k1,TTOp.index(iDim,i,j),k2) * x(jl + k1*n_left + j*n_left*r1 + jr*n_left*r1*m, iCol);
-                    y(jl + i*n_left + k2*n_left*n + jr*n_left*n*r2, iCol) = tmp;
-                  }
-                }
+          for(int ir = 0; ir < n_right; ir++)
+          {
+            Eigen::Map<Eigen::MatrixX<T>> yMap(&y(ir * m_left * r1n, iCol), m_left, r1n);
+            Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(ir * m_left * mr2, iCol), m_left, mr2);
+            yMap.noalias() = xMap * tmpA.transpose();
           }
         }
       }
@@ -159,10 +120,10 @@ namespace PITTS
 
     // perform actual calculation
     const int nDim = TTOp.row_dimensions().size();
-    for(int iDim = 0; iDim < nDim; iDim++)
+    for(int iDim = nDim-1; iDim >= 0; iDim--)
     {
       const auto& subTOp = TTOp.tensorTrain().subTensor(iDim);
-      const auto& x = (iDim == 0) ? MVx : MVy;
+      const auto& x = (iDim == nDim-1) ? MVx : MVy;
       auto& y = mv_tmp;
 
       internal::apply_dense_contract(TTOp, iDim, subTOp, x, y);

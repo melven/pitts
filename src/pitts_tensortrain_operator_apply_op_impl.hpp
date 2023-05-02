@@ -75,6 +75,7 @@ namespace PITTS
          {(rA1*nA*nB*rA2+rB1*nB*mB*rB2)*kernel_info::Load<Chunk<T>>() + (rA1*rB1*nA*mB*rA2*rB2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
+#pragma omp parallel for collapse(6) schedule(static)
       for(int i1 = 0; i1 < rA1; i1++)
         for(int j1 = 0; j1 < rB1; j1++)
         {

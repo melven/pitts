@@ -42,7 +42,7 @@ namespace PITTS
          {nChunks*nCols*kernel_info::Load<Chunk<T>>() + nChunks*nCols*kernel_info::Update<T>()}} // data transfers
         );
 
-#pragma omp parallel
+#pragma omp parallel if(nChunks > 50)
     {
       for(int iCol = 0; iCol < nCols; iCol++)
       {
@@ -77,7 +77,7 @@ namespace PITTS
     T tmp[nCols];
     for(int iCol = 0; iCol < nCols; iCol++)
       tmp[iCol] = T(0);
-#pragma omp parallel reduction(+:tmp)
+#pragma omp parallel reduction(+:tmp) if(nChunks > 50)
     {
       for(int iCol = 0; iCol < nCols; iCol++)
       {
@@ -115,13 +115,13 @@ namespace PITTS
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"nChunks", "nCols"},{nChunks, nCols}}, // arguments
         {{2*nChunks*nCols*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {nChunks*nCols*kernel_info::Load<Chunk<T>>() + nChunks*nCols*kernel_info::Update<T>() + nCols*kernel_info::Store<T>()}} // data transfers
+         {nChunks*nCols*kernel_info::Load<Chunk<T>>() + nChunks*nCols*kernel_info::Update<Chunk<T>>() + nCols*kernel_info::Store<T>()}} // data transfers
         );
 
     T tmp[nCols];
     for(int iCol = 0; iCol < nCols; iCol++)
       tmp[iCol] = T(0);
-#pragma omp parallel reduction(+:tmp)
+#pragma omp parallel reduction(+:tmp) if(nChunks > 50)
     {
       for(int iCol = 0; iCol < nCols; iCol++)
       {
