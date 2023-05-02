@@ -21,6 +21,18 @@ namespace PITTS
 {
     namespace internal
     {
+        //! @brief Componentwise axpy for Tensor3 objects.
+        //!
+        //! y <- a*x + y
+        //! 
+        //! @tparam T    underlying data type
+        //! @param a     scalar a
+        //! @param x     [in] Tensor3 x
+        //! @param y     [in,out] Tensor3 y
+        //! 
+        template<typename T>
+        void t3_axpy(const T a, const Tensor3<T>& x, Tensor3<T>& y);
+
         //! @brief Returns if the tensor train A is (left or right)-orthogonal (up to some tolerance).
         //! 
         //! @tparam T        underlying type

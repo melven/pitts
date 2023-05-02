@@ -8,6 +8,9 @@
 
 using namespace PITTS;
 
+template void PITTS::internal::t3_axpy<double>(const double a, const Tensor3<double>& x, Tensor3<double>& y);
+template void PITTS::internal::t3_axpy<float>(const float a, const Tensor3<float>& x, Tensor3<float>& y);
+
 template double PITTS::internal::axpby_normalized<double>(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double rankTolerance, int maxRank);
 template float PITTS::internal::axpby_normalized<float>(float alpha, const TensorTrain<float>& TTx, float beta, TensorTrain<float>& TTy, float rankTolerance, int maxRank);
 
