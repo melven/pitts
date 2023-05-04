@@ -129,10 +129,11 @@ namespace PITTS
       using Index = decltype(qr.rank());
       const auto r = std::max(Index(minRank), std::min(qr.rank(), Index(maxRank)));
 
+
       // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
       using RealType = decltype(std::abs(T(0)));
       const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
-      if( std::abs(qr.maxPivot()) < 1000*tsqrError )
+      if( std::abs(qr.maxPivot()) < 1000*tsqrError || qr.rank() == 0 || r == 0 )
       {
         // this is actually a zero input...
         std::pair<Tensor2<T>,Tensor2<T>> result;
@@ -156,11 +157,15 @@ namespace PITTS
         return result;
       }
 
+
       std::vector<int> colsPermutation(r);
       Eigen::Map<Eigen::VectorXi>(colsPermutation.data(), r) = qr.colsPermutation().indices().head(r);
       Tensor2<T> tmpR(r, r);
       EigenMap(tmpR) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>();
       triangularSolve(mv, tmpR, colsPermutation);
+
+//std::cout << "QB rank: " << r << ", maxPivot / minPivot: " << std::abs(qr.matrixR()(0,0) / qr.matrixR()(r-1,r-1)) << ", diagonal entries of R: " << qr.matrixR().topLeftCorner(r,r).diagonal().transpose() << "\n";
+//std::cout << "QB orthogonalityError: " << (ConstEigenMap(mv).transpose() * ConstEigenMap(mv) - EigenMatrix::Identity(r,r)).array().abs().maxCoeff() << "\n";
       /*
       auto mvMap = EigenMap(mv);
       mvMap.leftCols(r) = (mvMap * qr.colsPermutation()).leftCols(r);
