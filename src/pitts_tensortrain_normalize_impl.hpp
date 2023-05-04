@@ -163,9 +163,23 @@ namespace PITTS
 
         fold_left(U, subT.n(), newSubT[0]);
 
+// for controlling the error:
+//bool wasRightOrtho = (TT.isOrthonormal(iDim+1) & TT_Orthogonality::right) != TT_Orthogonality::none;
+//Eigen::MatrixX<T> VtV;
+//if( wasRightOrtho && (rankTolerance > 0 || maxRank < subT.r2()) )
+//{
+//  VtV = ConstEigenMap(Vt) * ConstEigenMap(Vt).transpose();
+//}
+
         // now contract Vt(:,*) * subT_next(*,:,:)
         internal::normalize_contract1(Vt, subT_next, newSubT[1]);
         newSubT = TT.setSubTensors(iDim, std::move(newSubT), newSubTOrtho);
+
+//if( wasRightOrtho && (rankTolerance > 0 || maxRank < subT.r2()) )
+//{
+//  unfold_right(TT.subTensor(iDim+1), t2);
+//  std::cout << "est. error: " << (ConstEigenMap(t2) * ConstEigenMap(t2).transpose() - VtV).array().abs().maxCoeff()/VtV(0,0) << "\n";
+//}
       }
     }
 
@@ -199,9 +213,23 @@ namespace PITTS
 
         fold_right(Vt, subT.n(), newSubT[1]);
 
+// for controlling the error:
+//bool wasLeftOrtho = (TT.isOrthonormal(iDim-1) & TT_Orthogonality::left) != TT_Orthogonality::none;
+//Eigen::MatrixX<T> UtU;
+//if( wasLeftOrtho && (rankTolerance > 0 || maxRank < subT.r1()) )
+//{
+//  UtU = ConstEigenMap(U).transpose() * ConstEigenMap(U);
+//}
+
         // now contract subT_prev(:,:,*) * U(*,:)
         internal::normalize_contract2(subT_prev, U, newSubT[0]);
         newSubT = TT.setSubTensors(iDim-1, std::move(newSubT), newSubTOrtho);
+
+//if( wasLeftOrtho && (rankTolerance > 0 || maxRank < subT.r1()) )
+//{
+//  unfold_left(TT.subTensor(iDim-1), t2);
+//  std::cout << "est. error: " << (ConstEigenMap(t2).transpose() * ConstEigenMap(t2) - UtU).array().abs().maxCoeff()/UtU(0,0) << "\n";
+//}
       }
     }
 
