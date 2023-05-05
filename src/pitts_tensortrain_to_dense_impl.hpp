@@ -47,20 +47,14 @@ namespace PITTS
 
     // use "multivector <- multivector * tensor2" ("transform") implementation
     // as in most cases the calculation becomes memory bound and requires lots of reshaping
+    const auto& subT0 = TT.subTensor(0);
     if( nDim == 1 )
     {
-      const auto& subT = TT.subTensor(0);
-      X.resize(subT.r1() * subT.n() * subT.r2(), 1);
-      for(int k = 0; k < subT.r2(); k++)
-        for(int j = 0; j < subT.n(); j++)
-          for(int i = 0; i < subT.r1(); i++)
-            X(i+subT.r1()*j+subT.r1()*subT.n()*k,0) = subT(i,j,k);
+      unfold(subT0, X);
+      return;
     }
-    else // nDim > 1
-    {
-      const auto& subT = TT.subTensor(0);
-      unfold_left(subT, X);
-    }
+
+    unfold_left(subT0, X);
 
     MultiVector<T> Y;
     Tensor2<T> M;
