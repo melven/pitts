@@ -11,8 +11,6 @@
 #define PITTS_TENSORTRAIN_SOLVE_MALS_IMPL_HPP
 
 // includes
-//#include <omp.h>
-//#include <iostream>
 #include <cassert>
 #include <iostream>
 #include <utility>
@@ -20,11 +18,6 @@
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_solve_mals_helper.hpp"
 #include "pitts_tensor2.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
-#include "pitts_tensor3_combine.hpp"
-#include "pitts_tensor3_split.hpp"
-#include "pitts_tensor3_fold.hpp"
-#include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
@@ -33,118 +26,19 @@
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
-#include "pitts_tensortrain_operator_to_dense.hpp"
 #include "pitts_tensortrain_axpby.hpp"
-#include "pitts_tensortrain_to_dense.hpp"
-#include "pitts_tensortrain_from_dense.hpp"
 #include "pitts_tensortrain_solve_gmres.hpp"
-#include "pitts_multivector.hpp"
-#include "pitts_multivector_axpby.hpp"
-#include "pitts_multivector_norm.hpp"
-#include "pitts_multivector_dot.hpp"
-#include "pitts_multivector_scale.hpp"
-#include "pitts_multivector_eigen_adaptor.hpp"
-#include "pitts_gmres.hpp"
 #include "pitts_timer.hpp"
-#include "pitts_chunk_ops.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
-#include "pitts_performance.hpp"
 #ifndef NDEBUG
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_operator_debug.hpp"
+#include "pitts_tensortrain_solve_mals_debug.hpp"
 #endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! namespace for helper functionality
-  namespace internal
-  {
-    
-    //! dedicated helper functions for solveMALS
-    namespace solve_mals
-    {
-#ifndef NDEBUG
-      //! helper function: return TensorTrain with additional dimension instead of boundary rank
-      template<typename T>
-      TensorTrain<T> removeBoundaryRank(const TensorTrain<T>& tt)
-      {
-        const int nDim = tt.dimensions().size();
-        std::vector<Tensor3<T>> subTensors(nDim);
-        for(int iDim = 0; iDim < nDim; iDim++)
-          copy(tt.subTensor(iDim), subTensors[iDim]);
-        const int rleft = subTensors.front().r1();
-        const int rright = subTensors.back().r2();
-        if( rleft != 1 )
-        {
-          // generate identity
-          Tensor3<T> subT(1, rleft, rleft);
-          subT.setConstant(T(0));
-          for(int i = 0; i < rleft; i++)
-            subT(0, i, i) = T(1);
-          subTensors.insert(subTensors.begin(), std::move(subT));
-        }
-        if( rright != 1 )
-        {
-          // generate identity again
-          Tensor3<T> subT(rright, rright, 1);
-          subT.setConstant(T(0));
-          for(int i = 0; i < rright; i++)
-            subT(i, i, 0) = T(1);
-          subTensors.insert(subTensors.end(), std::move(subT));
-        }
-
-        TensorTrain<T> extendedTT(std::move(subTensors));
-        return extendedTT;
-      }
-
-      //! helper function: return TensorTrainTrain without additional empty (1x1) dimension
-      template<typename T>
-      TensorTrain<T> removeBoundaryRankOne(const TensorTrainOperator<T>& ttOp)
-      {
-        std::vector<int> rowDims = ttOp.row_dimensions();
-        std::vector<int> colDims = ttOp.column_dimensions();
-        std::vector<Tensor3<T>> subTensors(rowDims.size());
-        for(int iDim = 0; iDim < rowDims.size(); iDim++)
-          copy(ttOp.tensorTrain().subTensor(iDim), subTensors[iDim]);
-        
-        if( rowDims.front() == 1 && colDims.front() == 1 && subTensors.front()(0,0,0) == T(1) )
-        {
-          rowDims.erase(rowDims.begin());
-          colDims.erase(colDims.begin());
-          subTensors.erase(subTensors.begin());
-        }
-        if( rowDims.back() == 1 && colDims.back() == 1 && subTensors.back()(0,0,0) == T(1) )
-        {
-          rowDims.pop_back();
-          colDims.pop_back();
-          subTensors.pop_back();
-        }
-
-        TensorTrain<T> ttOp_(std::move(subTensors));
-
-        return ttOp_;
-      }
-#endif
-
-#ifndef NDEBUG
-      template<typename T>
-      Tensor3<T> operator-(const Tensor3<T>& a, const Tensor3<T>& b)
-      {
-        assert(a.r1() == b.r1());
-        assert(a.n() == b.n());
-        assert(a.r2() == b.r2());
-        Tensor3<T> c(a.r1(), a.n(), a.r2());
-        for(int i = 0; i < a.r1(); i++)
-          for (int j = 0; j < a.n(); j++)
-            for (int k = 0; k < a.r2(); k++)
-              c(i,j,k) = a(i,j,k) - b(i,j,k);
-        return c;
-      }
-#endif
-    }
-  }
-
   // implement TT MALS solver
   template<typename T>
   T solveMALS(const TensorTrainOperator<T>& TTOpA,
@@ -313,8 +207,6 @@ if( projection == MALS_projection::PetrovGalerkin )
   TTOpI.setEye();
   const TensorTrainOperator<T> WtW = transpose(TTOpW) * TTOpW;
   const TensorTrainOperator<T> WtW_err = WtW - TTOpI;
-  //const Tensor2<T> WtW_err_dense = toDense(WtW_err);
-  //std::cout << "WtW_err:\n" << ConstEigenMap(WtW_err_dense) << std::endl;
   assert(norm2((transpose(TTOpW) * TTOpW - TTOpI).tensorTrain()) < sqrt_eps);
 }
 #endif
