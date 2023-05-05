@@ -47,7 +47,7 @@ namespace PITTS
     MultiVector() = default;
 
     //! adjust the desired multivector dimensions (destroying all data!)
-    void resize(long long rows, long long cols)
+    void resize(long long rows, long long cols = 1)
     {
       // fast return without timer!
       if( rows == rows_ && cols <= cols_ )
@@ -72,13 +72,13 @@ namespace PITTS
     }
 
     //! access matrix entries (column-wise ordering, const variant)
-    inline const T& operator()(long long i, long long j) const
+    inline const T& operator()(long long i, long long j = 0) const
     {
       return chunk(i/chunkSize, j)[i%chunkSize];
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
-    inline T& operator()(long long i, long long j)
+    inline T& operator()(long long i, long long j = 0)
     {
       return chunk(i/chunkSize, j)[i%chunkSize];
     }
