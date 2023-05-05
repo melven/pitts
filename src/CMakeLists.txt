@@ -94,6 +94,8 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_sweep_index.hpp
   pitts_tensortrain_solve_mals.hpp
   pitts_tensortrain_solve_mals_impl.hpp
+  pitts_tensortrain_solve_mals_helper.hpp
+  pitts_tensortrain_solve_mals_helper_impl.hpp
   pitts_fixed_tensor3.hpp
   pitts_fixed_tensor3_random.hpp
   pitts_fixed_tensor3_apply.hpp
@@ -193,6 +195,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_operator_to_dense.cpp
     pitts_tensortrain_solve_gmres.cpp
     pitts_tensortrain_solve_mals.cpp
+    pitts_tensortrain_solve_mals_helper.cpp
   )
   target_link_libraries(pitts_impl PRIVATE pitts)
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
