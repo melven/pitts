@@ -1009,50 +1009,6 @@ if( nAMEnEnrichment > 0 )
       // only intended for nMALS == 1
       assert(swpIdx.leftDim() == swpIdx.rightDim());
 
-#ifdef NOT_NEEDED_ANYMORE
-      const int iDim = leftToRight ? swpIdx.rightDim() + 1 : swpIdx.leftDim() - 1;
-
-      // also needed in solveLocalProblem but should not be extra work if called twice
-      internal::ensureLeftOrtho_range(TTx, 0, iDim);
-      internal::ensureRightOrtho_range(TTx, iDim, nDim - 1);
-      update_left_Ax(TTOpA, TTx, 0, iDim, left_Ax);
-      update_right_Ax(TTOpA, TTx, iDim + 1, nDim - 1, right_Ax);
-
-      std::vector<Tensor3<T>> subT_Ax(nDim);
-      for(int i = 0; i < left_Ax.size(); i++)
-        copy(left_Ax[i], subT_Ax[i]);
-      left_Ax.pop_back();
-      for(int i = 0; i < right_Ax.size(); i++)
-        copy(right_Ax[i], subT_Ax[nDim-i-1]);
-      TensorTrain<T> TTb_Ax(TTb.dimensions());
-      subT_Ax = TTb_Ax.setSubTensors(0, std::move(subT_Ax));
-      T residualNorm = axpby(T(1), TTb, T(-1), TTb_Ax, T(0));
-      // nothing to do if already converged...
-      if( residualNorm / nrm_TTb < residualTolerance )
-        return;
-
-      // AMEn classical
-      const TensorTrainOperator<T> TTOpV = setupProjectionOperator(TTx, swpIdx);
-      TensorTrain<T> TTz(TTOpV.column_dimensions());
-      applyT(TTOpV, TTb_Ax, TTz);
-      // TTz should be identical to the local residual...
-      {
-        normalize(TTz, T(0));
-        MultiVector<T> mv_z, mv_r;
-        toDense(TTz, mv_z);
-        toDense(*tt_r, mv_r);
-        auto tmp = dot(mv_r, mv_z);
-        std::cout << "TTz dot local-problem-res: " << tmp << "\n";
-      }
-#endif
-
-
-      // AMEn variant: just use TTr as it is and truncate...
-      //TensorTrain<T> TTz(TTb_Ax.dimensions());
-      //copy(TTb_Ax, TTz);
-      //internal::ensureLeftOrtho_range(TTz, 0, iDim);
-      //internal::ensureRightOrtho_range(TTz, iDim, nDim-1);
-
       if( leftToRight )
       {
         std::vector<Tensor3<T>> newSubT(2);
@@ -1155,20 +1111,6 @@ if( nAMEnEnrichment > 0 )
         if( nAMEnEnrichment > 0 )
           enrichSubspace(swpIdx, true);
         
-        /* // not needed/useful: truncate again
-        if( nMALS == 1 && swpIdx.leftDim() > 0 )
-        {
-          internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, nDim-1);
-          internal::leftNormalize_range(TTx, swpIdx.leftDim()-1, swpIdx.leftDim(), gmresRelTol*residualTolerance);
-          right_vTb.clear();
-          right_vTAx.clear();
-          right_Ax.clear();
-          left_vTb.clear();
-          left_vTAx.clear();
-          left_Ax.clear();
-        }
-        */
-
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of left_Ax
