@@ -14,6 +14,9 @@ template void update_right_Ax(const TensorTrainOperator<double> TTOpA, const Ten
 template void update_left_Ax(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, int firstIdx, int lastIdx, std::vector<Tensor3<float>>& left_Ax);
 template void update_left_Ax(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, int firstIdx, int lastIdx, std::vector<Tensor3<double>>& left_Ax);
 
+template TensorTrainOperator<float> setupProjectionOperator(const TensorTrain<float>& TTx, SweepIndex swpIdx);
+template TensorTrainOperator<double> setupProjectionOperator(const TensorTrain<double>& TTx, SweepIndex swpIdx);
+
 template TensorTrain<float> calculatePetrovGalerkinProjection(TensorTrainOperator<float>& TTAv, SweepIndex swpIdx, const TensorTrain<float>& TTx, bool symmetrize);
 template TensorTrain<double> calculatePetrovGalerkinProjection(TensorTrainOperator<double>& TTAv, SweepIndex swpIdx, const TensorTrain<double>& TTx, bool symmetrize);
 

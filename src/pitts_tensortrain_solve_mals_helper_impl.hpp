@@ -87,6 +87,72 @@ namespace PITTS
           left_Ax.pop_back();
       }
 
+      // set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
+      template<typename T>
+      TensorTrainOperator<T> setupProjectionOperator(const TensorTrain<T>& TTx, SweepIndex swpIdx)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const auto& rowDims = TTx.dimensions();
+        const int nDim = rowDims.size();
+        std::vector<int> colDims(nDim);
+        for(int iDim = 0; iDim < nDim; iDim++)
+        {
+          if( iDim+1 == swpIdx.leftDim() )
+            colDims[iDim] = TTx.subTensor(iDim).r2();
+          else if( iDim-1 == swpIdx.rightDim() )
+            colDims[iDim] = TTx.subTensor(iDim).r1();
+          else if( iDim >= swpIdx.leftDim() && iDim <= swpIdx.rightDim() )
+            colDims[iDim] = rowDims[iDim];
+          else // < leftDim or > rightDim
+            colDims[iDim] = 1;
+        }
+
+        TensorTrainOperator<T> TTOp(rowDims, colDims);
+        std::vector<Tensor3<T>> subTensors(nDim);
+        std::vector<TT_Orthogonality> ortho(nDim);
+        for(int iDim = 0; iDim < nDim; iDim++)
+        {
+          Tensor3<T>& subTOp = subTensors[iDim];
+          const Tensor3<T>& subTx = TTx.subTensor(iDim);
+          if( iDim+1 == swpIdx.leftDim() )
+          {
+            subTOp.resize(subTx.r1(),rowDims[iDim]*colDims[iDim],1);
+            for(int i = 0; i < subTx.r1(); i++)
+              for(int j = 0; j < rowDims[iDim]; j++)
+                for(int k = 0; k < colDims[iDim]; k++)
+                  subTOp(i ,TTOp.index(iDim, j, k), 0) = subTx(i, j, k);
+            ortho[iDim] = TT_Orthogonality::none;
+          }
+          else if( iDim-1 == swpIdx.rightDim() )
+          {
+            subTOp.resize(1,rowDims[iDim]*colDims[iDim],subTx.r2());
+            for(int i = 0; i < rowDims[iDim]; i++)
+              for(int j = 0; j < colDims[iDim]; j++)
+                for(int k = 0; k < subTx.r2(); k++)
+                  subTOp(0, TTOp.index(iDim, i, j), k) = subTx(j, i, k);
+            ortho[iDim] = TT_Orthogonality::none;
+          }
+          else if( iDim >= swpIdx.leftDim() && iDim <= swpIdx.rightDim() )
+          {
+            // create identity operator
+            subTOp.resize(1,rowDims[iDim]*colDims[iDim],1);
+            subTOp.setConstant(T(0));
+            for(int i = 0; i < rowDims[iDim]; i++)
+              subTOp(0, TTOp.index(iDim, i, i), 0) = T(1);
+            ortho[iDim] = TT_Orthogonality::none;
+          }
+          else // < leftDim or > rightDim
+          {
+            copy(subTx, subTOp);
+            ortho[iDim] = TTx.isOrthonormal(iDim);
+          }
+        }
+        TTOp.tensorTrain().setSubTensors(0, std::move(subTensors), ortho);
+
+        return TTOp;
+      }
+
 
       template<typename T>
       TensorTrain<T> calculatePetrovGalerkinProjection(TensorTrainOperator<T>& TTAv, SweepIndex swpIdx, const TensorTrain<T>& TTx, bool symmetrize)

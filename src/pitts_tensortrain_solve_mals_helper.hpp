@@ -80,6 +80,12 @@ namespace PITTS
         const std::vector<Tensor3<T>> *subTs_ = nullptr;
       };
 
+      //! set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
+      //!
+      //! TODO: use only for debugging; currently still needed for PetrovGalerkin variant
+      //!
+      template<typename T>
+      TensorTrainOperator<T> setupProjectionOperator(const TensorTrain<T>& TTx, SweepIndex swpIdx);
 
       template<typename T>
       TensorTrain<T> calculatePetrovGalerkinProjection(TensorTrainOperator<T>& TTAv, SweepIndex swpIdx, const TensorTrain<T>& TTx, bool symmetrize);
