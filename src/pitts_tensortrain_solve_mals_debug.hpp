@@ -15,6 +15,7 @@
 #include <limits>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_operator.hpp"
+#include "pitts_tensortrain_sweep_index.hpp"
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -38,6 +39,28 @@ namespace PITTS
       //! subtract two Tensor3 for checking differences...
       template<typename T>
       Tensor3<T> operator-(const Tensor3<T>& a, const Tensor3<T>& b);
+
+      //! check that left/right_Ax = TTOpA * TTx
+      template<typename T>
+      bool check_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<T>>& left_Ax, const std::vector<Tensor3<T>>& right_Ax);
+
+      //! check that v^T v = I and A v x_local = Av and
+      template<typename T>
+      bool check_ProjectionOperator(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const TensorTrainOperator<T>& TTv, const TensorTrainOperator<T>& TTAv);
+
+      //! check w^Tw = I
+      template<typename T>
+      bool check_Orthogonality(SweepIndex swpIdx, const TensorTrain<T>& TTw);
+
+      //! check that dimensions of A, x and b fit to define A*x=b
+      template<typename T>
+      bool check_systemDimensions(const TensorTrainOperator<T>& localTTOp, const TensorTrain<T>& tt_x, const TensorTrain<T>& tt_b);
+
+      //! check that the local problem is correct
+      template<typename T>
+      bool check_localProblem(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, const TensorTrain<T>& TTw,
+                              bool ritzGalerkinProjection, SweepIndex swpIdx,
+                              const TensorTrainOperator<T>& localTTOp, const TensorTrain<T>& tt_x, const TensorTrain<T>& tt_b);
     }
   }
 }

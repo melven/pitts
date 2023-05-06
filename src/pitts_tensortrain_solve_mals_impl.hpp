@@ -18,7 +18,6 @@
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_solve_mals_helper.hpp"
 #include "pitts_tensor2.hpp"
-#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
@@ -31,6 +30,7 @@
 #include "pitts_timer.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
 #ifndef NDEBUG
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_operator_debug.hpp"
 #include "pitts_tensortrain_solve_mals_debug.hpp"
@@ -138,18 +138,8 @@ namespace PITTS
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
       update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax);
 
-#ifndef NDEBUG
-if( projection == MALS_projection::PetrovGalerkin )
-{
-  TensorTrain<T> Ax_ref = TTOpA * TTx;
-  assert(left_Ax.size() == swpIdx.leftDim());
-  for(int i = 0; i < left_Ax.size(); i++)
-    assert(internal::t3_nrm(Ax_ref.subTensor(i) - left_Ax[i]) < sqrt_eps);
-  assert(right_Ax.size() == nDim - swpIdx.rightDim() - 1);
-  for(int i = 0; i < right_Ax.size(); i++)
-    assert(internal::t3_nrm(Ax_ref.subTensor(nDim-i-1) - right_Ax[i]) < sqrt_eps);
-}
-#endif
+      assert(check_Orthogonality(swpIdx, TTx));
+      assert(check_Ax(TTOpA, TTx, swpIdx, left_Ax, right_Ax));
 
       LeftPartialTT<T> left_v;
       RightPartialTT<T> right_v;
@@ -169,47 +159,13 @@ if( projection == MALS_projection::PetrovGalerkin )
         TensorTrainOperator<T> TTAv(TTOpA.row_dimensions(), TTv.column_dimensions());
         apply(TTOpA, TTv, TTAv);
 
-#ifndef NDEBUG
-{
-  // check orthogonality
-  TensorTrainOperator<T> TTOpI(TTv.column_dimensions(), TTv.column_dimensions());
-  TTOpI.setEye();
-  const TensorTrainOperator<T> vTv = transpose(TTv) * TTv;
-  const T vTv_err_norm = norm2((vTv - TTOpI).tensorTrain());
-  if( nMALS == 1 )
-  {
-    if( vTv_err_norm >= 1000*sqrt_eps )
-      std::cout << "vTv-I err: " << vTv_err_norm << std::endl;
-    assert(vTv_err_norm < 1000*sqrt_eps);
-  }
-  else
-  {
-    assert(vTv_err_norm < sqrt_eps);
-  }
-  // check A V x_local = A x
-  TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-  TensorTrain<T> TTXlocal(TTv.column_dimensions());
-  TTXlocal.setOnes();
-  const int leftOffset = ( tt_x.subTensor(0).r1() > 1 ) ? -1 :  0;
-  TTXlocal.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_x));
-  assert(norm2( TTOpA * TTx - TTAv * TTXlocal ) < sqrt_eps);
-}
-#endif
+        assert(check_ProjectionOperator(TTOpA, TTx, swpIdx, TTv, TTAv));
+
         TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx, true);
         left_v = TTw;
         right_v = TTw;
 
-#ifndef NDEBUG
-{
-  // check orthogonality
-  TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
-  TensorTrainOperator<T> TTOpI(TTOpW.column_dimensions(), TTOpW.column_dimensions());
-  TTOpI.setEye();
-  const TensorTrainOperator<T> WtW = transpose(TTOpW) * TTOpW;
-  const TensorTrainOperator<T> WtW_err = WtW - TTOpI;
-  assert(norm2((transpose(TTOpW) * TTOpW - TTOpI).tensorTrain()) < sqrt_eps);
-}
-#endif
+        assert(check_Orthogonality(swpIdx, TTw));
       }
 
       update_left_vTw<T>(left_v, TTb, 0, swpIdx.leftDim() - 1, left_vTb);
@@ -223,47 +179,10 @@ if( projection == MALS_projection::PetrovGalerkin )
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
       const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_vTb.back(), TTb, right_vTb.back());
       const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_vTAx.back(), TTOpA, right_vTAx.back());
-#ifndef NDEBUG
-{
-  // check that localTTOp * tt_x is valid
-  assert(localTTOp.column_dimensions()[0] == tt_x.subTensor(0).r1());
-  for(int i = 0; i < nMALS; i++)
-    assert(localTTOp.column_dimensions()[i+1] == tt_x.dimensions()[i]);
-  assert(localTTOp.column_dimensions()[nMALS+1] == tt_x.subTensor(nMALS-1).r2());
-  // check that localTTOp^T * tt_b is valid
-  assert(localTTOp.row_dimensions()[0] == tt_b.subTensor(0).r1());
-  for(int i = 0; i < nMALS; i++)
-    assert(localTTOp.row_dimensions()[i+1] == tt_b.dimensions()[i]);
-  assert(localTTOp.row_dimensions()[nMALS+1] == tt_b.subTensor(nMALS-1).r2());
-}
-#endif
-      if( projection == MALS_projection::RitzGalerkin )
-      {
-        assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) <= sqrt_eps*std::abs(dot(TTx, TTb)));
-      }
-      else if( projection == MALS_projection::PetrovGalerkin )
-      {
-#ifndef NDEBUG
-{
-  TensorTrainOperator<T> TTOpV = setupProjectionOperator(TTx, swpIdx);
-  TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
-  // check W^T b = tt_b
-  TensorTrain<T> TTblocal(TTOpW.column_dimensions());
-  TTblocal.setOnes();
-  int leftOffset = ( tt_b.subTensor(0).r1() > 1 ) ? -1 :  0;
-  TTblocal.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_b));
-  assert(norm2( transpose(TTOpW) * TTb -  TTblocal ) < sqrt_eps);
 
-  // check localTTOp = W^T A V
-  TensorTrainOperator<T> WtAV_ref = transpose(TTOpW) * TTOpA * TTOpV;
-  TensorTrainOperator<T> WtAV(TTOpW.column_dimensions(), TTOpV.column_dimensions());
-  WtAV.setOnes();
-  leftOffset = ( localTTOp.tensorTrain().subTensor(0).n() == 1 && localTTOp.tensorTrain().subTensor(0)(0,0,0) == T(1) ) ? 0 : -1;
-  WtAV.tensorTrain().setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRankOne(localTTOp));
-  assert(norm2( WtAV.tensorTrain() - WtAV_ref.tensorTrain() ) < sqrt_eps*norm2(WtAV_ref.tensorTrain()));
-}
-#endif
-      }
+      assert(check_systemDimensions(localTTOp, tt_x, tt_b));
+      assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
+
       // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
@@ -440,9 +359,8 @@ if( nAMEnEnrichment > 0 )
       update_left_Ax(TTOpA, TTx, 0, nDim - 1, left_Ax);
       left_Ax = TTAx.setSubTensors(0, std::move(left_Ax));
       // for non-symm. cases, we still need left_Ax
-      if( projection == MALS_projection::PetrovGalerkin || nMALS == 1 )
-        for(int iDim = 0; iDim < nDim; iDim++)
-          copy(TTAx.subTensor(iDim), left_Ax[iDim]);
+      for(int iDim = 0; iDim < nDim; iDim++)
+        copy(TTAx.subTensor(iDim), left_Ax[iDim]);
 
 
 
@@ -472,9 +390,8 @@ if( nAMEnEnrichment > 0 )
       // TODO: that's wrong -> need a reverse
       right_Ax = TTAx.setSubTensors(0, reverse(std::move(right_Ax)));
       // for non-symm. cases, we still need right_Ax
-      if( projection == MALS_projection::PetrovGalerkin || nMALS == 1 )
-        for(int iDim = 0; iDim < nDim; iDim++)
-          copy(TTAx.subTensor(iDim), right_Ax[nDim-iDim-1]);
+      for(int iDim = 0; iDim < nDim; iDim++)
+        copy(TTAx.subTensor(iDim), right_Ax[nDim-iDim-1]);
 
       assert(norm2(TTOpA * TTx - TTAx) < sqrt_eps);
 
