@@ -42,7 +42,7 @@ find_program(SRUN_EXECUTABLE srun DOC "Executable for launching MPI parallel pro
 if(SRUN_EXECUTABLE)
   # with slurm
   set(PITTS_TEST_MPIRUN_EXECUTABLE "${SRUN_EXECUTABLE}")
-  set(PITTS_TEST_MPIRUN_PREFLAGS "-c ${PITTS_TEST_NTHREADS}" "--cpu-bind=verbose,core" "--time=00:05:00")
+  set(PITTS_TEST_MPIRUN_PREFLAGS "-c ${PITTS_TEST_NTHREADS}" "--cpu-bind=verbose,core" "--time=00:10:00")
   set(PITTS_TEST_MPIRUN_NUMPROG_FLAG "-n")
   set(PITTS_TEST_MPIRUN_POSTFLAGS "")
 else()
