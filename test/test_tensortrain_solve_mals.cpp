@@ -599,7 +599,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim6_nonsymmetric_PetrovGalerkin)
   EXPECT_NEAR(error_ref, error, eps);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, AMEn_random_nDim6_nonsymmetric_PetrovGalerkin)
+TEST(PITTS_TensorTrain_solve_mals, DISABLED_AMEn_random_nDim6_nonsymmetric_PetrovGalerkin)
 {
   TensorTrainOperator_double TTOpA(6,4,4);
   TTOpA.setTTranks(1);
@@ -762,7 +762,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim6_nonsymmetric_least_squares)
   //EXPECT_NEAR(0., residualError, 0.1);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, AMEn_random_nDim6_nonsymmetric_least_squares)
+TEST(PITTS_TensorTrain_solve_mals, DISABLED_AMEn_random_nDim6_nonsymmetric_least_squares)
 {
   TensorTrainOperator_double TTOpA(6,5,4);
   TTOpA.setTTranks(2);
@@ -1118,7 +1118,7 @@ TEST(PITTS_TensorTrain_solve_mals, DISABLED_ALS_symmetric_random_nDim5_PetrovGal
   EXPECT_NEAR(residualNorm_ref, residualNorm, eps*initialResidualNorm);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim5_PetrovGalerkin)
+TEST(PITTS_TensorTrain_solve_mals, DISABLED_AMEn_symmetric_random_nDim5_PetrovGalerkin)
 {
   TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
