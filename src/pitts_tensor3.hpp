@@ -12,7 +12,6 @@
 
 // includes
 #include <memory>
-#include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
 #include<cassert>
@@ -54,7 +53,7 @@ namespace PITTS
 
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(long long r1, long long n, long long r2, bool setPaddingToZero = true)
-    {
+    {                                                 // unnecessary since there is no padding!!!
       // fast return without timer!
       if( r1 == r1_ && n == n_ && r2 == r2_ )
         return;
@@ -69,14 +68,6 @@ namespace PITTS
       r1_ = r1;
       r2_ = r2;
       n_ = n;
-//      if( !setPaddingToZero )
-//        return;
-//      // ensure padding is zero
-//#pragma omp parallel for schedule(static)
-//      for(int j = 0; j < r2_; j++)
-//        for (int i = 0; i < r1_; i++)
-//          for (int k = 0; k < chunkSize; k++)
-//            operator()(i, (nChunks()-1)*chunkSize + k, j) = 0;
     }
 
     //! access tensor entries (some block ordering, const variant)
