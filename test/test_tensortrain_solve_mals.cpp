@@ -613,9 +613,7 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_random_nDim6_nonsymmetric_PetrovGalerkin
 
   TensorTrain_double TTx(6,4), TTb(6,4);
   TTb.setOnes();
-  TTx.setTTranks(2);
-  randomize(TTx);
-  randomize(TTx);
+  TTx.setOnes();
 
   double error = solveMALS(TTOpA, false, MALS_projection::PetrovGalerkin, TTb, TTx, 3, eps, 5, 1, 0, 2);
   EXPECT_NEAR(0, error, 0.05*norm2(TTb));
