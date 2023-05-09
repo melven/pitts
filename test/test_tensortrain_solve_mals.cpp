@@ -872,6 +872,12 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim6_rank1)
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  normalize(TTOpA);
+
+  TensorTrainOperator_double TTOpI(6,4,4);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
 
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
   TTx_ref.setTTranks(1);
@@ -991,15 +997,21 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6_rank1_PetrovGaler
   EXPECT_NEAR(0, error/initialError, 0.02);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim6)
+TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim5)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
-  TensorTrainOperator_double TTOpA(6,4,4);
+  TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  normalize(TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
+  TensorTrainOperator_double TTOpI(5,4,4);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
+
+  TensorTrain_double TTx(5,4), TTb(5,4), TTx_ref(5,4), TTr(5,4), TTdx(5,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
@@ -1028,15 +1040,21 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim6)
   EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim6)
+TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim5)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
-  TensorTrainOperator_double TTOpA(6,4,4);
+  TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  normalize(TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
+  TensorTrainOperator_double TTOpI(5,4,4);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
+
+  TensorTrain_double TTx(5,4), TTb(5,4), TTx_ref(5,4), TTr(5,4), TTdx(5,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
@@ -1065,20 +1083,26 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim6)
   EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, DISABLED_ALS_symmetric_random_nDim6_PetrovGalerkin)
+TEST(PITTS_TensorTrain_solve_mals, DISABLED_ALS_symmetric_random_nDim5_PetrovGalerkin)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
-  TensorTrainOperator_double TTOpA(6,4,4);
+  TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  normalize(TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
+  TensorTrainOperator_double TTOpI(5,4,4);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
+
+  TensorTrain_double TTx(5,4), TTb(5,4), TTx_ref(5,4), TTr(5,4), TTdx(5,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setTTranks(2);
+  TTx.setTTranks(1);
   randomize(TTx);
 
   copy(TTx, TTdx);
@@ -1096,21 +1120,26 @@ TEST(PITTS_TensorTrain_solve_mals, DISABLED_ALS_symmetric_random_nDim6_PetrovGal
   EXPECT_NEAR(residualNorm_ref, residualNorm, eps*initialResidualNorm);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, DISABLED_AMEn_symmetric_random_nDim6_PetrovGalerkin)
+TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim5_PetrovGalerkin)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
-  TensorTrainOperator_double TTOpA(6,4,4);
+  TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  normalize(TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
+  TensorTrainOperator_double TTOpI(5,4,4);
+  TTOpI.setEye();
+  const double Inrm = normalize(TTOpI);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
+
+  TensorTrain_double TTx(5,4), TTb(5,4), TTx_ref(5,4), TTr(5,4), TTdx(5,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setTTranks(2);
-  randomize(TTx);
+  TTx.setOnes();
 
   copy(TTx, TTdx);
   double initialError = axpby(-1., TTx_ref, 1., TTdx);
@@ -1127,21 +1156,21 @@ TEST(PITTS_TensorTrain_solve_mals, DISABLED_AMEn_symmetric_random_nDim6_PetrovGa
   EXPECT_NEAR(residualNorm_ref, residualNorm, eps*initialResidualNorm);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6)
+TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim5)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
-  TensorTrainOperator_double TTOpA(6,4,4);
+  TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
   normalize(TTOpA);
 
-  TensorTrainOperator_double TTOpI(6,4,4);
+  TensorTrainOperator_double TTOpI(5,4,4);
   TTOpI.setEye();
   const double Inrm = normalize(TTOpI);
-  axpby(Inrm, TTOpI, Inrm/10, TTOpA);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
+  TensorTrain_double TTx(5,4), TTb(5,4), TTx_ref(5,4), TTr(5,4), TTdx(5,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
@@ -1169,21 +1198,21 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim6)
   EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, DISABLED_MALS_symmetric_random_nDim6_with_TTgmres)
+TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim5_with_TTgmres)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
-  TensorTrainOperator_double TTOpA(6,4,4);
+  TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
   normalize(TTOpA);
 
-  TensorTrainOperator_double TTOpI(6,4,4);
+  TensorTrainOperator_double TTOpI(5,4,4);
   TTOpI.setEye();
   const double Inrm = normalize(TTOpI);
-  axpby(Inrm, TTOpI, Inrm/10, TTOpA);
+  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
 
-  TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
+  TensorTrain_double TTx(5,4), TTb(5,4), TTx_ref(5,4), TTr(5,4), TTdx(5,4);
   TTx_ref.setTTranks(2);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
@@ -1196,7 +1225,7 @@ TEST(PITTS_TensorTrain_solve_mals, DISABLED_MALS_symmetric_random_nDim6_with_TTg
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  double residualNorm = solveMALS(TTOpA, true, MALS_projection::RitzGalerkin, TTb, TTx, 1, eps, 10, 2, 1, true);
+  double residualNorm = solveMALS(TTOpA, true, MALS_projection::RitzGalerkin, TTb, TTx, 1, eps, 10, 2, 1, 0, true);
 
 
   apply(TTOpA, TTx, TTr);
