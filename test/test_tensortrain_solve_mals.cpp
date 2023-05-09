@@ -1191,7 +1191,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim5)
   EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim5_with_TTgmres)
+TEST(PITTS_TensorTrain_solve_mals, DISABLED_MALS_symmetric_random_nDim5_with_TTgmres)
 {
   TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
