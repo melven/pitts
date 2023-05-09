@@ -35,7 +35,7 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = A.nChunks();
+      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
       assert(A.r2() == B.r1());
       assert(B.r2() == B.r1());
@@ -74,7 +74,7 @@ namespace PITTS
       const auto r1 = A.r1();
       assert(A.r1() == B.r1());
       const auto n = A.n();
-      const auto nChunks = A.nChunks();
+      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
       assert(A.r2() == B.r2());
       C.resize(r1,r1);
@@ -115,7 +115,6 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = A.nChunks();
       const auto r2 = A.r2();
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(

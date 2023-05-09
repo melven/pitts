@@ -59,66 +59,6 @@ TEST(PITTS_Tensor3, resize)
   ASSERT_EQ(3, M.r2());
 }
 
-// disabled because depends on memory layout
-TEST(PITTS_Tensor3, DISABLED_memory_layout_and_zero_padding)
-{
-  constexpr auto chunkSize_double = PITTS::Chunk<double>::size;
-  using Tensor3_double = PITTS::Tensor3<double>;
-  Tensor3_double M(2,31,3);
-
-  for(int k = 0; k < 31; k++)
-    for(int j = 0; j < 3; j++)
-      for(int i = 0; i < 2; i++)
-        M(i,k,j) = 3.;
-  
-  for(int kk = 0; kk < M.nChunks(); kk++)
-    for(int j = 0; j < 3; j++)
-      for(int i = 0; i < 2; i++)
-      {
-        if( kk != M.nChunks()-1 )
-        {
-          for(int k = 0; k < chunkSize_double; k++)
-          {
-            //EXPECT_EQ(3., M.chunk(i,kk,j)[k]);
-          }
-        }
-        else
-        {
-          const auto nPadding = chunkSize_double - 31 % chunkSize_double;
-          for(int k = 0; k < chunkSize_double; k++)
-          {
-            if( k < chunkSize_double-nPadding )
-            {
-              //EXPECT_EQ(3., M.chunk(i, kk, j)[k]);
-            }
-            else
-            {
-              //EXPECT_EQ(0., M.chunk(i, kk, j)[k]);
-            }
-          }
-        }
-        
-      }
-
-  M.resize(2,1,3);
-  M(0,0,0) = 2.;
-  M(1,0,0) = 2.;
-  M(0,0,1) = 2.;
-  M(1,0,1) = 2.;
-  M(0,0,2) = 2.;
-  M(1,0,2) = 2.;
-  for(int k = 0; k < chunkSize_double; k++)
-  {
-    double ref = (k==0) ? 2. : 0.;
-    //EXPECT_EQ(ref, M.chunk(0,0,0)[k]);
-    //EXPECT_EQ(ref, M.chunk(1,0,0)[k]);
-    //EXPECT_EQ(ref, M.chunk(0,0,1)[k]);
-    //EXPECT_EQ(ref, M.chunk(1,0,1)[k]);
-    //EXPECT_EQ(ref, M.chunk(0,0,2)[k]);
-    //EXPECT_EQ(ref, M.chunk(1,0,2)[k]);
-  }
-}
-
 TEST(PITTS_Tensor3, operator_indexing_small)
 {
   using Tensor3_double = PITTS::Tensor3<double>;

@@ -39,7 +39,7 @@ namespace PITTS
       const auto n = Aop.n() / m;
 
       y.resize(rA1*r1, n, rA2*r2);
-      const int nChunks = y.nChunks();
+      const int nChunks = (y.n()-1)/Chunk<T>::size+1; // remove this
 
       const auto index = [n](int k, int l)
       {

@@ -103,9 +103,6 @@ namespace PITTS
     //! second dimension
     inline long long n() const {return n_;}
 
-    //! number  of chunks in the second dimension
-    inline long long nChunks() const {return (n_-1)/Chunk<T>::size+1;}
-
     //! third dimension
     inline long long r2() const {return r2_;}
 

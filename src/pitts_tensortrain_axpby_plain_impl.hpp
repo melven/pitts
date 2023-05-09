@@ -43,7 +43,6 @@ namespace PITTS
       // special case, for first==true, we calculate (X Y)(:,:,*) * B(*,:)
       const auto r1sum = first ? r1x : r1x + r1y;
       const auto n = X.n();
-      const auto nChunks = X.nChunks();
       assert(X.n() == Y.n());
       const auto r2x = X.r2();
       const auto r2y = Y.r2();
@@ -54,9 +53,9 @@ namespace PITTS
 
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1sum", "nChunks", "r2new"},{r1sum, nChunks, r2new}}, // arguments
-        {{(r1x*nChunks*r2x*r2new + r1y*nChunks*r2y*r2new)*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1x*nChunks*r2x + r1y*nChunks*r2y + r2sum*r2new)*kernel_info::Load<Chunk<T>>() + (r1sum*nChunks*r2new)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        {{"r1sum", "n", "r2new"},{r1sum, n, r2new}}, // arguments
+        {{(r1x*n*r2x*r2new + r1y*n*r2y*r2new)*kernel_info::FMA<T>()}, // flops
+         {(r1x*n*r2x + r1y*n*r2y + r2sum*r2new)*kernel_info::Load<T>() + (r1sum*n*r2new)*kernel_info::Store<T>()}} // data transfers
         );
 
 
@@ -171,7 +170,6 @@ else
 
         const auto r1 = t3_tmp.r1();
         const auto n = t3_tmp.n();
-        const auto nChunks = t3_tmp.nChunks();
         const auto r2 = t3_tmp.r2();
 
         if( iDim == 0 )
