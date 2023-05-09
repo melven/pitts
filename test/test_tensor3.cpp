@@ -47,26 +47,6 @@ TEST(PITTS_Tensor3, create_empty)
 }
 
 
-// anonymous namespace
-namespace
-{
-// helper class for accessing the protected member chunkSize
-template<class T3>
-struct ChunkSize : private T3
-{
-  static constexpr auto value = T3::chunkSize;
-};
-}
-
-TEST(PITTS_Tensor3, chunkSize)
-{
-  using Chunk_double = PITTS::Chunk<double>;
-  using Tensor3_double = PITTS::Tensor3<double>;
-  Chunk_double chunk;
-
-  EXPECT_EQ(chunk.size, ChunkSize<Tensor3_double>::value);
-}
-
 TEST(PITTS_Tensor3, resize)
 {
   using Tensor3_double = PITTS::Tensor3<double>;

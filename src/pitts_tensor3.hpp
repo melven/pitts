@@ -97,22 +97,6 @@ namespace PITTS
       return data_[i1 + j*r1_ + i2*r1_*n_];
     }
 
-    //! chunk-wise access
-    //const Chunk<T>& chunk(int i1, int j, int i2) const
-    //{
-    //  const int k = i1 + j*r1_ + i2*r1_*nChunks();
-    //  const auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
-    //  return pdata[k];
-    //}
-
-    //! chunk-wise access
-    //Chunk<T>& chunk(int i1, int j, int i2)
-    //{
-    //  const int k = i1 + j*r1_ + i2*r1_*nChunks();
-    //  auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
-    //  return pdata[k];
-    //}
-
     //! first dimension
     inline long long r1() const {return r1_;}
 
@@ -120,7 +104,7 @@ namespace PITTS
     inline long long n() const {return n_;}
 
     //! number  of chunks in the second dimension
-    inline long long nChunks() const {return (n_-1)/chunkSize+1;}
+    inline long long nChunks() const {return (n_-1)/Chunk<T>::size+1;}
 
     //! third dimension
     inline long long r2() const {return r2_;}
@@ -154,13 +138,6 @@ namespace PITTS
           for(long long k = 0; k < r2_; k++)
             (*this)(i,j,k) = (i==ii && j==jj && k==kk) ? T(1) : T(0);
     }
-
-  protected:
-    //! the array dimension of chunks
-    //!
-    //! (workaround for missing static function size() of std::array!)
-    //!
-    static constexpr long long chunkSize = Chunk<T>::size;
 
   private:
     //! size of the buffer
