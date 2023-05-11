@@ -87,6 +87,8 @@ namespace PITTS
         );
 
       C.resize(r1, n, r2);
+      if( r1*n*r2 == 0 )
+        return;
 
       const auto stride = A.r1()*A.n();
       using mat = Eigen::MatrixX<T>;
