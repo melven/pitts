@@ -15,6 +15,7 @@
 #include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
+#include<cassert>
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -53,13 +54,13 @@ namespace PITTS
 
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(long long r1, long long n, long long r2, bool setPaddingToZero = true)
-    {
+    {                                                 // unnecessary since there is no padding!!!
       // fast return without timer!
       if( r1 == r1_ && n == n_ && r2 == r2_ )
         return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
-
-      const auto requiredChunks = r1 * r2 * std::max<long long>(1, (n-1)/chunkSize+1);
+      const long long requiredSize = r1*n*r2;
+      const long long requiredChunks = std::max((long long)1, (requiredSize-1)/(long long)Chunk<T>::size+1);
       if( requiredChunks > reservedChunks_ )
       {
         data_.reset(new Chunk<T>[requiredChunks]);
@@ -68,43 +69,28 @@ namespace PITTS
       r1_ = r1;
       r2_ = r2;
       n_ = n;
-      if( !setPaddingToZero )
-        return;
-      // ensure padding is zero
-#pragma omp parallel for schedule(static)
-      for(long long j = 0; j < r2_; j++)
-        for (long long i = 0; i < r1_; i++)
-          chunk(i,nChunks()-1,j) = Chunk<T>{};
+      if (setPaddingToZero)
+        data_[requiredChunks-1] = Chunk<T>{};
     }
 
     //! access tensor entries (some block ordering, const variant)
     inline const T& operator()(long long i1, long long j, long long i2) const
     {
-      const auto k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
-      return data_[k][j%chunkSize];
+      assert(0 <= i1 && i1 < r1_);
+      assert(0 <= j  &&  j < n_);
+      assert(0 <= i2 && i2 < r2_);
+      T *data = (T*)&data_[0];
+      return data[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
     inline T& operator()(long long i1, long long j, long long i2)
     {
-      const auto k = i1 + j/chunkSize*r1_ + i2*r1_*nChunks();
-      return data_[k][j%chunkSize];
-    }
-
-    //! chunk-wise access
-    const Chunk<T>& chunk(long long i1, long long j, long long i2) const
-    {
-      const auto k = i1 + j*r1_ + i2*r1_*nChunks();
-      const auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
-      return pdata[k];
-    }
-
-    //! chunk-wise access
-    Chunk<T>& chunk(long long i1, long long j, long long i2)
-    {
-      const auto k = i1 + j*r1_ + i2*r1_*nChunks();
-      auto pdata = std::assume_aligned<ALIGNMENT>(data_.get());
-      return pdata[k];
+      assert(0 <= i1 && i1 < r1_);
+      assert(0 <= j  &&  j < n_);
+      assert(0 <= i2 && i2 < r2_);
+      T *data = (T*)&data_[0];
+      return data[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! first dimension
@@ -112,9 +98,6 @@ namespace PITTS
 
     //! second dimension
     inline long long n() const {return n_;}
-
-    //! number  of chunks in the second dimension
-    inline long long nChunks() const {return (n_-1)/chunkSize+1;}
 
     //! third dimension
     inline long long r2() const {return r2_;}
@@ -148,13 +131,6 @@ namespace PITTS
           for(long long k = 0; k < r2_; k++)
             (*this)(i,j,k) = (i==ii && j==jj && k==kk) ? T(1) : T(0);
     }
-
-  protected:
-    //! the array dimension of chunks
-    //!
-    //! (workaround for missing static function size() of std::array!)
-    //!
-    static constexpr long long chunkSize = Chunk<T>::size;
 
   private:
     //! size of the buffer

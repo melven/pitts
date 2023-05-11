@@ -43,7 +43,6 @@ namespace PITTS
       // special case, for first==true, we calculate (X Y)(:,:,*) * B(*,:)
       const auto r1sum = first ? r1x : r1x + r1y;
       const auto n = X.n();
-      const auto nChunks = X.nChunks();
       assert(X.n() == Y.n());
       const auto r2x = X.r2();
       const auto r2y = Y.r2();
@@ -54,9 +53,9 @@ namespace PITTS
 
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1sum", "nChunks", "r2new"},{r1sum, nChunks, r2new}}, // arguments
-        {{(r1x*nChunks*r2x*r2new + r1y*nChunks*r2y*r2new)*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1x*nChunks*r2x + r1y*nChunks*r2y + r2sum*r2new)*kernel_info::Load<Chunk<T>>() + (r1sum*nChunks*r2new)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        {{"r1sum", "n", "r2new"},{r1sum, n, r2new}}, // arguments
+        {{(r1x*n*r2x*r2new + r1y*n*r2y*r2new)*kernel_info::FMA<T>()}, // flops
+         {(r1x*n*r2x + r1y*n*r2y + r2sum*r2new)*kernel_info::Load<T>() + (r1sum*n*r2new)*kernel_info::Store<T>()}} // data transfers
         );
 
 
@@ -64,38 +63,38 @@ namespace PITTS
 {
 #pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1x; i++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int k = 0; k < r2new; k++)
           {
-            Chunk<T> tmp{};
+            T tmp = 0;
             for(int l = 0; l < r2x; l++)
-              fmadd(B(l,k), X.chunk(i,jChunk,l), tmp);
-            C.chunk(i,jChunk,k) = tmp;
+              tmp += B(l,k) * X(i,j,l);
+            C(i,j,k) = tmp;
           }
 if( !first )
 {
 #pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1y; i++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int k = 0; k < r2new; k++)
           {
-            Chunk<T> tmp{};
+            T tmp = 0;
             for(int l = 0; l < r2y; l++)
-              fmadd(B(r2x+l,k), Y.chunk(i,jChunk,l), tmp);
-            C.chunk(r1x+i,jChunk,k) = tmp;
+              tmp += B(r2x+l,k) * Y(i,j,l);
+            C(r1x+i,j,k) = tmp;
           }
 }
 else
 {
 #pragma omp for collapse(3) schedule(static) nowait
       for(int i = 0; i < r1y; i++)
-        for(int jChunk = 0; jChunk < nChunks; jChunk++)
+        for(int j = 0; j < n; j++)
           for(int k = 0; k < r2new; k++)
           {
-            Chunk<T> tmp = C.chunk(i,jChunk,k);
+            T tmp = C(i,j,k);
             for(int l = 0; l < r2y; l++)
-              fmadd(B(r2x+l,k), Y.chunk(i,jChunk,l), tmp);
-            C.chunk(i,jChunk,k) = tmp;
+              tmp += B(r2x+l,k) * Y(i,j,l);
+            C(i,j,k) = tmp;
           }
 }
 }
@@ -171,7 +170,6 @@ else
 
         const auto r1 = t3_tmp.r1();
         const auto n = t3_tmp.n();
-        const auto nChunks = t3_tmp.nChunks();
         const auto r2 = t3_tmp.r2();
 
         if( iDim == 0 )

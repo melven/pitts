@@ -53,7 +53,6 @@ namespace PITTS
 
             const int r1 = x.r1();
             const int n = x.n();
-            const int nChunk = x.nChunks();
             const int r2 = x.r2();
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
@@ -64,9 +63,9 @@ namespace PITTS
             
 #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
             for(int i2 = 0; i2 < r2; i2++)
-                for(int jChunk = 0; jChunk < nChunk; jChunk++)
+                for(int j = 0; j < n; j++)
                     for(int i1 = 0; i1 < r1; i1++)
-                        fmadd(a, x.chunk(i1, jChunk, i2), y.chunk(i1, jChunk, i2));               
+                        y(i1,j,i2) += a * x(i1,j,i2);
         }
 
 
@@ -222,7 +221,6 @@ namespace PITTS
         {
             const int r1     = Le.r1();
             const int n      = Le.n();
-            const int nChunk = Le.nChunks();
             const int r2l    = Le.r2();
             const int r2r    = Ri.r2();
 
@@ -241,20 +239,20 @@ namespace PITTS
 {
 #pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l; i2++)
-                for(int jChunk = 0; jChunk < nChunk; jChunk++)
+                for(int j = 0; j < n; j++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
+                        C(i1, j, i2) = Le(i1, j, i2);
                     }
                 }
 #pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2r; i2++)
-                for(int jChunk = 0; jChunk < nChunk; jChunk++)
+                for(int j = 0; j < n; j++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C.chunk(i1, jChunk, i2 + r2l) = Ri.chunk(i1, jChunk, i2);
+                        C(i1, j, i2 + r2l) = Ri(i1, j, i2);
                     }
                 }
 }
@@ -275,7 +273,6 @@ namespace PITTS
         {
             const int r1     = Le.r1();
             const int n      = Le.n();
-            const int nChunk = Le.nChunks();
             const int r2l    = Le.r2();
             const int r2r    = r2Ri;
 
@@ -291,20 +288,20 @@ namespace PITTS
 {
 #pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2l; i2++)
-                for (int jChunk = 0; jChunk < nChunk; jChunk++)
+                for (int j = 0; j < n; j++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C.chunk(i1, jChunk, i2) = Le.chunk(i1, jChunk, i2);
+                        C(i1, j, i2) = Le(i1, j, i2);
                     }
                 }
 #pragma omp for schedule(static) collapse(2) nowait
             for (int i2 = 0; i2 < r2r; i2++)
-                for (int jChunk = 0; jChunk < nChunk; jChunk++)
+                for (int j = 0; j < n; j++)
                 {
                     for (int i1 = 0; i1 < r1; i1++)
                     {
-                        C.chunk(i1, jChunk, i2 + r2l) = Chunk<T>{};
+                        C(i1, j, i2 + r2l) = 0;
                     }
                 }
 }
@@ -346,8 +343,8 @@ namespace PITTS
             for (int i2 = 0; i2 < r2; i2++)
             {
                 for (int j = 0; j < n; j++)             // might be beneficial to unroll (to at least half chunk size)
-                {                                       // but maybe that's too much pressure on registers...
-                    for (int i1 = 0; i1 < r1u; i1++)    // or/and unmerge loops (do first col of up, then add col of Lo in gaps)
+                {                                       // or/and unmerge loops (do first col of up, then add col of Lo in gaps)
+                    for (int i1 = 0; i1 < r1u; i1++)
                     {
                         C(i1 + j*(r1u+r1l), i2) = Up(i1 + j*r1u, i2);
                     }
@@ -374,7 +371,6 @@ namespace PITTS
             const int r1u    = Up.r1();
             const int r1l    = Lo.r1();
             const int n      = Up.n();
-            const int nChunk = Up.nChunks();
             const int r2     = Up.r2();
 
             assert(n  == Lo.n());
@@ -390,15 +386,15 @@ namespace PITTS
             
 #pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
-                for (int jChunk = 0; jChunk < nChunk; jChunk++)
+                for (int j = 0; j < n; j++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
                     {
-                        C.chunk(i1, jChunk, i2) = Up.chunk(i1, jChunk, i2);
+                        C(i1, j, i2) = Up(i1, j, i2);
                     }
                     for (int i1 = 0; i1 < r1l; i1++)
                     {
-                        C.chunk(i1 + r1u, jChunk, i2) = Lo.chunk(i1, jChunk, i2);
+                        C(i1 + r1u, j, i2) = Lo(i1, j, i2);
                     }
                 }
         }
@@ -419,7 +415,6 @@ namespace PITTS
             const int r1u    = Up.r1();
             const int r1l    = r1Lo;
             const int n      = Up.n();
-            const int nChunk = Up.nChunks();
             const int r2     = Up.r2();
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
@@ -432,15 +427,15 @@ namespace PITTS
             
 #pragma omp parallel for schedule(static) collapse(2)
             for (int i2 = 0; i2 < r2; i2++)
-                for (int jChunk = 0; jChunk < nChunk; jChunk++)
+                for (int j = 0; j < n; j++)
                 {
                     for (int i1 = 0; i1 < r1u; i1++)
                     {
-                        C.chunk(i1, jChunk, i2) = Up.chunk(i1, jChunk, i2);
+                        C(i1, j, i2) = Up(i1, j, i2);
                     }
                     for (int i1 = 0; i1 < r1l; i1++)
                     {
-                        C.chunk(i1 + r1u, jChunk, i2) = Chunk<T>{};
+                        C(i1 + r1u, j, i2) = 0;
                     }
                 }
         }

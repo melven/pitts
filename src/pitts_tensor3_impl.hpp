@@ -33,13 +33,11 @@ namespace PITTS
 
     b.resize(r1, n, r2, false);
 
-    const auto nChunks = a.nChunks();
-
 #pragma omp parallel for collapse(3) schedule(static)
     for(int k = 0; k < r2; k++)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(long long j = 0; j < n; j++)
         for(int i = 0; i < r1; i++)
-          b.chunk(i,jChunk,k) = a.chunk(i,jChunk,k);
+          b(i,j,k) = a(i,j,k);
   }
 }
 

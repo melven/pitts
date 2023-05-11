@@ -35,7 +35,7 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = A.nChunks();
+      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
       assert(A.r2() == B.r1());
       assert(B.r2() == B.r1());
@@ -48,18 +48,18 @@ namespace PITTS
         );
 
 #pragma omp parallel for collapse(2) schedule(static)
-      for(int jChunk = 0; jChunk < nChunks; jChunk++)
+      for(int j = 0; j < n; j++)
       {
         for(int i = 0; i < r1; i++)
         {
-          Chunk<T> tmp[r2];
+          T tmp[r2];
           for(int k = 0; k < r2; k++)
-            tmp[k] = Chunk<T>{};
+            tmp[k] = 0;
           for(int l = 0; l < r2; l++)
             for(int k = 0; k < r2; k++)
-              fmadd(B(k,l), A.chunk(i,jChunk,l), tmp[k]);
+              tmp[k] += B(k,l) * A(i,j,l);
           for(int k = 0; k < r2; k++)
-            C.chunk(i,jChunk,k) = tmp[k];
+            C(i,j,k) = tmp[k];
         }
       }
     }
@@ -74,7 +74,7 @@ namespace PITTS
       const auto r1 = A.r1();
       assert(A.r1() == B.r1());
       const auto n = A.n();
-      const auto nChunks = A.nChunks();
+      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
       assert(A.r2() == B.r2());
       C.resize(r1,r1);
@@ -95,12 +95,12 @@ namespace PITTS
       for(int j = 0; j < r1; j++)
         for(int i = j; i < r1; i++)
         {
-          Chunk<T> tmp{};
+          T tmp = 0;
 #pragma omp for collapse(2) schedule(static) nowait
-          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+          for(int k = 0; k < n; k++)
             for(int l = 0; l < r2; l++)
-              fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmp);
-          tmpC[i+j*r1] = tmpC[j+i*r1] = sum(tmp);
+              tmp += A(i,k,l) * B(j,k,l);
+          tmpC[i+j*r1] = tmpC[j+i*r1] = tmp;
         }
 }
       for(int i = 0; i < r1; i++)
@@ -115,7 +115,6 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = A.nChunks();
       const auto r2 = A.r2();
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
@@ -127,13 +126,13 @@ namespace PITTS
       T result{};
 #pragma omp parallel reduction(+:result)
       {
-        Chunk<T> tmp{};
+        T tmp = 0;
 #pragma omp for collapse(3) schedule(static) nowait
         for(int j = 0; j < r2; j++)
-          for(int kChunk = 0; kChunk < nChunks; kChunk++)
+          for(int k = 0; k < n; k++)
             for(int i = 0; i < r1; i++)
-              fmadd(A.chunk(i,kChunk,j), A.chunk(i,kChunk,j), tmp);
-        result = sum(tmp);
+              tmp += A(i,k,j) * A(i,k,j);
+        result = tmp;
       }
 
       return std::sqrt(result);

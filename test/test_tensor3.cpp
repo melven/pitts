@@ -47,26 +47,6 @@ TEST(PITTS_Tensor3, create_empty)
 }
 
 
-// anonymous namespace
-namespace
-{
-// helper class for accessing the protected member chunkSize
-template<class T3>
-struct ChunkSize : private T3
-{
-  static constexpr auto value = T3::chunkSize;
-};
-}
-
-TEST(PITTS_Tensor3, chunkSize)
-{
-  using Chunk_double = PITTS::Chunk<double>;
-  using Tensor3_double = PITTS::Tensor3<double>;
-  Chunk_double chunk;
-
-  EXPECT_EQ(chunk.size, ChunkSize<Tensor3_double>::value);
-}
-
 TEST(PITTS_Tensor3, resize)
 {
   using Tensor3_double = PITTS::Tensor3<double>;
@@ -77,76 +57,6 @@ TEST(PITTS_Tensor3, resize)
   ASSERT_EQ(2, M.r1());
   ASSERT_EQ(25, M.n());
   ASSERT_EQ(3, M.r2());
-}
-
-TEST(PITTS_Tensor3, memory_layout_and_zero_padding)
-{
-  constexpr auto chunkSize_double = PITTS::Chunk<double>::size;
-  using Tensor3_double = PITTS::Tensor3<double>;
-  Tensor3_double M(2,31,3);
-
-  for(int k = 0; k < 31; k++)
-    for(int j = 0; j < 3; j++)
-      for(int i = 0; i < 2; i++)
-        M(i,k,j) = 3.;
-  
-  for(int kk = 0; kk < M.nChunks(); kk++)
-    for(int j = 0; j < 3; j++)
-      for(int i = 0; i < 2; i++)
-      {
-        if( kk != M.nChunks()-1 )
-        {
-          for(int k = 0; k < chunkSize_double; k++)
-          {
-            EXPECT_EQ(3., M.chunk(i,kk,j)[k]);
-          }
-        }
-        else
-        {
-          const auto nPadding = chunkSize_double - 31 % chunkSize_double;
-          for(int k = 0; k < chunkSize_double; k++)
-          {
-            if( k < chunkSize_double-nPadding )
-            {
-              EXPECT_EQ(3., M.chunk(i, kk, j)[k]);
-            }
-            else
-            {
-              EXPECT_EQ(0., M.chunk(i, kk, j)[k]);
-            }
-          }
-        }
-        
-      }
-
-  M.resize(2,1,3);
-  M(0,0,0) = 2.;
-  M(1,0,0) = 2.;
-  M(0,0,1) = 2.;
-  M(1,0,1) = 2.;
-  M(0,0,2) = 2.;
-  M(1,0,2) = 2.;
-  for(int k = 0; k < chunkSize_double; k++)
-  {
-    double ref = (k==0) ? 2. : 0.;
-    EXPECT_EQ(ref, M.chunk(0,0,0)[k]);
-    EXPECT_EQ(ref, M.chunk(1,0,0)[k]);
-    EXPECT_EQ(ref, M.chunk(0,0,1)[k]);
-    EXPECT_EQ(ref, M.chunk(1,0,1)[k]);
-    EXPECT_EQ(ref, M.chunk(0,0,2)[k]);
-    EXPECT_EQ(ref, M.chunk(1,0,2)[k]);
-  }
-}
-
-TEST(PITTS_Tensor3, chunkSize_small)
-{
-  using Tensor3_double = PITTS::Tensor3<double>;
-  Tensor3_double M(3,2,7);
-
-  // we expect gaps in memory that we don't use as the dimension 2 is too small to use the chunk size
-  const auto arraySize = 3*2*7;
-  const auto allocatedSize = std::distance(&(M(0,0,0)), &(M(2,1,6)));
-  EXPECT_GT(allocatedSize, arraySize);
 }
 
 TEST(PITTS_Tensor3, operator_indexing_small)
