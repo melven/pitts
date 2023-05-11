@@ -54,13 +54,15 @@ namespace PITTS
 
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(long long r1, long long n, long long r2, bool setPaddingToZero = true)
-    {                                                 // unnecessary since there is no padding!!!
+    {
       // fast return without timer!
       if( r1 == r1_ && n == n_ && r2 == r2_ )
         return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
-      const long long requiredSize = r1*n*r2;
-      const long long requiredChunks = std::max((long long)1, (requiredSize-1)/(long long)Chunk<T>::size+1);
+
+      const long long requiredSize = std::max<long long>(1, r1*n*r2);
+      // ensure same amount of padding as in MultiVector
+      const long long requiredChunks = internal::paddedChunks((requiredSize-1)/Chunk<T>::size+1);
       if( requiredChunks > reservedChunks_ )
       {
         data_.reset(new Chunk<T>[requiredChunks]);
@@ -79,8 +81,8 @@ namespace PITTS
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
-      T *data = (T*)&data_[0];
-      return data[i1 + j*r1_ + i2*r1_*n_];
+      const auto index = i1 + j*r1_ + i2*r1_*n_;
+      return data_[index / Chunk<T>::size][index % Chunk<T>::size];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
@@ -89,18 +91,18 @@ namespace PITTS
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
-      T *data = (T*)&data_[0];
-      return data[i1 + j*r1_ + i2*r1_*n_];
+      const auto index = i1 + j*r1_ + i2*r1_*n_;
+      return data_[index / Chunk<T>::size][index % Chunk<T>::size];
     }
 
     //! first dimension
-    inline long long r1() const {return r1_;}
+    [[nodiscard]] inline long long r1() const {return r1_;}
 
     //! second dimension
-    inline long long n() const {return n_;}
+    [[nodiscard]] inline long long n() const {return n_;}
 
     //! third dimension
-    inline long long r2() const {return r2_;}
+    [[nodiscard]] inline long long r2() const {return r2_;}
 
     //! set all entries to the same value
     void setConstant(T v)
