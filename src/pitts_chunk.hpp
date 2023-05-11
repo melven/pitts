@@ -29,6 +29,20 @@ namespace PITTS
   {
     static constexpr auto size = ALIGNMENT/sizeof(T);
   };
+
+  //! namespace for helper functionality
+  namespace internal
+  {
+    //! helper function to calculate desired padded length (in #chunks) to avoid cache thrashing (strides of 2^n)
+    static constexpr auto paddedChunks(long long nChunks) noexcept
+    {
+      // pad to next number divisible by PD/2 but not by PD
+      constexpr auto PD = 8;
+      if( nChunks < 2*PD )
+        return nChunks;
+      return nChunks + (PD + PD/2 - nChunks % PD) % PD;
+    }
+  }
 }
 
 
