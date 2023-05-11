@@ -12,6 +12,7 @@
 
 // includes
 #include <memory>
+#include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
 #include<cassert>
@@ -58,16 +59,18 @@ namespace PITTS
       if( r1 == r1_ && n == n_ && r2 == r2_ )
         return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
-
-      const auto requiredSize = r1 * r2 * std::max<long long>(1, n);
-      if( requiredSize > reservedSize_ )
+      const long long requiredSize = r1*n*r2;
+      const long long requiredChunks = std::max((long long)1, (requiredSize-1)/(long long)Chunk<T>::size+1);
+      if( requiredChunks > reservedChunks_ )
       {
-        data_.reset(new T[requiredSize]);
-        reservedSize_ = requiredSize;
+        data_.reset(new Chunk<T>[requiredChunks]);
+        reservedChunks_ = requiredChunks;
       }
       r1_ = r1;
       r2_ = r2;
       n_ = n;
+      if (setPaddingToZero)
+        data_[requiredChunks-1] = Chunk<T>{};
     }
 
     //! access tensor entries (some block ordering, const variant)
@@ -76,7 +79,8 @@ namespace PITTS
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
-      return data_[i1 + j*r1_ + i2*r1_*n_];
+      T *data = (T*)&data_[0];
+      return data[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
@@ -85,7 +89,8 @@ namespace PITTS
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
-      return data_[i1 + j*r1_ + i2*r1_*n_];
+      T *data = (T*)&data_[0];
+      return data[i1 + j*r1_ + i2*r1_*n_];
     }
 
     //! first dimension
@@ -129,7 +134,7 @@ namespace PITTS
 
   private:
     //! size of the buffer
-    long long reservedSize_ = 0;
+    long long reservedChunks_ = 0;
 
     //! first dimension
     long long r1_ = 0;
@@ -141,7 +146,7 @@ namespace PITTS
     long long r2_ = 0;
 
     //! the actual data...
-    std::unique_ptr<T[]> data_ = nullptr;
+    std::unique_ptr<Chunk<T>[]> data_ = nullptr;
   };
 
   //! explicitly copy a Tensor3 object
