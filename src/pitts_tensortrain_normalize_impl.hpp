@@ -88,7 +88,7 @@ namespace PITTS
 
       C.resize(r1, n, r2);
 
-      const auto stride = &A(0,0,1) - &A(0,0,0);
+      const auto stride = A.r1()*A.n();
       using mat = Eigen::MatrixX<T>;
       Eigen::Map<const mat> mapA(&A(0,0,0), stride, r);
       const auto mapB = ConstEigenMap(B);
