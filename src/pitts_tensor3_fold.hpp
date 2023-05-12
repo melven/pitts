@@ -12,7 +12,9 @@
 
 // includes
 #include <cassert>
+#include <stdexcept>
 #include "pitts_tensor3.hpp"
+#include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -157,6 +159,27 @@ namespace PITTS
         {
           t3(i,j,k) = internal::elem(v, i+j*r1+k*n*r1);
         }
+  }
+
+  //! reshape a vector to a 3d tensor with given dimensions (without copying data)
+  //!
+  //! @tparam T       underlying data type (double, complex, ...)
+  //!
+  //! @param vec      input MultiVector of dimension (r1*n*r2, 1), moved from
+  //! @param r1       first dimension of the output tensor
+  //! @param n        second dimension of the output tensor
+  //! @param r2       third dimension of the output tensor
+  //! @return         resulting Tensor3
+  //!
+  template<typename T>
+  Tensor3<T> fold(MultiVector<T>&& mv, int r1, int n, int r2)
+  {
+    if( r1*n*r2 != mv.rows() || mv.cols() != 1 )
+      throw std::invalid_argument("Mismatching dimensions for MultiVector fold to Tensor3!");
+    
+    const auto reservedChunks = mv.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
   }
 }
   

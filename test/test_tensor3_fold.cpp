@@ -3,6 +3,7 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_random.hpp"
+#include "pitts_multivector_random.hpp"
 #include "pitts_eigen.hpp"
 
 
@@ -237,4 +238,30 @@ TEST(PITTS_Tensor3_fold, fold_unfold_vec)
   fold(v, 3, 5, 7, t3);
 
   check_equal(t3_ref, t3, eps);
+}
+
+TEST(PITTS_Tensor3_fold, fold_move_multivector)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  constexpr auto eps = 1.e-10;
+
+  MultiVector_double mv(3 * 5 * 7, 1);
+  randomize(mv);
+  MultiVector_double mv_ref;
+  copy(mv, mv_ref);
+
+  Tensor3_double t3 = fold(std::move(mv), 3, 5, 7);
+  ASSERT_EQ(0, mv.rows());
+  ASSERT_EQ(0, mv.cols());
+  ASSERT_EQ(3, t3.r1());
+  ASSERT_EQ(5, t3.n());
+  ASSERT_EQ(7, t3.r2());
+
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 7; k++)
+      {
+        EXPECT_NEAR(mv_ref(i + j*3 + k*3*5, 0), t3(i,j,k), eps);
+      }
 }

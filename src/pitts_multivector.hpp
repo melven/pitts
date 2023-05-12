@@ -46,8 +46,43 @@ namespace PITTS
     //!
     MultiVector() = default;
 
+    //! create a multivector from given memory with given size
+    //!
+    //! @warning intended for internal use (e.g. Tensor3 fold function)
+    //!
+    //! @param data           pointer to the reserved memory, must be of size reservedChunks
+    //! @param reservedChunks dimension of data array, must be at least big enough for r1*n*r2 / Chunk<T>::size
+    //! @param rows           dimension of the first index, should be large
+    //! @param cols           dimension of the third index, can be small
+    //!
+    MultiVector(std::unique_ptr<Chunk<T>[]>&& data, long long reservedChunks, long long rows, long long cols)
+    {
+      const auto newRowChunks = (rows-1)/chunkSize+1;
+      const auto newColStrideChunks = internal::paddedChunks(newRowChunks);
+      if( reservedChunks < newColStrideChunks*cols )
+        throw std::invalid_argument("Reserved data size too small!");
+      if(nullptr == data.get())
+        throw std::invalid_argument("Data pointer must be allocated!");
+
+      data_ = std::move(data);
+      reservedChunks_ = reservedChunks;
+      resize(rows, cols, false);
+    }
+
+    //! allow to move from this by casting to the underlying storage type
+    //!
+    //! @warning intended for internal use (e.g. fold function)
+    //!
+    operator std::unique_ptr<Chunk<T>[]>() &&
+    {
+      rows_ = cols_ = 0;
+      reservedChunks_ = 0;
+      std::unique_ptr<Chunk<T>[]> data = std::move(data_);
+      return data;
+    }
+
     //! adjust the desired multivector dimensions (destroying all data!)
-    void resize(long long rows, long long cols)
+    void resize(long long rows, long long cols, bool setPaddingToZero = true)
     {
       // fast return without timer!
       if( rows == rows_ && cols <= cols_ )
@@ -67,8 +102,9 @@ namespace PITTS
       rows_ = rows;
       cols_ = cols;
       // ensure padding is zero
-      for(long long j = 0; j < cols; j++)
-        chunk(newRowChunks-1, j) = Chunk<T>{};
+      if (setPaddingToZero)
+        for(long long j = 0; j < cols; j++)
+          chunk(newRowChunks-1, j) = Chunk<T>{};
     }
 
     //! access matrix entries (column-wise ordering, const variant)
@@ -96,26 +132,29 @@ namespace PITTS
     }
 
     //! first dimension 
-    inline auto rows() const {return rows_;}
+    [[nodiscard]] inline auto rows() const {return rows_;}
 
     //! second dimension 
-    inline auto cols() const {return cols_;}
+    [[nodiscard]] inline auto cols() const {return cols_;}
 
     //! total size
-    inline auto size() const {return rows_*cols_;}
+    [[nodiscard]] inline auto size() const {return rows_*cols_;}
 
     //! number of chunks in first dimension
-    inline auto rowChunks() const {return (rows_-1)/chunkSize+1;}
+    [[nodiscard]] inline auto rowChunks() const {return (rows_-1)/chunkSize+1;}
 
     //! number of chunks between two columns (stride in second dimension)
-    inline auto colStrideChunks() const
+    [[nodiscard]] inline auto colStrideChunks() const
     {
       // return uneven number to avoid cache thrashing
       return internal::paddedChunks(rowChunks());
     }
 
     //! total size of the data array including padding (e.g. for MPI communication)
-    inline auto totalPaddedSize() const {return colStrideChunks()*chunkSize*cols_;}
+    [[nodiscard]] inline auto totalPaddedSize() const {return colStrideChunks()*chunkSize*cols_;}
+
+    //! total size of the reserved memory
+    [[nodiscard]] inline auto reservedChunks() const {return reservedChunks_;}
 
   protected:
     //! the array dimension of chunks
