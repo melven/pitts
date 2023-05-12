@@ -268,20 +268,20 @@ if( nAMEnEnrichment > 0 )
           newSubT[1].setConstant(T(0));
 #pragma omp parallel for collapse(3) schedule(static)
           for(int k = 0; k < subT0.r2(); k++)
-            for(int jChunk = 0; jChunk < subT0.nChunks(); jChunk++)
+            for(int j = 0; j < subT0.n(); j++)
               for(int i = 0; i < subT0.r1(); i++)
-                newSubT[0].chunk(i,jChunk,k) = subT0.chunk(i,jChunk,k);
+                newSubT[0](i,j,k) = subT0(i,j,k);
           const auto r1 = std::min(subT0.r1(), subTr.r1());
 #pragma omp parallel for collapse(3) schedule(static)
           for(int k = 0; k < addRank; k++)
-            for(int jChunk = 0; jChunk < subT0.nChunks(); jChunk++)
+            for(int j = 0; j < subT0.n(); j++)
               for(int i = 0; i < r1; i++)
-                newSubT[0].chunk(i,jChunk,subT0.r2()+k) = subTr.chunk(i,jChunk,k);
+                newSubT[0](i,j,subT0.r2()+k) = subTr(i,j,k);
 #pragma omp parallel for collapse(3) schedule(static)
           for(int k = 0; k < subT1.r2(); k++)
-            for(int jChunk = 0; jChunk < subT1.nChunks(); jChunk++)
+            for(int j = 0; j < subT1.n(); j++)
               for(int i = 0; i < subT1.r1(); i++)
-                newSubT[1].chunk(i,jChunk,k) = subT1.chunk(i,jChunk,k);
+                newSubT[1](i,j,k) = subT1(i,j,k);
         }
         TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT));
 
@@ -311,20 +311,20 @@ if( nAMEnEnrichment > 0 )
           newSubT[1].setConstant(T(0));
 #pragma omp parallel for collapse(3) schedule(static)
           for(int i = 0; i < subT0.r1(); i++)
-            for(int jChunk = 0; jChunk < subT0.n(); jChunk++)
+            for(int j = 0; j < subT0.n(); j++)
               for(int k = 0; k < subT0.r2(); k++)
-                newSubT[0].chunk(i,jChunk,k) = subT0.chunk(i,jChunk,k);
+                newSubT[0](i,j,k) = subT0(i,j,k);
 #pragma omp parallel for collapse(3) schedule(static)
           for(int i = 0; i < subT1.r1(); i++)
-            for(int jChunk = 0; jChunk < subT1.n(); jChunk++)
+            for(int j = 0; j < subT1.n(); j++)
               for(int k = 0; k < subT1.r2(); k++)
-                newSubT[1].chunk(i,jChunk,k) = subT1.chunk(i,jChunk,k);
+                newSubT[1](i,j,k) = subT1(i,j,k);
           const auto r2 = std::min(subT1.r2(), subTr.r2());
 #pragma omp parallel for collapse(3) schedule(static)
           for(int i = 0; i < addRank; i++)
-            for(int jChunk = 0; jChunk < subT0.n(); jChunk++)
+            for(int j = 0; j < subT0.n(); j++)
               for(int k = 0; k < r2; k++)
-                newSubT[1].chunk(subT1.r1()+i,jChunk,k) = subTr.chunk(i,jChunk,k);
+                newSubT[1](subT1.r1()+i,j,k) = subTr(i,j,k);
         }
         TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT));
 
