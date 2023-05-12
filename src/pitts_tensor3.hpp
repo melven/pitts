@@ -78,7 +78,7 @@ namespace PITTS
     //!
     //! @warning intended for internal use (e.g. unfold function)
     //!
-    operator std::unique_ptr<Chunk<T>[]>() &&
+    [[nodiscard]] operator std::unique_ptr<Chunk<T>[]>() &&
     {
       r1_ = n_ = r2_ = 0;
       reservedChunks_ = 0;
@@ -110,23 +110,27 @@ namespace PITTS
     }
 
     //! access tensor entries (some block ordering, const variant)
-    inline const T& operator()(long long i1, long long j, long long i2) const
+    [[nodiscard]] inline const T& operator()(long long i1, long long j, long long i2) const
     {
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
       const auto index = i1 + j*r1_ + i2*r1_*n_;
-      return data_[index / Chunk<T>::size][index % Chunk<T>::size];
+      //return data_[index/chunkSize][index%chunkSize];
+      const auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
+      return pdata[index];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
-    inline T& operator()(long long i1, long long j, long long i2)
+    [[nodiscard]] inline T& operator()(long long i1, long long j, long long i2)
     {
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
       const auto index = i1 + j*r1_ + i2*r1_*n_;
-      return data_[index / Chunk<T>::size][index % Chunk<T>::size];
+      //return data_[index/chunkSize][index%chunkSize];
+      const auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
+      return pdata[index];
     }
 
     //! first dimension

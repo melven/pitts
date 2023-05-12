@@ -73,7 +73,7 @@ namespace PITTS
     //!
     //! @warning intended for internal use (e.g. fold function)
     //!
-    operator std::unique_ptr<Chunk<T>[]>() &&
+    [[nodiscard]] operator std::unique_ptr<Chunk<T>[]>() &&
     {
       rows_ = cols_ = 0;
       reservedChunks_ = 0;
@@ -108,25 +108,29 @@ namespace PITTS
     }
 
     //! access matrix entries (column-wise ordering, const variant)
-    inline const T& operator()(long long i, long long j) const
+    [[nodiscard]] inline const T& operator()(long long i, long long j) const
     {
-      return chunk(i/chunkSize, j)[i%chunkSize];
+      // allow better compiler optimization...
+      const unsigned long long ui = i;
+      return chunk(ui/chunkSize, j)[ui%chunkSize];
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
-    inline T& operator()(long long i, long long j)
+    [[nodiscard]] inline T& operator()(long long i, long long j)
     {
-      return chunk(i/chunkSize, j)[i%chunkSize];
+      // allow better compiler optimization...
+      const unsigned long long ui = i;
+      return chunk(ui/chunkSize, j)[ui%chunkSize];
     }
 
     //! chunk-wise access (const variant)
-    inline const Chunk<T>& chunk(long long i, long long j) const
+    [[nodiscard]] inline const Chunk<T>& chunk(long long i, long long j) const
     {
       return data_[i+j*colStrideChunks()];
     }
 
     //! chunk-wise access (const variant)
-    inline Chunk<T>& chunk(long long i, long long j)
+    [[nodiscard]] inline Chunk<T>& chunk(long long i, long long j)
     {
       return data_[i+j*colStrideChunks()];
     }
