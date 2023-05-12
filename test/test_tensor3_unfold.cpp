@@ -191,3 +191,28 @@ TEST(PITTS_Tensor3_unfold, unfold_vec_std_vector)
         EXPECT_NEAR(t3(i,j,k), vec.at(i+j*3+k*5*3), eps);
       }
 }
+
+TEST(PITTS_Tensor3_unfold, unfold_move_multivector)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  constexpr auto eps = 1.e-10;
+
+  Tensor3_double t3(3, 5, 7);
+  randomize(t3);
+  Tensor3_double t3_ref;
+  copy(t3, t3_ref);
+
+  MultiVector_double mv = unfold(std::move(t3));
+  ASSERT_EQ(0, t3.r1());
+  ASSERT_EQ(0, t3.n());
+  ASSERT_EQ(0, t3.r2());
+  ASSERT_EQ(3*5*7, mv.rows());
+  ASSERT_EQ(1, mv.cols());
+  for(int i = 0 ; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 7; k++)
+      {
+        EXPECT_NEAR(t3_ref(i,j,k), mv(i+j*3+k*5*3,0), eps);
+      }
+}

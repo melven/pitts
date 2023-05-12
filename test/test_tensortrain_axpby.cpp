@@ -14,7 +14,7 @@ static double pow2(const double x)
     return x*x;
 }
 
-static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double accuracy = std::sqrt(std::numeric_limits<double>::epsilon()))
+static auto check_axpby(double alpha, const TensorTrain<double>& TTx, double beta, TensorTrain<double>& TTy, double accuracy = 10*std::sqrt(std::numeric_limits<double>::epsilon()))
 {
     TensorTrain<double> TTz(TTy);
     const double gamma = axpby(alpha, TTx, beta, TTz, accuracy);

@@ -27,7 +27,7 @@ namespace PITTS
   template<typename T>
   struct alignas(ALIGNMENT) Chunk final : public std::array<T,ALIGNMENT/sizeof(T)>
   {
-    static constexpr auto size = ALIGNMENT/sizeof(T);
+    static constexpr long long size = ALIGNMENT/sizeof(T);
   };
 
   //! namespace for helper functionality

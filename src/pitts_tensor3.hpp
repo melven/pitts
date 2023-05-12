@@ -52,15 +52,51 @@ namespace PITTS
     //!
     Tensor3() = default;
 
+    //! create a tensor from given memory with given size
+    //!
+    //! @warning intended for internal use (e.g. fold function)
+    //!
+    //! @param data           pointer to the reserved memory, must be of size reservedChunks
+    //! @param reservedChunks dimension of data array, must be at least big enough for r1*n*r2 / Chunk<T>::size
+    //! @param r1             dimension of the first index, can be small
+    //! @param n              dimension of the second index, should be large
+    //! @param r2             dimension of the third index, can be small
+    //!
+    Tensor3(std::unique_ptr<Chunk<T>[]>&& data, long long reservedChunks, long long r1, long long n, long long r2)
+    {
+      if(r1*n*r2 > reservedChunks * Chunk<T>::size)
+        throw std::invalid_argument("Reserved data size too small!");
+      if(nullptr == data.get())
+        throw std::invalid_argument("Data pointer must be allocated!");
+      
+      data_ = std::move(data);
+      reservedChunks_ = reservedChunks;
+      resize(r1, n, r2, false);
+    }
+
+    //! allow to move from this by casting to the underlying storage type
+    //!
+    //! @warning intended for internal use (e.g. unfold function)
+    //!
+    operator std::unique_ptr<Chunk<T>[]>() &&
+    {
+      r1_ = n_ = r2_ = 0;
+      reservedChunks_ = 0;
+      std::unique_ptr<Chunk<T>[]> data = std::move(data_);
+      return data;
+    }
+
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(long long r1, long long n, long long r2, bool setPaddingToZero = true)
-    {                                                 // unnecessary since there is no padding!!!
+    {
       // fast return without timer!
       if( r1 == r1_ && n == n_ && r2 == r2_ )
         return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
+
       const long long requiredSize = r1*n*r2;
-      const long long requiredChunks = std::max((long long)1, (requiredSize-1)/(long long)Chunk<T>::size+1);
+      // ensure same amount of padding as in MultiVector
+      const long long requiredChunks = internal::paddedChunks((requiredSize-1)/Chunk<T>::size+1);
       if( requiredChunks > reservedChunks_ )
       {
         data_.reset(new Chunk<T>[requiredChunks]);
@@ -79,8 +115,8 @@ namespace PITTS
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
-      T *data = (T*)&data_[0];
-      return data[i1 + j*r1_ + i2*r1_*n_];
+      const auto index = i1 + j*r1_ + i2*r1_*n_;
+      return data_[index / Chunk<T>::size][index % Chunk<T>::size];
     }
 
     //! access tensor entries (some block ordering, write access through reference)
@@ -89,18 +125,21 @@ namespace PITTS
       assert(0 <= i1 && i1 < r1_);
       assert(0 <= j  &&  j < n_);
       assert(0 <= i2 && i2 < r2_);
-      T *data = (T*)&data_[0];
-      return data[i1 + j*r1_ + i2*r1_*n_];
+      const auto index = i1 + j*r1_ + i2*r1_*n_;
+      return data_[index / Chunk<T>::size][index % Chunk<T>::size];
     }
 
     //! first dimension
-    inline long long r1() const {return r1_;}
+    [[nodiscard]] inline long long r1() const {return r1_;}
 
     //! second dimension
-    inline long long n() const {return n_;}
+    [[nodiscard]] inline long long n() const {return n_;}
 
     //! third dimension
-    inline long long r2() const {return r2_;}
+    [[nodiscard]] inline long long r2() const {return r2_;}
+
+    //! reserved memory (internal use)
+    [[nodiscard]] inline long long reservedChunks() const {return reservedChunks_;}
 
     //! set all entries to the same value
     void setConstant(T v)

@@ -12,6 +12,7 @@
 
 // includes
 #include "pitts_tensor3.hpp"
+#include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -125,6 +126,24 @@ namespace PITTS
           internal::elem(vec, i+j*r1+k*n*r1) = t3(i,j,k);
         }
   }
+
+
+  //! reshape a 3d tensor to a vector flattening dimensions (without copying data)
+  //!
+  //! @tparam T             underlying data type (double, complex, ...)
+  //!
+  //! @param t3     3d input tensor of dimension (r1,n,r2), moved from
+  //! @return       1d output tensor resized to dimension (r1*n*r2)
+  //!
+  template<typename T>
+  MultiVector<T> unfold(Tensor3<T>&& t3)
+  {
+    const auto size = t3.r1() * t3.n() * t3.r2();
+    const auto reservedChunks = t3.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t3);
+    return MultiVector<T>(std::move(data), reservedChunks, size, 1);
+  }
+  template MultiVector<double> unfold(Tensor3<double>&&);
 }
   
 #endif // PITTS_TENSOR3_UNFOLD_HPP
