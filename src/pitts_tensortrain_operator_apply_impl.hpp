@@ -20,6 +20,7 @@
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_tensor3.hpp"
+#include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -38,61 +39,24 @@ namespace PITTS
       const auto m = x.n();
       const auto n = Aop.n() / m;
 
-      y.resize(rA1*r1, n, rA2*r2);
-      const int nChunks = (y.n()-1)/Chunk<T>::size+1; // remove this
-
-      const auto index = [n](int k, int l)
-      {
-        return k + n*l;
-      };
-
-      // check that the index function is ok...
-      for(int k = 0; k < n; k++)
-        for(int l = 0; l < m; l++)
-        {
-          assert(index(k,l) == TTOp.index(iDim, k, l));
-        }
-
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"rA1", "n", "m", "rA2", "r1", "r2"},{rA1, n, m, rA2, r1, r2}}, // arguments
         {{rA1*rA2*n*m*r1*r2*kernel_info::FMA<T>()}, // flops
          {(rA1*m*n*rA2+r1*m*r2)*kernel_info::Load<Chunk<T>>() + (rA1*r1*n*rA2*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-      // copy Aop to obtain a better memory layout... (chunk-wise access)
-      std::unique_ptr<Chunk<T>[]> tmpAop{new Chunk<T>[nChunks*rA1*rA2*m]};
-      for(int i2 = 0; i2 < rA2; i2++)
-        for(int kChunk = 0; kChunk < nChunks; kChunk++)
-          for(int i1 = 0; i1 < rA1; i1++)
-            for(int l = 0; l < m; l++)
-            {
-              const int k_begin = kChunk*Chunk<T>::size;
-              const int k_end = std::min<int>(n, (kChunk+1)*Chunk<T>::size);
-              Chunk<T> tmp;
-              for(int k = 0; k < Chunk<T>::size; k++)
-                tmp[k] = k+k_begin < k_end ? Aop(i1,k+k_begin+n*l,i2) : T(0);
-              tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)] = tmp;
-            }
+      y.resize(rA1*r1, n, rA2*r2);
 
-
-      // resulting y is the biggest array and this is easily memory-bound, so order loops according to memory layout of y
-#pragma omp parallel for collapse(3) schedule(static)
-      for(int j = 0; j < rA2*r2; j++)
-        for(int kChunk = 0; kChunk < nChunks; kChunk++)
-          for(int i = 0; i < rA1*r1; i++)
-          {
-            const int i1 = i / r1;
-            const int j1 = i % r1;
-            const int i2 = j / r2;
-            const int j2 = j % r2;
-
-            Chunk<T> tmp = Chunk<T>{};
-            for(int l = 0; l < m; l++)
-              fmadd(x(j1,l,j2), tmpAop[l+i1*m+kChunk*(m*rA1)+i2*(m*rA1*nChunks)], tmp);
-            int kmax = Chunk<T>::size <= n - kChunk*Chunk<T>::size ? Chunk<T>::size : n - kChunk*Chunk<T>::size; // minimum value (std::min don't mean me well rn...)
-            for (int k = 0; k < kmax; k++)
-              y(i,kChunk*Chunk<T>::size+k,j) = tmp[k];
-          }
+      using mat = Eigen::MatrixX<T>;
+#pragma omp parallel for schedule(static) collapse(2) if(r2*rA2 > 50)
+      for(long long j2 = 0; j2 < r2; j2++)
+        for(long long i2 = 0; i2 < rA2; i2++)
+        {
+          Eigen::Map<const mat> mapX(&x(0,0,j2), r1, m);
+          Eigen::Map<const mat> mapA(&Aop(0,0,i2), rA1*n, m);
+          Eigen::Map<mat> mapY(&y(0,0,j2+i2*r2), r1, rA1*n);
+          mapY = mapX * mapA.transpose();
+        }
     }
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along some dimensions: A(0,:,*,*) * x(*,:,:)
