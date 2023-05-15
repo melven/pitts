@@ -74,42 +74,19 @@ namespace PITTS
       assert(TTOp.row_dimensions()[iDim] == n);
       assert(TTOp.column_dimensions()[iDim] == m);
 
-      y.resize(n, xn, r2);
-
-      const auto index = [n](int k, int l)
-      {
-        return k + n*l;
-      };
-
-      // check that the index function is ok...
-      for(int k = 0; k < n; k++)
-        for(int l = 0; l < m; l++)
-        {
-          assert(index(k,l) == TTOp.index(iDim, k, l));
-        }
-
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"rA2", "r1", "xn", "r2", "n", "m"},{rA2, r1, xn, r2, n, m}}, // arguments
         {{m*r1*xn*r2*kernel_info::FMA<T>()}, // flops
          {(m*n*rA2+r1*xn*r2)*kernel_info::Load<Chunk<T>>() + (m*xn*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int j = 0; j < r2; j++)
-        for(int k = 0; k < xn; k++)
-        {
-          for(int iy = 0; iy < n; iy++)
-          {
-            T tmp = 0;
-            for(int ix = 0; ix < r1; ix++)
-            {
-              const int l = ix % m;
-              const int j2 = ix / m;
-              tmp += Aop(0,iy+n*l,j2) * x(ix,k,j);
-            }
-            y(iy,k,j) = tmp;
-          }
-        }
+      y.resize(n, xn, r2);
+
+      using mat = Eigen::MatrixX<T>;
+      Eigen::Map<const mat> mapA(&Aop(0,0,0), n, r1);
+      Eigen::Map<const mat> mapX(&x(0,0,0), r1, xn*r2);
+      Eigen::Map<mat> mapY(&y(0,0,0), n, xn*r2);
+      mapY = mapA * mapX;
     }
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along some dimensions: x(:,:,*) * A(*,:,*,0)
@@ -127,42 +104,26 @@ namespace PITTS
       assert(TTOp.row_dimensions()[iDim] == n);
       assert(TTOp.column_dimensions()[iDim] == m);
 
-      y.resize(r1, xn, n);
-
-      const auto index = [n](int k, int l)
-      {
-        return k + n*l;
-      };
-
-      // check that the index function is ok...
-      for(int k = 0; k < n; k++)
-        for(int l = 0; l < m; l++)
-        {
-          assert(index(k,l) == TTOp.index(iDim, k, l));
-        }
-
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"rA1", "r1", "xn", "r2", "n", "m"},{rA1, r1, xn, r2, n, m}}, // arguments
         {{r1*xn*r2*m*kernel_info::FMA<T>()}, // flops
          {(rA1*n*m+r1*xn*r2)*kernel_info::Load<Chunk<T>>() + (r1*xn*m)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int jy = 0; jy < n; jy++)
-        for(int k = 0; k < xn; k++)
-        {
-          for(int i = 0; i < r1; i++)
-          {
-            T tmp = 0;
-            for(int jx = 0; jx < r2; jx++)
-            {
-              const int l = jx % m;
-              const int i2 = jx / m;
-              tmp += Aop(i2,jy+l*n,0) * x(i,k,jx);
-            }
-            y(i,k,jy) = tmp;
-          }
-        }
+      y.resize(r1, xn, n);
+
+      // copy Aop to buffer, so we can call standard GEMM
+      using mat = Eigen::MatrixX<T>;
+      mat tmpA(m*rA1, n);
+#pragma omp parallel for collapse(2) schedule(static) if(n*rA1 > 20)
+      for(long long k = 0; k < n; k++)
+        for(long long j = 0; j < rA1; j++)
+          for(long long i = 0; i < m; i++)
+            tmpA(i+j*m,k) = Aop(j,k+i*n,0);
+      
+      Eigen::Map<const mat> viewX(&x(0,0,0), r1*xn, m*rA1);
+      Eigen::Map<mat> viewY(&y(0,0,0), r1*xn, n);
+      viewY = viewX * tmpA;
     }
   }
 
