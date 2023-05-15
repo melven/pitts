@@ -50,16 +50,6 @@ namespace PITTS
       const auto [n_left, n_right] = partial_products(TTOp.row_dimensions(), iDim);
       const auto [m_left, m_right] = partial_products(TTOp.column_dimensions(), iDim);
 
-      // copy operator to better format
-      // todo simpler memory layout for Tensor3 -> this is not needed any more...
-      Eigen::MatrixX<T> tmpA(r1*n,m*r2);
-#pragma omp parallel for collapse(3) schedule(static)
-      for(long long k2 = 0; k2 < r2; k2++)
-        for(long long j = 0; j < m; j++)
-          for(long long i = 0; i < n; i++)
-            for(long long k1 = 0; k1 < r1; k1++)
-              tmpA(k1+i*r1, j+m*k2) = Aop(k1, TTOp.index(iDim, i, j), k2);
-
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"nCols", "m_left", "r2", "n", "n_right", "m", "r1"},{nCols, m_left, r2, n, n_right, m, r1}}, // arguments
         {{nCols*m_right*r2*n*n_left*m*r1*kernel_info::FMA<T>()}, // flops
@@ -74,6 +64,8 @@ namespace PITTS
 
       const auto r1n = r1*n;
       const auto mr2 = m*r2;
+
+      Eigen::Map<const Eigen::MatrixX<T>> tmpA(&Aop(0,0,0), r1n, mr2);
 
       for(int iCol = 0; iCol < nCols; iCol++)
       {
