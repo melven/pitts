@@ -25,6 +25,17 @@ namespace PITTS
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
+      template<typename ResultType, typename IntermediateType, typename LeftToRightFunction, typename RightToLeftFunction>
+      class SweepData final
+      {
+        public:
+          SweepData(int nDim, LeftToRightFunction, RightToLeftFunction) : nDim_(nDim), result_(nDim_), intermediate_(nDim_) {}
+        private:
+          int nDim_;
+          std::vector<ResultType> result_;
+          std::vector<IntermediateType> intermediate_;
+      };
+
       //! calculate next part of Ax from right to left or discard last part
       template<typename T>
       void update_right_Ax(const TensorTrainOperator<T> TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
