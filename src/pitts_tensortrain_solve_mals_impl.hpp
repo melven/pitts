@@ -117,7 +117,7 @@ namespace PITTS
 
     // also store left- and right-orthogonlized parts of Ax as the plain variant might have much higher rank!
     std::vector<Tensor3<T>> left_Ax_ortho, right_Ax_ortho;
-    std::vector<Tensor2<T>> left_Ax_ortho_B, right_Ax_ortho_B;
+    std::vector<Tensor2<T>> left_Ax_ortho_M, right_Ax_ortho_M;
 
     // for the Petrov-Galerkin variant:
     // sub-tensors to represent projection space v that approximately spans Ax
@@ -137,10 +137,10 @@ namespace PITTS
       std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
-      update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_B);
+      update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_M);
 
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
-      update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_B);
+      update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_M);
 
       assert(check_Orthogonality(swpIdx, TTx));
       assert(check_Ax(TTOpA, TTx, swpIdx, left_Ax, right_Ax));
@@ -360,7 +360,7 @@ if( nAMEnEnrichment > 0 )
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of left_Ax
-      update_left_Ax(TTOpA, TTx, 0, nDim - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_B);
+      update_left_Ax(TTOpA, TTx, 0, nDim - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_M);
       left_Ax = TTAx.setSubTensors(0, std::move(left_Ax));
       // for non-symm. cases, we still need left_Ax
       for(int iDim = 0; iDim < nDim; iDim++)
@@ -390,7 +390,7 @@ if( nAMEnEnrichment > 0 )
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of right_Ax
-      update_right_Ax(TTOpA, TTx, 0, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_B);
+      update_right_Ax(TTOpA, TTx, 0, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_M);
       // TODO: that's wrong -> need a reverse
       right_Ax = TTAx.setSubTensors(0, reverse(std::move(right_Ax)));
       // for non-symm. cases, we still need right_Ax

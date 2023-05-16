@@ -43,7 +43,7 @@ namespace PITTS
       // calculate next part of Ax from right to left or discard last part
       template<typename T>
       void update_right_Ax(const TensorTrainOperator<T> TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
-                           std::vector<Tensor3<T>>& right_Ax, std::vector<Tensor3<T>>& right_Ax_ortho, std::vector<Tensor2<T>>& right_Ax_ortho_B)
+                           std::vector<Tensor3<T>>& right_Ax, std::vector<Tensor3<T>>& right_Ax_ortho, std::vector<Tensor2<T>>& right_Ax_ortho_M)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -53,13 +53,13 @@ namespace PITTS
         assert(firstIdx <= lastIdx+1);
         assert(lastIdx == nDim-1);
         assert(right_Ax_ortho.size() >= right_Ax.size());
-        assert(right_Ax_ortho_B.size() == right_Ax_ortho.size());
+        assert(right_Ax_ortho_M.size() == right_Ax_ortho.size());
 
         // discard old entries in right_Ax_ortho*
         while(right_Ax_ortho.size() > right_Ax.size())
           right_Ax_ortho.pop_back();
-        while(right_Ax_ortho_B.size() > right_Ax.size())
-          right_Ax_ortho_B.pop_back();
+        while(right_Ax_ortho_M.size() > right_Ax.size())
+          right_Ax_ortho_M.pop_back();
 
         // calculate new entries in right_Ax when sweeping right-to-left
         for(int iDim = lastIdx - right_Ax.size(); iDim >= firstIdx; iDim--)
@@ -75,17 +75,17 @@ namespace PITTS
 
           Tensor2<T> t2Ax;
           Tensor3<T> subTAx;
-          if( right_Ax_ortho_B.empty() )
+          if( right_Ax_ortho_M.empty() )
           {
             unfold_right(right_Ax.back(), t2Ax);
           }
           else
           {
-            internal::normalize_contract2(right_Ax.back(), right_Ax_ortho_B.back(), subTAx);
+            internal::normalize_contract2(right_Ax.back(), right_Ax_ortho_M.back(), subTAx);
             unfold_right(subTAx, t2Ax);
           }
           auto [B,Qt] = internal::normalize_qb(t2Ax, false);
-          right_Ax_ortho_B.emplace_back(std::move(B));
+          right_Ax_ortho_M.emplace_back(std::move(B));
           fold_right(Qt, n, subTAx);
           right_Ax_ortho.emplace_back(std::move(subTAx));
         }
@@ -95,14 +95,14 @@ namespace PITTS
         {
           right_Ax.pop_back();
           right_Ax_ortho.pop_back();
-          right_Ax_ortho_B.pop_back();
+          right_Ax_ortho_M.pop_back();
         }
       }
 
       // calculate next part of Ax from left to right or discard last part
       template<typename T>
       void update_left_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
-                          std::vector<Tensor3<T>>& left_Ax, std::vector<Tensor3<T>>& left_Ax_ortho, std::vector<Tensor2<T>>& left_Ax_ortho_B)
+                          std::vector<Tensor3<T>>& left_Ax, std::vector<Tensor3<T>>& left_Ax_ortho, std::vector<Tensor2<T>>& left_Ax_ortho_M)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -113,13 +113,13 @@ namespace PITTS
         assert(lastIdx < nDim);
 
         assert(left_Ax_ortho.size() >= left_Ax.size());
-        assert(left_Ax_ortho_B.size() == left_Ax_ortho.size());
+        assert(left_Ax_ortho_M.size() == left_Ax_ortho.size());
 
         // discard old entries in left_Ax_ortho*
         while(left_Ax_ortho.size() > left_Ax.size())
           left_Ax_ortho.pop_back();
-        while(left_Ax_ortho_B.size() > left_Ax.size())
-          left_Ax_ortho_B.pop_back();
+        while(left_Ax_ortho_M.size() > left_Ax.size())
+          left_Ax_ortho_M.pop_back();
 
         // calculate new entries in left_Ax when sweeping left-to-right
         for(int iDim = firstIdx + left_Ax.size(); iDim <= lastIdx; iDim++)
@@ -135,17 +135,17 @@ namespace PITTS
 
           Tensor2<T> t2Ax;
           Tensor3<T> subTAx;
-          if( left_Ax_ortho_B.empty() )
+          if( left_Ax_ortho_M.empty() )
           {
             unfold_left(left_Ax.back(), t2Ax);
           }
           else
           {
-            internal::normalize_contract1(left_Ax_ortho_B.back(), left_Ax.back(), subTAx);
+            internal::normalize_contract1(left_Ax_ortho_M.back(), left_Ax.back(), subTAx);
             unfold_left(subTAx, t2Ax);
           }
           auto [Q, B] = internal::normalize_qb(t2Ax, true);
-          left_Ax_ortho_B.emplace_back(std::move(B));
+          left_Ax_ortho_M.emplace_back(std::move(B));
           fold_left(Q, n, subTAx);
           left_Ax_ortho.emplace_back(std::move(subTAx));
         }
@@ -155,7 +155,7 @@ namespace PITTS
         {
           left_Ax.pop_back();
           left_Ax_ortho.pop_back();
-          left_Ax_ortho_B.pop_back();
+          left_Ax_ortho_M.pop_back();
         }
       }
 
