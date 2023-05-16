@@ -31,7 +31,7 @@ namespace PITTS
          {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
         );
 
-    b.resize(r1, n, r2, false);
+    b.resize(r1, n, r2);
 
 #pragma omp parallel for collapse(3) schedule(static)
     for(int k = 0; k < r2; k++)
