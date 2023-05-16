@@ -17,8 +17,11 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_eigen.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_unfold.hpp"
+#include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_axpby.hpp"
 #include "pitts_multivector_scale.hpp"
@@ -39,7 +42,8 @@ namespace PITTS
     {
       // calculate next part of Ax from right to left or discard last part
       template<typename T>
-      void update_right_Ax(const TensorTrainOperator<T> TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx, std::vector<Tensor3<T>>& right_Ax)
+      void update_right_Ax(const TensorTrainOperator<T> TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
+                           std::vector<Tensor3<T>>& right_Ax, std::vector<Tensor3<T>>& right_Ax_ortho, std::vector<Tensor2<T>>& right_Ax_ortho_B)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -48,25 +52,57 @@ namespace PITTS
         assert(0 <= firstIdx);
         assert(firstIdx <= lastIdx+1);
         assert(lastIdx == nDim-1);
+        assert(right_Ax_ortho.size() >= right_Ax.size());
+        assert(right_Ax_ortho_B.size() == right_Ax_ortho.size());
+
+        // discard old entries in right_Ax_ortho*
+        while(right_Ax_ortho.size() > right_Ax.size())
+          right_Ax_ortho.pop_back();
+        while(right_Ax_ortho_B.size() > right_Ax.size())
+          right_Ax_ortho_B.pop_back();
 
         // calculate new entries in right_Ax when sweeping right-to-left
         for(int iDim = lastIdx - right_Ax.size(); iDim >= firstIdx; iDim--)
         {
           const auto &subTx = TTx.subTensor(iDim);
           const auto &subTOpA = TTOpA.tensorTrain().subTensor(iDim);
+          const auto n = subTOpA.n() / subTx.n();
+          {
+            Tensor3<T> subTAx;
+            internal::apply_contract(TTOpA, iDim, subTOpA, subTx, subTAx);
+            right_Ax.emplace_back(std::move(subTAx));
+          }
+
+          Tensor2<T> t2Ax;
           Tensor3<T> subTAx;
-          internal::apply_contract(TTOpA, iDim, subTOpA, subTx, subTAx);
-          right_Ax.emplace_back(std::move(subTAx));
+          if( right_Ax_ortho_B.empty() )
+          {
+            unfold_right(right_Ax.back(), t2Ax);
+          }
+          else
+          {
+            internal::normalize_contract2(right_Ax.back(), right_Ax_ortho_B.back(), subTAx);
+            unfold_right(subTAx, t2Ax);
+          }
+          auto [B,Qt] = internal::normalize_qb(t2Ax, false);
+          right_Ax_ortho_B.emplace_back(std::move(B));
+          fold_right(Qt, n, subTAx);
+          right_Ax_ortho.emplace_back(std::move(subTAx));
         }
 
         // discard old entries in right_Ax when sweeping left-to-right
         for(int iDim = lastIdx - right_Ax.size(); iDim+1 < firstIdx; iDim++)
+        {
           right_Ax.pop_back();
+          right_Ax_ortho.pop_back();
+          right_Ax_ortho_B.pop_back();
+        }
       }
 
       // calculate next part of Ax from left to right or discard last part
       template<typename T>
-      void update_left_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx, std::vector<Tensor3<T>>& left_Ax)
+      void update_left_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
+                          std::vector<Tensor3<T>>& left_Ax, std::vector<Tensor3<T>>& left_Ax_ortho, std::vector<Tensor2<T>>& left_Ax_ortho_B)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -76,19 +112,51 @@ namespace PITTS
         assert(firstIdx-1 <= lastIdx);
         assert(lastIdx < nDim);
 
+        assert(left_Ax_ortho.size() >= left_Ax.size());
+        assert(left_Ax_ortho_B.size() == left_Ax_ortho.size());
+
+        // discard old entries in left_Ax_ortho*
+        while(left_Ax_ortho.size() > left_Ax.size())
+          left_Ax_ortho.pop_back();
+        while(left_Ax_ortho_B.size() > left_Ax.size())
+          left_Ax_ortho_B.pop_back();
+
         // calculate new entries in left_Ax when sweeping left-to-right
         for(int iDim = firstIdx + left_Ax.size(); iDim <= lastIdx; iDim++)
         {
-            const auto& subTOpA = TTOpA.tensorTrain().subTensor(iDim);
-            const auto& subTx = TTx.subTensor(iDim);
+          const auto& subTOpA = TTOpA.tensorTrain().subTensor(iDim);
+          const auto& subTx = TTx.subTensor(iDim);
+          const auto n = subTOpA.n() / subTx.n();
+          {
             Tensor3<T> subTAx;
             internal::apply_contract(TTOpA, iDim, subTOpA, subTx, subTAx);
             left_Ax.emplace_back(std::move(subTAx));
+          }
+
+          Tensor2<T> t2Ax;
+          Tensor3<T> subTAx;
+          if( left_Ax_ortho_B.empty() )
+          {
+            unfold_left(left_Ax.back(), t2Ax);
+          }
+          else
+          {
+            internal::normalize_contract1(left_Ax_ortho_B.back(), left_Ax.back(), subTAx);
+            unfold_left(subTAx, t2Ax);
+          }
+          auto [Q, B] = internal::normalize_qb(t2Ax, true);
+          left_Ax_ortho_B.emplace_back(std::move(B));
+          fold_left(Q, n, subTAx);
+          left_Ax_ortho.emplace_back(std::move(subTAx));
         }
 
         // discard old entries in left_Ax when sweeping right-to-left
         for(int iDim = firstIdx + left_Ax.size(); iDim-1 > lastIdx; iDim--)
+        {
           left_Ax.pop_back();
+          left_Ax_ortho.pop_back();
+          left_Ax_ortho_B.pop_back();
+        }
       }
 
       // set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
