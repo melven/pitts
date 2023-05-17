@@ -141,15 +141,15 @@ namespace PITTS
           if( !prev_t2 )
           {
             // contract: subTw(:,*,*) * subTv(:,*,*)
-            internal::dot_contract2(subTw, subTv, t2);
+            internal::dot_contract2(subTv, subTw, t2);
           }
           else
           {
             Tensor3<T> t3_tmp;
-            // first contraction: subTw(:,:,*) * prev_t2(*,:)
-            internal::dot_contract1t<T>(subTw, *prev_t2, t3_tmp);
-            // second contraction: t3_tmp(:,*,*) * subTv(:,*,*)
-            internal::dot_contract2(t3_tmp, subTv, t2);
+            // first contraction: subTw(:,:,*) * prev_t2(:,*)
+            internal::dot_contract1<T>(subTw, *prev_t2, t3_tmp);
+            // second contraction: subTv(:,*,*) * t3_tmp(:,*,*)
+            internal::dot_contract2(subTv, t3_tmp, t2);
           }
         };
       }

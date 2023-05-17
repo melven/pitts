@@ -189,7 +189,7 @@ namespace PITTS
 
       // prepare operator and right-hand side
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-      const TensorTrain<T> tt_b = calculate_local_rhs<T>(swpIdx.leftDim(), nMALS, std::cref(left_vTb.back()), TTb, std::cref(right_vTb.back()));
+      const TensorTrain<T> tt_b = calculate_local_rhs<T>(swpIdx.leftDim(), nMALS, vTb.left(), TTb, vTb.right());
       const TensorTrainOperator<T> localTTOp = calculate_local_op<T>(swpIdx.leftDim(), nMALS, std::cref(left_vTAx.back()), TTOpA, std::cref(right_vTAx.back()));
 
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
@@ -248,10 +248,10 @@ if( nAMEnEnrichment > 0 )
           right_vTb.clear();
           right_vTAx.clear();
         }
-        vTb.invalidate(swpIdx.leftDim()-1);
-        vTb.invalidate(swpIdx.rightDim()+1);
-        vTAx.invalidate(swpIdx.leftDim()-1);
-        vTAx.invalidate(swpIdx.rightDim()+1);
+        vTb.invalidate(0);
+        vTb.invalidate(nDim-1);
+        vTAx.invalidate(0);
+        vTAx.invalidate(nDim-1);
       }
     };
 
@@ -302,6 +302,9 @@ if( nAMEnEnrichment > 0 )
         TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT));
 
         // these are not valid any more
+        Ax.invalidate(swpIdx.rightDim()+1);
+        vTAx.invalidate(swpIdx.rightDim()+1);
+        vTb.invalidate(swpIdx.rightDim()+1);
         right_Ax.pop_back();
         if( !right_vTAx.empty() )
           right_vTAx.pop_back();
@@ -345,6 +348,9 @@ if( nAMEnEnrichment > 0 )
         TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT));
 
         // these are not valid any more
+        Ax.invalidate(swpIdx.leftDim()-1);
+        vTAx.invalidate(swpIdx.leftDim()-1);
+        vTb.invalidate(swpIdx.leftDim()-1);
         left_Ax.pop_back();
         if( !left_vTAx.empty() )
           left_vTAx.pop_back();
