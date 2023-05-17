@@ -24,12 +24,6 @@ template TensorTrainOperator<double> setupProjectionOperator(const TensorTrain<d
 template TensorTrain<float> calculatePetrovGalerkinProjection(TensorTrainOperator<float>& TTAv, SweepIndex swpIdx, const TensorTrain<float>& TTx, bool symmetrize);
 template TensorTrain<double> calculatePetrovGalerkinProjection(TensorTrainOperator<double>& TTAv, SweepIndex swpIdx, const TensorTrain<double>& TTx, bool symmetrize);
 
-template void update_right_vTw(const RightPartialTT<float>& TTv, const RightPartialTT<float>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<float>>& right_vTw);
-template void update_right_vTw(const RightPartialTT<double>& TTv, const RightPartialTT<double>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<double>>& right_vTw);
-
-template void update_left_vTw(const LeftPartialTT<float>& TTv, const LeftPartialTT<float>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<float>>& left_vTw);
-template void update_left_vTw(const LeftPartialTT<double>& TTv, const LeftPartialTT<double>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<double>>& left_vTw);
-
 template TensorTrain<float> calculate_local_rhs(int iDim, int nMALS, optional_cref<Tensor2<float>> left_vTb, const TensorTrain<float>& TTb, optional_cref<Tensor2<float>> right_vTb);
 template TensorTrain<double> calculate_local_rhs(int iDim, int nMALS, optional_cref<Tensor2<double>> left_vTb, const TensorTrain<double>& TTb, optional_cref<Tensor2<double>> right_vTb);
       

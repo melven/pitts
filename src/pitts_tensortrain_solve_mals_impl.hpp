@@ -108,7 +108,6 @@ namespace PITTS
     const TensorTrain<T>& TTv = projection == MALS_projection::PetrovGalerkin ? TTw : TTx;
 
     // we store previous parts of w^Tb from left and right
-    std::vector<Tensor2<T>> left_vTb, right_vTb;
     SweepData vTb = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, TTb), dot_loop_from_right<T>(TTv, TTb));
     
     // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
@@ -121,8 +120,6 @@ namespace PITTS
     std::vector<Tensor2<T>> left_Ax_ortho_M, right_Ax_ortho_M;
 
     // we store previous parts of x^T A x
-    // (respectively x^T A^T A x for the non-symmetric case)
-    std::vector<Tensor2<T>> left_vTAx, right_vTAx;
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
     // for the Petrov-Galerkin variant:
@@ -180,17 +177,10 @@ namespace PITTS
       vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
       vTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
-      update_left_vTw<T>(left_v, TTb, 0, swpIdx.leftDim() - 1, left_vTb);
-      update_left_vTw<T>(left_v, left_Ax, 0, swpIdx.leftDim() - 1, left_vTAx);
-
-      update_right_vTw<T>(right_v, TTb, swpIdx.rightDim() + 1, nDim - 1, right_vTb);
-      update_right_vTw<T>(right_v, right_Ax, swpIdx.rightDim() + 1, nDim - 1, right_vTAx);
-
-
       // prepare operator and right-hand side
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
       const TensorTrain<T> tt_b = calculate_local_rhs<T>(swpIdx.leftDim(), nMALS, vTb.left(), TTb, vTb.right());
-      const TensorTrainOperator<T> localTTOp = calculate_local_op<T>(swpIdx.leftDim(), nMALS, std::cref(left_vTAx.back()), TTOpA, std::cref(right_vTAx.back()));
+      const TensorTrainOperator<T> localTTOp = calculate_local_op<T>(swpIdx.leftDim(), nMALS, vTAx.left(), TTOpA, vTAx.right());
 
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
       assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
@@ -238,16 +228,6 @@ if( nAMEnEnrichment > 0 )
       if( projection == MALS_projection::PetrovGalerkin )
       {
         // recover original sub-tensor of projection space
-        {
-          // this also invalidates left_vTb and left_vTAx!
-          left_vTb.clear();
-          left_vTAx.clear();
-        }
-        {
-          // this also invalidates right_vTb and right_vTAx!
-          right_vTb.clear();
-          right_vTAx.clear();
-        }
         vTb.invalidate(0);
         vTb.invalidate(nDim-1);
         vTAx.invalidate(0);
@@ -306,10 +286,6 @@ if( nAMEnEnrichment > 0 )
         vTAx.invalidate(swpIdx.rightDim()+1);
         vTb.invalidate(swpIdx.rightDim()+1);
         right_Ax.pop_back();
-        if( !right_vTAx.empty() )
-          right_vTAx.pop_back();
-        if( !right_vTb.empty() )
-          right_vTb.pop_back();
       }
       else // right-to-left
       {
@@ -352,10 +328,6 @@ if( nAMEnEnrichment > 0 )
         vTAx.invalidate(swpIdx.leftDim()-1);
         vTb.invalidate(swpIdx.leftDim()-1);
         left_Ax.pop_back();
-        if( !left_vTAx.empty() )
-          left_vTAx.pop_back();
-        if( !left_vTb.empty() )
-          left_vTb.pop_back();
        }
     };
 

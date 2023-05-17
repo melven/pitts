@@ -222,32 +222,6 @@ namespace PITTS
       TensorTrain<T> calculatePetrovGalerkinProjection(TensorTrainOperator<T>& TTAv, SweepIndex swpIdx, const TensorTrain<T>& TTx, bool symmetrize);
       
 
-      //! calculate next part of v^Tw from right to left or discard last part
-      //!
-      //! Like TT dot product fused with TT apply but allows to store all intermediate results.
-      //!
-      //! we have
-      //!  |         |
-      //!  -- vTw --
-      //!
-      //! and we need for the next step
-      //!   |               |
-      //!  v_k^T --------- w_k
-      //!   |              |
-      //!   ----- vTw -----
-      //!
-      template<typename T>
-      void update_right_vTw(const RightPartialTT<T>& TTv, const RightPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& right_vTw);
-      
-
-      //! calculate next part of v^Tw from left to right or discard last part
-      //!
-      //! Like TT dot product fused with TT apply but allows to store all intermediate results.
-      //!
-      template<typename T>
-      void update_left_vTw(const LeftPartialTT<T>& TTv, const LeftPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& left_vTw);
-      
-
       //! calculate the local RHS tensor-train for (M)ALS
       template<typename T>
       TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTb, const TensorTrain<T>& TTb, optional_cref<Tensor2<T>> right_vTb);
