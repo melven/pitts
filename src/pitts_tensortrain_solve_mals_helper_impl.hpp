@@ -489,20 +489,26 @@ namespace PITTS
 
       // calculate the local RHS tensor-train for (M)ALS
       template<typename T>
-      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_vTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_vTb)
+      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTb, const TensorTrain<T>& TTb, optional_cref<Tensor2<T>> right_vTb)
       {
         std::vector<Tensor3<T>> subT_b(nMALS);
         for(int i = 0; i < nMALS; i++)
           copy(TTb.subTensor(iDim+i), subT_b[i]);
 
-        // first contract: tt_b_right(:,:,*) * right_vTb(:,*)
         Tensor3<T> t3_tmp;
-        std::swap(subT_b.back(), t3_tmp);
-        internal::dot_contract1(t3_tmp, right_vTb, subT_b.back());
+        // first contract: tt_b_right(:,:,*) * right_vTb(:,*)
+        if( right_vTb )
+        {
+          std::swap(subT_b.back(), t3_tmp);
+          internal::dot_contract1<T>(t3_tmp, *right_vTb, subT_b.back());
+        }
 
         // then contract: left_vTb(*,:) * tt_b_left(*,:,:)
-        std::swap(subT_b.front(), t3_tmp);
-        internal::reverse_dot_contract1(left_vTb, t3_tmp, subT_b.front());
+        if( left_vTb )
+        {
+          std::swap(subT_b.front(), t3_tmp);
+          internal::reverse_dot_contract1<T>(*left_vTb, t3_tmp, subT_b.front());
+        }
 
         TensorTrain<T> tt_b(std::move(subT_b));
 
@@ -566,24 +572,33 @@ namespace PITTS
 
       // calculate the local linear operator in TT format for (M)ALS
       template<typename T>
-      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_vTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_vTAx)
+      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTAx, const TensorTrainOperator<T>& TTOp, optional_cref<Tensor2<T>> right_vTAx)
       {
-        std::vector<Tensor3<T>> subT_localOp(nMALS+2);
+        int nDim = nMALS + (bool)left_vTAx + (bool)right_vTAx;
+        std::vector<Tensor3<T>> subT_localOp(nDim);
         for(int i = 0; i < nMALS; i++)
-          copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[1+i]);
-        copy_op_left(left_vTAx, subT_localOp[1].r1(), subT_localOp[0]);
-        copy_op_right(right_vTAx, subT_localOp[nMALS].r2(), subT_localOp[nMALS+1]);
+          copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[(bool)left_vTAx+i]);
+        if( left_vTAx )
+          copy_op_left<T>(*left_vTAx, subT_localOp[1].r1(), subT_localOp.front());
+        if( right_vTAx )
+          copy_op_right<T>(*right_vTAx, subT_localOp[nMALS].r2(), subT_localOp.back());
 
-        std::vector<int> localRowDims(nMALS+2), localColDims(nMALS+2);
-        localRowDims.front() = left_vTAx.r2();
-        localColDims.front() = subT_localOp[0].n() / localRowDims.front();
+        std::vector<int> localRowDims(nDim), localColDims(nDim);
+        if( left_vTAx )
+        {
+          localRowDims.front() = left_vTAx->get().r2();
+          localColDims.front() = subT_localOp[0].n() / localRowDims.front();
+        }
         for(int i = 0; i < nMALS; i++)
         {
-          localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
-          localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
+          localRowDims[i+(bool)left_vTAx] = TTOp.row_dimensions()[iDim+i];
+          localColDims[i+(bool)left_vTAx] = TTOp.column_dimensions()[iDim+i];
         }
-        localRowDims.back() = right_vTAx.r1();
-        localColDims.back()  = subT_localOp[nMALS+1].n() / localRowDims.back();
+        if( right_vTAx )
+        {
+          localRowDims.back() = right_vTAx->get().r1();
+          localColDims.back()  = subT_localOp.back().n() / localRowDims.back();
+        }
 
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
         localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));

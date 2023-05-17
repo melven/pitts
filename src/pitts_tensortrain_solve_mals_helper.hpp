@@ -250,7 +250,7 @@ namespace PITTS
 
       //! calculate the local RHS tensor-train for (M)ALS
       template<typename T>
-      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_vTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_vTb);
+      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTb, const TensorTrain<T>& TTb, optional_cref<Tensor2<T>> right_vTb);
       
 
       //! calculate the local initial solutiuon in TT format for (M)ALS
@@ -260,7 +260,7 @@ namespace PITTS
 
       //! calculate the local linear operator in TT format for (M)ALS
       template<typename T>
-      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_vTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_vTAx);
+      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTAx, const TensorTrainOperator<T>& TTOp, optional_cref<Tensor2<T>> right_vTAx);
       
 
       template<typename T>

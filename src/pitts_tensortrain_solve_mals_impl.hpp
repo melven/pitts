@@ -189,8 +189,8 @@ namespace PITTS
 
       // prepare operator and right-hand side
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-      const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_vTb.back(), TTb, right_vTb.back());
-      const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_vTAx.back(), TTOpA, right_vTAx.back());
+      const TensorTrain<T> tt_b = calculate_local_rhs<T>(swpIdx.leftDim(), nMALS, std::cref(left_vTb.back()), TTb, std::cref(right_vTb.back()));
+      const TensorTrainOperator<T> localTTOp = calculate_local_op<T>(swpIdx.leftDim(), nMALS, std::cref(left_vTAx.back()), TTOpA, std::cref(right_vTAx.back()));
 
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
       assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
