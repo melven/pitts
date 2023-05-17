@@ -103,21 +103,27 @@ namespace PITTS
     // check that 'symmetric' flag is used correctly
     assert(!symmetric || norm2((TTOpA-transpose(TTOpA)).tensorTrain()) < sqrt_eps);
 
-    // we store previous parts of w^Tb from left and right
-    // (respectively x^T A^T b for the non-symmetric case)
-    std::vector<Tensor2<T>> left_vTb, right_vTb;
-    
-    // we store previous parts of x^T A x
-    // (respectively x^T A^T A x for the non-symmetric case)
-    std::vector<Tensor2<T>> left_vTAx, right_vTAx;
+    // for the Petrov-Galerkin variant, we get a dedicated left projection
+    TensorTrain<T> TTw(0,0);
+    const TensorTrain<T>& TTv = projection == MALS_projection::PetrovGalerkin ? TTw : TTx;
 
+    // we store previous parts of w^Tb from left and right
+    std::vector<Tensor2<T>> left_vTb, right_vTb;
+    SweepData vTb = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, TTb), dot_loop_from_right<T>(TTv, TTb));
+    
     // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
     std::vector<Tensor3<T>> left_Ax, right_Ax;
     TensorTrain<T> TTAx(TTOpA.row_dimensions());
+    SweepData Ax = defineSweepData<Tensor3<T>>(nDim, apply_loop(TTOpA, TTx), apply_loop(TTOpA, TTx));
 
     // also store left- and right-orthogonlized parts of Ax as the plain variant might have much higher rank!
     std::vector<Tensor3<T>> left_Ax_ortho, right_Ax_ortho;
     std::vector<Tensor2<T>> left_Ax_ortho_M, right_Ax_ortho_M;
+
+    // we store previous parts of x^T A x
+    // (respectively x^T A^T A x for the non-symmetric case)
+    std::vector<Tensor2<T>> left_vTAx, right_vTAx;
+    SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
     // for the Petrov-Galerkin variant:
     // sub-tensors to represent projection space v that approximately spans Ax
@@ -137,9 +143,10 @@ namespace PITTS
       std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
-      update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_M);
-
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
+      Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+
+      update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_M);
       update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_M);
 
       assert(check_Orthogonality(swpIdx, TTx));
@@ -147,8 +154,6 @@ namespace PITTS
 
       LeftPartialTT<T> left_v;
       RightPartialTT<T> right_v;
-      // dummy tensortrain, filled later for Petrov-Galerkin case
-      TensorTrain<T> TTw(0,0);
 
       Tensor3<T> tmp_last_left_v, tmp_last_right_v;
       if( projection == MALS_projection::RitzGalerkin )
@@ -171,6 +176,9 @@ namespace PITTS
 
         assert(check_Orthogonality(swpIdx, TTw));
       }
+
+      vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      vTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
       update_left_vTw<T>(left_v, TTb, 0, swpIdx.leftDim() - 1, left_vTb);
       update_left_vTw<T>(left_v, left_Ax, 0, swpIdx.leftDim() - 1, left_vTAx);
@@ -240,6 +248,10 @@ if( nAMEnEnrichment > 0 )
           right_vTb.clear();
           right_vTAx.clear();
         }
+        vTb.invalidate(swpIdx.leftDim()-1);
+        vTb.invalidate(swpIdx.rightDim()+1);
+        vTAx.invalidate(swpIdx.leftDim()-1);
+        vTAx.invalidate(swpIdx.rightDim()+1);
       }
     };
 
