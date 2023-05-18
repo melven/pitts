@@ -111,13 +111,9 @@ namespace PITTS
     SweepData vTb = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, TTb), dot_loop_from_right<T>(TTv, TTb));
     
     // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
-    std::vector<Tensor3<T>> left_Ax, right_Ax;
+    std::vector<Tensor3<T>> tmpAx(nDim);
     TensorTrain<T> TTAx(TTOpA.row_dimensions());
     SweepData Ax = defineSweepData<Tensor3<T>>(nDim, apply_loop(TTOpA, TTx), apply_loop(TTOpA, TTx));
-
-    // also store left- and right-orthogonlized parts of Ax as the plain variant might have much higher rank!
-    std::vector<Tensor3<T>> left_Ax_ortho, right_Ax_ortho;
-    std::vector<Tensor2<T>> left_Ax_ortho_M, right_Ax_ortho_M;
 
     // we store previous parts of x^T A x
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
@@ -143,11 +139,8 @@ namespace PITTS
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
       Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
-      update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_M);
-      update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_M);
-
       assert(check_Orthogonality(swpIdx, TTx));
-      assert(check_Ax(TTOpA, TTx, swpIdx, left_Ax, right_Ax));
+      assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
 
       LeftPartialTT<T> left_v;
       RightPartialTT<T> right_v;
@@ -228,10 +221,8 @@ if( nAMEnEnrichment > 0 )
       if( projection == MALS_projection::PetrovGalerkin )
       {
         // recover original sub-tensor of projection space
-        vTb.invalidate(0);
-        vTb.invalidate(nDim-1);
-        vTAx.invalidate(0);
-        vTAx.invalidate(nDim-1);
+        vTb.invalidate(0, nDim);
+        vTAx.invalidate(0, nDim);
       }
     };
 
@@ -285,7 +276,6 @@ if( nAMEnEnrichment > 0 )
         Ax.invalidate(swpIdx.rightDim()+1);
         vTAx.invalidate(swpIdx.rightDim()+1);
         vTb.invalidate(swpIdx.rightDim()+1);
-        right_Ax.pop_back();
       }
       else // right-to-left
       {
@@ -327,7 +317,6 @@ if( nAMEnEnrichment > 0 )
         Ax.invalidate(swpIdx.leftDim()-1);
         vTAx.invalidate(swpIdx.leftDim()-1);
         vTb.invalidate(swpIdx.leftDim()-1);
-        left_Ax.pop_back();
        }
     };
 
@@ -349,12 +338,11 @@ if( nAMEnEnrichment > 0 )
         
         lastSwpIdx = swpIdx;
       }
-      // update remaining sub-tensors of left_Ax
-      update_left_Ax(TTOpA, TTx, 0, nDim - 1, left_Ax, left_Ax_ortho, left_Ax_ortho_M);
-      left_Ax = TTAx.setSubTensors(0, std::move(left_Ax));
-      // for non-symm. cases, we still need left_Ax
+      // update remaining sub-tensors of Ax
+      Ax.update(nDim-1, nDim);
       for(int iDim = 0; iDim < nDim; iDim++)
-        copy(TTAx.subTensor(iDim), left_Ax[iDim]);
+        copy(Ax.subTensor(iDim), tmpAx[iDim]);
+      tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
 
 
 
@@ -380,12 +368,10 @@ if( nAMEnEnrichment > 0 )
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of right_Ax
-      update_right_Ax(TTOpA, TTx, 0, nDim - 1, right_Ax, right_Ax_ortho, right_Ax_ortho_M);
-      // TODO: that's wrong -> need a reverse
-      right_Ax = TTAx.setSubTensors(0, reverse(std::move(right_Ax)));
-      // for non-symm. cases, we still need right_Ax
+      Ax.update(-1, 0);
       for(int iDim = 0; iDim < nDim; iDim++)
-        copy(TTAx.subTensor(iDim), right_Ax[nDim-iDim-1]);
+        copy(Ax.subTensor(iDim), tmpAx[iDim]);
+      tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
 
       assert(norm2(TTOpA * TTx - TTAx) < sqrt_eps);
 

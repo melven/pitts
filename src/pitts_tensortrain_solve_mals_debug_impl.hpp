@@ -108,26 +108,21 @@ namespace PITTS
 
       // check that left/right_Ax = TTOpA * TTx
       template<typename T>
-      bool check_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<T>>& left_Ax, const std::vector<Tensor3<T>>& right_Ax)
+      bool check_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<T>>& Ax)
       {
         using PITTS::debug::operator*;
 
         const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 
         const TensorTrain<T> Ax_ref = TTOpA * TTx;
-        assert(left_Ax.size() == swpIdx.leftDim());
-        for(int i = 0; i < left_Ax.size(); i++)
+        assert(Ax.size() == swpIdx.nDim());
+        for(int iDim = 0; iDim < swpIdx.nDim(); iDim++)
         {
-          const T error = internal::t3_nrm(Ax_ref.subTensor(i) - left_Ax[i]);
+          if( iDim >= swpIdx.leftDim() && iDim <= swpIdx.rightDim() )
+            continue;
+          const T error = internal::t3_nrm(Ax_ref.subTensor(iDim) - Ax[iDim]);
           assert(error < sqrt_eps);
         }
-        assert(right_Ax.size() == swpIdx.nDim() - swpIdx.rightDim() - 1);
-        for(int i = 0; i < right_Ax.size(); i++)
-        {
-          const T error = internal::t3_nrm(Ax_ref.subTensor(swpIdx.nDim()-i-1) - right_Ax[i]);
-          assert(error < sqrt_eps);
-        }
-
         return true;
       }
 

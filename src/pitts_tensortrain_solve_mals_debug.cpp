@@ -18,8 +18,8 @@ template TensorTrain<double> removeBoundaryRankOne(const TensorTrainOperator<dou
 template Tensor3<float> operator-(const Tensor3<float>& a, const Tensor3<float>& b);
 template Tensor3<double> operator-(const Tensor3<double>& a, const Tensor3<double>& b);
 
-template bool check_Ax(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<float>>& left_Ax, const std::vector<Tensor3<float>>& right_Ax);
-template bool check_Ax(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<double>>& left_Ax, const std::vector<Tensor3<double>>& right_Ax);
+template bool check_Ax(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<float>>& Ax);
+template bool check_Ax(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<double>>& Ax);
 
 template bool check_ProjectionOperator(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, SweepIndex swpIdx, const TensorTrainOperator<float>& TTv, const TensorTrainOperator<float>& TTAv);
 template bool check_ProjectionOperator(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, SweepIndex swpIdx, const TensorTrainOperator<double>& TTv, const TensorTrainOperator<double>& TTAv);

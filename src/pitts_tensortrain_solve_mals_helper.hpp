@@ -50,11 +50,12 @@ namespace PITTS
             assert((iDim >= 0 && iDim <= leftDim_) || (iDim >= rightDim_ && iDim <= nDim_-1));
             return result_[iDim];
           }
-          void invalidate(int iDim)
+          [[nodiscard]] const std::vector<ResultType>& data() const {return result_;}
+          void invalidate(int iDim, int nMALS = 1)
           {
             iDim = std::clamp(iDim, 0, nDim_-1);
             leftDim_ = std::min(leftDim_, iDim-1);
-            rightDim_ = std::max(rightDim_, iDim+1);
+            rightDim_ = std::max(rightDim_, iDim+nMALS);
           }
           void update(int newLeftDim, int newRightDim)
           {
@@ -240,16 +241,6 @@ namespace PITTS
       template<typename T>
       T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
                         int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose);
-      
-
-      //! helper function to returned an std::vector with the reverse ordering...
-      template<typename T>
-      std::vector<T> reverse(std::vector<T>&& v)
-      {
-        for(int i = 0; i < v.size()/2; i++)
-          std::swap(v[i],v[v.size()-i-1]);
-        return std::move(v);
-      }
     }
   }
 }
