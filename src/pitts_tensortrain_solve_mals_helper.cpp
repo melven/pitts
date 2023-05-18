@@ -8,16 +8,6 @@
 
 namespace PITTS::internal::solve_mals
 {
-template void update_right_Ax(const TensorTrainOperator<float> TTOpA, const TensorTrain<float>& TTx, int firstIdx, int lastIdx,
-                              std::vector<Tensor3<float>>& right_Ax, std::vector<Tensor3<float>>& right_Ax_ortho, std::vector<Tensor2<float>>& right_Ax_ortho_M);
-template void update_right_Ax(const TensorTrainOperator<double> TTOpA, const TensorTrain<double>& TTx, int firstIdx, int lastIdx,
-                              std::vector<Tensor3<double>>& right_Ax, std::vector<Tensor3<double>>& right_Ax_ortho, std::vector<Tensor2<double>>& right_Ax_ortho_M);
-
-template void update_left_Ax(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, int firstIdx, int lastIdx,
-                             std::vector<Tensor3<float>>& left_Ax, std::vector<Tensor3<float>>& left_Ax_ortho, std::vector<Tensor2<float>>& left_Ax_ortho_M);
-template void update_left_Ax(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, int firstIdx, int lastIdx,
-                             std::vector<Tensor3<double>>& left_Ax, std::vector<Tensor3<double>>& left_Ax_ortho, std::vector<Tensor2<double>>& left_Ax_ortho_M);
-
 template TensorTrainOperator<float> setupProjectionOperator(const TensorTrain<float>& TTx, SweepIndex swpIdx);
 template TensorTrainOperator<double> setupProjectionOperator(const TensorTrain<double>& TTx, SweepIndex swpIdx);
 

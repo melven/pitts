@@ -118,10 +118,6 @@ namespace PITTS
     // we store previous parts of x^T A x
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
-    // for the Petrov-Galerkin variant:
-    // sub-tensors to represent projection space v that approximately spans Ax
-    std::vector<Tensor3<T>> left_v_subT, right_v_subT;
-
     // save local residual for enriching the subspace
     std::unique_ptr<TensorTrain<T>> tt_r;
 
@@ -142,16 +138,7 @@ namespace PITTS
       assert(check_Orthogonality(swpIdx, TTx));
       assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
 
-      LeftPartialTT<T> left_v;
-      RightPartialTT<T> right_v;
-
-      Tensor3<T> tmp_last_left_v, tmp_last_right_v;
-      if( projection == MALS_projection::RitzGalerkin )
-      {
-        left_v = TTx;
-        right_v = TTx;
-      }
-      else // projection == MALS_projection::PetrovGalerkin
+      if( projection == MALS_projection::PetrovGalerkin )
       {
         // stupid implementation for testing
         TensorTrainOperator<T> TTv = setupProjectionOperator(TTx, swpIdx);
@@ -161,8 +148,6 @@ namespace PITTS
         assert(check_ProjectionOperator(TTOpA, TTx, swpIdx, TTv, TTAv));
 
         TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx, true);
-        left_v = TTw;
-        right_v = TTw;
 
         assert(check_Orthogonality(swpIdx, TTw));
       }

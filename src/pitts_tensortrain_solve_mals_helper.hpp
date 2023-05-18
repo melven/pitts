@@ -155,63 +155,6 @@ namespace PITTS
         };
       }
 
-      //! calculate next part of Ax from right to left or discard last part
-      template<typename T>
-      void update_right_Ax(const TensorTrainOperator<T> TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
-                           std::vector<Tensor3<T>>& right_Ax, std::vector<Tensor3<T>>& right_Ax_ortho, std::vector<Tensor2<T>>& right_Ax_ortho_M);
-
-
-      //! calculate next part of Ax from left to right or discard last part
-      template<typename T>
-      void update_left_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx,
-                          std::vector<Tensor3<T>>& left_Ax, std::vector<Tensor3<T>>& left_Ax_ortho, std::vector<Tensor2<T>>& left_Ax_ortho_M);
-
-
-      //! helper class for wrapping either a TensorTrain or just the right-most part of its sub-tensors
-      template<typename T>
-      class RightPartialTT final
-      {
-      public:
-        RightPartialTT() = default;
-        RightPartialTT(const TensorTrain<T>& tt) : tt_(&tt) {}
-        RightPartialTT(const std::vector<Tensor3<T>>& subTs) : subTs_(&subTs) {}
-
-        const Tensor3<T>& subTensorFromRight(int i) const
-        {
-          assert( tt_ || subTs_ );
-          if( tt_ )
-            return tt_->subTensor(tt_->dimensions().size() - 1 - i);
-
-          return subTs_->at(i);
-        }
-      private:
-        const TensorTrain<T> *tt_ = nullptr;
-        const std::vector<Tensor3<T>> *subTs_ = nullptr;
-      };
-
-
-      //! helper class for wrapping either a TensorTrain or just the left-most part of its sub-tensors
-      template<typename T>
-      class LeftPartialTT final
-      {
-      public:
-        LeftPartialTT() = default;
-        LeftPartialTT(const TensorTrain<T>& tt) : tt_(&tt) {}
-        LeftPartialTT(const std::vector<Tensor3<T>>& subTs) : subTs_(&subTs) {}
-
-        const Tensor3<T>& subTensorFromLeft(int i) const
-        {
-          assert( tt_ || subTs_ );
-          if( tt_ )
-            return tt_->subTensor(i);
-          else
-            return subTs_->at(i);
-        }
-      private:
-        const TensorTrain<T> *tt_ = nullptr;
-        const std::vector<Tensor3<T>> *subTs_ = nullptr;
-      };
-
       //! set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
       //!
       //! TODO: use only for debugging; currently still needed for PetrovGalerkin variant
