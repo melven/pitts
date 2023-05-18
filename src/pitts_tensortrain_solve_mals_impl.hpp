@@ -122,7 +122,11 @@ namespace PITTS
     std::unique_ptr<TensorTrain<T>> tt_r;
 
     // calculate the error norm
-    apply(TTOpA, TTx, TTAx);
+    internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
+    Ax.update(-1, 0);
+    for(int iDim = 0; iDim < nDim; iDim++)
+      copy(Ax.subTensor(iDim), tmpAx[iDim]);
+    tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
     T residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
     std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
