@@ -132,12 +132,24 @@ namespace PITTS
     Ax.update(-1, 0);
     Ax_ortho.update(-1, 0);
     Ax_b_ortho.update(-1, 0);
+
+    assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
     assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+
     for(int iDim = 0; iDim < nDim; iDim++)
       copy(Ax.subTensor(iDim), tmpAx[iDim]);
     tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
     T residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
     std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+    {
+      const T norm_Ax = Ax_ortho.data().front().second(0,0);
+      auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
+      T residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+      std::cout << "Ax_b_ortho norm: " << residualNorm << std::endl;
+      assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+    }
 
     // lambda to avoid code duplication: performs one step in a sweep
     const auto solveLocalProblem = [&](const internal::SweepIndex &swpIdx, bool firstSweep = false)
@@ -274,6 +286,8 @@ if( nAMEnEnrichment > 0 )
 
         // these are not valid any more
         Ax.invalidate(swpIdx.rightDim()+1);
+        Ax_ortho.invalidate(swpIdx.rightDim()+1);
+        Ax_b_ortho.invalidate(swpIdx.rightDim()+1);
         vTAx.invalidate(swpIdx.rightDim()+1);
         vTb.invalidate(swpIdx.rightDim()+1);
       }
@@ -315,6 +329,8 @@ if( nAMEnEnrichment > 0 )
 
         // these are not valid any more
         Ax.invalidate(swpIdx.leftDim()-1);
+        Ax_ortho.invalidate(swpIdx.leftDim()-1);
+        Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
         vTAx.invalidate(swpIdx.leftDim()-1);
         vTb.invalidate(swpIdx.leftDim()-1);
        }
@@ -342,7 +358,19 @@ if( nAMEnEnrichment > 0 )
       Ax.update(nDim-1, nDim);
       Ax_ortho.update(nDim-1, nDim);
       Ax_b_ortho.update(nDim-1, nDim);
+
+      assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, nDim), Ax.data()));
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), true, Ax_b_ortho.data()));
+
+      {
+        const T norm_Ax = Ax_ortho.data().back().second(0,0);
+        auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
+        T residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
+        std::cout << "Ax_b_ortho norm: " << residualNorm << "\n";
+        assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+      }
+
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
       tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
@@ -374,7 +402,19 @@ if( nAMEnEnrichment > 0 )
       Ax.update(-1, 0);
       Ax_ortho.update(-1, 0);
       Ax_b_ortho.update(-1, 0);
+
+      assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+
+      {
+        const T norm_Ax = Ax_ortho.data().front().second(0,0);
+        auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
+        T residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+        std::cout << "Ax_b_ortho norm: " << residualNorm << "\n";
+      assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+      }
+
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
       tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));

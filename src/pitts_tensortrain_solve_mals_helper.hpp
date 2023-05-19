@@ -260,13 +260,19 @@ namespace PITTS
       }
 
       template<typename T>
+      const auto& extract_first(const T& t) {return t;}
+
+      template<typename T1, typename T2>
+      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
+
+      template<typename T>
       constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
       {
         using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
         return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
         {
-          const auto& subTx = TTx.subTensor(iDim).first;
-          const auto& subTy = TTy.subTensor(iDim);
+          const auto& subTx = extract_first(TTx.subTensor(iDim));
+          const auto& subTy = extract_first(TTy.subTensor(iDim));
           assert(subTx.n() == subTy.n());
           const int n = subTx.n();
           const int r1x = subTx.r1();
@@ -287,13 +293,20 @@ namespace PITTS
           {
             const int r2x = subTx.r2();
             const int r2y = subTy.r2();
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x*n, r2x);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y*n, r2y);
             // contract (X 0; 0 Y) * prev_B
+            // unfortunately, the memory layout is strided for the right-to-left axpby loop, so we need to copy stuff around...
             const auto& prev_B = prev_QB->get().second;
-            t2.resize(r1x*n+r1y*n, prev_B.r2());
-            EigenMap(t2).topRows   (r1x*n) = mapX * ConstEigenMap(prev_B).topRows   (r2x);
-            EigenMap(t2).bottomRows(r1y*n) = mapY * ConstEigenMap(prev_B).bottomRows(r2y);
+            auto& t3 = QB.first;
+            t3.resize(r1x+r1y,n,r2x+r2y);
+#pragma omp parallel for schedule(static) collapse(2) if((r2x+r2y)*n > 50)
+            for(int k = 0; k < r2x+r2y; k++)
+              for(int j = 0; j < n; j++)
+                for(int i = 0; i < r1x+r1y; i++)
+                  t3(i,j,k) = k < r2x && i < r1x ? subTx(i,j,k) : k >= r2x && i >= r1x ? subTy(i-r1x,j,k-r2x) : T(0);
+            Tensor2<T> tmp;
+            unfold_left(t3, tmp);
+            t2.resize((r1x+r1y)*n, prev_B.r2());
+            EigenMap(t2) = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
             t2.resize(r1x+r1y, n*t2.r2(), false);
           }
 

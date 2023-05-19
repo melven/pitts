@@ -130,10 +130,11 @@ namespace PITTS
       template<typename T>
       bool check_Ax_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_ortho)
       {
+        using PITTS::debug::operator*;
+
         const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 
-        TensorTrain<T> TTAx_err(TTOpA.row_dimensions());
-        apply(TTOpA, TTx, TTAx_err);
+        TensorTrain<T> TTAx_err = TTOpA * TTx;
         const int nDim = TTAx_err.dimensions().size();
         assert(Ax_ortho.size() == nDim);
         std::vector<Tensor3<T>> tmpAx(nDim);
@@ -142,6 +143,58 @@ namespace PITTS
         TensorTrain<T> TTAx(std::move(tmpAx));
         const T sgn = dot(TTAx, TTAx_err) > 0 ? T(-1) : T(1);
         const T error = axpby(sgn*norm2(TTAx_err), TTAx, T(1), TTAx_err, T(0));
+        assert(error < sqrt_eps);
+        return true;
+      }
+
+      // check that left/right_Ax_b_ortho = left/rightNormalize(TTAx-TTb)
+      template<typename T>
+      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho)
+      {
+        using PITTS::debug::operator*;
+        using PITTS::debug::operator-;
+        using mat = Eigen::MatrixX<T>;
+
+        const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+
+        TensorTrain<T> TTAx = TTOpA * TTx;
+        const T alpha_Ax_err = std::abs(alpha_Ax) - norm2(TTAx);
+        assert(std::abs(alpha_Ax_err) < sqrt_eps);
+        TensorTrain<T> TTAx_b_err = TTAx - TTb;
+        const int nDim = TTAx_b_err.dimensions().size();
+        assert(Ax_b_ortho.size() == nDim);
+        std::vector<Tensor3<T>> tmpAx_b(nDim);
+        for(int i = 0; i < nDim; i++)
+          copy(Ax_b_ortho[i].first, tmpAx_b[i]);
+        // first or last boundary rank can be 2 -> need to contract then
+        if( !leftToRight )
+        {
+          mat Mleft(1,2);
+          Mleft << alpha_Ax, -1;
+          auto mapB = ConstEigenMap(Ax_b_ortho.front().second);
+          const auto& subT = Ax_b_ortho.front().first;
+          Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1(), subT.n()*subT.r2());
+          Tensor3<T> newSubT(1, subT.n(), subT.r2());
+          Eigen::Map<mat> mapNewSubT(&newSubT(0,0,0), 1, subT.n()*subT.r2());
+          mapNewSubT = Mleft * mapB * mapSubT;
+          tmpAx_b.front() = std::move(newSubT);
+        }
+        else
+        {
+          mat Mright(2,1);
+          Mright << alpha_Ax,
+                   -1;
+          auto mapB = ConstEigenMap(Ax_b_ortho.back().second);
+          const auto& subT = Ax_b_ortho.back().first;
+          Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1()*subT.n(), subT.r2());
+          Tensor3<T> newSubT(subT.r1(), subT.n(), 1);
+          Eigen::Map<mat> mapNewSubT(&newSubT(0,0,0), subT.r1()*subT.n(), 1);
+          mapNewSubT = mapSubT * mapB * Mright;
+          tmpAx_b.back() = std::move(newSubT);
+        }
+        TensorTrain<T> TTAx_b(std::move(tmpAx_b));
+        const T sgn = dot(TTAx_b, TTAx_b_err) > 0 ? T(-1) : T(1);
+        const T error = axpby(sgn, TTAx_b, T(1), TTAx_b_err, T(0));
         assert(error < sqrt_eps);
         return true;
       }

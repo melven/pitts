@@ -48,6 +48,10 @@ namespace PITTS
       template<typename T>
       bool check_Ax_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_ortho);
 
+      //! check that left/right_Ax_b_ortho = left/rightNormalize(TTAx-TTb)
+      template<typename T>
+      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho);
+
       //! check that v^T v = I and A v x_local = Av and
       template<typename T>
       bool check_ProjectionOperator(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const TensorTrainOperator<T>& TTv, const TensorTrainOperator<T>& TTAv);
