@@ -126,6 +126,26 @@ namespace PITTS
         return true;
       }
 
+      // check that left/right_Ax_ortho = left/rightNormalize(TTAx)
+      template<typename T>
+      bool check_Ax_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_ortho)
+      {
+        const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+
+        TensorTrain<T> TTAx_err(TTOpA.row_dimensions());
+        apply(TTOpA, TTx, TTAx_err);
+        const int nDim = TTAx_err.dimensions().size();
+        assert(Ax_ortho.size() == nDim);
+        std::vector<Tensor3<T>> tmpAx(nDim);
+        for(int i = 0; i < nDim; i++)
+          copy(Ax_ortho[i].first, tmpAx[i]);
+        TensorTrain<T> TTAx(std::move(tmpAx));
+        const T sgn = dot(TTAx, TTAx_err) > 0 ? T(-1) : T(1);
+        const T error = axpby(sgn*norm2(TTAx_err), TTAx, T(1), TTAx_err, T(0));
+        assert(error < sqrt_eps);
+        return true;
+      }
+
       // check that v^T v = I and A v x_local = Av and
       template<typename T>
       bool check_ProjectionOperator(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const TensorTrainOperator<T>& TTv, const TensorTrainOperator<T>& TTAv)

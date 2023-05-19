@@ -21,6 +21,9 @@ template Tensor3<double> operator-(const Tensor3<double>& a, const Tensor3<doubl
 template bool check_Ax(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<float>>& Ax);
 template bool check_Ax(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<double>>& Ax);
 
+template bool check_Ax_ortho(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, const std::vector<std::pair<Tensor3<float>,Tensor2<float>>>& Ax_ortho);
+template bool check_Ax_ortho(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, const std::vector<std::pair<Tensor3<double>,Tensor2<double>>>& Ax_ortho);
+
 template bool check_ProjectionOperator(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, SweepIndex swpIdx, const TensorTrainOperator<float>& TTv, const TensorTrainOperator<float>& TTAv);
 template bool check_ProjectionOperator(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, SweepIndex swpIdx, const TensorTrainOperator<double>& TTv, const TensorTrainOperator<double>& TTAv);
 

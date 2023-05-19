@@ -128,6 +128,7 @@ namespace PITTS
     internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
     Ax.update(-1, 0);
     Ax_ortho.update(-1, 0);
+    assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
     for(int iDim = 0; iDim < nDim; iDim++)
       copy(Ax.subTensor(iDim), tmpAx[iDim]);
     tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
@@ -335,6 +336,7 @@ if( nAMEnEnrichment > 0 )
       // update remaining sub-tensors of Ax
       Ax.update(nDim-1, nDim);
       Ax_ortho.update(nDim-1, nDim);
+      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
       tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
@@ -365,6 +367,7 @@ if( nAMEnEnrichment > 0 )
       // update remaining sub-tensors of right_Ax
       Ax.update(-1, 0);
       Ax_ortho.update(-1, 0);
+      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
       tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
