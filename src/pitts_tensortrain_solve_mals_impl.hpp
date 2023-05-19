@@ -137,18 +137,14 @@ namespace PITTS
     assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
     assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
 
-    for(int iDim = 0; iDim < nDim; iDim++)
-      copy(Ax.subTensor(iDim), tmpAx[iDim]);
-    tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
-    T residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
-    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-
+    // calculate error
+    T residualNorm;
     {
       const T norm_Ax = Ax_ortho.data().front().second(0,0);
       auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
-      T residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
-      std::cout << "Ax_b_ortho norm: " << residualNorm << std::endl;
+      residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
       assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+      std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 
     // lambda to avoid code duplication: performs one step in a sweep
@@ -363,27 +359,18 @@ if( nAMEnEnrichment > 0 )
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
       assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), true, Ax_b_ortho.data()));
 
+      // check error
       {
         const T norm_Ax = Ax_ortho.data().back().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
-        T residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
-        std::cout << "Ax_b_ortho norm: " << residualNorm << "\n";
+        residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+        std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+        if( residualNorm / nrm_TTb < residualTolerance )
+          break;
       }
 
-      for(int iDim = 0; iDim < nDim; iDim++)
-        copy(Ax.subTensor(iDim), tmpAx[iDim]);
-      tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
-
-
-
-      assert( norm2(TTOpA * TTx - TTAx) < sqrt_eps );
-
-      // check error
-      residualNorm = axpby(T(1), TTb, T(-1), TTAx);
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-      if( residualNorm / nrm_TTb < residualTolerance )
-        break;
 
       // sweep right to left
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
@@ -407,23 +394,14 @@ if( nAMEnEnrichment > 0 )
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
       assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
 
+      // check error
       {
         const T norm_Ax = Ax_ortho.data().front().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
-        T residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
-        std::cout << "Ax_b_ortho norm: " << residualNorm << "\n";
-      assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+        residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+        assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+        std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
       }
-
-      for(int iDim = 0; iDim < nDim; iDim++)
-        copy(Ax.subTensor(iDim), tmpAx[iDim]);
-      tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
-
-      assert(norm2(TTOpA * TTx - TTAx) < sqrt_eps);
-
-      // check error
-      residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
-      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
 
 
