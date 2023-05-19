@@ -120,7 +120,7 @@ namespace PITTS
     Tensor2() = default;
 
     //! adjust the desired tensor dimensions (destroying all data!)
-    void resize(long long r1, long long r2)
+    void resize(long long r1, long long r2, bool setPaddingToZero = true)
     {
       // fast return without timer!
       if( r1 == this->r1_ && r2 == this->r2_ )
@@ -138,7 +138,8 @@ namespace PITTS
       this->r1_ = r1;
       this->r2_ = r2;
       // ensure padding is zero
-      dataptr_[requiredChunks-1] = Chunk<T>{};
+      if( setPaddingToZero )
+        dataptr_[requiredChunks-1] = Chunk<T>{};
     }
 
     //! allow to move from this by casting to the underlying storage type

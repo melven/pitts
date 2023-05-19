@@ -16,9 +16,11 @@
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
+#include "pitts_eigen.hpp"
 #include <optional>
 #include <functional>
 
@@ -161,20 +163,21 @@ namespace PITTS
       template<typename T>
       constexpr auto ortho_loop_from_left(const auto& TTz)
       {
-        return [&](int iDim, optional_cref<std::pair<Tensor3<T>,Tensor2<T>>> prev_QB, std::pair<Tensor3<T>,Tensor2<T>>& QB)
+        using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
+        return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
         {
           const auto& subTz = TTz.subTensor(iDim);
 
           Tensor2<T> t2;
-          if( prev_QB )
+          if( !prev_QB )
           {
-            // now contract prev_t2(:,*) * subTz(*,:,:)
-            internal::normalize_contract1(prev_QB->get().second, subTz, QB.first);
-            unfold_left(QB.first, t2);
+            unfold_left(subTz, t2);
           }
           else
           {
-            unfold_left(subTz, t2);
+            // contract prev_t2(:,*) * subTz(*,:,:)
+            internal::normalize_contract1(prev_QB->get().second, subTz, QB.first);
+            unfold_left(QB.first, t2);
           }
 
           // calculate QR of subT(: : x :)
@@ -187,28 +190,120 @@ namespace PITTS
       template<typename T>
       constexpr auto ortho_loop_from_right(const auto& TTz)
       {
-        return [&](int iDim, optional_cref<std::pair<Tensor3<T>,Tensor2<T>>> prev_QB, std::pair<Tensor3<T>,Tensor2<T>>& QB)
+        using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
+        return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
         {
           const auto& subTz = TTz.subTensor(iDim);
 
           Tensor2<T> t2;
-          if( prev_QB )
-          {
-            // now contract subTz(:,:,*) * prev_t2(*,:)
-            internal::normalize_contract2(subTz, prev_QB->get().second, QB.first);
-            unfold_right(QB.first, t2);
-          }
-          else
+          if( !prev_QB )
           {
             unfold_right(subTz, t2);
           }
+          else
+          {
+            // contract subTz(:,:,*) * prev_t2(*,:)
+            internal::normalize_contract2(subTz, prev_QB->get().second, QB.first);
+            unfold_right(QB.first, t2);
+          }
 
-          // calculate QR of subT(: : x :)
-          auto [B, Q] = internal::normalize_qb(t2, false);
-          fold_right(Q, subTz.n(), QB.first);
+          // calculate LQt of subT(: : x :)
+          auto [B, Qt] = internal::normalize_qb(t2, false);
+          fold_right(Qt, subTz.n(), QB.first);
           QB.second = std::move(B);
         };
       }
+
+      template<typename T>
+      constexpr auto axpby_loop_from_left(const auto& TTx, const auto& TTy)
+      {
+        using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
+        return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
+        {
+          const auto& subTx = TTx.subTensor(iDim).first;
+          const auto& subTy = TTy.subTensor(iDim);
+          assert(subTx.n() == subTy.n());
+          const int n = subTx.n();
+          const int r2x = subTx.r2();
+          const int r2y = subTy.r2();
+
+          Tensor2<T> t2;
+          using mat = Eigen::MatrixX<T>;
+          if( !prev_QB )
+          {
+            assert(subTx.r1() == 1 && subTy.r1() == 1);
+            Eigen::Map<const mat> mapX(&subTx(0,0,0), n, r2x);
+            Eigen::Map<const mat> mapY(&subTy(0,0,0), n, r2y);
+            t2.resize(n, r2x+r2y);
+            EigenMap(t2).leftCols (r2x) = mapX;
+            EigenMap(t2).rightCols(r2y) = mapY;
+          }
+          else
+          {
+            const int r1x = subTx.r1();
+            const int r1y = subTy.r1();
+            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n*r2x);
+            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n*r2y);
+            // contract prev_B * (X 0; 0 Y)
+            const auto& prev_B = prev_QB->get().second;
+            t2.resize(prev_B.r1(), n*r2x+n*r2y);
+            EigenMap(t2).leftCols (n*r2x) = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
+            EigenMap(t2).rightCols(n*r2y) = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
+            t2.resize(t2.r1()*n, r2x+r2y, false);
+          }
+
+          // calculate QR of subT(: : x :)
+          auto [Q, B] = internal::normalize_qb(t2, true);
+          fold_left(Q, n, QB.first);
+          QB.second = std::move(B);
+        };
+      }
+
+      template<typename T>
+      constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
+      {
+        using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
+        return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
+        {
+          const auto& subTx = TTx.subTensor(iDim).first;
+          const auto& subTy = TTy.subTensor(iDim);
+          assert(subTx.n() == subTy.n());
+          const int n = subTx.n();
+          const int r1x = subTx.r1();
+          const int r1y = subTy.r1();
+
+          Tensor2<T> t2;
+          using mat = Eigen::MatrixX<T>;
+          if( !prev_QB )
+          {
+            assert(subTx.r2() == 1 && subTy.r2() == 1);
+            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n);
+            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n);
+            t2.resize(r1x+r1y,n);
+            EigenMap(t2).topRows   (r1x) = mapX;
+            EigenMap(t2).bottomRows(r1y) = mapY;
+          }
+          else
+          {
+            const int r2x = subTx.r2();
+            const int r2y = subTy.r2();
+            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x*n, r2x);
+            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y*n, r2y);
+            // contract (X 0; 0 Y) * prev_B
+            const auto& prev_B = prev_QB->get().second;
+            t2.resize(r1x*n+r1y*n, prev_B.r2());
+            EigenMap(t2).topRows   (r1x*n) = mapX * ConstEigenMap(prev_B).topRows   (r2x);
+            EigenMap(t2).bottomRows(r1y*n) = mapY * ConstEigenMap(prev_B).bottomRows(r2y);
+            t2.resize(r1x+r1y, n*t2.r2(), false);
+          }
+
+          // calculate LQt of subT(: x : :)
+          auto [B, Qt] = internal::normalize_qb(t2, false);
+          fold_right(Qt, n, QB.first);
+          QB.second = std::move(B);
+        };
+      }
+
 
       //! set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
       //!

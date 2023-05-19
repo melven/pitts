@@ -118,6 +118,9 @@ namespace PITTS
     // left-/right orthogonal version of Ax
     SweepData Ax_ortho = defineSweepData<std::pair<Tensor3<T>,Tensor2<T>>>(nDim, ortho_loop_from_left<T>(Ax), ortho_loop_from_right<T>(Ax));
 
+    // parts of Ax-b (left-/right orthogonalized)
+    SweepData Ax_b_ortho = defineSweepData<std::pair<Tensor3<T>,Tensor2<T>>>(nDim, axpby_loop_from_left<T>(Ax_ortho, TTb), axpby_loop_from_right<T>(Ax_ortho, TTb));
+
     // we store previous parts of x^T A x
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
@@ -128,6 +131,7 @@ namespace PITTS
     internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
     Ax.update(-1, 0);
     Ax_ortho.update(-1, 0);
+    Ax_b_ortho.update(-1, 0);
     assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
     for(int iDim = 0; iDim < nDim; iDim++)
       copy(Ax.subTensor(iDim), tmpAx[iDim]);
@@ -144,6 +148,7 @@ namespace PITTS
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
       Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
       Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
       assert(check_Orthogonality(swpIdx, TTx));
       assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
@@ -336,6 +341,7 @@ if( nAMEnEnrichment > 0 )
       // update remaining sub-tensors of Ax
       Ax.update(nDim-1, nDim);
       Ax_ortho.update(nDim-1, nDim);
+      Ax_b_ortho.update(nDim-1, nDim);
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
@@ -367,6 +373,7 @@ if( nAMEnEnrichment > 0 )
       // update remaining sub-tensors of right_Ax
       Ax.update(-1, 0);
       Ax_ortho.update(-1, 0);
+      Ax_b_ortho.update(-1, 0);
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
