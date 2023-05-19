@@ -16,6 +16,9 @@
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include <optional>
 #include <functional>
 
@@ -152,6 +155,58 @@ namespace PITTS
             // second contraction: subTv(:,*,*) * t3_tmp(:,*,*)
             internal::dot_contract2(subTv, t3_tmp, t2);
           }
+        };
+      }
+
+      template<typename T>
+      constexpr auto ortho_loop_from_left(const auto& TTz)
+      {
+        return [&](int iDim, optional_cref<std::pair<Tensor3<T>,Tensor2<T>>> prev_QB, std::pair<Tensor3<T>,Tensor2<T>>& QB)
+        {
+          const auto& subTz = TTz.subTensor(iDim);
+
+          Tensor2<T> t2;
+          if( prev_QB )
+          {
+            // now contract prev_t2(:,*) * subTz(*,:,:)
+            internal::normalize_contract1(prev_QB->get().second, subTz, QB.first);
+            unfold_left(QB.first, t2);
+          }
+          else
+          {
+            unfold_left(subTz, t2);
+          }
+
+          // calculate QR of subT(: : x :)
+          auto [Q, B] = internal::normalize_qb(t2, true);
+          fold_left(Q, subTz.n(), QB.first);
+          QB.second = std::move(B);
+        };
+      }
+
+      template<typename T>
+      constexpr auto ortho_loop_from_right(const auto& TTz)
+      {
+        return [&](int iDim, optional_cref<std::pair<Tensor3<T>,Tensor2<T>>> prev_QB, std::pair<Tensor3<T>,Tensor2<T>>& QB)
+        {
+          const auto& subTz = TTz.subTensor(iDim);
+
+          Tensor2<T> t2;
+          if( prev_QB )
+          {
+            // now contract subTz(:,:,*) * prev_t2(*,:)
+            internal::normalize_contract2(subTz, prev_QB->get().second, QB.first);
+            unfold_right(QB.first, t2);
+          }
+          else
+          {
+            unfold_right(subTz, t2);
+          }
+
+          // calculate QR of subT(: : x :)
+          auto [B, Q] = internal::normalize_qb(t2, false);
+          fold_right(Q, subTz.n(), QB.first);
+          QB.second = std::move(B);
         };
       }
 

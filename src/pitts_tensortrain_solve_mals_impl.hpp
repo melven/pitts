@@ -115,6 +115,9 @@ namespace PITTS
     TensorTrain<T> TTAx(TTOpA.row_dimensions());
     SweepData Ax = defineSweepData<Tensor3<T>>(nDim, apply_loop(TTOpA, TTx), apply_loop(TTOpA, TTx));
 
+    // left-/right orthogonal version of Ax
+    SweepData Ax_ortho = defineSweepData<std::pair<Tensor3<T>,Tensor2<T>>>(nDim, ortho_loop_from_left<T>(Ax), ortho_loop_from_right<T>(Ax));
+
     // we store previous parts of x^T A x
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
@@ -124,6 +127,7 @@ namespace PITTS
     // calculate the error norm
     internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
     Ax.update(-1, 0);
+    Ax_ortho.update(-1, 0);
     for(int iDim = 0; iDim < nDim; iDim++)
       copy(Ax.subTensor(iDim), tmpAx[iDim]);
     tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
@@ -138,6 +142,7 @@ namespace PITTS
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
       Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
       assert(check_Orthogonality(swpIdx, TTx));
       assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
@@ -329,6 +334,7 @@ if( nAMEnEnrichment > 0 )
       }
       // update remaining sub-tensors of Ax
       Ax.update(nDim-1, nDim);
+      Ax_ortho.update(nDim-1, nDim);
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
       tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
@@ -358,6 +364,7 @@ if( nAMEnEnrichment > 0 )
       }
       // update remaining sub-tensors of right_Ax
       Ax.update(-1, 0);
+      Ax_ortho.update(-1, 0);
       for(int iDim = 0; iDim < nDim; iDim++)
         copy(Ax.subTensor(iDim), tmpAx[iDim]);
       tmpAx = TTAx.setSubTensors(0, std::move(tmpAx));
