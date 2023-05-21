@@ -124,8 +124,8 @@ namespace PITTS
     // we store previous parts of x^T A x
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
-    // save local residual for enriching the subspace
-    std::unique_ptr<TensorTrain<T>> tt_r;
+    // store sub-tensor for enriching the subspace (AMEn)
+    TensorTrain<T> tt_z(0,0);
 
     // calculate the error norm
     internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
@@ -197,9 +197,9 @@ namespace PITTS
       
       if( nAMEnEnrichment > 0 )
       {
-        tt_r.reset(new TensorTrain<T>(tt_b.dimensions()));
-        apply(localTTOp, tt_x, *tt_r);
-        axpby(T(1), tt_b, T(-1), *tt_r, T(0));
+        tt_z = TensorTrain<T>(tt_b.dimensions());
+        apply(localTTOp, tt_x, tt_z);
+        axpby(T(1), tt_b, T(-1), tt_z, T(0));
       }
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
@@ -222,7 +222,7 @@ if( nAMEnEnrichment > 0 )
   tmpSubT.resize(nMALS);
   for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
     copy(TTz.subTensor(iDim), tmpSubT[iDim-swpIdx.leftDim()]);
-  tt_r->setSubTensors(0, std::move(tmpSubT));
+  tt_z = TensorTrain<T>(std::move(tmpSubT));
 }
 #endif
 
@@ -251,9 +251,9 @@ if( nAMEnEnrichment > 0 )
         std::vector<Tensor3<T>> newSubT(2);
         {
           internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
-          leftNormalize(*tt_r, T(0));
+          leftNormalize(tt_z, T(0));
           const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
-          const Tensor3<T>& subTr = tt_r->subTensor(tt_r->dimensions().size()-1);//TTz.subTensor(swpIdx.rightDim());
+          const Tensor3<T>& subTr = tt_z.subTensor(tt_z.dimensions().size()-1);//TTz.subTensor(swpIdx.rightDim());
           const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
           const int addRank = std::min<int>(nAMEnEnrichment, subTr.r2());
           std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
@@ -293,10 +293,10 @@ if( nAMEnEnrichment > 0 )
         std::vector<Tensor3<T>> newSubT(2);
         {
           internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, swpIdx.nDim()-1);
-          rightNormalize(*tt_r, T(0));
+          rightNormalize(tt_z, T(0));
           const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
-          internal::ensureRightOrtho_range(*tt_r, 0, nMALS-1);
-          const Tensor3<T>& subTr = tt_r->subTensor(0);//TTz.subTensor(swpIdx.leftDim());
+          internal::ensureRightOrtho_range(tt_z, 0, nMALS-1);
+          const Tensor3<T>& subTr = tt_z.subTensor(0);//TTz.subTensor(swpIdx.leftDim());
           const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
           const int addRank = std::min<int>(nAMEnEnrichment, subTr.r1());
           std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
