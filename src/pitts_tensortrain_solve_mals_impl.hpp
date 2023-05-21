@@ -49,7 +49,7 @@ namespace PITTS
               int nSweeps,
               T residualTolerance,
               int maxRank,
-              int nMALS, int nOverlap, int nAMEnEnrichment,
+              int nMALS, int nOverlap, int nAMEnEnrichment, bool simplifiedAMEn,
               bool useTTgmres, int gmresMaxIter, T gmresRelTol)
   {
     using namespace internal::solve_mals;
@@ -67,7 +67,7 @@ namespace PITTS
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
 
-      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, useTTgmres, gmresMaxIter, gmresRelTol);
+      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, simplifiedAMEn, useTTgmres, gmresMaxIter, gmresRelTol);
     }
 
     if( symmetric && projection == MALS_projection::PetrovGalerkin )
@@ -195,7 +195,7 @@ namespace PITTS
       else
         const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
       
-      if( nAMEnEnrichment > 0 )
+      if( nAMEnEnrichment > 0 && simplifiedAMEn )
       {
         tt_z = TensorTrain<T>(tt_b.dimensions());
         apply(localTTOp, tt_x, tt_z);
@@ -204,27 +204,25 @@ namespace PITTS
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
 
-#ifndef NDEBUG
-if( nAMEnEnrichment > 0 )
-{
-  TensorTrainOperator<T> TTOpW = projection == MALS_projection::PetrovGalerkin ? setupProjectionOperator(TTw, swpIdx) : setupProjectionOperator(TTx, swpIdx);
-  std::vector<int> colDimOpW_left(TTOpW.column_dimensions().size());
-  for(int iDim = 0; iDim < nDim; iDim++)
-    colDimOpW_left[iDim] = iDim < swpIdx.rightDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
-  TensorTrainOperator<T> TTOpW_left(TTOpW.row_dimensions(), colDimOpW_left);
-  TTOpW_left.setEye();
-  std::vector<Tensor3<T>> tmpSubT(swpIdx.leftDim());
-  for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
-    copy(TTOpW.tensorTrain().subTensor(iDim), tmpSubT[iDim]);
-  TTOpW_left.tensorTrain().setSubTensors(0, std::move(tmpSubT));
-  TensorTrain<T> TTz = transpose(TTOpW_left) * (TTb - TTOpA * TTx);
-  rightNormalize(TTz);
-  tmpSubT.resize(nMALS);
-  for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
-    copy(TTz.subTensor(iDim), tmpSubT[iDim-swpIdx.leftDim()]);
-  tt_z = TensorTrain<T>(std::move(tmpSubT));
-}
-#endif
+      if( nAMEnEnrichment > 0 && !simplifiedAMEn )
+      {
+        TensorTrainOperator<T> TTOpW = projection == MALS_projection::PetrovGalerkin ? setupProjectionOperator(TTw, swpIdx) : setupProjectionOperator(TTx, swpIdx);
+        std::vector<int> colDimOpW_left(TTOpW.column_dimensions().size());
+        for(int iDim = 0; iDim < nDim; iDim++)
+          colDimOpW_left[iDim] = iDim < swpIdx.rightDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
+        TensorTrainOperator<T> TTOpW_left(TTOpW.row_dimensions(), colDimOpW_left);
+        TTOpW_left.setEye();
+        std::vector<Tensor3<T>> tmpSubT(swpIdx.leftDim());
+        for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
+          copy(TTOpW.tensorTrain().subTensor(iDim), tmpSubT[iDim]);
+        TTOpW_left.tensorTrain().setSubTensors(0, std::move(tmpSubT));
+        TensorTrain<T> TTz = transpose(TTOpW_left) * (TTb - TTOpA * TTx);
+        rightNormalize(TTz);
+        tmpSubT.resize(nMALS);
+        for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
+          copy(TTz.subTensor(iDim), tmpSubT[iDim-swpIdx.leftDim()]);
+        tt_z = TensorTrain<T>(std::move(tmpSubT));
+      }
 
       if( projection == MALS_projection::PetrovGalerkin )
       {
