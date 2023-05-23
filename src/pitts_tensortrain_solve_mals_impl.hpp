@@ -67,6 +67,9 @@ namespace PITTS
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
 
+      // ensure that we obtain a residual tolerance relative to TTb not TTAtb
+      residualTolerance *= norm2(TTb) / norm2(TTAtb);
+
       return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, simplifiedAMEn, useTTgmres, gmresMaxIter, gmresRelTol);
     }
 
@@ -194,10 +197,13 @@ namespace PITTS
       if (firstSweep && residualNorm / nrm_TTb > 0.5)
         tt_x.setZero();
       
+      const T absTol = residualTolerance * nrm_TTb * gmresRelTol;
+      const T relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+      
       if (useTTgmres)
-        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
       else
-        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
+        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
       
       if( nAMEnEnrichment > 0 && simplifiedAMEn )
       {
@@ -390,6 +396,29 @@ namespace PITTS
       }
     }
 
+/*
+    std::cout << "Ax ranks:\n";
+    for(const auto& subT: Ax.data())
+      std::cout << "   " << subT.r1() << " x " << subT.r2();
+    std::cout << "\n";
+
+    std::cout << "Ax_ortho ranks:\n";
+    for(const auto& [Q, B]: Ax_ortho.data())
+      std::cout << "   " << Q.r1() << " x " << Q.r2();
+    std::cout << "\n";
+    std::cout << "Ax_ortho B diag:\n";
+    for(const auto& [Q, B]: Ax_ortho.data())
+      std::cout << ConstEigenMap(B).bdcSvd().singularValues().transpose() << "\n";
+
+
+    std::cout << "Ax_b_ortho ranks:\n";
+    for(const auto& [Q, B]: Ax_b_ortho.data())
+      std::cout << "   " << Q.r1() << " x " << Q.r2();
+    std::cout << "\n";
+    std::cout << "Ax_b_ortho B diag:\n";
+    for(const auto& [Q, B]: Ax_b_ortho.data())
+      std::cout << ConstEigenMap(B).bdcSvd().singularValues().transpose() << "\n";
+*/
 
     return residualNorm;
   }
