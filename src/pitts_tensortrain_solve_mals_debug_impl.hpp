@@ -313,9 +313,9 @@ namespace PITTS
         auto mapQ = ConstEigenMap(Q);
         auto mapQ_ref = ConstEigenMap(Q_ref);
         mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().asDiagonal();
-        std::cout << "Q_err:\n" << Q_err << "\n";
-        std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
-        std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
+        //std::cout << "Q_err:\n" << Q_err << "\n";
+        //std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
+        //std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
         const T Q_error = Q_err.array().abs().maxCoeff();
         assert(Q_error <= 10*sqrt_eps*sigma0);
         const T sigma_error = sigma_err.array().abs().maxCoeff();
