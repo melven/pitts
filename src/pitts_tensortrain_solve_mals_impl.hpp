@@ -173,6 +173,10 @@ namespace PITTS
         TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx, true);
 
         assert(check_Orthogonality(swpIdx, TTw));
+
+        // previously calculated projection differs (1. due to truncation and 2. because orthogonalize is not unique)
+        vTAx.invalidate(0, nDim);
+        vTb.invalidate(0, nDim);
       }
 
       vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
@@ -203,33 +207,6 @@ namespace PITTS
       }
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
-
-      if( nAMEnEnrichment > 0 && !simplifiedAMEn )
-      {
-        TensorTrainOperator<T> TTOpW = projection == MALS_projection::PetrovGalerkin ? setupProjectionOperator(TTw, swpIdx) : setupProjectionOperator(TTx, swpIdx);
-        std::vector<int> colDimOpW_left(TTOpW.column_dimensions().size());
-        for(int iDim = 0; iDim < nDim; iDim++)
-          colDimOpW_left[iDim] = iDim < swpIdx.rightDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
-        TensorTrainOperator<T> TTOpW_left(TTOpW.row_dimensions(), colDimOpW_left);
-        TTOpW_left.setEye();
-        std::vector<Tensor3<T>> tmpSubT(swpIdx.leftDim());
-        for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
-          copy(TTOpW.tensorTrain().subTensor(iDim), tmpSubT[iDim]);
-        TTOpW_left.tensorTrain().setSubTensors(0, std::move(tmpSubT));
-        TensorTrain<T> TTz = transpose(TTOpW_left) * (TTb - TTOpA * TTx);
-        rightNormalize(TTz);
-        tmpSubT.resize(nMALS);
-        for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
-          copy(TTz.subTensor(iDim), tmpSubT[iDim-swpIdx.leftDim()]);
-        tt_z = TensorTrain<T>(std::move(tmpSubT));
-      }
-
-      if( projection == MALS_projection::PetrovGalerkin )
-      {
-        // recover original sub-tensor of projection space
-        vTb.invalidate(0, nDim);
-        vTAx.invalidate(0, nDim);
-      }
     };
 
     // AMEn idea: enrich subspace with some directions of the global residual (AMEn method)
@@ -243,6 +220,58 @@ namespace PITTS
       
       // only intended for nMALS == 1
       assert(swpIdx.leftDim() == swpIdx.rightDim());
+
+      if( !simplifiedAMEn )
+      {
+        // ensure indices are set correctly
+        internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
+        internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
+        Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        vTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+
+        const int iDim = swpIdx.leftDim();
+        Tensor3<T> tmpAx, tmpb, t3;
+        internal::apply_contract(TTOpA, iDim, TTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), tmpAx);
+        if( iDim == 0 )
+        {
+          copy(TTb.subTensor(iDim), tmpb);
+        }
+        else
+        {
+          // first contraction: vTAx(*,:) * Ax(*,:,:)
+          internal::reverse_dot_contract1<T>(*vTAx.left(), tmpAx, t3);
+          std::swap(t3, tmpAx);
+          // now contract: vTb(*,:) * b(*,:,:)
+          internal::reverse_dot_contract1<T>(*vTb.left(), TTb.subTensor(iDim), tmpb);
+        }
+        // contract: tmpAx(:,:,*) * B(*,:)
+        const Tensor2<T>& prev_C = Ax_ortho.right()->get().second;
+        internal::dot_contract1t(tmpAx, prev_C, t3);
+        std::swap(t3, tmpAx);
+        using mat = Eigen::MatrixX<T>;
+        assert(tmpAx.r1() == tmpb.r1());
+        assert(tmpAx.n() == tmpb.n());
+        const auto r1 = tmpAx.r1();
+        const auto n = tmpAx.n();
+        const auto r2Ax = tmpAx.r2();
+        const auto r2b = tmpb.r2();
+        Eigen::Map<const mat> mapAx(&tmpAx(0,0,0), r1*n, r2Ax);
+        Eigen::Map<const mat> mapb(&tmpb(0,0,0), r1*n, r2b);
+        Tensor2<T> tmp(r1*n, r2Ax+r2b);
+        EigenMap(tmp).leftCols (r2Ax) = mapAx;
+        EigenMap(tmp).rightCols(r2b) = - mapb;
+        const Tensor2<T>& prev_B = Ax_b_ortho.right()->get().second;
+        Tensor2<T> t2(r1*n, prev_B.r2());
+        EigenMap(t2) = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
+        std::vector<Tensor3<T>> subT(1);
+        fold_left(t2, n, subT[0]);
+        tt_z = TensorTrain<T>(std::move(subT));
+      }
+
+      assert(simplifiedAMEn || check_AMEnSubspace(TTOpA, TTv, TTx, TTb, swpIdx, tt_z));
 
       if( leftToRight )
       {
@@ -286,48 +315,7 @@ namespace PITTS
         vTb.invalidate(swpIdx.rightDim()+1);
       }
       else // right-to-left
-      {
-
-        std::vector<Tensor3<T>> newSubT(2);
-        {
-          internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, swpIdx.nDim()-1);
-          rightNormalize(tt_z, T(0));
-          const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
-          internal::ensureRightOrtho_range(tt_z, 0, nMALS-1);
-          const Tensor3<T>& subTr = tt_z.subTensor(0);//TTz.subTensor(swpIdx.leftDim());
-          const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
-          const int addRank = std::min<int>(nAMEnEnrichment, subTr.r1());
-          std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
-          newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+addRank);
-          newSubT[1].resize(subT1.r1()+addRank, subT1.n(), subT1.r2());
-          newSubT[0].setConstant(T(0));
-          newSubT[1].setConstant(T(0));
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int i = 0; i < subT0.r1(); i++)
-            for(int j = 0; j < subT0.n(); j++)
-              for(int k = 0; k < subT0.r2(); k++)
-                newSubT[0](i,j,k) = subT0(i,j,k);
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int i = 0; i < subT1.r1(); i++)
-            for(int j = 0; j < subT1.n(); j++)
-              for(int k = 0; k < subT1.r2(); k++)
-                newSubT[1](i,j,k) = subT1(i,j,k);
-          const auto r2 = std::min(subT1.r2(), subTr.r2());
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int i = 0; i < addRank; i++)
-            for(int j = 0; j < subT0.n(); j++)
-              for(int k = 0; k < r2; k++)
-                newSubT[1](subT1.r1()+i,j,k) = subTr(i,j,k);
-        }
-        TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT));
-
-        // these are not valid any more
-        Ax.invalidate(swpIdx.leftDim()-1);
-        Ax_ortho.invalidate(swpIdx.leftDim()-1);
-        Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
-        vTAx.invalidate(swpIdx.leftDim()-1);
-        vTb.invalidate(swpIdx.leftDim()-1);
-       }
+        throw std::invalid_argument("solveMALS: right-to-left subspace enrichment not implemented!");
     };
 
     // now everything is prepared, perform the sweeps
