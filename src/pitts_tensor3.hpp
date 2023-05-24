@@ -74,6 +74,18 @@ namespace PITTS
       resize(r1, n, r2, false);
     }
 
+    //! allow access to the internal data pointer
+    //!
+    //! @warning intended for internal use
+    //!
+    [[nodiscard]] inline Chunk<T>* data() {return data_.get();}
+
+    //! allow read-only access to the internal data pointer
+    //!
+    //! @warning intended for internal use
+    //!
+    [[nodiscard]] inline const Chunk<T>* data() const {return data_.get();}
+
     //! allow to move from this by casting to the underlying storage type
     //!
     //! @warning intended for internal use (e.g. unfold function)

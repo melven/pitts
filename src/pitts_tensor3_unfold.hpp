@@ -12,6 +12,7 @@
 
 // includes
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor2.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
 
@@ -144,6 +145,44 @@ namespace PITTS
     return MultiVector<T>(std::move(data), reservedChunks, size, 1);
   }
   template MultiVector<double> unfold(Tensor3<double>&&);
+
+  //! create a Tensor2 view of a right-unfolded Tensor3
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param t3     [in]  Tensor3 of dimension (r1,n,r2)
+  //! @param t2     [out] Tensor2 alias of dimension (r1,n*r2)
+  //!
+  template<typename T>
+  Tensor2View<T> unfold_right(Tensor3<T>& t3)
+  {
+    return Tensor2View<T>(t3.data(), t3.r1(), t3.n()*t3.r2());
+  }
+
+  template<typename T>
+  ConstTensor2View<T> unfold_right(const Tensor3<T>& t3)
+  {
+    return ConstTensor2View<T>(const_cast<Chunk<T>*>(t3.data()), t3.r1(), t3.n()*t3.r2());
+  }
+
+  //! create a Tensor2 view of a left-unfolded Tensor3
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param t3     [in]  Tensor3 of dimension (r1,n,r2)
+  //! @param t2     [out] Tensor2 alias of dimension (r1*n,r2)
+  //!
+  template<typename T>
+  Tensor2View<T> unfold_left(Tensor3<T>& t3)
+  {
+    return Tensor2View<T>(t3.data(), t3.r1()*t3.n(), t3.r2());
+  }
+
+  template<typename T>
+  ConstTensor2View<T> unfold_left(const Tensor3<T>& t3)
+  {
+    return ConstTensor2View<T>(const_cast<Chunk<T>*>(t3.data()), t3.r1()*t3.n(), t3.r2());
+  }
 }
   
 #endif // PITTS_TENSOR3_UNFOLD_HPP

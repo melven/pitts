@@ -18,12 +18,85 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! Const (non-mutable) view of a 2d matrix (does not own the underlying memory)
+  //!
+  //! @tparam T  underlying data type (double, complex, ...)
+  //!
+  template<typename T>
+  class ConstTensor2View
+  {
+  public:
+    //! create a tensor2 view
+    //!
+    //! @warning intended for internal use
+    //!
+    ConstTensor2View(Chunk<T> *data, long long r1, long long r2)
+    {
+      assert(data != nullptr);
+      r1_ = r1;
+      r2_ = r2;
+      data_ = data;
+    }
+
+    //! create a tensor2 view (of nothing) with dimensions (0,0)
+    ConstTensor2View() = default;
+
+    //! access matrix entries (column-wise ordering, const variant)
+    [[nodiscard]] inline const T& operator()(long long i, long long j) const
+    {
+      const auto k = i + j*r1_;
+      //return data_[k/Chunk<T>::size][k%Chunk<T>::size];
+      const auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
+      return pdata[k];
+    }
+
+    //! first dimension 
+    [[nodiscard]] inline long long r1() const {return r1_;}
+
+    //! second dimension 
+    [[nodiscard]] inline long long r2() const {return r2_;}
+
+  protected:
+    //! first dimension
+    long long r1_ = 0;
+
+    //! second dimension
+    long long r2_ = 0;
+
+    //! the actual data...
+    Chunk<T> *data_ = nullptr;
+  };
+
+  //! Non-const (mutable) view of a 2d matrix (does not own the underlying memory)
+  //!
+  //! @tparam T  underlying data type (double, complex, ...)
+  //!
+  template<typename T>
+  class Tensor2View : public ConstTensor2View<T>
+  {
+  public:
+    // use base class constructors (for internal use!)
+    using ConstTensor2View<T>::ConstTensor2View;
+
+    // use base class const access
+    using ConstTensor2View<T>::operator();
+
+    //! access matrix entries (column-wise ordering, write access through reference)
+    [[nodiscard]] inline T& operator()(long long i, long long j)
+    {
+      const auto k = i + j*this->r1_;
+      //return data_[k/Chunk<T>::size][k%Chunk<T>::size];
+      auto pdata = std::assume_aligned<ALIGNMENT>(&this->data_[0][0]);
+      return pdata[k];
+    }
+  };
+
   //! "small" rank-2 tensor (matrix, intended to be used in a tensor train)
   //!
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  class Tensor2
+  class Tensor2 : public Tensor2View<T>
   {
   public:
     //! construct a new tensor with the given dimensions
@@ -50,66 +123,30 @@ namespace PITTS
     void resize(long long r1, long long r2)
     {
       // fast return without timer!
-      if( r1 == r1_ && r2 == r2_ )
+      if( r1 == this->r1_ && r2 == this->r2_ )
         return;
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       const auto n = r1*r2;
-      const auto requiredChunks = std::max((long long)1, (n-1)/chunkSize+1);
-      if( requiredChunks > reservedChunks_ )
+      const auto requiredChunks = std::max((long long)1, (n-1)/Chunk<T>::size+1);
+      if( requiredChunks > this->reservedChunks_ )
       {
-        data_.reset(new Chunk<T>[requiredChunks]);
+        dataptr_.reset(new Chunk<T>[requiredChunks]);
+        this->data_ = dataptr_.get();
         reservedChunks_ = requiredChunks;
       }
-      r1_ = r1;
-      r2_ = r2;
+      this->r1_ = r1;
+      this->r2_ = r2;
       // ensure padding is zero
-      data_[requiredChunks-1] = Chunk<T>{};
+      dataptr_[requiredChunks-1] = Chunk<T>{};
     }
-
-    //! access matrix entries (column-wise ordering, const variant)
-    inline const T& operator()(long long i, long long j) const
-    {
-        const auto k = i + j*r1_;
-        //return data_[k/chunkSize][k%chunkSize];
-        const auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
-        return pdata[k];
-    }
-
-    //! access matrix entries (column-wise ordering, write access through reference)
-    inline T& operator()(long long i, long long j)
-    {
-        const auto k = i + j*r1_;
-        //return data_[k/chunkSize][k%chunkSize];
-        auto pdata = std::assume_aligned<ALIGNMENT>(&data_[0][0]);
-        return pdata[k];
-    }
-
-    //! first dimension 
-    inline long long r1() const {return r1_;}
-
-    //! second dimension 
-    inline long long r2() const {return r2_;}
-
-  protected:
-    //! the array dimension of chunks
-    //!
-    //! (workaround for missing static function size() of std::array!)
-    //!
-    static constexpr long long chunkSize = Chunk<T>::size;
-
+  
   private:
     //! size of the buffer
     long long reservedChunks_ = 0;
 
-    //! first dimension
-    long long r1_ = 0;
-
-    //! second dimension
-    long long r2_ = 0;
-
-    //! the actual data...
-    std::unique_ptr<Chunk<T>[]> data_ = nullptr;
+    //! pointer to data with ownership
+    std::unique_ptr<Chunk<T>[]> dataptr_ = nullptr;
   };
 
   //! explicitly copy a Tensor2 object
