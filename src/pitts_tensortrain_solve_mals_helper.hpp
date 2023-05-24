@@ -215,13 +215,19 @@ namespace PITTS
       }
 
       template<typename T>
+      const auto& extract_first(const T& t) {return t;}
+
+      template<typename T1, typename T2>
+      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
+
+      template<typename T>
       constexpr auto axpby_loop_from_left(const auto& TTx, const auto& TTy)
       {
         using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
         return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
         {
-          const auto& subTx = TTx.subTensor(iDim).first;
-          const auto& subTy = TTy.subTensor(iDim);
+          const auto& subTx = extract_first(TTx.subTensor(iDim));
+          const auto& subTy = extract_first(TTy.subTensor(iDim));
           assert(subTx.n() == subTy.n());
           const int n = subTx.n();
           const int r2x = subTx.r2();
@@ -258,12 +264,6 @@ namespace PITTS
           QB.second = std::move(B);
         };
       }
-
-      template<typename T>
-      const auto& extract_first(const T& t) {return t;}
-
-      template<typename T1, typename T2>
-      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
 
       template<typename T>
       constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
