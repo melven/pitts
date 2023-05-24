@@ -18,6 +18,7 @@
 #include "pitts_chunk_ops.hpp"
 #include "pitts_eigen.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -35,7 +36,6 @@ namespace PITTS
       const auto r2 = A.r2();
       assert(A.r2() == B.r2());
       const auto r2_ = B.r1();
-      C.resize(r1, n, r2_);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "n", "r2", "r2_"},{r1, n, r2, r2_}}, // arguments
@@ -43,21 +43,9 @@ namespace PITTS
          {(r1*n*r2+r2*r2_)*kernel_info::Load<T>() + (r1*n*r2_)*kernel_info::Store<T>()}} // data transfers
         );
 
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int j = 0; j < n; j++)
-      {
-        for(int i = 0; i < r1; i++)
-        {
-          T tmp[r2_];
-          for(int k = 0; k < r2_; k++)
-            tmp[k] = 0;
-          for(int l = 0; l < r2; l++)
-            for(int k = 0; k < r2_; k++)
-              tmp[k] += B(k,l) * A(i,j,l);
-          for(int k = 0; k < r2_; k++)
-            C(i,j,k) = tmp[k];
-        }
-      }
+      C.resize(r1, n, r2_);
+
+      EigenMap(unfold_left(C)).noalias() = ConstEigenMap(unfold_left(A)) * ConstEigenMap(B).transpose();
     }
 
     //! contract Tensor3 and Tensor2 along last and first dimensions: A(:,:,*) * B(*,:)
@@ -69,7 +57,6 @@ namespace PITTS
       const auto r2 = A.r2();
       assert(A.r2() == B.r1());
       const auto r2_ = B.r2();
-      C.resize(r1, n, r2_);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "n", "r2", "r2_"},{r1, n, r2, r2_}}, // arguments
@@ -77,21 +64,9 @@ namespace PITTS
          {(r1*n*r2+r2*r2_)*kernel_info::Load<T>() + (r1*n*r2_)*kernel_info::Store<T>()}} // data transfers
         );
 
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int j = 0; j < n; j++)
-      {
-        for(int i = 0; i < r1; i++)
-        {
-          T tmp[r2_];
-          for(int k = 0; k < r2_; k++)
-            tmp[k] = 0;
-          for(int l = 0; l < r2; l++)
-            for(int k = 0; k < r2_; k++)
-              tmp[k] += B(l,k) * A(i,j,l);
-          for(int k = 0; k < r2_; k++)
-            C(i,j,k) = tmp[k];
-        }
-      }
+      C.resize(r1, n, r2_);
+
+      EigenMap(unfold_left(C)).noalias() = ConstEigenMap(unfold_left(A)) * ConstEigenMap(B);
     }
 
     //! contract Tensor3 and Tensor2 along first dimensions: A(*,:) * B(*,:,:)
@@ -103,7 +78,6 @@ namespace PITTS
       const auto r2 = B.r2();
       assert(A.r1() == B.r1());
       const auto r1_ = A.r2();
-      C.resize(r1_, n, r2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "n", "r2", "r1_"},{r1, n, r2, r1_}}, // arguments
@@ -111,21 +85,9 @@ namespace PITTS
          {(r1*n*r2+r1*r1_)*kernel_info::Load<T>() + (r1_*n*r2)*kernel_info::Store<T>()}} // data transfers
         );
 
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int j = 0; j < n; j++)
-      {
-        for (int k = 0; k < r2; k++)
-        {
-          T tmp[r1_];
-          for (int i = 0; i < r1_; i++)
-            tmp[i] = 0;
-          for (int l = 0; l < r1; l++)
-            for (int i = 0; i < r1_; i++)
-              tmp[i] += A(l,i) * B(l,j,k);
-          for (int i = 0; i < r1_; i++)
-            C(i,j,k) = tmp[i];
-        }
-      }
+      C.resize(r1_, n, r2);
+
+      EigenMap(unfold_right(C)).noalias() = ConstEigenMap(A).transpose() * ConstEigenMap(unfold_right(B));
     }
 
     //! contract Tensor3 and Tensor3 along the last two dimensions: A(:,*,*) * B(:,*,*)
@@ -138,7 +100,6 @@ namespace PITTS
       const auto r2 = A.r2();
       assert(A.r2() == B.r2());
       const auto r1_ = B.r1();
-      C.resize(r1,r1_);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "r1_", "nChunks", "r2"},{r1, r1_, nChunks, r2}}, // arguments
@@ -146,88 +107,9 @@ namespace PITTS
          {(r1*nChunks*r2+r1_*nChunks*r2)*kernel_info::Load<Chunk<T>>() + (r1_*r1)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-      // spatial blocking
-      constexpr int bs = 10;
+      C.resize(r1,r1_);
 
-      if( r1*r1_ > bs*bs*nChunks )
-      {
-#pragma omp parallel for collapse(2)
-        for(int jb = 0; jb < r1_; jb+=bs)
-          for(int ib = 0; ib < r1; ib+=bs)
-          {
-            T tmp[bs*bs];
-            for(int i = 0; i < bs*bs; i++)
-              tmp[i] = 0;
-            for(int l = 0; l < r2; l++)
-              for(int k = 0; k < n; k++)
-                for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
-                  for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                    tmp[i-ib+(j-jb)*bs] += A(i,k,l) * B(j,k,l);
-            for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
-              for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                C(i,j) = tmp[i-ib+(j-jb)*bs];
-          }
-      }
-      else // r1*r1_ < bs*bs*nChunks
-      {
-          for(int jb = 0; jb < r1_; jb+=bs)
-            for(int ib = 0; ib < r1; ib+=bs)
-            {
-              T tmp[bs*bs];
-              for(int j = 0; j < bs; j++)
-                for(int i = 0; i < bs; i++)
-                  tmp[i+j*bs] = T(0);
-#pragma omp parallel reduction(+:tmp)
-              {
-                T tmpC[bs*bs];
-                for(int i = 0; i < bs*bs; i++)
-                  tmpC[i] = 0;
-#pragma omp for collapse(2) schedule(static)
-              for(int l = 0; l < r2; l++)
-                for(int k = 0; k < n; k++)
-                {
-                  for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
-                    for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                      tmpC[i-ib+(j-jb)*bs] += A(i,k,l) * B(j,k,l);
-                }
-              for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
-                for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                  tmp[i-ib+(j-jb)*bs] = tmpC[i-ib+(j-jb)*bs];
-              }
-              for(int j = jb; j < std::min((int)r1_, jb+bs); j++)
-                for(int i = ib; i < std::min((int)r1, ib+bs); i++)
-                  C(i,j) = tmp[i-ib+(j-jb)*bs];
-            }
-        /*
-        T tmpC[r1*r1_];
-        for(int j = 0; j < r1_; j++)
-          for(int i = 0; i < r1; i++)
-            tmpC[i+j*r1] = T(0);
-#pragma omp parallel reduction(+:tmpC)
-        {
-          for(int jb = 0; jb < r1_; jb+=bs)
-            for(int ib = 0; ib < r1; ib+=bs)
-            {
-              Chunk<T> tmp[bs*bs];
-              for(int i = 0; i < bs*bs; i++)
-                tmp[i] = Chunk<T>{};
-#pragma omp for collapse(2) schedule(static) nowait
-              for(int l = 0; l < r2; l++)
-                for(int kChunk = 0; kChunk < nChunks; kChunk++)
-                  for(int j = jb; j < std::min(r1_, jb+bs); j++)
-                    for(int i = ib; i < std::min(r1, ib+bs); i++)
-                      fmadd(A.chunk(i,kChunk,l), B.chunk(j,kChunk,l), tmp[i-ib+(j-jb)*bs]);
-              for(int j = jb; j < std::min(r1_, jb+bs); j++)
-                for(int i = ib; i < std::min(r1, ib+bs); i++)
-                  tmpC[i+j*r1] += sum(tmp[i-ib+(j-jb)*bs]);
-            }
-          for (int j = 0; j < r1_; j++)
-            for (int i = 0; i < r1; i++)
-              C(i, j) = tmpC[i + j * r1];
-        }
-        */
-      }
-
+      EigenMap(C).noalias() = ConstEigenMap(unfold_right(A)) * ConstEigenMap(unfold_right(B)).transpose();
     }
 
     //! contract Tensor3 and Tensor3 along the first two dimensions: A(*,*,:) * B(*,*,:)
@@ -249,36 +131,8 @@ namespace PITTS
         );
 
       C.resize(rA2,rB2);
-      const auto stride = A.r1()*A.n();
-      using mat = Eigen::MatrixX<T>;
-      auto mapC = EigenMap(C);
-      Eigen::Map<const mat> mapA(&A(0,0,0), stride, rA2);
-      Eigen::Map<const mat> mapB(&B(0,0,0), stride, rB2);
 
-      mapC = mapA.transpose() * mapB;
-      return;
-      //double tmpC[rA2*rB2];
-      //for(int j = 0; j < rA2; j++)
-      //  for(int i = 0; i < rB2; i++)
-      //    tmpC[i+j*rA2] = 0;
-
-//#pragma omp parallel reduction(+:tmpC)
-{
-      for (int j = 0; j < rB2; j++)
-        for (int i = 0; i < rA2; i++)
-        {
-          T tmp = 0;
-//#pragma omp for collapse(2) schedule(static) nowait
-          for(int k = 0; k < n; k++)
-            for(int l = 0; l < r1; l++)
-              tmp += A(l,k,i) * B(l,k,j);
-          //tmpC[i+j*rA2] = sum(tmp);
-          C(i,j) = tmp;
-        }
-}
-      //for(int i = 0; i < rA2; i++)
-      //  for(int j = 0; j < rB2; j++)
-      //    C(i,j) = tmpC[i+j*rA2];
+      EigenMap(C).noalias() = ConstEigenMap(unfold_left(A)).transpose() * ConstEigenMap(unfold_left(B));
     }
 
 

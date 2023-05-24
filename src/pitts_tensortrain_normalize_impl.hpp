@@ -41,7 +41,6 @@ namespace PITTS
       const auto r2 = B.r2();
       const auto r1_ = A.r1();
       assert(A.r2() == B.r1());
-      C.resize(r1_, n, r2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"r1", "r1_", "nChunks", "r2"},{r1, r1_, nChunks, r2}}, // arguments
@@ -49,21 +48,8 @@ namespace PITTS
          {(r1*nChunks*r2+r1_*r1)*kernel_info::Load<Chunk<T>>() + (r1_*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
         );
 
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int j = 0; j < n; j++)
-      {
-        for(int i = 0; i < r2; i++)
-        {
-          T tmp[r1_];
-          for(int k = 0; k < r1_; k++)
-            tmp[k] = 0;
-          for(int l = 0; l < r1; l++)
-            for(int k = 0; k < r1_; k++)
-              tmp[k] += A(k,l) * B(l,j,i);
-          for(int k = 0; k < r1_; k++)
-            C(k,j,i) = tmp[k];
-        }
-      }
+      C.resize(r1_, n, r2);
+      EigenMap(unfold_right(C)).noalias() = ConstEigenMap(A) * ConstEigenMap(unfold_right(B));
     }
 
     //! contract Tensor3 and Tensor2 : A(:,:,*) * B(*,:)
@@ -87,30 +73,8 @@ namespace PITTS
         );
 
       C.resize(r1, n, r2);
-      if( r1*n*r2 == 0 )
-        return;
 
-      const auto stride = A.r1()*A.n();
-      using mat = Eigen::MatrixX<T>;
-      Eigen::Map<const mat> mapA(&A(0,0,0), stride, r);
-      const auto mapB = ConstEigenMap(B);
-      Eigen::Map<mat> mapC(&C(0,0,0), stride, r2);
-      mapC = mapA * mapB;
-      return;
-
-#pragma omp parallel for collapse(2) schedule(static)
-      for(int j = 0; j < n; j++)
-        for(int k = 0; k < r2; k++)
-        {
-          T tmp[r1];
-          for(int i = 0; i < r1; i++)
-            tmp[i] = 0;
-          for(int l = 0; l < r; l++)
-            for(int i = 0; i < r1; i++)
-              tmp[i] += B(l,k) * A(i,j,l);
-          for(int i = 0; i < r1; i++)
-            C(i,j,k) = tmp[i];
-        }
+      EigenMap(unfold_left(C)).noalias() = ConstEigenMap(unfold_left(A)) * ConstEigenMap(B);
     }
 
     //! scale operation for a Tensor3
