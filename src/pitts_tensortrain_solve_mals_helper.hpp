@@ -253,8 +253,8 @@ namespace PITTS
             // contract prev_B * (X 0; 0 Y)
             const auto& prev_B = prev_QB->get().second;
             t2.resize(prev_B.r1(), n*r2x+n*r2y);
-            EigenMap(t2).leftCols (n*r2x) = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
-            EigenMap(t2).rightCols(n*r2y) = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
+            EigenMap(t2).leftCols (n*r2x).noalias() = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
+            EigenMap(t2).rightCols(n*r2y).noalias() = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
             t2.resize(t2.r1()*n, r2x+r2y, false);
           }
 
@@ -306,7 +306,7 @@ namespace PITTS
             Tensor2<T> tmp;
             unfold_left(t3, tmp);
             t2.resize((r1x+r1y)*n, prev_B.r2());
-            EigenMap(t2) = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
+            EigenMap(t2).noalias() = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
             t2.resize(r1x+r1y, n*t2.r2(), false);
           }
 

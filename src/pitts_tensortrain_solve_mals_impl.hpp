@@ -271,7 +271,7 @@ namespace PITTS
         EigenMap(tmp).rightCols(r2b) = - mapb;
         const Tensor2<T>& prev_B = Ax_b_ortho.right()->get().second;
         Tensor2<T> t2(r1*n, prev_B.r2());
-        EigenMap(t2) = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
+        EigenMap(t2).noalias() = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
         std::vector<Tensor3<T>> subT(1);
         fold_left(t2, n, subT[0]);
         tt_z = TensorTrain<T>(std::move(subT));
