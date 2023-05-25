@@ -22,7 +22,7 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  auto ConstEigenMap(const Tensor2<T>& t2)
+  auto ConstEigenMap(const ConstTensor2View<T>& t2)
   {
     using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     return Eigen::Map<const Matrix>(&t2(0,0), t2.r1(), t2.r2());
@@ -33,7 +33,7 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  auto EigenMap(Tensor2<T>& t2)
+  auto EigenMap(Tensor2View<T> t2)
   {
     using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     return Eigen::Map<Matrix>(&t2(0,0), t2.r1(), t2.r2());
