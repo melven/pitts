@@ -89,7 +89,7 @@ namespace PITTS
     }
 
     template<typename T>
-    void normalize_qb_copy(const Tensor2<T>& t2, MultiVector<T>& mv)
+    void normalize_qb_copy(const ConstTensor2View<T>& t2, MultiVector<T>& mv)
     {
       const auto n = t2.r1();
       const auto m = t2.r2();
@@ -173,7 +173,7 @@ namespace PITTS
     }
 
     template<typename T>
-    void normalize_qb_transpose(const Tensor2<T>& t2, MultiVector<T>& mv)
+    void normalize_qb_transpose(const ConstTensor2View<T>& t2, MultiVector<T>& mv)
     {
       const auto n = t2.r2();
       const auto m = t2.r1();
@@ -400,7 +400,7 @@ namespace PITTS
 
     // implement normalize_svd
     template<typename T>
-    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance, int maxRank)
+    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank)
     {
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
