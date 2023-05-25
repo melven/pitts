@@ -24,6 +24,8 @@ target_sources(pitts INTERFACE
   pitts_tensor2_impl.hpp
   pitts_tensor2_random.hpp
   pitts_tensor2_random_impl.hpp
+  pitts_tensor2_concat.hpp
+  pitts_tensor2_concat_impl.hpp
   pitts_tensor2_eigen_adaptor.hpp
   pitts_tensor2_qb_decomposition.hpp
   pitts_tensor2_qb_decomposition_impl.hpp
@@ -161,6 +163,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_multivector_tsqr.cpp
     pitts_tensor2.cpp
     pitts_tensor2_random.cpp
+    pitts_tensor2_concat.cpp
     pitts_tensor2_qb_decomposition.cpp
     pitts_tensor3.cpp
     pitts_tensor3_combine.cpp
