@@ -17,6 +17,7 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor2_concat.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
@@ -237,12 +238,8 @@ namespace PITTS
           using mat = Eigen::MatrixX<T>;
           if( !prev_QB )
           {
-            assert(subTx.r1() == 1 && subTy.r1() == 1);
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), n, r2x);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), n, r2y);
             t2.resize(n, r2x+r2y);
-            EigenMap(t2).leftCols (r2x) = mapX;
-            EigenMap(t2).rightCols(r2y) = mapY;
+            concatLeftRight<T>(unfold_left(subTx), unfold_left(subTy), t2);
           }
           else
           {
@@ -282,12 +279,8 @@ namespace PITTS
           using mat = Eigen::MatrixX<T>;
           if( !prev_QB )
           {
-            assert(subTx.r2() == 1 && subTy.r2() == 1);
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n);
             t2.resize(r1x+r1y,n);
-            EigenMap(t2).topRows   (r1x) = mapX;
-            EigenMap(t2).bottomRows(r1y) = mapY;
+            concatTopBottom<T>(unfold_right(subTx), unfold_right(subTy), t2);
           }
           else
           {
