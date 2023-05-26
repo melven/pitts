@@ -142,7 +142,7 @@ namespace PITTS
 
     assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
     assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
 
     // calculate error
     T residualNorm;
@@ -409,13 +409,20 @@ namespace PITTS
 
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, nDim), Ax.data()));
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), true, Ax_b_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), T(1), true, Ax_b_ortho.data()));
 
       // check error
       {
         const T norm_Ax = Ax_ortho.data().back().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
         residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
+        //std::cout << "norm_Ax: " << norm_Ax << ", norm_b: " << norm_b << "\n";
+        //std::cout << "mapB:\n" << mapB << std::endl;
+        //std::cout << "mapB(:,0)*norm_Ax:\n" << mapB.leftCols(1)*norm_Ax << std::endl;
+        //std::cout << "mapB(:,1)*norm_b:\n" << mapB.rightCols(1)*norm_b << std::endl;
+        //std::cout << "added:\n" << norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)*norm_b << std::endl;
+        //std::cout << "real norm: " << norm2(TTOpA*TTx-TTb) << std::endl;
+        //std::cout << "residualNorm: " << residualNorm << std::endl;
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
         std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
@@ -443,7 +450,7 @@ namespace PITTS
 
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
 
       // check error
       {

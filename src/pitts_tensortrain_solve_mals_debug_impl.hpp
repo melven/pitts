@@ -149,7 +149,7 @@ namespace PITTS
 
       // check that left/right_Ax_b_ortho = left/rightNormalize(TTAx-TTb)
       template<typename T>
-      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho)
+      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, T alpha_b, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho)
       {
         using PITTS::debug::operator*;
         using PITTS::debug::operator-;
@@ -170,7 +170,7 @@ namespace PITTS
         if( !leftToRight )
         {
           mat Mleft(1,2);
-          Mleft << alpha_Ax, -1;
+          Mleft << alpha_Ax, -alpha_b;
           auto mapB = ConstEigenMap(Ax_b_ortho.front().second);
           const auto& subT = Ax_b_ortho.front().first;
           Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1(), subT.n()*subT.r2());
@@ -183,7 +183,7 @@ namespace PITTS
         {
           mat Mright(2,1);
           Mright << alpha_Ax,
-                   -1;
+                   -alpha_b;
           auto mapB = ConstEigenMap(Ax_b_ortho.back().second);
           const auto& subT = Ax_b_ortho.back().first;
           Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1()*subT.n(), subT.r2());

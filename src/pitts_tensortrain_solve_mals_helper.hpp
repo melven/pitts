@@ -255,10 +255,46 @@ namespace PITTS
             t2.resize(t2.r1()*n, r2x+r2y, false);
           }
 
+          Tensor2<T> t2_ref;
+          copy(t2, t2_ref);
+
           // calculate QR of subT(: : x :)
-          auto [Q, B] = internal::normalize_qb(t2, true);
-          fold_left(Q, n, QB.first);
-          QB.second = std::move(B);
+          //std::cout << "t2:\n" << ConstEigenMap(t2) << std::endl;
+          const mat xTy = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).rightCols(r2y);
+          const mat xTx = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).leftCols(r2x);
+          const mat xTy_corr = xTx.llt().solve(xTy);
+          //mat xTx_I = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).leftCols(r2x);
+          // xTx = I+eps, then xTx^(-1) approx I - eps + ...
+          //xTx_I -= mat::Identity(r2x,r2x);
+          //const mat xTy1 = xTx_I * xTy;
+          //const mat xTy2 = xTx_I * xTy1;
+          //mat xTy_corr = xTy - xTy1 + 0.5*xTy2;
+          //std::cout << "xTy:\n" << xTy << std::endl;
+          EigenMap(t2).rightCols(r2y).noalias() -= EigenMap(t2).leftCols(r2x) * xTy_corr;
+          //std::cout << "t2:\n" << ConstEigenMap(t2) << std::endl;
+          //const mat xTy2 = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).rightCols(r2y);
+          //std::cout << "xTy2:\n" << xTy2 << std::endl;
+          //EigenMap(t2).rightCols(r2y).noalias() -= EigenMap(t2).leftCols(r2x) * xTy2;
+          //std::cout << "t2:\n" << ConstEigenMap(t2) << std::endl;
+          Tensor2<T> tmp(t2.r1(), r2y);
+          EigenMap(tmp) = EigenMap(t2).rightCols(r2y);
+          const T tolerance = std::numeric_limits<T>::epsilon() * std::sqrt(tmp.r1()*tmp.r2()) * 1000;
+          const auto [Q, B] = internal::normalize_qb(tmp, true, tolerance, r2y, true);
+          QB.first.resize(t2.r1()/n, n, r2x+Q.r2());
+          EigenMap(unfold_left(QB.first)) << ConstEigenMap(t2).leftCols(r2x), ConstEigenMap(Q);
+          QB.second.resize(r2x+Q.r2(), r2x+r2y);
+          EigenMap(QB.second).topLeftCorner(r2x,r2x) = mat::Identity(r2x,r2x);
+          EigenMap(QB.second).topRightCorner(r2x,r2y) = xTy_corr;
+          EigenMap(QB.second).bottomLeftCorner(Q.r2(),r2x) = mat::Zero(Q.r2(),r2x);
+          EigenMap(QB.second).bottomRightCorner(Q.r2(),r2y) = ConstEigenMap(B);
+
+          //mat t2_error = ConstEigenMap(t2_ref) - ConstEigenMap(unfold_left(QB.first)) * ConstEigenMap(QB.second);
+          //mat ortho = ConstEigenMap(unfold_left(QB.first)).transpose() * ConstEigenMap(unfold_left(QB.first));
+          //std::cout << "t2_error:\n" << t2_error << std::endl;
+          //std::cout << "ortho:\n" << ortho << std::endl;
+          //const T sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+          //assert(t2_error.norm() < sqrt_eps);
+          //assert((ortho - mat::Identity(ortho.rows(), ortho.cols())).norm() < 100*sqrt_eps//
         };
       }
 
