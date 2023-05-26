@@ -66,7 +66,7 @@ namespace PITTS
 
       //! check AMEn subspace
       template<typename T>
-      bool check_AMEnSubspace(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTv, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, SweepIndex swpIdx, const TensorTrain<T>& tt_z);
+      bool check_AMEnSubspace(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTv, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<T>& tt_z);
 
       //! check that the local problem is correct
       template<typename T>

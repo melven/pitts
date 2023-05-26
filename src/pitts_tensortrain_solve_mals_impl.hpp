@@ -262,7 +262,7 @@ namespace PITTS
           internal::t3_scale(T(-1), tmpb);
           // contract: tmpAx(:,:,*) * B(*,:)
           const Tensor2<T>& prev_C = Ax_ortho.right()->get().second;
-          internal::dot_contract1t(tmpAx, prev_C, t3);
+          internal::normalize_contract2(tmpAx, prev_C, t3);
           std::swap(t3, tmpAx);
           t3.resize(tmpAx.r1(), tmpAx.n(), tmpAx.r2()+tmpb.r2());
           concatLeftRight<T>(unfold_left(tmpAx), unfold_left(tmpb), unfold_left(t3));
@@ -270,38 +270,67 @@ namespace PITTS
           const Tensor2<T>& prev_B = Ax_b_ortho.right()->get().second;
           internal::normalize_contract2(t3, prev_B, subT[0]);
         }
+        else // leftToRight
+        {
+          if( iDim == nDim-1 )
+            copy(TTb.subTensor(iDim), tmpb);
+          else
+          {
+            // first contraction: Ax(:,:,*) * vTAx(:,*)
+            internal::dot_contract1<T>(tmpAx, *vTAx.right(), t3);
+            std::swap(t3, tmpAx);
+            // now contract: b(:,:,*) * vTb(:,*)
+            internal::dot_contract1<T>(TTb.subTensor(iDim), *vTb.right(), tmpb);
+          }
+          internal::t3_scale(T(-1), tmpb);
+          // contract: B(:,*) * tmpAx(*,:,:)
+          const Tensor2<T>& prev_C = Ax_ortho.left()->get().second;
+          internal::normalize_contract1(prev_C, tmpAx, t3);
+          std::swap(t3, tmpAx);
+          t3.resize(tmpAx.r1()+tmpb.r1(), tmpAx.n(), tmpAx.r2());
+          concatTopBottom<T>(unfold_right(tmpAx), unfold_right(tmpb), unfold_right(t3));
+          // contract: prev_B(:,*) * t3(*,:,:)
+          const Tensor2<T>& prev_B = Ax_b_ortho.left()->get().second;
+          internal::normalize_contract1(prev_B, t3, subT[0]);
+        }
         tt_z = TensorTrain<T>(std::move(subT));
       }
-
-      assert(simplifiedAMEn || check_AMEnSubspace(TTOpA, TTv, TTx, TTb, swpIdx, tt_z));
+      
+      assert(simplifiedAMEn || check_AMEnSubspace(TTOpA, TTv, TTx, TTb, swpIdx, leftToRight, tt_z));
 
       if( leftToRight )
       {
-        std::vector<Tensor3<T>> newSubT(2);
-        {
-          internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
 
-          const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
-          const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
-          Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
-          //subTr.resize(subTr.r1(), subTr.n(), std::min<long long>(nAMEnEnrichment, subTr.r2()), false);
-          Tensor2<T> tmp(subT0.r2(), subTr.r2());
-          EigenMap(tmp).noalias() = ConstEigenMap(unfold_left(subT0)).transpose() * ConstEigenMap(unfold_left(subTr));
-          const T zNorm = internal::t3_nrm(subTr);
-          EigenMap(unfold_left(subTr)).noalias() -= ConstEigenMap(unfold_left(subT0)) * ConstEigenMap(tmp);
-          const T zNorm2 = internal::t3_nrm(subTr);
-          if( zNorm2 <= std::numeric_limits<T>::epsilon()*zNorm*std::sqrt(subT1.r1()*subT1.n()) )
-          {
-            std::cout << " Not enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " as the residual does not contain any new directions!\n";
-            return;
-          }
-          const auto [Q, B] = internal::normalize_qb(unfold_left(subTr), true, T(0), nAMEnEnrichment);
-          std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+Q.r2() << "\n";
-          newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+Q.r2());
-          concatLeftRight<T>(unfold_left(subT0), Q, unfold_left(newSubT[0]));
-          newSubT[1].resize(subT1.r1()+Q.r2(), subT1.n(), subT1.r2());
-          concatTopBottom<T>(unfold_right(subT1), std::nullopt, unfold_right(newSubT[1]));
+        internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
+
+        const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
+        const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
+        Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
+
+        // orthogonalize wrt. subT0
+        Tensor2<T> tmp(subT0.r2(), subTr.r2());
+        const T zNorm = internal::t3_nrm(subTr);
+        if( zNorm > T(0) )
+          internal::t3_scale(T(1)/zNorm, subTr);
+        EigenMap(tmp).noalias() = ConstEigenMap(unfold_left(subT0)).transpose() * ConstEigenMap(unfold_left(subTr));
+        EigenMap(unfold_left(subTr)).noalias() -= ConstEigenMap(unfold_left(subT0)) * ConstEigenMap(tmp);
+        const T zNorm2 = internal::t3_nrm(subTr);
+        //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
+        if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
+        {
+          std::cout << " Not enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " as the residual does not contain any new directions!\n";
+          return;
         }
+
+        const auto [Q, B] = internal::normalize_qb(unfold_left(subTr), true, T(0), nAMEnEnrichment);
+        std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+Q.r2() << "\n";
+
+        std::vector<Tensor3<T>> newSubT(2);
+        newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+Q.r2());
+        concatLeftRight<T>(unfold_left(subT0), Q, unfold_left(newSubT[0]));
+        newSubT[1].resize(subT1.r1()+Q.r2(), subT1.n(), subT1.r2());
+        concatTopBottom<T>(unfold_right(subT1), std::nullopt, unfold_right(newSubT[1]));
+        //std::cout << "ortho:\n" << ConstEigenMap(unfold_left(newSubT[0])).transpose() * ConstEigenMap(unfold_left(newSubT[0])) << std::endl;
         TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT), {TT_Orthogonality::left, TT_Orthogonality::none});
 
         // these are not valid any more
@@ -312,7 +341,47 @@ namespace PITTS
         vTb.invalidate(swpIdx.rightDim()+1);
       }
       else // right-to-left
-        throw std::invalid_argument("solveMALS: right-to-left subspace enrichment not implemented!");
+      {
+        internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, nDim-1);
+
+        const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
+        const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
+        Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
+
+        // orthogonalize wrt. subT1
+        Tensor2<T> tmp(subT1.r1(), subTr.r1());
+        const T zNorm = internal::t3_nrm(subTr);
+        if( zNorm > T(0) )
+          internal::t3_scale(T(1)/zNorm, subTr);
+        EigenMap(tmp).noalias() = ConstEigenMap(unfold_right(subT1)) * ConstEigenMap(unfold_right(subTr)).transpose();
+        EigenMap(unfold_right(subTr)).transpose().noalias() -= ConstEigenMap(unfold_right(subT1)).transpose() * ConstEigenMap(tmp);
+        const T zNorm2 = internal::t3_nrm(subTr);
+        //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
+        if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
+        {
+          std::cout << " Not enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " as the residual does not contain any new directions!\n";
+          return;
+        }
+
+        const auto [B, Qt] = internal::normalize_qb(unfold_right(subTr), false, T(0), nAMEnEnrichment);
+        //std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT1.r1() << " to " << subT1.r1()+Qt.r1() << "\n";
+
+        std::vector<Tensor3<T>> newSubT(2);
+        newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+Qt.r1());
+        concatLeftRight<T>(unfold_left(subT0), std::nullopt, unfold_left(newSubT[0]));
+        newSubT[1].resize(subT1.r1()+Qt.r1(), subT1.n(), subT1.r2());
+        concatTopBottom<T>(unfold_right(subT1), Qt, unfold_right(newSubT[1]));
+        //std::cout << "ortho:\n" << ConstEigenMap(unfold_right(newSubT[1])) * ConstEigenMap(unfold_right(newSubT[1])).transpose() << std::endl;
+        //std::cout << "added part:\n" << ConstEigenMap(Qt) << std::endl;
+        TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT), {TT_Orthogonality::none, TT_Orthogonality::right});
+
+        // these are not valid any more
+        Ax.invalidate(swpIdx.leftDim()-1);
+        Ax_ortho.invalidate(swpIdx.leftDim()-1);
+        Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
+        vTAx.invalidate(swpIdx.leftDim()-1);
+        vTb.invalidate(swpIdx.leftDim()-1);
+      }
     };
 
     // now everything is prepared, perform the sweeps
@@ -359,13 +428,12 @@ namespace PITTS
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
         // skip iteration if this is the same as in the last left-to-right sweep
-        if( nMALS != nDim && swpIdx == lastSwpIdx )
-          continue;
+        if( nMALS == nDim || swpIdx != lastSwpIdx )
+          solveLocalProblem(swpIdx);
 
-        //if( nMALS == 1 && swpIdx.rightDim() < nDim-1 && nAMEnEnrichment > 0 )
-        //  enrichSubSpace(swpIdx.next(), false);
+        if( nAMEnEnrichment > 0 )
+          enrichSubspace(swpIdx, false);
 
-        solveLocalProblem(swpIdx);
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of right_Ax
