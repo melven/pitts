@@ -176,7 +176,9 @@ namespace PITTS
           Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1(), subT.n()*subT.r2());
           Tensor3<T> newSubT(1, subT.n(), subT.r2());
           Eigen::Map<mat> mapNewSubT(&newSubT(0,0,0), 1, subT.n()*subT.r2());
-          mapNewSubT = Mleft * mapB * mapSubT;
+          mat tmpB(Mleft.cols(), mapSubT.rows());
+          tmpB << mat::Identity(tmpB.rows()-mapB.rows(), tmpB.cols()), mapB;
+          mapNewSubT = Mleft * tmpB * mapSubT;
           tmpAx_b.front() = std::move(newSubT);
         }
         else

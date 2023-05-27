@@ -233,7 +233,6 @@ namespace PITTS
           Tensor3<T> t3x, t3y;
           if( !prev_QB )
           {
-            assert(subTy.r1() == subTx.r1());
             copy(subTx, t3x);
             copy(subTy, t3y);
           }
@@ -276,43 +275,42 @@ namespace PITTS
         {
           const auto& subTx = extract_first(TTx.subTensor(iDim));
           const auto& subTy = extract_first(TTy.subTensor(iDim));
-          assert(subTx.n() == subTy.n());
-          const int n = subTx.n();
-          const int r1x = subTx.r1();
-          const int r1y = subTy.r1();
 
-          Tensor2<T> t2;
-          using mat = Eigen::MatrixX<T>;
+          Tensor3<T> t3x, t3y;
           if( !prev_QB )
           {
-            t2.resize(r1x+r1y,n);
-            concatTopBottom<T>(unfold_right(subTx), unfold_right(subTy), t2);
+            copy(subTx, t3x);
+            copy(subTy, t3y);
           }
           else
           {
-            const int r2x = subTx.r2();
-            const int r2y = subTy.r2();
-            // contract (X 0; 0 Y) * prev_B
-            // unfortunately, the memory layout is strided for the right-to-left axpby loop, so we need to copy stuff around...
-            const auto& prev_B = prev_QB->get().second;
-            auto& t3 = QB.first;
-            t3.resize(r1x+r1y,n,r2x+r2y);
-#pragma omp parallel for schedule(static) collapse(2) if((r2x+r2y)*n > 50)
-            for(int k = 0; k < r2x+r2y; k++)
-              for(int j = 0; j < n; j++)
-                for(int i = 0; i < r1x+r1y; i++)
-                  t3(i,j,k) = k < r2x && i < r1x ? subTx(i,j,k) : k >= r2x && i >= r1x ? subTy(i-r1x,j,k-r2x) : T(0);
-            Tensor2<T> tmp;
-            unfold_left(t3, tmp);
-            t2.resize((r1x+r1y)*n, prev_B.r2());
-            EigenMap(t2).noalias() = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
-            t2.resize(r1x+r1y, n*t2.r2(), false);
+
+            // contract subTy(:,:,*) * prev_B(*,:)
+            internal::normalize_contract2(subTy, prev_QB->get().second, t3y);
+            // append zeros to subTx to obtain the same r2
+            t3x.resize(subTx.r1(), t3y.n(), t3y.r2());
+            concatLeftRight<T>(unfold_left(subTx), std::nullopt, unfold_left(t3x));
           }
 
-          // calculate LQt of subT(: x : :)
-          auto [B, Qt] = internal::normalize_qb(t2, false);
-          fold_right(Qt, n, QB.first);
-          QB.second = std::move(B);
+          // orthogonalize t3y wrt. subTx
+          Tensor2<T> yTx;
+          // contract t3y(:,*,*) * t3x(:,*,*)^T
+          internal::dot_contract2(t3y, t3x, yTx);
+          // subTx is only orthogonalized inaccurately, so try to fix orthogonalization using QQ^T = V (V^TV)^(-1) V^T
+          Eigen::MatrixX<T> xTx = ConstEigenMap(unfold_right(subTx)) * ConstEigenMap(unfold_right(subTx)).transpose();
+          // use a Cholesky decomposition of xTx (almost identity) to multiply with (V^TV)^(-1)
+          Eigen::LLT<Eigen::Ref<Eigen::MatrixX<T>>> llt(xTx); // in-place decomposition
+          llt.solveInPlace(EigenMap(yTx).transpose());
+          EigenMap(unfold_right(t3y)).noalias() -= ConstEigenMap(yTx) * ConstEigenMap(unfold_right(t3x));
+
+          // orthogonalize t3y itself
+          const T tolerance = std::numeric_limits<T>::epsilon() * std::sqrt(t3y.r1()*t3y.n()*t3y.r2()) * 1000;
+          const auto [B, Qt] = internal::normalize_qb(unfold_right(t3y), false, tolerance, t3y.r1(), true);
+
+          QB.first.resize(t3x.r1()+Qt.r1(), t3x.n(), t3x.r2());
+          concatTopBottom<T>(unfold_right(t3x), Qt, unfold_right(QB.first));
+          QB.second.resize(t3y.r1(), yTx.r2()+B.r2());
+          concatLeftRight<T>(yTx, B, QB.second);
         };
       }
 
