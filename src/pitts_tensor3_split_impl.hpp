@@ -89,7 +89,7 @@ namespace PITTS
 
     // implement normalize_qb
     template<typename T>
-    std::pair<Tensor2<T>, Tensor2<T>> normalize_qb(const Tensor2<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance)
+    std::pair<Tensor2<T>, Tensor2<T>> normalize_qb(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance)
     {
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
