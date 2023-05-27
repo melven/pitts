@@ -229,72 +229,42 @@ namespace PITTS
         {
           const auto& subTx = extract_first(TTx.subTensor(iDim));
           const auto& subTy = extract_first(TTy.subTensor(iDim));
-          assert(subTx.n() == subTy.n());
-          const int n = subTx.n();
-          const int r2x = subTx.r2();
-          const int r2y = subTy.r2();
 
-          Tensor2<T> t2;
-          using mat = Eigen::MatrixX<T>;
+          Tensor3<T> t3x, t3y;
           if( !prev_QB )
           {
-            t2.resize(n, r2x+r2y);
-            concatLeftRight<T>(unfold_left(subTx), unfold_left(subTy), t2);
+            assert(subTy.r1() == subTx.r1());
+            copy(subTx, t3x);
+            copy(subTy, t3y);
           }
           else
           {
-            const int r1x = subTx.r1();
-            const int r1y = subTy.r1();
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n*r2x);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n*r2y);
-            // contract prev_B * (X 0; 0 Y)
-            const auto& prev_B = prev_QB->get().second;
-            t2.resize(prev_B.r1(), n*r2x+n*r2y);
-            EigenMap(t2).leftCols (n*r2x).noalias() = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
-            EigenMap(t2).rightCols(n*r2y).noalias() = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
-            t2.resize(t2.r1()*n, r2x+r2y, false);
+            // contract prev_B(:,*) * subTy(*,:,:)
+            internal::normalize_contract1(prev_QB->get().second, subTy, t3y);
+            // append zeros to subTx to obtain the same r1
+            t3x.resize(t3y.r1(), t3y.n(), subTx.r2());
+            concatTopBottom<T>(unfold_right(subTx), std::nullopt, unfold_right(t3x));
           }
 
-          Tensor2<T> t2_ref;
-          copy(t2, t2_ref);
+          // orthogonalize t3y wrt. subTx
+          Tensor2<T> xTy;
+          // contract t3x(*,*,:)^T * t3y(*,*,:)
+          internal::reverse_dot_contract2(t3x, t3y, xTy);
+          // subTx is only orthogonalized inaccurately, so try to fix orthogonalization using QQ^T = V (V^TV)^(-1) V^T
+          Eigen::MatrixX<T> xTx = ConstEigenMap(unfold_left(subTx)).transpose() * ConstEigenMap(unfold_left(subTx));
+          // use a Cholesky decomposition of xTx (almost identity) to multiply with (V^TV)^(-1)
+          Eigen::LLT<Eigen::Ref<Eigen::MatrixX<T>>> llt(xTx); // in-place decomposition
+          llt.solveInPlace(EigenMap(xTy));
+          EigenMap(unfold_left(t3y)).noalias() -= ConstEigenMap(unfold_left(t3x)) * ConstEigenMap(xTy);
 
-          // calculate QR of subT(: : x :)
-          //std::cout << "t2:\n" << ConstEigenMap(t2) << std::endl;
-          const mat xTy = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).rightCols(r2y);
-          const mat xTx = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).leftCols(r2x);
-          const mat xTy_corr = xTx.llt().solve(xTy);
-          //mat xTx_I = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).leftCols(r2x);
-          // xTx = I+eps, then xTx^(-1) approx I - eps + ...
-          //xTx_I -= mat::Identity(r2x,r2x);
-          //const mat xTy1 = xTx_I * xTy;
-          //const mat xTy2 = xTx_I * xTy1;
-          //mat xTy_corr = xTy - xTy1 + 0.5*xTy2;
-          //std::cout << "xTy:\n" << xTy << std::endl;
-          EigenMap(t2).rightCols(r2y).noalias() -= EigenMap(t2).leftCols(r2x) * xTy_corr;
-          //std::cout << "t2:\n" << ConstEigenMap(t2) << std::endl;
-          //const mat xTy2 = EigenMap(t2).leftCols(r2x).transpose() * EigenMap(t2).rightCols(r2y);
-          //std::cout << "xTy2:\n" << xTy2 << std::endl;
-          //EigenMap(t2).rightCols(r2y).noalias() -= EigenMap(t2).leftCols(r2x) * xTy2;
-          //std::cout << "t2:\n" << ConstEigenMap(t2) << std::endl;
-          Tensor2<T> tmp(t2.r1(), r2y);
-          EigenMap(tmp) = EigenMap(t2).rightCols(r2y);
-          const T tolerance = std::numeric_limits<T>::epsilon() * std::sqrt(tmp.r1()*tmp.r2()) * 1000;
-          const auto [Q, B] = internal::normalize_qb(tmp, true, tolerance, r2y, true);
-          QB.first.resize(t2.r1()/n, n, r2x+Q.r2());
-          EigenMap(unfold_left(QB.first)) << ConstEigenMap(t2).leftCols(r2x), ConstEigenMap(Q);
-          QB.second.resize(r2x+Q.r2(), r2x+r2y);
-          EigenMap(QB.second).topLeftCorner(r2x,r2x) = mat::Identity(r2x,r2x);
-          EigenMap(QB.second).topRightCorner(r2x,r2y) = xTy_corr;
-          EigenMap(QB.second).bottomLeftCorner(Q.r2(),r2x) = mat::Zero(Q.r2(),r2x);
-          EigenMap(QB.second).bottomRightCorner(Q.r2(),r2y) = ConstEigenMap(B);
+          // orthogonalize t3y itself
+          const T tolerance = std::numeric_limits<T>::epsilon() * std::sqrt(t3y.r1()*t3y.n()*t3y.r2()) * 1000;
+          const auto [Q, B] = internal::normalize_qb(unfold_left(t3y), true, tolerance, t3y.r2(), true);
 
-          //mat t2_error = ConstEigenMap(t2_ref) - ConstEigenMap(unfold_left(QB.first)) * ConstEigenMap(QB.second);
-          //mat ortho = ConstEigenMap(unfold_left(QB.first)).transpose() * ConstEigenMap(unfold_left(QB.first));
-          //std::cout << "t2_error:\n" << t2_error << std::endl;
-          //std::cout << "ortho:\n" << ortho << std::endl;
-          //const T sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
-          //assert(t2_error.norm() < sqrt_eps);
-          //assert((ortho - mat::Identity(ortho.rows(), ortho.cols())).norm() < 100*sqrt_eps//
+          QB.first.resize(t3x.r1(), t3x.n(), t3x.r2()+Q.r2());
+          concatLeftRight<T>(unfold_left(t3x), Q, unfold_left(QB.first));
+          QB.second.resize(xTy.r1()+B.r1(), t3y.r2());
+          concatTopBottom<T>(xTy, B, QB.second);
         };
       }
 

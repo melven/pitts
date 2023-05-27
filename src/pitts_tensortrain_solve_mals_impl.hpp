@@ -270,7 +270,7 @@ namespace PITTS
           const Tensor2<T>& prev_B = Ax_b_ortho.right()->get().second;
           internal::normalize_contract2(t3, prev_B, subT[0]);
         }
-        else // leftToRight
+        else // !leftToRight
         {
           if( iDim == nDim-1 )
             copy(TTb.subTensor(iDim), tmpb);
@@ -287,11 +287,15 @@ namespace PITTS
           const Tensor2<T>& prev_C = Ax_ortho.left()->get().second;
           internal::normalize_contract1(prev_C, tmpAx, t3);
           std::swap(t3, tmpAx);
-          t3.resize(tmpAx.r1()+tmpb.r1(), tmpAx.n(), tmpAx.r2());
-          concatTopBottom<T>(unfold_right(tmpAx), unfold_right(tmpb), unfold_right(t3));
-          // contract: prev_B(:,*) * t3(*,:,:)
+          //         prev_B = (I xTy)    *    (tmpAx)
+          //                  (0  R )         (tmpb)
+          // but left columns (I;0) are not stored...
+          // => (tmpAx+xTy*tmpb)
+          //    (R*tmpb)
           const Tensor2<T>& prev_B = Ax_b_ortho.left()->get().second;
-          internal::normalize_contract1(prev_B, t3, subT[0]);
+          internal::normalize_contract1(prev_B, tmpb, t3);
+          EigenMap(unfold_right(t3)).topRows(tmpAx.r1()) += ConstEigenMap(unfold_right(tmpAx));
+          subT[0] = std::move(t3);
         }
         tt_z = TensorTrain<T>(std::move(subT));
       }
@@ -415,7 +419,7 @@ namespace PITTS
       {
         const T norm_Ax = Ax_ortho.data().back().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
-        residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
+        residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
         //std::cout << "norm_Ax: " << norm_Ax << ", norm_b: " << norm_b << "\n";
         //std::cout << "mapB:\n" << mapB << std::endl;
         //std::cout << "mapB(:,0)*norm_Ax:\n" << mapB.leftCols(1)*norm_Ax << std::endl;

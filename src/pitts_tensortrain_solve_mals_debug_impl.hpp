@@ -189,7 +189,9 @@ namespace PITTS
           Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1()*subT.n(), subT.r2());
           Tensor3<T> newSubT(subT.r1(), subT.n(), 1);
           Eigen::Map<mat> mapNewSubT(&newSubT(0,0,0), subT.r1()*subT.n(), 1);
-          mapNewSubT = mapSubT * mapB * Mright;
+          mat tmpB(mapSubT.cols(), Mright.rows());
+          tmpB << mat::Identity(tmpB.rows(), tmpB.cols()-mapB.cols()), mapB;
+          mapNewSubT = mapSubT * tmpB * Mright;
           tmpAx_b.back() = std::move(newSubT);
         }
         TensorTrain<T> TTAx_b(std::move(tmpAx_b));
