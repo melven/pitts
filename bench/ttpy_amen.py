@@ -41,7 +41,7 @@ if __name__ == '__main__':
         pitts_py.axpby(10/np.sqrt(len(dims)), TTOpConvection, 1, TTOp)
 
     TTb = pitts_py.TensorTrain_double(dims)
-    TTb.setTTranks(30)
+    TTb.setTTranks(50)
     pitts_py.randomize(TTb)
     #TTb.setOnes()
     nrm_b = pitts_py.normalize(TTb)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     TTx = pitts_py.TensorTrain_double(dims)
     pitts_py.copy(TTb, TTx)
 
-    precondition = True
+    precondition = False
     if precondition:
         precond = TT_Rank1_preconditioner(TTOp, twosided=True)
 
@@ -88,20 +88,24 @@ if __name__ == '__main__':
     print(ttpy_TTx)
 
     wtime = timeit.default_timer()
-    ttpy_TTx = amen_solve(ttpy_TTOp, ttpy_TTb, ttpy_TTx, 1.e-8, nswp=40, local_iters=1, local_restart=80, verb=10, kickrank=30)
+    ttpy_TTx = amen_solve(ttpy_TTOp, ttpy_TTb, ttpy_TTx, 1.e-8, nswp=40, local_iters=1, local_restart=80, verb=10, kickrank=50)
     print(ttpy_TTx)
     wtime = timeit.default_timer() - wtime
     print('wtime ttpy AMEN', wtime)
     nrm_r = (ttpy_TTb - matvec(ttpy_TTOp, ttpy_TTx)).norm()
-    print('res. norm:', nrm_r, 'b norm', ttpy_TTb.norm(), 'x norm', ttpy_TTx.norm())
+    print('res. norm:', nrm_r, '(abs) ', nrm_r / ttpy_TTb.norm(), '(rel), b norm', ttpy_TTb.norm(), 'x norm', ttpy_TTx.norm())
 
     wtime = timeit.default_timer()
     pitts_py.solveMALS(TTOp, symmetric, pitts_py.MALS_projection.RitzGalerkin, TTb, TTx,
-            nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-8, nMALS=1, nOverlap=0, nAMEnEnrichment=30,
-            simplifiedAMEn=False)
+            nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-8, nMALS=1, nOverlap=0, nAMEnEnrichment=50,
+            simplifiedAMEn=True)
     #pitts_py.solveGMRES(TTOp, TTb, TTx, maxIter=200, maxRank=150, symmetric=True, absResTol=100, relResTol=1.e-8)
     wtime = timeit.default_timer() - wtime
     print('wtime pitts_py MALS', wtime)
+    TTr = pitts_py.TensorTrain_double(TTb.dimensions())
+    pitts_py.apply(TTOp, TTx, TTr)
+    r_nrm = pitts_py.axpby(1., TTb, -1., TTr, 0.)
+    print("real resNorm: %g" % r_nrm )
 
     ttpy_TTx_ref = pitts_tt_to_ttpy(TTx)
     nrm_x_ref = ttpy_TTx_ref.norm()
