@@ -41,7 +41,7 @@ if __name__ == '__main__':
         pitts_py.axpby(10/np.sqrt(len(dims)), TTOpConvection, 1, TTOp)
 
     TTb = pitts_py.TensorTrain_double(dims)
-    TTb.setTTranks(10)
+    TTb.setTTranks(30)
     pitts_py.randomize(TTb)
     #TTb.setOnes()
     nrm_b = pitts_py.normalize(TTb)
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     print(ttpy_TTx)
 
     wtime = timeit.default_timer()
-    ttpy_TTx = amen_solve(ttpy_TTOp, ttpy_TTb, ttpy_TTx, 1.e-8, nswp=40, local_iters=1, local_restart=80, verb=10, kickrank=10)
+    ttpy_TTx = amen_solve(ttpy_TTOp, ttpy_TTb, ttpy_TTx, 1.e-8, nswp=40, local_iters=1, local_restart=80, verb=10, kickrank=30)
     print(ttpy_TTx)
     wtime = timeit.default_timer() - wtime
     print('wtime ttpy AMEN', wtime)
@@ -97,8 +97,8 @@ if __name__ == '__main__':
 
     wtime = timeit.default_timer()
     pitts_py.solveMALS(TTOp, symmetric, pitts_py.MALS_projection.RitzGalerkin, TTb, TTx,
-            nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-4, nMALS=1, nOverlap=0, nAMEnEnrichment=20,
-            simplifiedAMEn=True)
+            nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-8, nMALS=1, nOverlap=0, nAMEnEnrichment=30,
+            simplifiedAMEn=False)
     #pitts_py.solveGMRES(TTOp, TTb, TTx, maxIter=200, maxRank=150, symmetric=True, absResTol=100, relResTol=1.e-8)
     wtime = timeit.default_timer() - wtime
     print('wtime pitts_py MALS', wtime)
