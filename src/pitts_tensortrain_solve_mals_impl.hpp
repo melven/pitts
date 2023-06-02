@@ -226,8 +226,8 @@ namespace PITTS
         if( firstSweep && localResidualNorm > 0.5 )
           tt_x.setZero(); // todo: tell GMRES that the initial guess is zero...
         
-        absTol = localResidualTolerance * nrm_tt_b * gmresRelTol;
-        relTol = std::max(gmresRelTol, localResidualTolerance / localResidualNorm);
+        absTol = localResidualTolerance * nrm_tt_b;
+        relTol = gmresRelTol;
         std::cout << "localResidualNorm: " << localResidualNorm << ", absTol: " << absTol << ", relTol: " << relTol << "\n";
       }
       else
