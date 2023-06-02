@@ -49,13 +49,13 @@ namespace PITTS
 
       using mat = Eigen::MatrixX<T>;
 #pragma omp parallel for schedule(static) collapse(2) if(r2*rA2 > 50)
-      for(long long j2 = 0; j2 < r2; j2++)
-        for(long long i2 = 0; i2 < rA2; i2++)
+      for(long long i2 = 0; i2 < rA2; i2++)
+        for(long long j2 = 0; j2 < r2; j2++)
         {
           Eigen::Map<const mat> mapX(&x(0,0,j2), r1, m);
           Eigen::Map<const mat> mapA(&Aop(0,0,i2), rA1*n, m);
           Eigen::Map<mat> mapY(&y(0,0,j2+i2*r2), r1, rA1*n);
-          mapY = mapX * mapA.transpose();
+          mapY.noalias() = mapX * mapA.transpose();
         }
     }
 
@@ -82,11 +82,27 @@ namespace PITTS
 
       y.resize(n, xn, r2);
 
-      using mat = Eigen::MatrixX<T>;
-      Eigen::Map<const mat> mapA(&Aop(0,0,0), n, r1);
-      Eigen::Map<const mat> mapX(&x(0,0,0), r1, xn*r2);
-      Eigen::Map<mat> mapY(&y(0,0,0), n, xn*r2);
-      mapY = mapA * mapX;
+      if( r2 > 20 )
+      {
+#pragma omp parallel for schedule(static)
+        for(long long i = 0; i < r2; i++)
+        {
+          using mat = Eigen::MatrixX<T>;
+          Eigen::Map<const mat> mapA(&Aop(0,0,0), n, r1);
+          Eigen::Map<const mat> mapX(&x(0,0,i), r1, xn);
+          Eigen::Map<mat> mapY(&y(0,0,i), n, xn);
+          mapY.noalias() = mapA * mapX;
+        }
+      }
+      else
+      {
+        // small version
+        using mat = Eigen::MatrixX<T>;
+        Eigen::Map<const mat> mapA(&Aop(0,0,0), n, r1);
+        Eigen::Map<const mat> mapX(&x(0,0,0), r1, xn*r2);
+        Eigen::Map<mat> mapY(&y(0,0,0), n, xn*r2);
+        mapY.noalias() = mapA * mapX;
+      }
     }
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and Tensor3 along some dimensions: x(:,:,*) * A(*,:,*,0)
@@ -123,7 +139,7 @@ namespace PITTS
       
       Eigen::Map<const mat> viewX(&x(0,0,0), r1*xn, m*rA1);
       Eigen::Map<mat> viewY(&y(0,0,0), r1*xn, n);
-      viewY = viewX * tmpA;
+      viewY.noalias() = viewX * tmpA;
     }
   }
 
