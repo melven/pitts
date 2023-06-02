@@ -15,8 +15,8 @@
 #include <numeric>
 #include <cassert>
 #include <stdexcept>
-#include "pitts_tensortrain_operator.hpp"
-#include "pitts_multivector.hpp"
+#include "pitts_tensortrain_operator_apply_dense.hpp"
+#include "pitts_multivector_reshape.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
@@ -103,6 +103,45 @@ namespace PITTS
         }
       }
     }
+
+    //! assumes a very special memory layout: A(:,(*,1:rA)) * x(:,(:,*))^T -> y(:,(:,1:rA))
+    template<typename T>
+    void apply_dense_contract_padded(long long rA, const MultiVector<T>& x, const MultiVector<T>& A, MultiVector<T>& y)
+    {
+      const auto yn = A.rows();
+      const auto xn = x.rows();
+      const auto m = A.cols() / rA;
+      const auto r = x.cols() / m;
+      if( A.cols() % rA != 0 || x.cols() % m != 0 )
+        throw std::invalid_argument("apply_dense_contract: invalid dimensions!");
+
+      y.resize(yn, xn*r*rA, false);
+      
+      const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+          {{"yn", "xn", "m", "rA", "r"},{yn, xn, m, rA, r}}, // arguments
+          {{double(xn*r*m*yn*rA)*kernel_info::FMA<T>()}, // flops
+          {double(xn*r*m + yn*m*rA)*kernel_info::Load<T>() + double(yn*xn*r*rA)*kernel_info::Store<T>()}} // data transfers
+          );
+      
+
+#pragma omp parallel for collapse(2) schedule(static)
+      for(long long iA = 0; iA < rA; iA++)
+        for(long long i = 0; i < r; i++)
+        {
+          const auto xstride = Eigen::OuterStride<>(&x(0,r) - &x(0,0));
+          const auto ystride = Eigen::OuterStride<>(&y(0,1) - &y(0,0));
+
+          using mat = Eigen::MatrixX<T>;
+          using map = Eigen::Map<mat, Eigen::Aligned128, Eigen::OuterStride<>>;
+          using const_map = Eigen::Map<const mat, Eigen::Aligned128, Eigen::OuterStride<>>;
+
+          const_map mapx(&x(0,i), xn, m, xstride);
+          const_map mapA(&A(0,m*iA), yn, m, ystride);
+          map mapy(&y(0,i*xn+iA*xn*r), yn, xn, ystride);
+
+          mapy.noalias() = mapA * mapx.transpose();
+        }
+    }
   }
 
   // implement TT Op apply to dense
@@ -112,7 +151,7 @@ namespace PITTS
     const auto timer = PITTS::timing::createScopedTimer<TensorTrainOperator<T>>();
 
     // check for matching dimensions
-    const long mTotal = std::accumulate(TTOp.column_dimensions().begin(), TTOp.column_dimensions().end(), 1, std::multiplies<long>());
+    const long long mTotal = std::accumulate(TTOp.column_dimensions().begin(), TTOp.column_dimensions().end(), 1, std::multiplies<long long>());
     if( mTotal != MVx.rows() )
       throw std::invalid_argument("TensorTrainOperator: input tensor dimension mismatch!");
 
@@ -124,15 +163,117 @@ namespace PITTS
     {
       const auto& subTOp = TTOp.tensorTrain().subTensor(iDim);
       const auto& x = (iDim == nDim-1) ? MVx : MVy;
-      auto& y = mv_tmp;
 
-      internal::apply_dense_contract(TTOp, iDim, subTOp, x, y);
+      internal::apply_dense_contract(TTOp, iDim, subTOp, x, mv_tmp);
 
-      std::swap(y, MVy);
+      std::swap(mv_tmp, MVy);
     }
   }
 
-}
 
+  template<typename T>
+  TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const TensorTrainOperator<T> &TTOp)
+  {
+    // only works for row-dims == col-dims so far
+    if( TTOp.row_dimensions() != TTOp.column_dimensions() )
+      throw std::invalid_argument("TTOpApplyDenseHelper: row-dims != col-dims not supported!");
+
+    // get dimensions
+    nDim_ = TTOp.row_dimensions().size();
+    nTotal_ = std::accumulate(TTOp.row_dimensions().begin(), TTOp.row_dimensions().end(), 1, std::multiplies<long long>());
+    n0_ = TTOp.row_dimensions()[0];
+    const auto n0Chunks = (n0_-1)/Chunk<T>::size + 1;
+    const auto n0ChunksPadded = internal::paddedChunks(n0Chunks);
+    n0padded_ = n0ChunksPadded * Chunk<T>::size;
+    nTotalPadded_ = nTotal_ / n0_ * n0padded_;
+
+    // initialize requred data
+    A_.resize(nDim_);
+    rA_.resize(nDim_);
+    tmpv_.resize(nDim_+1);
+
+    for(int iDim = nDim_-1; iDim >= 0; iDim--)
+    {
+      const auto& subTOp = TTOp.tensorTrain().subTensor(iDim);
+      rA_[iDim] = subTOp.r1(); 
+      const auto ni = TTOp.row_dimensions()[iDim];
+      const auto mi = TTOp.column_dimensions()[iDim];
+      A_[iDim].resize(ni, mi*subTOp.r2()*rA_[iDim]);
+#pragma omp parallel for collapse(2) schedule(static)
+      for(long long k2 = 0; k2 < subTOp.r2(); k2++)
+        for(long long j = 0; j < mi; j++)
+          for(long long i = 0; i < ni; i++)
+            for(long long k1 = 0; k1 < rA_[iDim]; k1++)
+              A_[iDim](i, j+k2*mi+k1*mi*subTOp.r2()) = subTOp(k1, TTOp.index(iDim, i, j), k2);
+    }
+  }
+
+  template<typename T>
+  void TTOpApplyDenseHelper<T>::addPadding(MultiVector<T> &x)
+  {
+    if( x.cols() != 1 )
+      throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
+    if( x.rows() != nTotal_ )
+      throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to addPadding!");
+    
+    std::swap(x, tmpv(0));
+
+    x.resize(nTotalPadded_, 1, false);
+    // initialize target memory to zero
+#pragma omp parallel for schedule(static)
+    for(long long iChunk = 0; iChunk < x.rowChunks(); iChunk++)
+      x.chunk(iChunk, 0) = Chunk<T>{};
+
+    reshape(tmpv(0), n0_, nTotal_/n0_, x);
+    assert(x.rowChunks()*Chunk<T>::size == n0padded_);
+
+    x.resize(nTotalPadded_, 1, false, true);
+  }
+
+  template<typename T>
+  void TTOpApplyDenseHelper<T>::removePadding(MultiVector<T> &y)
+  {
+    if( y.cols() != 1 )
+      throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
+    if( y.rows() != nTotalPadded_ )
+      throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to removePadding!");
+
+    y.resize(n0_, nTotal_ / n0_, false, true);
+    std::swap(y, tmpv(0));
+    reshape(tmpv(0), nTotal_, 1, y);
+  }
+
+  // implement TT Op Helper apply to dense
+  template<typename T>
+  void apply(const TTOpApplyDenseHelper<T>& TTOp, MultiVector<T>& MVx, MultiVector<T>& MVy)
+  {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrainOperator<T>>();
+
+    // check for matching dimensions
+    if( MVx.cols() != 1 )
+      throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
+    if( MVx.rows() != TTOp.nTotalPadded() )
+      throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to apply!");
+  
+
+    // reuse memory of MVy...
+    MVy.resize(TTOp.nTotalPadded(), 1, false);
+    std::swap(MVy, TTOp.tmpv(0));
+
+    // reuse memory of MVx (avoids copy), restored below
+    MVx.resize(TTOp.n0(), TTOp.nTotal()/TTOp.n0(), false, true);
+    std::swap(TTOp.tmpv(TTOp.nDim()), MVx);
+
+    // perform actual calculation
+    for(int iDim = TTOp.nDim()-1; iDim >= 0; iDim--)
+      internal::apply_dense_contract_padded(TTOp.rA(iDim), TTOp.tmpv(iDim+1), TTOp.A(iDim), TTOp.tmpv(iDim));
+
+    std::swap(TTOp.tmpv(0), MVy);
+    MVy.resize(TTOp.nTotalPadded(), 1, false, true);
+    std::swap(TTOp.tmpv(TTOp.nDim()), MVx);
+    MVx.resize(TTOp.nTotalPadded(), 1, false, true);
+  }
+
+}
 
 #endif // PITTS_TENSORTRAIN_OPERATOR_APPLY_DENSE_IMPL_HPP

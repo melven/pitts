@@ -6,6 +6,7 @@
 #include "pitts_tensortrain_operator_apply_dense.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
+#include "pitts_multivector_reshape.hpp"
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
@@ -61,11 +62,49 @@ namespace
         using mat = Eigen::MatrixX<T>;
         using const_map = Eigen::Map<const mat, Eigen::Aligned128, Eigen::OuterStride<>>;
         using map = Eigen::Map<mat, Eigen::Aligned128, Eigen::OuterStride<>>;
-        const_map mapX(&x(0,in), r1, n, Eigen::OuterStride<>(xStride));
+        const_map mapX(&x(0,in), r1, r2, Eigen::OuterStride<>(xStride));
         const_map mapA3(&A3(0,r2*iA2), r2, r2, Eigen::OuterStride<>(A3Stride));
         map mapY1(&y1(0,r1*in + r1*n*iA2), r2, r1, Eigen::OuterStride<>(A3Stride));
 
         mapY1.noalias() = mapA3 * mapX.transpose();
+      }
+  }
+
+  //! assumes a very special memory layout: A(:,(*,1:rA)) * x(:,(:,*))^T -> y(:,(:,1:rA))
+  template<typename T>
+  void apply_dense_contract(long long r, const MultiVector<T>& x, const MultiVector<T>& A, MultiVector<T>& y)
+  {
+    const auto yn = A.rows();
+    const auto xn = x.rows();
+    const auto m = x.cols() / r;
+    const auto rA = A.cols() / m;
+    if( x.cols() % r != 0 || A.cols() % m != 0 )
+      throw std::invalid_argument("apply_dense_contract: invalid dimensions!");
+    
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"yn", "xn", "m", "rA", "r"},{yn, xn, m, rA, r}}, // arguments
+        {{double(xn*r*m*yn*rA)*kernel_info::FMA<T>()}, // flops
+         {double(xn*r*m + yn*m*rA)*kernel_info::Load<T>() + double(yn*xn*r*rA)*kernel_info::Store<T>()}} // data transfers
+        );
+    
+    y.resize(yn, xn*r*rA);
+
+#pragma omp parallel for collapse(2) schedule(static)
+    for(long long iA = 0; iA < rA; iA++)
+      for(long long i = 0; i < r; i++)
+      {
+        const auto xstride = Eigen::OuterStride<>(&x(0,r) - &x(0,0));
+        const auto ystride = Eigen::OuterStride<>(&y(0,1) - &y(0,0));
+
+        using mat = Eigen::MatrixX<T>;
+        using map = Eigen::Map<mat, Eigen::Aligned128, Eigen::OuterStride<>>;
+        using const_map = Eigen::Map<const mat, Eigen::Aligned128, Eigen::OuterStride<>>;
+
+        const_map mapx(&x(0,i), xn, m, xstride);
+        const_map mapA(&A(0,m*iA), yn, m, ystride);
+        map mapy(&y(0,i*xn+iA*xn*r), yn, xn, ystride);
+
+        mapy.noalias() = mapA * mapx.transpose();
       }
   }
 
@@ -144,6 +183,19 @@ int main(int argc, char* argv[])
 
   for(int iter = 0; iter < nIter; iter++)
     apply(TTOp, mvX, mvY);
+  
+
+  // special padded / faster variant
+  PITTS::TTOpApplyDenseHelper TTOpHelper(TTOp);
+  TTOpHelper.addPadding(mvX);
+  TTOpHelper.addPadding(mvY);
+
+  for(int iter = 0; iter < nIter; iter++)
+    apply(TTOpHelper, mvX, mvY);
+  
+  TTOpHelper.removePadding(mvX);
+  TTOpHelper.removePadding(mvY);
+  
 
   // required GEMMs
   mvX.resize(330*50,330);
@@ -207,6 +259,13 @@ int main(int argc, char* argv[])
     contract1(mvX, A3, tmp1);
     contract2(tmp1, A2, tmp2);
     contract3(tmp2, A1, mvY);
+  }
+
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    apply_dense_contract(n, mvX, A3, tmp1);
+    apply_dense_contract(r1, tmp1, A2, tmp2);
+    apply_dense_contract(r2, tmp2, A1, mvY);
   }
 
 

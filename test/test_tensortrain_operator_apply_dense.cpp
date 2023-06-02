@@ -5,12 +5,16 @@
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
+#include "pitts_multivector_norm.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
+#include "eigen_test_helper.hpp"
 
 namespace
 {
   using TensorTrainOperator_double = PITTS::TensorTrainOperator<double>;
   using TensorTrain_double = PITTS::TensorTrain<double>;
   using MultiVector_double = PITTS::MultiVector<double>;
+  using TTOpDenseHelper_double = PITTS::TTOpApplyDenseHelper<double>;
   constexpr auto eps = 1.e-10;
 }
 
@@ -175,3 +179,86 @@ TEST(PITTS_TensorTrainOperator_apply_dense, random_nDim4)
     }
 }
 
+TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply_addRemovePadding)
+{
+  const std::vector dims = {5, 7, 2, 3};
+  const auto N = 5*7*2*3;
+  const auto n0 = dims[0];
+  TensorTrainOperator_double TTOp(dims, dims);
+  TTOp.setTTranks({2,1,3});
+  randomize(TTOp);
+
+  MultiVector_double MVx(N, 1), MVx_ref;
+  randomize(MVx);
+  copy(MVx, MVx_ref);
+
+  TTOpDenseHelper_double TTOpHelper(TTOp);
+
+  TTOpHelper.addPadding(MVx);
+  EXPECT_EQ(1, MVx.cols());
+  EXPECT_GT(MVx.rows(), MVx_ref.rows());
+  // padding should be zero!
+  const double nrm_ref = norm2(MVx_ref)(0);
+  const double nrm = norm2(MVx)(0);
+  EXPECT_NEAR(nrm_ref, nrm, eps);
+
+  // entries should be the same when reshaped to n0, N/n0
+  MultiVector_double MVxtmp;
+  copy(MVx, MVxtmp);
+  MVxtmp.resize(n0, N/n0, false, true);
+  for(int i = 0; i < N; i++)
+  {
+    EXPECT_EQ(MVx_ref(i,0), MVxtmp(i%n0, i/n0));
+  }
+
+  TTOpHelper.removePadding(MVx);
+  EXPECT_NEAR(ConstEigenMap(MVx_ref), ConstEigenMap(MVx), eps);
+}
+
+TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply)
+{
+  const std::vector dims = {3, 4, 2, 3};
+  const auto N = 3*4*2*3;
+
+  TensorTrainOperator_double TTOp(dims, dims);
+  TTOp.setTTranks({2,1,3});
+  randomize(TTOp);
+
+  MultiVector_double MVx(N, 1), MVx_ref, MVy, MVy_ref;
+  randomize(MVx);
+  copy(MVx, MVx_ref);
+
+  TTOpDenseHelper_double TTOpHelper(TTOp);
+  TTOpHelper.addPadding(MVx);
+
+  apply(TTOpHelper, MVx, MVy);
+
+  TTOpHelper.removePadding(MVy);
+
+  apply(TTOp, MVx_ref, MVy_ref);
+  EXPECT_NEAR(ConstEigenMap(MVy_ref), ConstEigenMap(MVy), eps);
+}
+
+TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply_large)
+{
+  const std::vector dims = {17, 5, 39};
+  const auto N = 17*5*39;
+
+  TensorTrainOperator_double TTOp(dims, dims);
+  TTOp.setTTranks({4,3});
+  randomize(TTOp);
+
+  MultiVector_double MVx(N, 1), MVx_ref, MVy, MVy_ref;
+  randomize(MVx);
+  copy(MVx, MVx_ref);
+
+  TTOpDenseHelper_double TTOpHelper(TTOp);
+  TTOpHelper.addPadding(MVx);
+
+  apply(TTOpHelper, MVx, MVy);
+
+  TTOpHelper.removePadding(MVy);
+
+  apply(TTOp, MVx_ref, MVy_ref);
+  EXPECT_NEAR(ConstEigenMap(MVy_ref), ConstEigenMap(MVy), eps);
+}

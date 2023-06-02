@@ -64,14 +64,12 @@ namespace PITTS
     //!
     Tensor3(std::unique_ptr<Chunk<T>[]>&& data, long long reservedChunks, long long r1, long long n, long long r2)
     {
-      if(r1*n*r2 > reservedChunks * Chunk<T>::size)
-        throw std::invalid_argument("Reserved data size too small!");
       if(nullptr == data.get())
         throw std::invalid_argument("Data pointer must be allocated!");
       
       data_ = std::move(data);
       reservedChunks_ = reservedChunks;
-      resize(r1, n, r2, false);
+      resize(r1, n, r2, false, true);
     }
 
     //! allow access to the internal data pointer
@@ -98,8 +96,15 @@ namespace PITTS
       return data;
     }
 
-    //! adjust the desired tensor dimensions (destroying all data!)
-    void resize(long long r1, long long n, long long r2, bool setPaddingToZero = true)
+    //! adjust the desired tensor dimensions (usually destroying all data!)
+    //!
+    //! @param r1               first dimension
+    //! @param n                second dimension
+    //! @param r2               third dimension
+    //! @param setPaddingToZero can be set to false to avoid initialization to zero of the last chunk in each column
+    //! @param keepData         try to change the dimensions without changing the data (reshape), throws an error if not enough memory was allocated
+    //!
+    void resize(long long r1, long long n, long long r2, bool setPaddingToZero = true, bool keepData = false)
     {
       // fast return without timer!
       if( r1 == r1_ && n == n_ && r2 == r2_ )
@@ -111,6 +116,8 @@ namespace PITTS
       const long long requiredChunks = internal::paddedChunks((requiredSize-1)/Chunk<T>::size+1);
       if( requiredChunks > reservedChunks_ )
       {
+        if( keepData )
+          throw std::invalid_argument("MultiVector: cannot resize without allocating memory!");
         data_.reset(new Chunk<T>[requiredChunks]);
         reservedChunks_ = requiredChunks;
       }
