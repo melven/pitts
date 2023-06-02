@@ -33,10 +33,10 @@ namespace PITTS
   //! @param relResTol        relative residual tolerance: the iteration aborts if the relative residual norm is smaller than relResTol
   //! @param outputPrefix     string to prefix all output about the convergence history
   //! @param verbose          set to true, to print the residual norm in each iteration to std::cout
-  //! @return                 current residual norm ||OpA*x - b||_2
+  //! @return                 current absolute residual norm ||OpA*x - b||_2 and relative residual norm ||OpA*x-b||_2 / ||OpA*x0-b||_2
   //!
   template<typename T, typename LinearOperator, typename Vector>
-  T GMRES(const LinearOperator& OpA, bool symmetric, const Vector& b, Vector& x, int maxIter, const T& absResTol, const T& relResTol, const std::string_view& outputPrefix = "", bool verbose = false);
+  std::pair<T,T> GMRES(const LinearOperator& OpA, bool symmetric, const Vector& b, Vector& x, int maxIter, const T& absResTol, const T& relResTol, const std::string_view& outputPrefix = "", bool verbose = false);
 }
 
 

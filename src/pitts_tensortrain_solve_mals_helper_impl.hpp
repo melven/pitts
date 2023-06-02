@@ -439,7 +439,7 @@ namespace PITTS
         ttOpHelper.addPadding(mv_rhs);
 
         // absolute tolerance is not invariant wrt. #dimensions
-        const arr localRes = GMRES<arr>(ttOpHelper, symmetric, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
+        const auto [localAbsRes, localRelRes] = GMRES<arr>(ttOpHelper, symmetric, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
 
         ttOpHelper.removePadding(mv_x);
 
@@ -448,7 +448,7 @@ namespace PITTS
         TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), absTol/nDim, maxRank, false, r_left, r_right);
         std::swap(tt_x, new_tt_x);
 
-        return localRes(0);
+        return localAbsRes(0);
       }
     }
   }
