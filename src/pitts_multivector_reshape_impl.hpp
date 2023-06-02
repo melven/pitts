@@ -56,7 +56,7 @@ namespace PITTS
     // special case without reshaping OR where both X and Y have #rows divisible by the chunk size
     if( fast )
     {
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for collapse(2) schedule(static)
       for(long long yChunk = 0; yChunk < Y.rowChunks(); yChunk++)
       {
         for(long long yj = 0; yj < cols; yj++)

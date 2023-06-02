@@ -81,8 +81,14 @@ namespace PITTS
       return data;
     }
 
-    //! adjust the desired multivector dimensions (destroying all data!)
-    void resize(long long rows, long long cols, bool setPaddingToZero = true)
+    //! adjust the desired multivector dimensions (usually destroying all data!)
+    //!
+    //! @param rows             new number of rows
+    //! @param cols             new number of columns
+    //! @param setPaddingToZero can be set to false to avoid initialization to zero of the last chunk in each column
+    //! @param keepData         try to change the dimensions without changing the data (reshape), throws an error if not enough memory was allocated
+    //!
+    void resize(long long rows, long long cols, bool setPaddingToZero = true, bool keepData = false)
     {
       // fast return without timer!
       if( rows == rows_ && cols <= cols_ )
@@ -96,6 +102,8 @@ namespace PITTS
       const auto newColStrideChunks = internal::paddedChunks(newRowChunks);
       if( newColStrideChunks*cols > reservedChunks_ )
       {
+        if( keepData )
+          throw std::invalid_argument("MultiVector: cannot resize without allocating memory!");
         data_.reset(new Chunk<T>[newColStrideChunks*cols]);
         reservedChunks_ = newColStrideChunks*cols;
       }

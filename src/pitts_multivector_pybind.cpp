@@ -69,7 +69,7 @@ namespace PITTS
               })
           .def("rows", &MultiVector<T>::rows, "number of rows")
           .def("cols", &MultiVector<T>::cols, "number of columns")
-          .def("resize", &MultiVector<T>::resize, py::arg("rows"), py::arg("cols"), py::arg("setPaddingToZero")=true, "change the number of rows and columns (destroying all data!)")
+          .def("resize", &MultiVector<T>::resize, py::arg("rows"), py::arg("cols"), py::arg("setPaddingToZero")=true, py::arg("keepData")=false, "change the number of rows and columns (destroying all data!)")
           .def("__str__", &MultiVector_toString<T>, "Print the attributes of the given MultiVector object");
 
         m.def("copy",
