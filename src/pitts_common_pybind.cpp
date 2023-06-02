@@ -10,6 +10,7 @@
 #include <pybind11/pybind11.h>
 #include "pitts_common_pybind.hpp"
 #include "pitts_common.hpp"
+#include "pitts_performance.hpp"
 
 namespace py = pybind11;
 
@@ -31,6 +32,14 @@ namespace PITTS
           &PITTS::finalize,
           py::arg("verbose")=true,
           "Call MPI_Finalize if needed and print some statistics");
+      m.def("printPerformanceStatistics",
+          [](bool clear, bool mpiGlobal){PITTS::performance::printStatistics(clear, std::cout, mpiGlobal);},
+          //py::arg("clear")=true,// py::arg("out")=std::cout, py::arg("mpiGlobal")=true, // std::cout not supported as default argument?
+          py::arg("clear")=true, py::arg("mpiGlobal")=true,
+          "Print nice statistics using globalPerformanceStatisticsMap");
+      m.def("clearPerformanceStatistics",
+          &PITTS::performance::clearStatistics,
+          "Clear globalPerformanceStatisticsMap");
     }
   }
 }
