@@ -27,7 +27,6 @@
 #include "pitts_tensor3_split.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
-#include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_timer.hpp"
 
@@ -70,140 +69,45 @@ namespace PITTS
 
 
         /**
-         * @brief Compute z <- x^tr * y.
+         * @brief Compute C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
          * 
          * @tparam T 
-         * @param x [in] Tensor2
-         * @param y [in] Tensor2
-         * @param z [out] Tensor2
+         * @param Up [in]
+         * @param Lo [in]
+         * @param C  [out]
          */
         template <typename T>
-        inline void xtryz(const Tensor2<T>& x, const Tensor2<T>& y, Tensor2<T>& z)
+        inline void t3_concat1(const Tensor3<T>& Up, const Tensor3<T>& Lo, Tensor3<T>& C)
         {
-            const int r1  = x.r1();
-            const int xr2 = x.r2();
-            const int yr2 = y.r2();
+            const int r1u    = Up.r1();
+            const int r1l    = Lo.r1();
+            const int n      = Up.n();
+            const int r2     = Up.r2();
 
-            assert(r1 == y.r1());
+            assert(n  == Lo.n());
+            assert(r2 == Lo.r2());
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1", "x.r2", "y.r2"}, {r1, xr2, yr2}},                                      // arguments
-                {{r1*xr2*yr2*kernel_info::FMA<T>()},                                           // flops
-                 {(r1*xr2 + r1*yr2)*kernel_info::Load<T>() + xr2*yr2*kernel_info::Store<T>()}} // data: load x,y ; store z
+                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                                       // arguments
+                {{(r1u*n*r2 + r1l*n*r2)*kernel_info::NoOp<T>()},                                          // flops
+                 {(r1u*n*r2 + r1l*n*r2)*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up,Lo ; store C
             );
 
-            z.resize(xr2, yr2);
-            EigenMap(z) = ConstEigenMap(x).adjoint() * ConstEigenMap(y);
-        }
-
-
-        /**
-         * @brief Compute z <- x * y^tr. 
-         * 
-         * @tparam T 
-         * @param x [in] Tensor2
-         * @param y [in] Tensor2
-         * @param z [out] Tensor2
-         */
-        template <typename T>
-        inline void xytrz(const Tensor2<T>& x, const Tensor2<T>& y, Tensor2<T>& z)
-        {
-            const int xr1  = x.r1();
-            const int yr1  = y.r1();
-            const int r2 = x.r2();
-
-            assert(r2 == y.r2());
-
-            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"x.r1", "y.r1", "r2"}, {xr1, yr1, r2}},                                      // arguments
-                {{xr1*yr1*r2*kernel_info::FMA<T>()},                                           // flops
-                 {(xr1*r2 + yr1*r2)*kernel_info::Load<T>() + xr1*yr1*kernel_info::Store<T>()}} // data: load x,y ; store z
-            );
-
-            z.resize(xr1, yr1);
-            EigenMap(z) = ConstEigenMap(x) * ConstEigenMap(y).adjoint();
-        }
-
-
-        /**
-         * @brief Compute C <- C - A * B.
-         * "fnmadd of Tensor2's"
-         * 
-         * @tparam T 
-         * @param A [in] Tensor2
-         * @param B [in] Tensor2
-         * @param C [in/out] Tensor2
-         */
-        template<typename T>
-        inline void t2_fnmadd(const Tensor2<T>& A, const Tensor2<T>& B, Tensor2<T>& C)
-        {
-            const int r1 = C.r1();
-            const int r2 = C.r2();
-            const int c  = A.r2();
-
-            assert(r1 == A.r1());
-            assert(r2 == B.r2());
-            assert(c == B.r1());
-
-            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1", "c", "r2"}, {r1, c, r2}},                                                // arguments
-                {{r1*r2*c*kernel_info::FMA<T>()},                                                // flops
-                 {(r1*c + c*r2 + r1*r2)*kernel_info::Load<T>() + r1*r2*kernel_info::Store<T>()}} // data: load A,B,C ; store D
-            );
-
-            EigenMap(C) -= ConstEigenMap(A) * ConstEigenMap(B);
-        }
-
-
-        /**
-         * @brief Special falvor of C <- concat(Le, Ri, dim=3), the concatination of Le and Ri along the third dimension.
-         * 
-         * 1. Le is interpreted as a right-unfolded 3Tensor
-         * 2. Le and Ri are concatinated as if they were 3Tensors
-         * 3. The result is written into C as the right-unfolded result
-         * 
-         * @tparam T 
-         * @param Le    [in]  2Tensor (right-unfolded)
-         * @param Ri    [in]  3Tensor
-         * @param C     [out] 2Tensor (right-unfolded)
-         */
-        template <typename T>
-        inline void t2t3_concat3(const Tensor2<T>& Le, const Tensor3<T>& Ri, Tensor2<T>& C)
-        {
-            const int r1     = Ri.r1();
-            const int n      = Ri.n();
-            const int r2l    = Le.r2() / n;
-            const int r2r    = Ri.r2();
-
-            assert(Le.r2() % n == 0);
-            assert(Ri.r1() == Le.r1());
-
-            C.resize(r1, n*(r2l + r2r));
-
-            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                                    // arguments
-                {{(r1*n*r2l + r1*n*r2r)*kernel_info::NoOp<T>()},                                          // flops
-                 {(r1*n*r2l + r1*n*r2r)*kernel_info::Load<T>() + r1*n*(r2l+r2r)*kernel_info::Store<T>()}} // data: load Le,Ri ; store C
-            );
-
-#pragma omp parallel
-{
-#pragma omp for schedule(static) collapse(2) nowait
-            for (int i2 = 0; i2 < r2l*n; i2++)
-                for (int i1 = 0; i1 < r1; i1++)
+            C.resize(r1u + r1l, n, r2);
+            
+#pragma omp parallel for schedule(static) collapse(2)
+            for (int i2 = 0; i2 < r2; i2++)
+                for (int j = 0; j < n; j++)
                 {
-                    C(i1, i2) = Le(i1, i2);
-                }
-#pragma omp for schedule(static) collapse(2) nowait // or 3 ?
-            for (int i2 = 0; i2 < r2r; i2++)
-                for(int j = 0; j < n; j++)
-                {
-                    for (int i1 = 0; i1 < r1; i1++)
+                    for (int i1 = 0; i1 < r1u; i1++)
                     {
-                        C(i1, j + (i2+r2l)*n) = Ri(i1, j, i2);
+                        C(i1, j, i2) = Up(i1, j, i2);
+                    }
+                    for (int i1 = 0; i1 < r1l; i1++)
+                    {
+                        C(i1 + r1u, j, i2) = Lo(i1, j, i2);
                     }
                 }
-}
         }
 
         
@@ -260,184 +164,136 @@ namespace PITTS
 
 
         /**
-         * @brief Compute C <- concat(Le, 0, dim=3)
-         * the concatination of Le and a 0-Tensor3 along the third dimensions, 0 of dimension Le.r1 x Le.n x r2Ri
+         * @brief Compute Tz <- ( (Tx;0) , Q )
+         * the concatination of Tx, Q (interpreted as left-unfolded 3Tensor), filled with 0's as follows:
+         * | Tx  \ |
+         * | \   Q |
+         * | 0   \ |
          * 
          * @tparam T 
-         * @param Le    [in] Tensor3
-         * @param r1Ri  r2-dimension of 0-Tensor3
-         * @param C     [out] Tensor3
+         * @param Tx    [in]  Tensor3
+         * @param Q     [in]  Tensor2
+         * @param Tz    [out] Tensor3
          */
         template <typename T>
-        inline void t3_concat3_w0(const Tensor3<T>& Le, const int r2Ri, Tensor3<T>& C)
+        inline void concat3_X0Q(const Tensor3<T>& Tx, const Tensor2<T>& Q, Tensor3<T>& Tz)
         {
-            const int r1     = Le.r1();
-            const int n      = Le.n();
-            const int r2l    = Le.r2();
-            const int r2r    = r2Ri;
+            const int n = Tx.n();
+            const int Xr1 = Tx.r1();
+            const int Xr2 = Tx.r2();
+            const int Qr1 = Q.r1() / n;
+            const int Qr2 = Q.r2();
+            const int r1 = Qr1;
+            const int r2 = Xr2 + Qr2;
+            assert(Q.r1() % n == 0);
+            assert(Qr1 >= Xr1);
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1", "n", "r2left", "r2right"}, {r1, n, r2l, r2r}},                       // arguments
-                {{r1*n*r2l*kernel_info::NoOp<T>()},                                          // flops
-                 {r1*n*r2l*kernel_info::Load<T>() + r1*n*(r2l+r2r)*kernel_info::Store<T>()}} // data: load Le ; store C
+                {{"n(all)", "Xr1", "Xr2", "Qr1", "Qr2"}, {n, Xr1, Xr2, Qr1, Qr2}},                   // arguments
+                {{r1*n*r2*kernel_info::NoOp<T>()},                                                   // flops
+                 {(Xr1*n*Xr2 + Qr1*n*Qr2)*kernel_info::Load<T>() + r1*n*r2*kernel_info::Store<T>()}} // data: load Tx,Q ; store Tz
             );
 
-            C.resize(r1, n, r2l + r2r);
+            Tz.resize(r1, n, r2);
 
 #pragma omp parallel
 {
 #pragma omp for schedule(static) collapse(2) nowait
-            for (int i2 = 0; i2 < r2l; i2++)
-                for (int j = 0; j < n; j++)
-                {
-                    for (int i1 = 0; i1 < r1; i1++)
-                    {
-                        C(i1, j, i2) = Le(i1, j, i2);
-                    }
-                }
-#pragma omp for schedule(static) collapse(2) nowait
-            for (int i2 = 0; i2 < r2r; i2++)
-                for (int j = 0; j < n; j++)
-                {
-                    for (int i1 = 0; i1 < r1; i1++)
-                    {
-                        C(i1, j, i2 + r2l) = 0;
-                    }
-                }
-}
-        }
-
-
-        /**
-         * @brief Special flavor of C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
-         * 
-         * 1. Up is interpreted as a left-unfolded 3Tensor of fitting dimension
-         * 2. Up and Lo are concatted as if they were 3Tensors
-         * 3. The result is written into C as the left-unfolded result
-         * 
-         * @tparam T 
-         * @param Up    [in]  2Tensor (left-unfolded)
-         * @param Lo    [in]  3Tensor
-         * @param C     [out] 2Tensor (left-unfolded)
-         */
-        template <typename T>
-        inline void t2t3_concat1(const Tensor2<T>& Up, const Tensor3<T>& Lo, Tensor2<T>& C)
-        {
-            const int n     = Lo.n();
-            const int r1u   = Up.r1() / n;
-            const int r1l   = Lo.r1();
-            const int r2    = Lo.r2();
-
-            assert(Up.r1() % n == 0);
-            assert(Lo.r2() == Up.r2());
-
-            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                                       // arguments
-                {{(r1u*n*r2 + r1l*n*r2)*kernel_info::NoOp<T>()},                                          // flops
-                 {(r1u*n*r2 + r1l*n*r2)*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up,Lo ; store C
-            );
-
-            C.resize((r1u + r1l)*n, r2);
-
-#pragma omp parallel for schedule(static) collapse(2)
-            for (int i2 = 0; i2 < r2; i2++)
+            for (int i2 = 0; i2 < Xr2; i2++)
             {
-                for (int j = 0; j < n; j++)             // might be beneficial to unroll (to at least half chunk size)
-                {                                       // or/and unmerge loops (do first col of up, then add col of Lo in gaps)
-                    for (int i1 = 0; i1 < r1u; i1++)
+                for (int j = 0; j < n; j++)
+                {
+                    int i1;
+                    for (i1 = 0; i1 < Xr1; i1++)
                     {
-                        C(i1 + j*(r1u+r1l), i2) = Up(i1 + j*r1u, i2);
+                        Tz(i1, j, i2) = Tx(i1, j, i2);
                     }
-                    for (int i1 = 0; i1 < r1l; i1++)
+                    for (i1; i1 < r1; i1++)
                     {
-                        C(i1 + j*(r1u+r1l) + r1u, i2) = Lo(i1, j, i2);
+                        Tz(i1, j, i2) = 0;
                     }
                 }
             }
+#pragma omp for schedule(static) collapse(2) nowait
+            for (int i2 = 0; i2 < Qr2; i2++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    for (int i1 = 0; i1 < Qr1; i1++)
+                    {
+                        Tz(i1, j, i2+Xr2) = Q(i1 + j*Qr1 , i2);
+                    }
+                }
+            }
+} // end omp parallel
         }
 
 
         /**
-         * @brief Compute C <- concat(Up, Lo, dim=1), the concationation of Up and Lo along the first dimension.
+         * @brief Compute Tz <- ( (Tx,0) ; Q )
+         * the concatination of Tx, Q (interpreted as right-unfolded 3Tensor), filled with 0's as follows:
+         * | Tx  0 |
+         * | - Q - |
          * 
          * @tparam T 
-         * @param Up [in]
-         * @param Lo [in]
-         * @param C  [out]
+         * @param Tx    [in]  Tensor3
+         * @param Q     [in]  Tensor2
+         * @param Tz    [out] Tensor3
          */
         template <typename T>
-        inline void t3_concat1(const Tensor3<T>& Up, const Tensor3<T>& Lo, Tensor3<T>& C)
+        inline void concat1_X0Q(const Tensor3<T>& Tx, const Tensor2<T>& Q, Tensor3<T>& Tz)
         {
-            const int r1u    = Up.r1();
-            const int r1l    = Lo.r1();
-            const int n      = Up.n();
-            const int r2     = Up.r2();
-
-            assert(n  == Lo.n());
-            assert(r2 == Lo.r2());
+            const int n = Tx.n();
+            const int Xr1 = Tx.r1();
+            const int Xr2 = Tx.r2();
+            const int Qr1 = Q.r1();
+            const int Qr2 = Q.r2() / n;
+            const int r1 = Xr1 + Qr1;
+            const int r2 = Qr2;
+            assert(Q.r2() % n == 0);
+            assert(Qr2 >= Xr2);
 
             const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                                       // arguments
-                {{(r1u*n*r2 + r1l*n*r2)*kernel_info::NoOp<T>()},                                          // flops
-                 {(r1u*n*r2 + r1l*n*r2)*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up,Lo ; store C
+                {{"n(all)", "Xr1", "Xr2", "Qr1", "Qr2"}, {n, Xr1, Xr2, Qr1, Qr2}},                   // arguments
+                {{r1*n*r2*kernel_info::NoOp<T>()},                                                   // flops
+                 {(Xr1*n*Xr2 + Qr1*n*Qr2)*kernel_info::Load<T>() + r1*n*r2*kernel_info::Store<T>()}} // data: load Tx,Q ; store Tz
             );
 
-            C.resize(r1u + r1l, n, r2);
+            Tz.resize(r1, n, r2);
             
-#pragma omp parallel for schedule(static) collapse(2)
-            for (int i2 = 0; i2 < r2; i2++)
+#pragma omp parallel
+{
+#pragma omp for schedule(static) collapse(2) nowait
+            for (int i2 = 0; i2 < Xr2; i2++)
+            {
                 for (int j = 0; j < n; j++)
                 {
-                    for (int i1 = 0; i1 < r1u; i1++)
+                    for (int i1 = 0; i1 < Xr1; i1++)
                     {
-                        C(i1, j, i2) = Up(i1, j, i2);
+                        Tz(i1, j, i2) = Tx(i1, j, i2);
                     }
-                    for (int i1 = 0; i1 < r1l; i1++)
+                    for (int i1 = 0; i1 < Qr1; i1++)
                     {
-                        C(i1 + r1u, j, i2) = Lo(i1, j, i2);
+                        Tz(i1+Xr1, j, i2) = Q(i1, j + i2*n);
                     }
                 }
-        }
-
-
-        /**
-         * @brief Compute C <- concat(Up, 0, dim=1), 
-         * the concationation of Up and a 0-Tensor3 along the first dimension, 0 of dimension r1Lo x Up.n x Up.r2
-         * 
-         * @tparam T 
-         * @param Up    [in] Tensor3
-         * @param r1Lo  r1-dimension of 0-Tensor3
-         * @param C     [out] Tensor3
-         */
-        template <typename T>
-        inline void t3_concat1_w0(const Tensor3<T>& Up, const int r1Lo, Tensor3<T>& C)
-        {
-            const int r1u    = Up.r1();
-            const int r1l    = r1Lo;
-            const int n      = Up.n();
-            const int r2     = Up.r2();
-
-            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-                {{"r1upp", "r1low", "n", "r2"}, {r1u, r1l, n, r2}},                          // arguments
-                {{r1u*n*r2*kernel_info::NoOp<T>()},                                          // flops
-                 {r1u*n*r2*kernel_info::Load<T>() + (r1u+r1l)*n*r2*kernel_info::Store<T>()}} // data: load Up ; store C
-            );
-
-            C.resize(r1u + r1l, n, r2);
-            
-#pragma omp parallel for schedule(static) collapse(2)
-            for (int i2 = 0; i2 < r2; i2++)
+            }
+#pragma omp for schedule(static) collapse(2) nowait
+            for (int i2 = Xr2; i2 < r2; i2++)
+            {
                 for (int j = 0; j < n; j++)
                 {
-                    for (int i1 = 0; i1 < r1u; i1++)
+                    for (int i1 = 0; i1 < Xr1; i1++)
                     {
-                        C(i1, j, i2) = Up(i1, j, i2);
+                        Tz(i1, j, i2) = 0;
                     }
-                    for (int i1 = 0; i1 < r1l; i1++)
+                    for (int i1 = 0; i1 < Qr1; i1++)
                     {
-                        C(i1 + r1u, j, i2) = 0;
+                        Tz(i1+Xr1, j, i2) = Q(i1, j + i2*n);
                     }
                 }
+            }
+} // end omp parallel
         }
 
 
@@ -485,19 +341,15 @@ namespace PITTS
 
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            std::vector<Tensor3<T>> Tdummy(2); // dummy 3Tensor to update TTy with: [Tdummy[0], Tdummy[1] = [Tz, dimension_dummy]
-
-            // check if both are normalized -> then we can use an absolute tolerance
-            const bool bothNormalized = TTx.isOrthonormal() != TT_Orthogonality::none && TTy.isOrthonormal() != TT_Orthogonality::none;
+            std::vector<Tensor3<T>> Tdummy(2); // dummy 3Tensor to update TTy with: {Tdummy[0], Tdummy[1]} = {Tz, dimension_dummy}
 
             // scale last tensor cores
             Tensor3<T> x_last_core;
             copy(TTx.subTensor(d-1), x_last_core);
             internal::t3_scale(alpha, x_last_core);
-            //internal::t3_scale(beta, y_cores[d-1]);
-            copy(TTy.subTensor(d-1), Tdummy[0]);
+            copy(TTy.subTensor(d-1), Tdummy[0]); // this copy can be avoided with direct access to TTy.subTensor
             internal::t3_scale(beta, Tdummy[0]);
-            if (d == 1) // special case
+            if (d == 1)
             {
                 internal::t3_axpy((T)1, x_last_core, Tdummy[0]);
                 TTy.setSubTensor(d-1, std::move(Tdummy[0]));
@@ -505,70 +357,66 @@ namespace PITTS
             }
             Tdummy[0] = TTy.setSubTensor(d-1, std::move(Tdummy[0]));
 
-            //
-            // Note: In the loop sweep, a few mem buffers could be reused -> giving better memory usage
-            //
-            Tensor3<T> Tytu;    // upper half of Y tilde
-            Tensor3<T> Tytl;    // lower half of Y tilde
-            Tensor2<T> Mmt;     // Mx^tr * Mytu (= Mxt^tr * Myt)
-
-            Tensor2<T> Mx;      // Tx left-unfolded
-            Tensor2<T> Mytu;    // Tytu left-unfolded
-            //Tensor2<T> Mytl;    // Tytl left-unfolded
-
-            Tensor2<T> Mtmp;    // short-lived 2Tensor: holding result Myt - Mxt * Mmt to take QR decomposition of
-            //Tensor2<T> Mtmpu;   // short-lived 2Tensor: calculating upper half of Mtmp into here
-            Tensor3<T> Txt;     // short-lived 3Tensor: X tilde (= concat1(Tx, 0))
-            Tensor3<T> TQ;      // short-lived 3Tensor: Q left-folded
+            Tensor3<T> Tytu;        // upper half of Y tilde
+            Tensor3<T> Tytl;        // lower half of Y tilde
+            Tensor2<T> Mmt;     // Mmt = Mx^adj * Mytu (= Mxt^adj * Myt), where adj is the adjoint matrix (conjugate transpose)
+            Tensor3<T> Ttmp;        // short-lived 3Tensor: to take QR decomposition of
             
-            // initialize Tyt(u/l) for k == 0
-            copy(TTy.subTensor(0), Tytu);
+            // initialize Tytu, Tytl for k == 0
+            copy(TTy.subTensor(0), Tytu); // can avoid this copy too with extra logic in first iteration
             Tytl.resize(0, TTy.subTensor(0).n(), TTy.subTensor(0).r2());
 
             for (int k = 0; k < d - 1; k++)
             {
-                // convenience references
-                const Tensor3<T>& Ty1 = TTy.subTensor(k+1);
-                const Tensor3<T>& Tx =  TTx.subTensor(k);
-
                 //
                 // Note: If Mxt is square matrix, most of the calculation (especially QR) can be skipped
                 //
 
-                // copy Mx <- Tx(:,: x :), Mytu <- Tytu(:,: x :)
-                unfold_left(Tx, Mx);
-                unfold_left(Tytu, Mytu);
-                //unfold_left(Tytl, Mytl);
+                // convenience references
+                const Tensor3<T>& Ty1 = TTy.subTensor(k+1);
+                const Tensor3<T>& Tx =  TTx.subTensor(k);
+                // convenience variables for unfolded tensors
+                ConstTensor2View<T> Mx = unfold_left(Tx);
+                Tensor2View<T> Mytu = unfold_left(Tytu);
 
-                // Mmt <- Mx^tr * Mytu
-                internal::xtryz(Mx, Mytu, Mmt);
+                // Mmt <- Mx^adj * Mytu
+                Mmt.resize(Tx.r2(), Tytu.r2());
+                EigenMap(Mmt) = ConstEigenMap(Mx).adjoint() * ConstEigenMap(Mytu);
                 
-                // Mtmpu <- Mytu - Mx * Mmt
-                internal::t2_fnmadd(Mx, Mmt, Mytu); // Mtmpu can be Mytu (change t2_fnmadd implementatio) ------------ 
+                // Mytu <- Mytu - Mx * Mmt
+                EigenMap(Mytu) -= ConstEigenMap(Mx) * ConstEigenMap(Mmt);
+                
+                // Optimization potential:
+                // can save the below copy of Tytu if we directly store the above result into Ttmp
+                // but for concat1 it can't be done very smoothly (x0x0x0 pattern within col)
+                // (possible to store xxx000 and do permutation on Q (Q right?) afterwards
+                // within the concat3_X0Q function)
+                // for rightOrtho we do concat3 and don't have said problem (just need to do 
+                // EigenMap by hand with wanted dimensions)
 
-                // concatinate Mtmp <- concat(Mtmpu, Tytl, dim=1)
-                internal::t2t3_concat1(Mytu, Tytl, Mtmp);
+                // Ttmp <- concat(Tytu, Tytl, dim=1)
+                internal::t3_concat1(Tytu, Tytl, Ttmp);
 
                 // [Q, R] <- QR(Mtmp)
                 const int r1 = Tytu.r1() + Tytl.r1(); // r_{k-1} + st_{k-1}
                 const int n_k = Tx.n(); // n_k
                 const int r2 = Tx.r2(); // r_k
                 assert(r1*n_k - r2 >= 0);
-                const auto& [Q, R] = internal::normalize_qb(Mtmp, true, T(0), r1*n_k - r2, bothNormalized);
+                const auto& [Q, R] = internal::normalize_qb(unfold_left(Ttmp), true, T(0), r1*n_k - r2, true);
                 
-                // TQ <- fold(Q), Txt <- concat(Tx, 0, dim=1), Tdummy[0] <- concat(Txt, TQ, dim=3)
-                fold_left(Q, n_k, TQ);
-                internal::t3_concat1_w0(Tx, Tytl.r1(), Txt);
-                internal::t3_concat3(Txt, TQ, Tdummy[0]); // if resizing without destroying data possible -> could just append TQ to Txt and then swap Txt and Tz
+                // calculate Tz: Tdummy[0] <- ((Tx;0), Q)
+                internal::concat3_X0Q(Tx, Q, Tdummy[0]);
 
                 // calculate upper half of new Tyt: Tytu <- Mmt *1 Ty1 (mode-1 contraction)
-                internal::normalize_contract1(Mmt, Ty1, Tytu);
+                Tytu.resize(r2, Ty1.n(), Ty1.r2());
+                EigenMap(unfold_right(Tytu)) = ConstEigenMap(Mmt) * ConstEigenMap(unfold_right(Ty1));
 
                 // calculate lower half of new Tyt: Tytl <- R *1 Ty1 (mode-1 contraction)
-                internal::normalize_contract1(R, Ty1, Tytl);
+                Tytl.resize(R.r1(), Ty1.n(), Ty1.r2());
+                EigenMap(unfold_right(Tytl)) = ConstEigenMap(R) * ConstEigenMap(unfold_right(Ty1));
 
                 // save this iteration's result into TTy
-                Tdummy[1].resize(Tdummy[0].r2(), TTy.subTensor(k+1).n(), TTy.subTensor(k+1).r2()); // update dimension_dummy
+                Tdummy[1].resize(Tdummy[0].r2(), Ty1.n(), Ty1.r2()); // update dimension_dummy
                 Tdummy = TTy.setSubTensors(k, std::move(Tdummy));
 
             } // end loop
@@ -588,19 +436,15 @@ namespace PITTS
             
             const auto& TTx = TTx_ortho;
             const int d = TTx.dimensions().size(); // order d
-            std::vector<Tensor3<T>> Tdummy(2); // dummy 3Tensor to update TTy with: [Tdummy[0], Tdummy[1] = [dimension_dummy, Tz]
-
-            // check if both are normalized -> then we can use an absolute tolerance
-            const bool bothNormalized = TTx.isOrthonormal() != TT_Orthogonality::none && TTy.isOrthonormal() != TT_Orthogonality::none;
+            std::vector<Tensor3<T>> Tdummy(2); // dummy 3Tensor to update TTy with: {Tdummy[0], Tdummy[1]} = {dimension_dummy, Tz}
 
             // scale first tensor cores
             Tensor3<T> x_first_core;
             copy(TTx.subTensor(0), x_first_core);
             internal::t3_scale(alpha, x_first_core);
-            //internal::t3_scale(beta, y_cores[0]);
             copy(TTy.subTensor(0), Tdummy[0]);
             internal::t3_scale(beta, Tdummy[0]);
-            if (d == 1) // special case
+            if (d == 1)
             {
                 internal::t3_axpy((T)1, x_first_core, Tdummy[0]);
                 TTy.setSubTensor(0, std::move(Tdummy[0]));
@@ -608,20 +452,12 @@ namespace PITTS
             }
             Tdummy[0] = TTy.setSubTensor(0, std::move(Tdummy[0]));
 
-            Tensor3<T> Tytl;    // left half of Y tilde
-            Tensor3<T> Tytr;    // right half of Y tilde
-            Tensor2<T> Mmt;     // Mx^tr * Mytu (= Mxt^tr * Myt)
-
-            Tensor2<T> Mx;      // Tx right-unfolded
-            Tensor2<T> Mytl;    // Tytl right-unfolded
-            Tensor2<T> Mytr;    // Tytr right-unfolded
-
-            Tensor2<T> Mtmp;    // short-lived 2Tensor: holding result Myt - Mxt * Mmt to take QR decomposition of
-            //Tensor2<T> Mtmpl;   // short-lived 2Tensor: calculating left half of Mtmp into here
-            Tensor3<T> Txt;     // short-lived 3Tensor: X tilde (= concat1(Tx, 0))
-            Tensor3<T> TQ;      // short-lived 3Tensor: Q right-folded
+            Tensor3<T> Tytl;        // left half of Y tilde
+            Tensor3<T> Tytr;        // right half of Y tilde
+            Tensor2<T> Mmt;     // Mmt = Mytl * Mx^adj (= Myt * Mxt^adj), where adj is the adjoint matrix (conjugate transpose)
+            Tensor3<T> Ttmp;        // short-lived 3Tensor: to take QR decomposition of
             
-            // initialize Tyt(l/r) for k == d-1
+            // initialize Tytl, Tytl for k == d-1
             copy(TTy.subTensor(d-1), Tytl);
             Tytr.resize(TTy.subTensor(d-1).r1(), TTy.subTensor(d-1).n(), 0);
 
@@ -630,38 +466,37 @@ namespace PITTS
                 // convenience references
                 const Tensor3<T>& Tx =  TTx.subTensor(k);
                 const Tensor3<T>& Ty1 = TTy.subTensor(k-1);
+                // convenience variables for unfolded tensors
+                ConstTensor2View<T> Mx = unfold_right(Tx);
+                Tensor2View<T> Mytl = unfold_right(Tytl);
 
-                // Mx <- Tx(: x :,:), Mytl <- Tytl(: x :,:), Mytr <- Tytr(: x :,:)
-                unfold_right(Tx, Mx);
-                unfold_right(Tytl, Mytl);
-                unfold_right(Tytr, Mytr);
-
-                // Mmt <- Mytl * Mx^tr
-                internal::xytrz(Mytl, Mx, Mmt);
+                // Mmt <- Mytl * Mx^adj
+                Mmt.resize(Tytl.r1(), Tx.r1());
+                EigenMap(Mmt) = ConstEigenMap(Mytl) * ConstEigenMap(Mx).adjoint();
                 
-                // Mtmpl <- Mytl - Mmt * Mx
-                internal::t2_fnmadd(Mmt, Mx, Mytl);
+                // Mytl <- Mytl - Mmt * Mx
+                EigenMap(Mytl) -= ConstEigenMap(Mmt) * ConstEigenMap(Mx);
 
-                // concatinate Mtmp <- concat(Mtmpl, Tytr, dim=3)
-                internal::t2t3_concat3(Mytl, Tytr, Mtmp);
+                // Ttmp <- concat(Tytl, Tytr, dim=3)
+                internal::t3_concat3(Tytl, Tytr, Ttmp);
 
                 // [L, Q] <- QR(Mtmp)
                 const int r2 = Tytr.r2() + Tytl.r2(); // r_k + st_k
                 const int n_k = Tx.n(); // n_k
                 const int r1 = Tx.r1(); // r_{k-1}
                 assert(r2*n_k - r1 >= 0);
-                const auto& [L, Q] = internal::normalize_qb(Mtmp, false, T(0), r2*n_k - r1, bothNormalized);
+                const auto& [L, Q] = internal::normalize_qb(unfold_right(Ttmp), false, T(0), r2*n_k - r1, true);
                 
-                // TQ <- fold(Q), Txt - concat(Tx, 0, dim=3), Tdummy[1] <- concat(Txt, TQ, dim=1)
-                fold_right(Q, n_k, TQ);
-                internal::t3_concat3_w0(Tx, Tytr.r2(), Txt);
-                internal::t3_concat1(Txt, TQ, Tdummy[1]);
+                // calculate Tz: Tdummy[1] <- ((Tx, 0); Q)
+                internal::concat1_X0Q(Tx, Q, Tdummy[1]);
 
                 // calculate left half of new Tyt: Tytl <- Ty1 *3 Mmt (mode-3 contraction)
-                internal::normalize_contract2(Ty1, Mmt, Tytl);
+                Tytl.resize(Ty1.r1(), Ty1.n(), r1);
+                EigenMap(unfold_left(Tytl)) = ConstEigenMap(unfold_left(Ty1)) * ConstEigenMap(Mmt);
 
-                // calculate right half of new Tyt: Tytr <- Tyt *3 L (mode-3 contraction)
-                internal::normalize_contract2(Ty1, L, Tytr);
+                // calculate right half of new Tyt: Tytr <- Ty1 *3 L (mode-3 contraction)
+                Tytr.resize(Ty1.r1(), Ty1.n(), L.r2());
+                EigenMap(unfold_left(Tytr)) = ConstEigenMap(unfold_left(Ty1)) * ConstEigenMap(L);
 
                 // save result into TTy
                 Tdummy[0].resize(TTy.subTensor(k-1).r1(), TTy.subTensor(k-1).n(), Tdummy[1].r1()); // update dimension_dummy
