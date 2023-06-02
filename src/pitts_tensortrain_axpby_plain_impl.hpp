@@ -182,9 +182,7 @@ else
 
         // now calculate SVD of t3_tmp(: x : :)
         auto [B,Qt] = internal::normalize_qb(unfold_right(t3_tmp), false);
-
-        fold_right(Qt, n, newSubT[iDim]);
-
+        newSubT[iDim] = fold_right(std::move(Qt), n);
         std::swap(B, t2_M);
       }
       TTy.setSubTensors(0, std::move(newSubT));

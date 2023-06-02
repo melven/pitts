@@ -13,6 +13,7 @@
 // includes
 #include <cassert>
 #include <stdexcept>
+#include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_performance.hpp"
@@ -71,7 +72,7 @@ namespace PITTS
   //!
   //! @param mat    input matrix of dimension (r1*n,r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
-  //! @param t3     output tensor resized to dimensions (r1*n,r2)
+  //! @param t3     output tensor resized to dimensions (r1,n,r2)
   //!
   template<typename T, class MatrixType>
   void fold_left(const MatrixType& mat, int n, Tensor3<T>& t3)
@@ -102,9 +103,9 @@ namespace PITTS
   //! @tparam T             underlying data type (double, complex, ...)
   //! @tparam MatrixType    class for the matrix, must support (i,j) element-wise access and provide dimensions as r1(),r2(), or rows(),cols() member functions
   //!
-  //! @param mat    input matrix of dimension (r1*n,r2)
+  //! @param mat    input matrix of dimension (r1,n*r2)
   //! @param n      middle dimension of the output tensor, second dimension of mat must be a multiple of n
-  //! @param t3     output tensor resized to dimensions (r1,n*r2)
+  //! @param t3     output tensor resized to dimensions (r1,n,r2)
   //!
   template<typename T, class MatrixType>
   void fold_right(const MatrixType& mat, int n, Tensor3<T>& t3)
@@ -181,6 +182,47 @@ namespace PITTS
     std::unique_ptr<Chunk<T>[]> data = std::move(mv);
     return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
   }
+
+  //! reshape a 2d tensor to a 3d tensor splitting the first dimension (r1*n x r2), without copying data
+  //!
+  //! @tparam T             underlying data type (double, complex, ...)
+  //!
+  //! @param mv     input tensor2 of dimension (r1*n,r2)
+  //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
+  //! @param t3     output tensor resized to dimensions (r1,n,r2)
+  //!
+  template<typename T>
+  Tensor3<T> fold_left(Tensor2<T>&& mv, long long n)
+  {
+    long long r1 = mv.r1() / n;
+    long long r2 = mv.r2();
+    assert(mv.r1() % n == 0);
+    
+    const auto reservedChunks = mv.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
+  }
+
+  //! reshape a 2d tensor to a 3d tensor splitting the second dimension (r1 x n*r2), without copying data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param mv     input tensor2 of dimension (r1,n*r2)
+  //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
+  //! @param t3     output tensor resized to dimensions (r1,n,r2)
+  //!
+  template<typename T>
+  Tensor3<T> fold_right(Tensor2<T>&& mv, long long n)
+  {
+    long long r1 = mv.r1();
+    long long r2 = mv.r2() / n;
+    assert(mv.r2() % n == 0);
+    
+    const auto reservedChunks = mv.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
+  }
+
 }
   
 #endif // PITTS_TENSOR3_FOLD_HPP

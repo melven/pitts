@@ -128,7 +128,7 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       const auto n = r1*r2;
-      const auto requiredChunks = std::max((long long)1, (n-1)/Chunk<T>::size+1);
+      const auto requiredChunks = internal::paddedChunks((n-1)/Chunk<T>::size+1);
       if( requiredChunks > this->reservedChunks_ )
       {
         dataptr_.reset(new Chunk<T>[requiredChunks]);
@@ -140,6 +140,21 @@ namespace PITTS
       // ensure padding is zero
       dataptr_[requiredChunks-1] = Chunk<T>{};
     }
+
+    //! allow to move from this by casting to the underlying storage type
+    //!
+    //! @warning intended for internal use (e.g. unfold function)
+    //!
+    [[nodiscard]] operator std::unique_ptr<Chunk<T>[]>() &&
+    {
+      this->r1_ = this->r2_ = 0;
+      reservedChunks_ = 0;
+      std::unique_ptr<Chunk<T>[]> data = std::move(dataptr_);
+      return data;
+    }
+
+    //! reserved memory (internal use)
+    [[nodiscard]] inline long long reservedChunks() const {return reservedChunks_;}
   
   private:
     //! size of the buffer
