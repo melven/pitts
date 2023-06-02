@@ -198,6 +198,12 @@ namespace PITTS
 
     //! print nice statistics using globalTimingStatisticsMap
     void printStatistics(bool clear = true, std::ostream& out = std::cout, bool mpiGlobal = true);
+
+    //! helper function to clear statistics
+    inline void clearStatistics()
+    {
+      globalTimingStatisticsMap.clear();
+    }
   }
 }
 

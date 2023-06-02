@@ -23,7 +23,11 @@ class TestCommon(unittest.TestCase):
         tt = pitts_py.TensorTrain_double([5,5,5])
         pitts_py.randomize(tt)
 
-        pitts_py.finalize()
+        pitts_py.clearPerformanceStatistics()
+        pitts_py.randomize(tt)
+        pitts_py.printPerformanceStatistics()
+
+        pitts_py.finalize(False)
 
 
 if __name__ == '__main__':
