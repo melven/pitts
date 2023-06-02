@@ -181,9 +181,7 @@ else
 
 
         // now calculate SVD of t3_tmp(: x : :)
-        unfold_right(t3_tmp, t2_M);
-
-        auto [B,Qt] = internal::normalize_qb(t2_M, false);
+        auto [B,Qt] = internal::normalize_qb(unfold_right(t3_tmp), false);
 
         fold_right(Qt, n, newSubT[iDim]);
 
