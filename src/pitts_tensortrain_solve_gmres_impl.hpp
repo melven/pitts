@@ -49,10 +49,10 @@ namespace PITTS
 
   // implement TT GMRES solver
   template <typename T>
-  T solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
-               int maxIter, T absResTol, T relResTol,
-               int maxRank, bool adaptiveTolerance, bool symmetric,
-               const std::string_view &outputPrefix, bool verbose)
+  std::pair<T,T> solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
+                            int maxIter, T absResTol, T relResTol,
+                            int maxRank, bool adaptiveTolerance, bool symmetric,
+                            const std::string_view &outputPrefix, bool verbose)
   {
     using vec = Eigen::Matrix<T,Eigen::Dynamic,1>;
     using mat = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
@@ -76,7 +76,7 @@ namespace PITTS
       std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / beta << " (rel), rhs norm: " << nrm_b << ", ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
     
     if( beta <= absResTol )
-      return beta;
+      return {beta, T(1)};
 
     // relative residual tolerance used below also for calculating the required TT rankTolerance
     const T residualTolerance = std::max(relResTol, absResTol/beta);
@@ -148,7 +148,7 @@ namespace PITTS
       TTx.setSubTensor(0, std::move(tmp));
     }
 
-    return rho;
+    return {rho, rho/beta};
   }
 
 }

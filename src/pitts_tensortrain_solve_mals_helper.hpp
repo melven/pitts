@@ -387,8 +387,8 @@ namespace PITTS
       
 
       template<typename T>
-      T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
-                        int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose);
+      std::pair<T,T> solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
+                                     int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose);
     }
   }
 }

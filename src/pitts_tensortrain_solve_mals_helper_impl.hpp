@@ -424,8 +424,8 @@ namespace PITTS
       }
 
       template<typename T>
-      T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
-                        int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose)
+      std::pair<T,T> solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
+                                     int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose)
       {
         using arr = Eigen::ArrayX<T>;
         const int nDim = tt_x.dimensions().size();
@@ -448,7 +448,7 @@ namespace PITTS
         TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), absTol/nDim, maxRank, false, r_left, r_right);
         std::swap(tt_x, new_tt_x);
 
-        return localAbsRes(0);
+        return {localAbsRes(0), localRelRes(0)};
       }
     }
   }
