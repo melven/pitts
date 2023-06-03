@@ -95,6 +95,7 @@ if __name__ == '__main__':
     nrm_r = (ttpy_TTb - matvec(ttpy_TTOp, ttpy_TTx)).norm()
     print('res. norm:', nrm_r, '(abs) ', nrm_r / ttpy_TTb.norm(), '(rel), b norm', ttpy_TTb.norm(), 'x norm', ttpy_TTx.norm())
 
+    pitts_py.clearPerformanceStatistics()
     wtime = timeit.default_timer()
     pitts_py.solveMALS(TTOp, symmetric, pitts_py.MALS_projection.RitzGalerkin, TTb, TTx,
             nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-8, nMALS=1, nOverlap=0, nAMEnEnrichment=50,
@@ -102,6 +103,7 @@ if __name__ == '__main__':
     #pitts_py.solveGMRES(TTOp, TTb, TTx, maxIter=200, maxRank=150, symmetric=True, absResTol=100, relResTol=1.e-8)
     wtime = timeit.default_timer() - wtime
     print('wtime pitts_py MALS', wtime)
+    pitts_py.printPerformanceStatistics()
     TTr = pitts_py.TensorTrain_double(TTb.dimensions())
     pitts_py.apply(TTOp, TTx, TTr)
     r_nrm = pitts_py.axpby(1., TTb, -1., TTr, 0.)
@@ -121,4 +123,4 @@ if __name__ == '__main__':
         r_nrm = pitts_py.axpby(1., TTb, -1., TTr, 0.)
         print("unprecond. real resNorm: %g" % r_nrm )
 
-    pitts_py.finalize(True)
+    pitts_py.finalize(False)
