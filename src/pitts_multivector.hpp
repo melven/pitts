@@ -88,7 +88,7 @@ namespace PITTS
     //! @param setPaddingToZero can be set to false to avoid initialization to zero of the last chunk in each column
     //! @param keepData         try to change the dimensions without changing the data (reshape), throws an error if not enough memory was allocated
     //!
-    void resize(long long rows, long long cols, bool setPaddingToZero = true, bool keepData = false)
+    void resize(long long rows, long long cols = 1, bool setPaddingToZero = true, bool keepData = false)
     {
       // fast return without timer!
       if( rows == rows_ && cols <= cols_ )
@@ -116,7 +116,7 @@ namespace PITTS
     }
 
     //! access matrix entries (column-wise ordering, const variant)
-    [[nodiscard]] inline const T& operator()(long long i, long long j) const
+    [[nodiscard]] inline const T& operator()(long long i, long long j = 0) const
     {
       // allow better compiler optimization...
       const unsigned long long ui = i;
@@ -124,7 +124,7 @@ namespace PITTS
     }
 
     //! access matrix entries (column-wise ordering, write access through reference)
-    [[nodiscard]] inline T& operator()(long long i, long long j)
+    [[nodiscard]] inline T& operator()(long long i, long long j = 0)
     {
       // allow better compiler optimization...
       const unsigned long long ui = i;
