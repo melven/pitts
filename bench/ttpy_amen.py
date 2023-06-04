@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     dims = [50,]*10
     TTOp = LaplaceOperator(dims)
-    symmetric = True
+    symmetric = False
     if not symmetric:
         TTOpConvection = ConvectionOperator(dims)
         pitts_py.axpby(10/np.sqrt(len(dims)), TTOpConvection, 1, TTOp)
