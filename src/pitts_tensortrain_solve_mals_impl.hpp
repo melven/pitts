@@ -354,12 +354,12 @@ namespace PITTS
         Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
 
         // orthogonalize wrt. subT0
-        Tensor2<T> tmp(subT0.r2(), subTr.r2());
         const T zNorm = internal::t3_nrm(subTr);
         if( zNorm > T(0) )
           internal::t3_scale(T(1)/zNorm, subTr);
-        EigenMap(tmp).noalias() = ConstEigenMap(unfold_left(subT0)).transpose() * ConstEigenMap(unfold_left(subTr));
-        EigenMap(unfold_left(subTr)).noalias() -= ConstEigenMap(unfold_left(subT0)) * ConstEigenMap(tmp);
+        Tensor2<T> tmp;
+        internal::reverse_dot_contract2(subT0, subTr, tmp); // subT0(*,*,:) * subTr(*,*,:)
+        dot_contract1t_sub(subT0, tmp, subTr); // subTr(:,:,:) -= subT0(:,:,*) * tmp(*,:)
         const T zNorm2 = internal::t3_nrm(subTr);
         //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
         if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
@@ -395,12 +395,12 @@ namespace PITTS
         Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
 
         // orthogonalize wrt. subT1
-        Tensor2<T> tmp(subT1.r1(), subTr.r1());
         const T zNorm = internal::t3_nrm(subTr);
         if( zNorm > T(0) )
           internal::t3_scale(T(1)/zNorm, subTr);
-        EigenMap(tmp).noalias() = ConstEigenMap(unfold_right(subT1)) * ConstEigenMap(unfold_right(subTr)).transpose();
-        EigenMap(unfold_right(subTr)).transpose().noalias() -= ConstEigenMap(unfold_right(subT1)).transpose() * ConstEigenMap(tmp);
+        Tensor2<T> tmp;
+        internal::dot_contract2(subT1, subTr, tmp); // subT1(:,*,*) * subTr(:,*,*)
+        reverse_dot_contract1_sub(tmp, subT1, subTr); // subTr(:,:,:) -= tmp(*,:) * subT1(*,:,:)
         const T zNorm2 = internal::t3_nrm(subTr);
         //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
         if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
