@@ -12,6 +12,7 @@
 
 // includes
 #include <tuple>
+#include "pitts_chunk_ops.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_eigen.hpp"
 #include "pitts_tensor3_unfold.hpp"
@@ -87,6 +88,194 @@ namespace PITTS
       block_TSQR(X, R, 0, false);
     }
 
+    template<typename T>
+    void normalize_qb_copy(const ConstTensor2View<T>& t2, MultiVector<T>& mv)
+    {
+      const auto n = t2.r1();
+      const auto m = t2.r2();
+      const auto timer = PITTS::performance::createScopedTimer<T>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{n*m*kernel_info::NoOp<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
+        );
+      
+      const long long cacheSize_L3 = 50000000;
+      
+      mv.resize(n, m);
+      const int padding = 1 + (n-1) % Chunk<T>::size;
+      const auto nChunks = mv.rowChunks();
+#pragma omp parallel for collapse(2) schedule(static) if(m*nChunks > 50)
+      for(long long j = 0; j < m; j++)
+        for(long long iChunk = 0; iChunk < nChunks; iChunk++)
+        {
+          Chunk<T> tmp;
+          if( iChunk+1 < nChunks )
+            unaligned_load(&t2(iChunk*Chunk<T>::size,j), tmp);
+          else // iChunk+1 == nChunks
+          {
+            for(int k = 0; k < padding; k++)
+              tmp[k] = t2(iChunk*Chunk<T>::size+k,j);
+            for(int k = padding; k < Chunk<T>::size; k++)
+              tmp[k] = T(0);
+          }
+          if( n*m*sizeof(T) > cacheSize_L3 )
+            streaming_store(tmp, mv.chunk(iChunk,j));
+          else
+            mv.chunk(iChunk,j) = tmp;
+        }
+
+      assert(ConstEigenMap(t2) == ConstEigenMap(mv));
+    }
+
+    template<typename T>
+    void normalize_qb_copy(const MultiVector<T>& mv, Tensor2<T>& t2)
+    {
+      const auto n = mv.rows();
+      const auto m = mv.cols();
+      const auto timer = PITTS::performance::createScopedTimer<T>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{n*m*kernel_info::NoOp<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      const long long cacheSize_L3 = 50000000;
+      unsigned long long n_ = n, m_ = m;
+      
+      t2.resize(n, m);
+      const unsigned long long nChunks = (n*m-1) / Chunk<T>::size + 1;
+      Chunk<T>* t2data = (Chunk<T>*)&t2(0,0);
+#pragma omp parallel for schedule(static) if(nChunks > 100)
+      for(unsigned long long iChunk = 0; iChunk < nChunks; iChunk++)
+      {
+        Chunk<T> tmp;
+        unsigned long long i = (iChunk*Chunk<T>::size) % n_;
+        unsigned long long j = (iChunk*Chunk<T>::size) / n_;
+
+        if( i+Chunk<T>::size <= n_)
+          unaligned_load(&mv(i,j), tmp);
+        else
+        {
+          for(int k = 0; k < Chunk<T>::size; k++)
+          {
+            unsigned long long i_ = (i + k) % n_;
+            unsigned long long j_ = j + (i + k) / n_;
+            tmp[k] = j_ < m_ ? mv(i_,j_) : T(0);
+          }
+        }
+
+        if( n*m*sizeof(T) > cacheSize_L3 )
+          streaming_store(tmp, t2data[iChunk]);
+        else
+          t2data[iChunk] = tmp;
+      }
+      
+      assert(ConstEigenMap(t2) == ConstEigenMap(mv));
+    }
+
+    template<typename T>
+    void normalize_qb_transpose(const ConstTensor2View<T>& t2, MultiVector<T>& mv)
+    {
+      const auto n = t2.r2();
+      const auto m = t2.r1();
+      const auto timer = PITTS::performance::createScopedTimer<T>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{n*m*kernel_info::NoOp<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
+        );
+      
+      const long long cacheSize_L3 = 50000000;
+      
+      mv.resize(n, m);
+      const int padding = 1 + (n-1) % Chunk<T>::size;
+      const auto nChunks = mv.rowChunks();
+#pragma omp parallel for schedule(static) if(m*nChunks > 50)
+      for(long long iChunk = 0; iChunk < nChunks; iChunk++)
+        for(long long j = 0; j < m; j++)
+        {
+          Chunk<T> tmp;
+          if( iChunk+1 < nChunks || padding == 0 )
+          {
+            for(int k = 0; k < Chunk<T>::size; k++)
+              tmp[k] = t2(j,iChunk*Chunk<T>::size+k);
+          }
+          else // iChunk+1 == nChunks )
+          {
+            for(int k = 0; k < padding; k++)
+              tmp[k] = t2(j,iChunk*Chunk<T>::size+k);
+            for(int k = padding; k < Chunk<T>::size; k++)
+              tmp[k] = T(0);
+          }
+          if( n*m*sizeof(T) > cacheSize_L3 )
+            streaming_store(tmp, mv.chunk(iChunk,j));
+          else
+            mv.chunk(iChunk,j) = tmp;
+        }
+
+      assert(ConstEigenMap(t2) == ConstEigenMap(mv).transpose());
+    }
+
+    template<typename T>
+    void normalize_qb_transpose(const MultiVector<T>& mv, Tensor2<T>& t2)
+    {
+      const auto n = mv.cols();
+      const auto m = mv.rows();
+      const auto timer = PITTS::performance::createScopedTimer<T>(
+        {{"n", "m"},{n, m}}, // arguments
+        {{n*m*kernel_info::NoOp<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      const long long cacheSize_L3 = 50000000;
+      unsigned long long n_ = n, m_ = m;
+      
+      t2.resize(n, m);
+#pragma omp parallel if(n*m > 100)
+{
+      for(long long i = 0; i < n; i+=Chunk<T>::size)
+      {
+#pragma omp for schedule(static) nowait
+        for(long long j = 0; j < m; j++)
+        {
+          Chunk<T> tmp;
+          if( i + Chunk<T>::size <= n )
+          {
+            for(int k = 0; k < Chunk<T>::size; k++)
+              tmp[k] = mv(j,i+k);
+            unaligned_store(tmp, &t2(i,j));
+          }
+          else
+          {
+            // last entries in each column
+            for(int k = 0; i+k < n; k++)
+              t2(i+k,j) = mv(j,i+k);
+          }
+        }
+      }
+}
+      
+      assert(ConstEigenMap(t2) == ConstEigenMap(mv).transpose());
+    }
+
+    // just for timings
+    template<typename T>
+    void normalize_qb_reorder(const auto& permutation, bool fromLeft, Tensor2<T>& B)
+    {
+      const auto n = B.r1();
+      const auto m = B.r2();
+      const auto timer = PITTS::performance::createScopedTimer<T>(
+        {{"n", "m", "fromLeft"},{n, m, (int)fromLeft}}, // arguments
+        {{n*m*kernel_info::NoOp<T>()}, // flops
+         {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
+        );
+      
+      auto mapB = EigenMap(B);
+
+      if( fromLeft )
+        mapB = permutation * mapB;
+      else
+        mapB = mapB * permutation.transpose();
+    }
+
     // implement normalize_qb
     template<typename T>
     std::pair<Tensor2<T>, Tensor2<T>> normalize_qb(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance)
@@ -106,12 +295,12 @@ namespace PITTS
       if( leftOrthog )
       {
         mv.resize(M.r1(), M.r2());
-        EigenMap(mv) = ConstEigenMap(M);
+        normalize_qb_copy(M, mv);
       }
       else // rightOrthog
       {
         mv.resize(M.r2(), M.r1());
-        EigenMap(mv) = ConstEigenMap(M).transpose();
+        normalize_qb_transpose(M, mv);
       }
       Tensor2<T> R;
       normalize_qb_block_TSQR(mv, R);
@@ -129,10 +318,11 @@ namespace PITTS
       using Index = decltype(qr.rank());
       const auto r = std::max(Index(minRank), std::min(qr.rank(), Index(maxRank)));
 
+
       // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
       using RealType = decltype(std::abs(T(0)));
       const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
-      if( std::abs(qr.maxPivot()) < 1000*tsqrError )
+      if( std::abs(qr.maxPivot()) < 1000*tsqrError || qr.rank() == 0 || r == 0 )
       {
         // this is actually a zero input...
         std::pair<Tensor2<T>,Tensor2<T>> result;
@@ -156,11 +346,15 @@ namespace PITTS
         return result;
       }
 
+
       std::vector<int> colsPermutation(r);
       Eigen::Map<Eigen::VectorXi>(colsPermutation.data(), r) = qr.colsPermutation().indices().head(r);
       Tensor2<T> tmpR(r, r);
       EigenMap(tmpR) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>();
       triangularSolve(mv, tmpR, colsPermutation);
+
+//std::cout << "QB rank: " << r << ", maxPivot / minPivot: " << std::abs(qr.matrixR()(0,0) / qr.matrixR()(r-1,r-1)) << ", diagonal entries of R: " << qr.matrixR().topLeftCorner(r,r).diagonal().transpose() << "\n";
+//std::cout << "QB orthogonalityError: " << (ConstEigenMap(mv).transpose() * ConstEigenMap(mv) - EigenMatrix::Identity(r,r)).array().abs().maxCoeff() << "\n";
       /*
       auto mvMap = EigenMap(mv);
       mvMap.leftCols(r) = (mvMap * qr.colsPermutation()).leftCols(r);
@@ -176,10 +370,10 @@ namespace PITTS
         {
           // return QR
           // X = QR,  RP = Q_2 R_2  =>  X P = Q Q_2 R_2  => X P R_2^(-1) = Q Q_2
-          EigenMap(result.first) = ConstEigenMap(mv).leftCols(r);
+          normalize_qb_copy(mv, result.first);
           auto B = EigenMap(result.second);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
-          B = B * qr.colsPermutation().transpose();
+          normalize_qb_reorder(qr.colsPermutation(), false, result.second);
         }
         else
         {
@@ -187,8 +381,8 @@ namespace PITTS
           // (Q Q_2)^T = R_2^(-T) P^T X^T
           auto B = EigenMap(result.first);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>().transpose();
-          B = qr.colsPermutation() * B;
-          EigenMap(result.second) = ConstEigenMap(mv).leftCols(r).transpose();
+          normalize_qb_reorder(qr.colsPermutation(), true, result.first);
+          normalize_qb_transpose(mv, result.second);
         }
       }
 
@@ -206,7 +400,7 @@ namespace PITTS
 
     // implement normalize_svd
     template<typename T>
-    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const Tensor2<T>& M, bool leftOrthog, T rankTolerance, int maxRank)
+    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank)
     {
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
