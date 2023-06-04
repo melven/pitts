@@ -1,3 +1,10 @@
+// triggers some bug in Eigen: https://gitlab.com/libeigen/eigen/-/issues/2663
+#ifndef EIGEN_USE_LAPACKE
+#ifdef EIGEN_USE_BLAS
+#undef EIGEN_USE_BLAS
+#endif
+#endif
+
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_norm.hpp"
