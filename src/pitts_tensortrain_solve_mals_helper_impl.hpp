@@ -17,8 +17,11 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_eigen.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_unfold.hpp"
+#include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_axpby.hpp"
 #include "pitts_multivector_scale.hpp"
@@ -37,60 +40,6 @@ namespace PITTS
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
-      // calculate next part of Ax from right to left or discard last part
-      template<typename T>
-      void update_right_Ax(const TensorTrainOperator<T> TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx, std::vector<Tensor3<T>>& right_Ax)
-      {
-        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-        const int nDim = TTx.dimensions().size();
-        assert(TTx.dimensions() == TTOpA.column_dimensions());
-        assert(0 <= firstIdx);
-        assert(firstIdx <= lastIdx+1);
-        assert(lastIdx == nDim-1);
-
-        // calculate new entries in right_Ax when sweeping right-to-left
-        for(int iDim = lastIdx - right_Ax.size(); iDim >= firstIdx; iDim--)
-        {
-          const auto &subTx = TTx.subTensor(iDim);
-          const auto &subTOpA = TTOpA.tensorTrain().subTensor(iDim);
-          Tensor3<T> subTAx;
-          internal::apply_contract(TTOpA, iDim, subTOpA, subTx, subTAx);
-          right_Ax.emplace_back(std::move(subTAx));
-        }
-
-        // discard old entries in right_Ax when sweeping left-to-right
-        for(int iDim = lastIdx - right_Ax.size(); iDim+1 < firstIdx; iDim++)
-          right_Ax.pop_back();
-      }
-
-      // calculate next part of Ax from left to right or discard last part
-      template<typename T>
-      void update_left_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, int firstIdx, int lastIdx, std::vector<Tensor3<T>>& left_Ax)
-      {
-        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-        const int nDim = TTx.dimensions().size();
-        assert(TTx.dimensions() == TTOpA.column_dimensions());
-        assert(0 == firstIdx);
-        assert(firstIdx-1 <= lastIdx);
-        assert(lastIdx < nDim);
-
-        // calculate new entries in left_Ax when sweeping left-to-right
-        for(int iDim = firstIdx + left_Ax.size(); iDim <= lastIdx; iDim++)
-        {
-            const auto& subTOpA = TTOpA.tensorTrain().subTensor(iDim);
-            const auto& subTx = TTx.subTensor(iDim);
-            Tensor3<T> subTAx;
-            internal::apply_contract(TTOpA, iDim, subTOpA, subTx, subTAx);
-            left_Ax.emplace_back(std::move(subTAx));
-        }
-
-        // discard old entries in left_Ax when sweeping right-to-left
-        for(int iDim = firstIdx + left_Ax.size(); iDim-1 > lastIdx; iDim--)
-          left_Ax.pop_back();
-      }
-
       // set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
       template<typename T>
       TensorTrainOperator<T> setupProjectionOperator(const TensorTrain<T>& TTx, SweepIndex swpIdx)
@@ -337,104 +286,28 @@ namespace PITTS
         return TTw_;
       }
 
-      // calculate next part of v^Tw from right to left or discard last part
-      //
-      // Like TT dot product fused with TT apply but allows to store all intermediate results.
-      //
-      template<typename T>
-      void update_right_vTw(const RightPartialTT<T>& TTv, const RightPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& right_vTw)
-      {
-        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-        assert(0 <= firstIdx);
-        assert(firstIdx <= lastIdx+1);
-        //assert(lastIdx == nDim-1);
-
-        // first call? right_vTAw should at least contain a 1x1 one tensor
-        if( right_vTw.empty() )
-        {
-          right_vTw.emplace_back(Tensor2<T>{1,1});
-          right_vTw.back()(0,0) = T(1);
-        }
-
-        // calculate new entries in right_vTw when sweeping right-to-left
-        for(int iDim = lastIdx - (right_vTw.size()-1); iDim >= firstIdx; iDim--)
-        {
-          const auto& subTv = TTv.subTensorFromRight(lastIdx-iDim);
-          const auto& subTw = TTw.subTensorFromRight(lastIdx-iDim);
-
-          // first contraction: subTw(:,:,*) * prev_t2(:,*)
-          Tensor3<T> t3_tmp;
-          internal::dot_contract1(subTw, right_vTw.back(), t3_tmp);
-
-          // second contraction: subTv(:,*,*) * t3_tmp(:,*,*)
-          Tensor2<T> t2;
-          internal::dot_contract2(subTv, t3_tmp, t2);
-          right_vTw.emplace_back(std::move(t2));
-        }
-
-        // discard old entries in right_vTw when sweeping left-to-right
-        for(int iDim = lastIdx - (right_vTw.size()-1); iDim+1 < firstIdx; iDim++)
-          right_vTw.pop_back();
-      }
-
-      // calculate next part of v^Tw from left to right or discard last part
-      //
-      // Like TT dot product fused with TT apply but allows to store all intermediate results.
-      //
-      template<typename T>
-      void update_left_vTw(const LeftPartialTT<T>& TTv, const LeftPartialTT<T>& TTw, int firstIdx, int lastIdx, std::vector<Tensor2<T>>& left_vTw)
-      {
-        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
-        assert(0 == firstIdx);
-        assert(firstIdx-1 <= lastIdx);
-        //assert(lastIdx < nDim);
-
-        // first call? left_vTw should at least contain a 1x1 one tensor
-        if( left_vTw.empty() )
-        {
-          left_vTw.emplace_back(Tensor2<T>{1,1});
-          left_vTw.back()(0,0) = T(1);
-        }
-
-        // calculate new entries in left_vTw when sweeping left-to-right
-        for(int iDim = firstIdx + (left_vTw.size()-1); iDim <= lastIdx; iDim++)
-        {
-          const auto& subTv = TTv.subTensorFromLeft(iDim);
-          const auto& subTw = TTw.subTensorFromLeft(iDim);
-
-          // first contraction: prev_t2(*,:) * subTw(*,:,:)
-          Tensor3<T> t3_tmp;
-          internal::reverse_dot_contract1(left_vTw.back(), subTw, t3_tmp);
-
-          // second contraction: t3(*,*,:) * subTv(*,*,:)
-          Tensor2<T> t2;
-          internal::reverse_dot_contract2(t3_tmp, subTv, t2);
-          left_vTw.emplace_back(std::move(t2));
-        }
-
-        // discard old entries in left_vTw when sweeping right-to-left
-        for(int iDim = firstIdx + (left_vTw.size()-1); iDim-1 > lastIdx; iDim--)
-          left_vTw.pop_back();
-      }
-
       // calculate the local RHS tensor-train for (M)ALS
       template<typename T>
-      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, const Tensor2<T>& left_vTb, const TensorTrain<T>& TTb, const Tensor2<T>& right_vTb)
+      TensorTrain<T> calculate_local_rhs(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTb, const TensorTrain<T>& TTb, optional_cref<Tensor2<T>> right_vTb)
       {
         std::vector<Tensor3<T>> subT_b(nMALS);
         for(int i = 0; i < nMALS; i++)
           copy(TTb.subTensor(iDim+i), subT_b[i]);
 
-        // first contract: tt_b_right(:,:,*) * right_vTb(:,*)
         Tensor3<T> t3_tmp;
-        std::swap(subT_b.back(), t3_tmp);
-        internal::dot_contract1(t3_tmp, right_vTb, subT_b.back());
+        // first contract: tt_b_right(:,:,*) * right_vTb(:,*)
+        if( right_vTb )
+        {
+          std::swap(subT_b.back(), t3_tmp);
+          internal::dot_contract1<T>(t3_tmp, *right_vTb, subT_b.back());
+        }
 
         // then contract: left_vTb(*,:) * tt_b_left(*,:,:)
-        std::swap(subT_b.front(), t3_tmp);
-        internal::reverse_dot_contract1(left_vTb, t3_tmp, subT_b.front());
+        if( left_vTb )
+        {
+          std::swap(subT_b.front(), t3_tmp);
+          internal::reverse_dot_contract1<T>(*left_vTb, t3_tmp, subT_b.front());
+        }
 
         TensorTrain<T> tt_b(std::move(subT_b));
 
@@ -498,24 +371,50 @@ namespace PITTS
 
       // calculate the local linear operator in TT format for (M)ALS
       template<typename T>
-      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, const Tensor2<T>& left_vTAx, const TensorTrainOperator<T>& TTOp, const Tensor2<T>& right_vTAx)
+      TensorTrainOperator<T> calculate_local_op(int iDim, int nMALS, optional_cref<Tensor2<T>> left_vTAx, const TensorTrainOperator<T>& TTOp, optional_cref<Tensor2<T>> right_vTAx)
       {
         std::vector<Tensor3<T>> subT_localOp(nMALS+2);
         for(int i = 0; i < nMALS; i++)
           copy(TTOp.tensorTrain().subTensor(iDim+i), subT_localOp[1+i]);
-        copy_op_left(left_vTAx, subT_localOp[1].r1(), subT_localOp[0]);
-        copy_op_right(right_vTAx, subT_localOp[nMALS].r2(), subT_localOp[nMALS+1]);
+        if( left_vTAx )
+          copy_op_left<T>(*left_vTAx, subT_localOp[1].r1(), subT_localOp.front());
+        else
+        {
+          subT_localOp.front().resize(1,1,1);
+          subT_localOp.front().setConstant(T(1));
+        }
+        if( right_vTAx )
+          copy_op_right<T>(*right_vTAx, subT_localOp[nMALS].r2(), subT_localOp.back());
+        else
+        {
+          subT_localOp.back().resize(1,1,1);
+          subT_localOp.back().setConstant(T(1));
+        }
 
         std::vector<int> localRowDims(nMALS+2), localColDims(nMALS+2);
-        localRowDims.front() = left_vTAx.r2();
-        localColDims.front() = subT_localOp[0].n() / localRowDims.front();
+        if( left_vTAx )
+        {
+          localRowDims.front() = left_vTAx->get().r2();
+          localColDims.front() = subT_localOp[0].n() / localRowDims.front();
+        }
+        else
+        {
+          localRowDims.front() = localColDims.front() = 1;
+        }
         for(int i = 0; i < nMALS; i++)
         {
           localRowDims[i+1] = TTOp.row_dimensions()[iDim+i];
           localColDims[i+1] = TTOp.column_dimensions()[iDim+i];
         }
-        localRowDims.back() = right_vTAx.r1();
-        localColDims.back()  = subT_localOp[nMALS+1].n() / localRowDims.back();
+        if( right_vTAx )
+        {
+          localRowDims.back() = right_vTAx->get().r1();
+          localColDims.back()  = subT_localOp.back().n() / localRowDims.back();
+        }
+        else
+        {
+          localRowDims.back() = localColDims.back() = 1;
+        }
 
         TensorTrainOperator<T> localTTOp(localRowDims, localColDims);
         localTTOp.tensorTrain().setSubTensors(0, std::move(subT_localOp));

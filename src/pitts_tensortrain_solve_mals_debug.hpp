@@ -42,7 +42,15 @@ namespace PITTS
 
       //! check that left/right_Ax = TTOpA * TTx
       template<typename T>
-      bool check_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<T>>& left_Ax, const std::vector<Tensor3<T>>& right_Ax);
+      bool check_Ax(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, SweepIndex swpIdx, const std::vector<Tensor3<T>>& Ax);
+
+      //! check that left/right_Ax_ortho = left/rightNormalize(TTAx)
+      template<typename T>
+      bool check_Ax_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_ortho);
+
+      //! check that left/right_Ax_b_ortho = left/rightNormalize(TTAx-TTb)
+      template<typename T>
+      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho);
 
       //! check that v^T v = I and A v x_local = Av and
       template<typename T>

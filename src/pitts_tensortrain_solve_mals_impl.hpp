@@ -103,29 +103,49 @@ namespace PITTS
     // check that 'symmetric' flag is used correctly
     assert(!symmetric || norm2((TTOpA-transpose(TTOpA)).tensorTrain()) < sqrt_eps);
 
+    // for the Petrov-Galerkin variant, we get a dedicated left projection
+    TensorTrain<T> TTw(0,0);
+    const TensorTrain<T>& TTv = projection == MALS_projection::PetrovGalerkin ? TTw : TTx;
+
     // we store previous parts of w^Tb from left and right
-    // (respectively x^T A^T b for the non-symmetric case)
-    std::vector<Tensor2<T>> left_vTb, right_vTb;
+    SweepData vTb = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, TTb), dot_loop_from_right<T>(TTv, TTb));
     
-    // we store previous parts of x^T A x
-    // (respectively x^T A^T A x for the non-symmetric case)
-    std::vector<Tensor2<T>> left_vTAx, right_vTAx;
-
     // this includes a calculation of Ax, so allow to store the new parts of Ax in a seperate vector
-    std::vector<Tensor3<T>> left_Ax, right_Ax;
+    std::vector<Tensor3<T>> tmpAx(nDim);
     TensorTrain<T> TTAx(TTOpA.row_dimensions());
+    SweepData Ax = defineSweepData<Tensor3<T>>(nDim, apply_loop(TTOpA, TTx), apply_loop(TTOpA, TTx));
 
-    // for the Petrov-Galerkin variant:
-    // sub-tensors to represent projection space v that approximately spans Ax
-    std::vector<Tensor3<T>> left_v_subT, right_v_subT;
+    // left-/right orthogonal version of Ax
+    SweepData Ax_ortho = defineSweepData<std::pair<Tensor3<T>,Tensor2<T>>>(nDim, ortho_loop_from_left<T>(Ax), ortho_loop_from_right<T>(Ax));
+
+    // parts of Ax-b (left-/right orthogonalized)
+    SweepData Ax_b_ortho = defineSweepData<std::pair<Tensor3<T>,Tensor2<T>>>(nDim, axpby_loop_from_left<T>(Ax_ortho, TTb), axpby_loop_from_right<T>(Ax_ortho, TTb));
+
+    // we store previous parts of x^T A x
+    SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
     // save local residual for enriching the subspace
     std::unique_ptr<TensorTrain<T>> tt_r;
 
     // calculate the error norm
-    apply(TTOpA, TTx, TTAx);
-    T residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
-    std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+    internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
+    Ax.update(-1, 0);
+    Ax_ortho.update(-1, 0);
+    Ax_b_ortho.update(-1, 0);
+
+    assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
+    assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+
+    // calculate error
+    T residualNorm;
+    {
+      const T norm_Ax = Ax_ortho.data().front().second(0,0);
+      auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
+      residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+      assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+      std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+    }
 
     // lambda to avoid code duplication: performs one step in a sweep
     const auto solveLocalProblem = [&](const internal::SweepIndex &swpIdx, bool firstSweep = false)
@@ -133,26 +153,15 @@ namespace PITTS
       std::cout << " (M)ALS setup local problem for sub-tensors " << swpIdx.leftDim() << " to " << swpIdx.rightDim() << "\n";
 
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
-      update_left_Ax(TTOpA, TTx, 0, swpIdx.leftDim() - 1, left_Ax);
-
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
-      update_right_Ax(TTOpA, TTx, swpIdx.rightDim() + 1, nDim - 1, right_Ax);
+      Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
       assert(check_Orthogonality(swpIdx, TTx));
-      assert(check_Ax(TTOpA, TTx, swpIdx, left_Ax, right_Ax));
+      assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
 
-      LeftPartialTT<T> left_v;
-      RightPartialTT<T> right_v;
-      // dummy tensortrain, filled later for Petrov-Galerkin case
-      TensorTrain<T> TTw(0,0);
-
-      Tensor3<T> tmp_last_left_v, tmp_last_right_v;
-      if( projection == MALS_projection::RitzGalerkin )
-      {
-        left_v = TTx;
-        right_v = TTx;
-      }
-      else // projection == MALS_projection::PetrovGalerkin
+      if( projection == MALS_projection::PetrovGalerkin )
       {
         // stupid implementation for testing
         TensorTrainOperator<T> TTv = setupProjectionOperator(TTx, swpIdx);
@@ -162,23 +171,17 @@ namespace PITTS
         assert(check_ProjectionOperator(TTOpA, TTx, swpIdx, TTv, TTAv));
 
         TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx, true);
-        left_v = TTw;
-        right_v = TTw;
 
         assert(check_Orthogonality(swpIdx, TTw));
       }
 
-      update_left_vTw<T>(left_v, TTb, 0, swpIdx.leftDim() - 1, left_vTb);
-      update_left_vTw<T>(left_v, left_Ax, 0, swpIdx.leftDim() - 1, left_vTAx);
-
-      update_right_vTw<T>(right_v, TTb, swpIdx.rightDim() + 1, nDim - 1, right_vTb);
-      update_right_vTw<T>(right_v, right_Ax, swpIdx.rightDim() + 1, nDim - 1, right_vTAx);
-
+      vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      vTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
       // prepare operator and right-hand side
       TensorTrain<T> tt_x = calculate_local_x(swpIdx.leftDim(), nMALS, TTx);
-      const TensorTrain<T> tt_b = calculate_local_rhs(swpIdx.leftDim(), nMALS, left_vTb.back(), TTb, right_vTb.back());
-      const TensorTrainOperator<T> localTTOp = calculate_local_op(swpIdx.leftDim(), nMALS, left_vTAx.back(), TTOpA, right_vTAx.back());
+      const TensorTrain<T> tt_b = calculate_local_rhs<T>(swpIdx.leftDim(), nMALS, vTb.left(), TTb, vTb.right());
+      const TensorTrainOperator<T> localTTOp = calculate_local_op<T>(swpIdx.leftDim(), nMALS, vTAx.left(), TTOpA, vTAx.right());
 
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
       assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
@@ -226,16 +229,8 @@ if( nAMEnEnrichment > 0 )
       if( projection == MALS_projection::PetrovGalerkin )
       {
         // recover original sub-tensor of projection space
-        {
-          // this also invalidates left_vTb and left_vTAx!
-          left_vTb.clear();
-          left_vTAx.clear();
-        }
-        {
-          // this also invalidates right_vTb and right_vTAx!
-          right_vTb.clear();
-          right_vTAx.clear();
-        }
+        vTb.invalidate(0, nDim);
+        vTAx.invalidate(0, nDim);
       }
     };
 
@@ -286,11 +281,11 @@ if( nAMEnEnrichment > 0 )
         TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT));
 
         // these are not valid any more
-        right_Ax.pop_back();
-        if( !right_vTAx.empty() )
-          right_vTAx.pop_back();
-        if( !right_vTb.empty() )
-          right_vTb.pop_back();
+        Ax.invalidate(swpIdx.rightDim()+1);
+        Ax_ortho.invalidate(swpIdx.rightDim()+1);
+        Ax_b_ortho.invalidate(swpIdx.rightDim()+1);
+        vTAx.invalidate(swpIdx.rightDim()+1);
+        vTb.invalidate(swpIdx.rightDim()+1);
       }
       else // right-to-left
       {
@@ -329,11 +324,11 @@ if( nAMEnEnrichment > 0 )
         TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT));
 
         // these are not valid any more
-        left_Ax.pop_back();
-        if( !left_vTAx.empty() )
-          left_vTAx.pop_back();
-        if( !left_vTb.empty() )
-          left_vTb.pop_back();
+        Ax.invalidate(swpIdx.leftDim()-1);
+        Ax_ortho.invalidate(swpIdx.leftDim()-1);
+        Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
+        vTAx.invalidate(swpIdx.leftDim()-1);
+        vTb.invalidate(swpIdx.leftDim()-1);
        }
     };
 
@@ -355,22 +350,27 @@ if( nAMEnEnrichment > 0 )
         
         lastSwpIdx = swpIdx;
       }
-      // update remaining sub-tensors of left_Ax
-      update_left_Ax(TTOpA, TTx, 0, nDim - 1, left_Ax);
-      left_Ax = TTAx.setSubTensors(0, std::move(left_Ax));
-      // for non-symm. cases, we still need left_Ax
-      for(int iDim = 0; iDim < nDim; iDim++)
-        copy(TTAx.subTensor(iDim), left_Ax[iDim]);
+      // update remaining sub-tensors of Ax
+      Ax.update(nDim-1, nDim);
+      Ax_ortho.update(nDim-1, nDim);
+      Ax_b_ortho.update(nDim-1, nDim);
 
-
-
-      assert( norm2(TTOpA * TTx - TTAx) < sqrt_eps );
+      assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, nDim), Ax.data()));
+      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), true, Ax_b_ortho.data()));
 
       // check error
-      residualNorm = axpby(T(1), TTb, T(-1), TTAx);
-      std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-      if( residualNorm / nrm_TTb < residualTolerance )
-        break;
+      {
+        const T norm_Ax = Ax_ortho.data().back().second(0,0);
+        auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
+        residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
+        assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+        std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+        if( residualNorm / nrm_TTb < residualTolerance )
+          break;
+      }
+
 
       // sweep right to left
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
@@ -386,18 +386,22 @@ if( nAMEnEnrichment > 0 )
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of right_Ax
-      update_right_Ax(TTOpA, TTx, 0, nDim - 1, right_Ax);
-      // TODO: that's wrong -> need a reverse
-      right_Ax = TTAx.setSubTensors(0, reverse(std::move(right_Ax)));
-      // for non-symm. cases, we still need right_Ax
-      for(int iDim = 0; iDim < nDim; iDim++)
-        copy(TTAx.subTensor(iDim), right_Ax[nDim-iDim-1]);
+      Ax.update(-1, 0);
+      Ax_ortho.update(-1, 0);
+      Ax_b_ortho.update(-1, 0);
 
-      assert(norm2(TTOpA * TTx - TTAx) < sqrt_eps);
+      assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
+      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
 
       // check error
-      residualNorm = axpby(T(1), TTb, T(-1), TTAx, T(0));
-      std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+      {
+        const T norm_Ax = Ax_ortho.data().front().second(0,0);
+        auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
+        residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+        assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
+        std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+      }
     }
 
 
