@@ -50,16 +50,6 @@ namespace PITTS
       const auto [n_left, n_right] = partial_products(TTOp.row_dimensions(), iDim);
       const auto [m_left, m_right] = partial_products(TTOp.column_dimensions(), iDim);
 
-      // copy operator to better format
-      // todo simpler memory layout for Tensor3 -> this is not needed any more...
-      Eigen::MatrixX<T> tmpA(r1*n,m*r2);
-#pragma omp parallel for collapse(3) schedule(static)
-      for(long long k2 = 0; k2 < r2; k2++)
-        for(long long j = 0; j < m; j++)
-          for(long long i = 0; i < n; i++)
-            for(long long k1 = 0; k1 < r1; k1++)
-              tmpA(k1+i*r1, j+m*k2) = Aop(k1, TTOp.index(iDim, i, j), k2);
-
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
         {{"nCols", "m_left", "r2", "n", "n_right", "m", "r1"},{nCols, m_left, r2, n, n_right, m, r1}}, // arguments
         {{nCols*m_right*r2*n*n_left*m*r1*kernel_info::FMA<T>()}, // flops
@@ -74,6 +64,8 @@ namespace PITTS
 
       const auto r1n = r1*n;
       const auto mr2 = m*r2;
+
+      Eigen::Map<const Eigen::MatrixX<T>> tmpA(&Aop(0,0,0), r1n, mr2);
 
       for(int iCol = 0; iCol < nCols; iCol++)
       {
@@ -178,6 +170,8 @@ namespace PITTS
     if( TTOp.row_dimensions() != TTOp.column_dimensions() )
       throw std::invalid_argument("TTOpApplyDenseHelper: row-dims != col-dims not supported!");
 
+    const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
+
     // get dimensions
     nDim_ = TTOp.row_dimensions().size();
     nTotal_ = std::accumulate(TTOp.row_dimensions().begin(), TTOp.row_dimensions().end(), 1, std::multiplies<long long>());
@@ -209,45 +203,60 @@ namespace PITTS
   }
 
   template<typename T>
-  void TTOpApplyDenseHelper<T>::addPadding(MultiVector<T> &x)
+  void TTOpApplyDenseHelper<T>::addPadding(MultiVector<T> &x) const
   {
     if( x.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
     if( x.rows() != nTotal_ )
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to addPadding!");
+
+    const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
     
     std::swap(x, tmpv(0));
-
-    x.resize(nTotalPadded_, 1, false);
-    // initialize target memory to zero
-#pragma omp parallel for schedule(static)
-    for(long long iChunk = 0; iChunk < x.rowChunks(); iChunk++)
-      x.chunk(iChunk, 0) = Chunk<T>{};
-
+    preparePadding(x);
     reshape(tmpv(0), n0_, nTotal_/n0_, x);
-    assert(x.rowChunks()*Chunk<T>::size == n0padded_);
+    assert(x.colStrideChunks()*Chunk<T>::size == n0padded_);
 
     x.resize(nTotalPadded_, 1, false, true);
   }
 
   template<typename T>
-  void TTOpApplyDenseHelper<T>::removePadding(MultiVector<T> &y)
+  void TTOpApplyDenseHelper<T>::removePadding(MultiVector<T> &y) const
   {
     if( y.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
     if( y.rows() != nTotalPadded_ )
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to removePadding!");
 
+    const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
+
     y.resize(n0_, nTotal_ / n0_, false, true);
     std::swap(y, tmpv(0));
     reshape(tmpv(0), nTotal_, 1, y);
+  }
+
+  template <typename T>
+  inline void TTOpApplyDenseHelper<T>::preparePadding(MultiVector<T>& v) const
+  {
+    const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
+
+    // ensure we have enough memory allocated to switch between n0 x N/n0 and nTotalPadded x 1
+    v.resize(nTotalPadded_, 1, false);
+
+    // for convenience resize to padded layout
+    v.resize(n0_, nTotal_/n0_, false, true);
+    // initialize padding in target memory to zero
+#pragma omp parallel for collapse(2) schedule(static)
+    for(long long j = 0; j < v.cols(); j++)
+      for(long long iChunk = v.rowChunks()-1; iChunk < v.colStrideChunks(); iChunk++)
+        v.chunk(iChunk, j) = Chunk<T>{};
   }
 
   // implement TT Op Helper apply to dense
   template<typename T>
   void apply(const TTOpApplyDenseHelper<T>& TTOp, MultiVector<T>& MVx, MultiVector<T>& MVy)
   {
-    const auto timer = PITTS::timing::createScopedTimer<TensorTrainOperator<T>>();
+    const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
 
     // check for matching dimensions
     if( MVx.cols() != 1 )
@@ -256,8 +265,8 @@ namespace PITTS
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to apply!");
   
 
-    // reuse memory of MVy...
-    MVy.resize(TTOp.nTotalPadded(), 1, false);
+    // ensure padding is correct in the result:
+    TTOp.preparePadding(MVy);
     std::swap(MVy, TTOp.tmpv(0));
 
     // reuse memory of MVx (avoids copy), restored below

@@ -44,10 +44,13 @@ namespace PITTS
 
 
       //! add padding to tensor-train so this operator can be applied to it
-      void addPadding(MultiVector<T>& x);
+      void addPadding(MultiVector<T>& x) const;
 
       //! remove padding from a tensor-train 
-      void removePadding(MultiVector<T>& y);
+      void removePadding(MultiVector<T>& y) const;
+
+      //! (internal) preparation for addPadding: sets padding chunks to zero
+      void preparePadding(MultiVector<T>& v) const;
 
 
       //! get the i-th sub-tensor (appropriately reshaped)
