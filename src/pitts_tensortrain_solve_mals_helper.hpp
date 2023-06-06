@@ -17,6 +17,7 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor2_concat.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
@@ -215,13 +216,19 @@ namespace PITTS
       }
 
       template<typename T>
+      const auto& extract_first(const T& t) {return t;}
+
+      template<typename T1, typename T2>
+      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
+
+      template<typename T>
       constexpr auto axpby_loop_from_left(const auto& TTx, const auto& TTy)
       {
         using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
         return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
         {
-          const auto& subTx = TTx.subTensor(iDim).first;
-          const auto& subTy = TTy.subTensor(iDim);
+          const auto& subTx = extract_first(TTx.subTensor(iDim));
+          const auto& subTy = extract_first(TTy.subTensor(iDim));
           assert(subTx.n() == subTy.n());
           const int n = subTx.n();
           const int r2x = subTx.r2();
@@ -231,12 +238,8 @@ namespace PITTS
           using mat = Eigen::MatrixX<T>;
           if( !prev_QB )
           {
-            assert(subTx.r1() == 1 && subTy.r1() == 1);
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), n, r2x);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), n, r2y);
             t2.resize(n, r2x+r2y);
-            EigenMap(t2).leftCols (r2x) = mapX;
-            EigenMap(t2).rightCols(r2y) = mapY;
+            concatLeftRight<T>(unfold_left(subTx), unfold_left(subTy), t2);
           }
           else
           {
@@ -247,8 +250,8 @@ namespace PITTS
             // contract prev_B * (X 0; 0 Y)
             const auto& prev_B = prev_QB->get().second;
             t2.resize(prev_B.r1(), n*r2x+n*r2y);
-            EigenMap(t2).leftCols (n*r2x) = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
-            EigenMap(t2).rightCols(n*r2y) = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
+            EigenMap(t2).leftCols (n*r2x).noalias() = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
+            EigenMap(t2).rightCols(n*r2y).noalias() = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
             t2.resize(t2.r1()*n, r2x+r2y, false);
           }
 
@@ -258,12 +261,6 @@ namespace PITTS
           QB.second = std::move(B);
         };
       }
-
-      template<typename T>
-      const auto& extract_first(const T& t) {return t;}
-
-      template<typename T1, typename T2>
-      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
 
       template<typename T>
       constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
@@ -282,12 +279,8 @@ namespace PITTS
           using mat = Eigen::MatrixX<T>;
           if( !prev_QB )
           {
-            assert(subTx.r2() == 1 && subTy.r2() == 1);
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n);
             t2.resize(r1x+r1y,n);
-            EigenMap(t2).topRows   (r1x) = mapX;
-            EigenMap(t2).bottomRows(r1y) = mapY;
+            concatTopBottom<T>(unfold_right(subTx), unfold_right(subTy), t2);
           }
           else
           {
@@ -306,7 +299,7 @@ namespace PITTS
             Tensor2<T> tmp;
             unfold_left(t3, tmp);
             t2.resize((r1x+r1y)*n, prev_B.r2());
-            EigenMap(t2) = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
+            EigenMap(t2).noalias() = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
             t2.resize(r1x+r1y, n*t2.r2(), false);
           }
 

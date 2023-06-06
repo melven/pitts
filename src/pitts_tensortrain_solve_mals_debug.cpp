@@ -36,6 +36,9 @@ template bool check_Orthogonality(SweepIndex swpIdx, const TensorTrain<double>& 
 template bool check_systemDimensions(const TensorTrainOperator<float>& localTTOp, const TensorTrain<float>& tt_x, const TensorTrain<float>& tt_b);
 template bool check_systemDimensions(const TensorTrainOperator<double>& localTTOp, const TensorTrain<double>& tt_x, const TensorTrain<double>& tt_b);
 
+template bool check_AMEnSubspace(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTv, const TensorTrain<float>& TTx, const TensorTrain<float>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<float>& tt_z);
+template bool check_AMEnSubspace(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTv, const TensorTrain<double>& TTx, const TensorTrain<double>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<double>& tt_z);
+
 template bool check_localProblem(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, const TensorTrain<float>& TTb, const TensorTrain<float>& TTw, 
                                  bool ritzGalerkinProjection, SweepIndex swpIdx,
                                  const TensorTrainOperator<float>& localTTOp, const TensorTrain<float>& tt_x, const TensorTrain<float>& tt_b);
