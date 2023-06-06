@@ -35,7 +35,7 @@ TEST(PITTS_GMRES, TTOp_dense_eye)
   zero(x);
   randomize(b);
 
-  const arr resNorm = GMRES<arr>(OpA, true, b, x, 1, arr::Constant(3, 1.e-8), arr::Constant(3, 1.e-8), "TEST: ", true);
+  const auto [resNorm, relResNorm] = GMRES<arr>(OpA, true, b, x, 1, arr::Constant(3, 1.e-8), arr::Constant(3, 1.e-8), "TEST: ", true);
 
   EXPECT_NEAR(arr::Zero(3), resNorm, eps);
   EXPECT_NEAR(ConstEigenMap(b), ConstEigenMap(x), eps);
@@ -60,7 +60,7 @@ TEST(PITTS_GMRES, TTOp_dense_random_single_system_symmetric)
   randomize(x);
   randomize(b);
 
-  const arr resNorm = GMRES<arr>(OpA, true, b, x, 50, arr::Constant(1, 1.e-4), arr::Constant(1, 1.e-8), "TEST: ", true);
+  const auto [resNorm, relResNorm] = GMRES<arr>(OpA, true, b, x, 50, arr::Constant(1, 1.e-4), arr::Constant(1, 1.e-8), "TEST: ", true);
 
   apply(OpA, x, r);
   const arr resNorm_ref = axpy_norm2(arr(arr::Constant(1,-1)), b, r);
@@ -86,7 +86,7 @@ TEST(PITTS_GMRES, TTOp_dense_random_single_system)
   randomize(x);
   randomize(b);
 
-  const arr resNorm = GMRES<arr>(OpA, false, b, x, 50, arr::Constant(1, 1.e-4), arr::Constant(1, 1.e-8), "TEST: ", true);
+  const auto [resNorm, relResNorm] = GMRES<arr>(OpA, false, b, x, 50, arr::Constant(1, 1.e-4), arr::Constant(1, 1.e-8), "TEST: ", true);
 
   apply(OpA, x, r);
   const arr resNorm_ref = axpy_norm2(arr(arr::Constant(1,-1)), b, r);

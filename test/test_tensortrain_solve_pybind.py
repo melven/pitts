@@ -43,7 +43,7 @@ class TestTensorTrain_solve(unittest.TestCase):
         pitts_py.randomize(ttB)
         pitts_py.randomize(ttX)
 
-        residualNorm = pitts_py.solveGMRES(ttOp, ttB, ttX, 10, 1.e-8, 1.e-8, outputPrefix="test: ", verbose=True)
+        residualNorm, relResidualNorm = pitts_py.solveGMRES(ttOp, ttB, ttX, 10, 1.e-8, 1.e-8, outputPrefix="test: ", verbose=True)
         self.assertLess(residualNorm, 1.e-5)
 
         ttR = pitts_py.TensorTrain_double([5,3,3])

@@ -216,25 +216,19 @@ namespace PITTS
       T absTol, relTol;
       if( onlyLocalResidual )
       {
-        tt_z = TensorTrain<T>(tt_b.dimensions());
-        apply(localTTOp, tt_x, tt_z);
-        const T nrm_tt_b = norm2(tt_b);
-        const T localResidualNorm = axpby(T(1), tt_b, T(-1), tt_z, T(0)) / nrm_tt_b;
-        max_localResidualNorm = std::max(max_localResidualNorm, localResidualNorm);
-        
         // first Sweep: let GMRES start from zero
-        if( firstSweep && localResidualNorm > 0.5 )
-          tt_x.setZero(); // todo: tell GMRES that the initial guess is zero...
+        if( firstSweep )
+          tt_x.setZero();
         
-        absTol = localResidualTolerance * nrm_tt_b * gmresRelTol;
-        relTol = std::max(gmresRelTol, localResidualTolerance / localResidualNorm);
-        std::cout << "localResidualNorm: " << localResidualNorm << ", absTol: " << absTol << ", relTol: " << relTol << "\n";
+        const T nrm_tt_b = norm2(tt_b);
+        absTol = localResidualTolerance * nrm_tt_b;
+        relTol = gmresRelTol;
       }
       else
       {
-        // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
+        // first Sweep: let GMRES start from zero
         if (firstSweep && residualNorm / nrm_TTb > 0.5)
-          tt_x.setZero(); // todo: tell GMRES that the initial guess is zero...
+          tt_x.setZero();
         
         absTol = residualTolerance * nrm_TTb * gmresRelTol;
         relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
@@ -242,10 +236,14 @@ namespace PITTS
       
       if( relTol < T(1) )
       {
+        T localAbsRes, localRelRes;
         if (useTTgmres)
-          const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+          std::tie(localAbsRes, localRelRes) = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
         else
-          const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
+          std::tie(localAbsRes, localRelRes) = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
+
+        // max local residual *before* the iteration
+        max_localResidualNorm = std::max(max_localResidualNorm, localAbsRes / localRelRes);
       }
       
       if( nAMEnEnrichment > 0 && simplifiedAMEn )

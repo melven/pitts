@@ -23,6 +23,6 @@ template TensorTrain<double> calculate_local_x(int iDim, int nMALS, const Tensor
 template TensorTrainOperator<float> calculate_local_op(int iDim, int nMALS, optional_cref<Tensor2<float>> left_vTAx, const TensorTrainOperator<float>& TTOp, optional_cref<Tensor2<float>> right_vTAx);
 template TensorTrainOperator<double> calculate_local_op(int iDim, int nMALS, optional_cref<Tensor2<double>> left_vTAx, const TensorTrainOperator<double>& TTOp, optional_cref<Tensor2<double>> right_vTAx);
       
-template float solveDenseGMRES(const TensorTrainOperator<float>& tt_OpA, bool symmetric, const TensorTrain<float>& tt_b, TensorTrain<float>& tt_x, int maxRank, int maxIter, float absTol, float relTol, const std::string& outputPrefix = "", bool verbose = false);
-template double solveDenseGMRES(const TensorTrainOperator<double>& tt_OpA, bool symmetric, const TensorTrain<double>& tt_b, TensorTrain<double>& tt_x, int maxRank, int maxIter, double absTol, double relTol, const std::string& outputPrefix = "", bool verbose = false);
+template std::pair<float,float> solveDenseGMRES(const TensorTrainOperator<float>& tt_OpA, bool symmetric, const TensorTrain<float>& tt_b, TensorTrain<float>& tt_x, int maxRank, int maxIter, float absTol, float relTol, const std::string& outputPrefix = "", bool verbose = false);
+template std::pair<double,double> solveDenseGMRES(const TensorTrainOperator<double>& tt_OpA, bool symmetric, const TensorTrain<double>& tt_b, TensorTrain<double>& tt_x, int maxRank, int maxIter, double absTol, double relTol, const std::string& outputPrefix = "", bool verbose = false);
 }
