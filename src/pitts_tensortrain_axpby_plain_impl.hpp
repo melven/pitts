@@ -179,7 +179,6 @@ else
           break;
         }
 
-
         // now calculate SVD of t3_tmp(: x : :)
         auto [B,Qt] = internal::normalize_qb(unfold_right(t3_tmp), false);
         newSubT[iDim] = fold_right(std::move(Qt), n);

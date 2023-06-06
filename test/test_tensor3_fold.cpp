@@ -3,6 +3,7 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3_random.hpp"
+#include "pitts_tensor2_random.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_eigen.hpp"
 
@@ -247,6 +248,7 @@ TEST(PITTS_Tensor3_fold, fold_move_multivector)
   constexpr auto eps = 1.e-10;
 
   MultiVector_double mv(3 * 5 * 7, 1);
+  auto data_ptr = &mv(0,0);
   randomize(mv);
   MultiVector_double mv_ref;
   copy(mv, mv_ref);
@@ -254,9 +256,11 @@ TEST(PITTS_Tensor3_fold, fold_move_multivector)
   Tensor3_double t3 = fold(std::move(mv), 3, 5, 7);
   ASSERT_EQ(0, mv.rows());
   ASSERT_EQ(0, mv.cols());
+  ASSERT_EQ(0, &mv(0,0));
   ASSERT_EQ(3, t3.r1());
   ASSERT_EQ(5, t3.n());
   ASSERT_EQ(7, t3.r2());
+  ASSERT_EQ(data_ptr, &t3(0,0,0));
 
   for(int i = 0; i < 3; i++)
     for(int j = 0; j < 5; j++)
@@ -264,4 +268,58 @@ TEST(PITTS_Tensor3_fold, fold_move_multivector)
       {
         EXPECT_NEAR(mv_ref(i + j*3 + k*3*5, 0), t3(i,j,k), eps);
       }
+}
+
+TEST(PITTS_Tensor3_fold, fold_left_move_tensor2)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  Tensor2_double mv(3*5, 7);
+  auto data_ptr = &mv(0,0);
+  randomize(mv);
+  Tensor2_double mv_ref;
+  copy(mv, mv_ref);
+
+  Tensor3_double t3 = fold_left(std::move(mv), 5);
+  ASSERT_EQ(0, mv.r1());
+  ASSERT_EQ(0, mv.r1());
+  ASSERT_EQ(0, mv.reservedChunks());
+  ASSERT_EQ(0, &mv(0,0));
+  ASSERT_EQ(3, t3.r1());
+  ASSERT_EQ(5, t3.n());
+  ASSERT_EQ(7, t3.r2());
+  ASSERT_EQ(data_ptr, &t3(0,0,0));
+
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 7; k++)
+        EXPECT_EQ(mv_ref(i + j*3, k), t3(i,j,k));
+}
+
+TEST(PITTS_Tensor3_fold, fold_right_move_tensor2)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  Tensor2_double mv(3, 5*7);
+  auto data_ptr = &mv(0,0);
+  randomize(mv);
+  Tensor2_double mv_ref;
+  copy(mv, mv_ref);
+
+  Tensor3_double t3 = fold_right(std::move(mv), 5);
+  ASSERT_EQ(0, mv.r1());
+  ASSERT_EQ(0, mv.r1());
+  ASSERT_EQ(0, mv.reservedChunks());
+  ASSERT_EQ(0, &mv(0,0));
+  ASSERT_EQ(3, t3.r1());
+  ASSERT_EQ(5, t3.n());
+  ASSERT_EQ(7, t3.r2());
+  ASSERT_EQ(data_ptr, &t3(0,0,0));
+
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 5; j++)
+      for(int k = 0; k < 7; k++)
+        EXPECT_EQ(mv_ref(i, j + k*5), t3(i,j,k));
 }

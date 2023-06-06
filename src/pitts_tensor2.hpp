@@ -148,9 +148,11 @@ namespace PITTS
     //!
     [[nodiscard]] operator std::unique_ptr<Chunk<T>[]>() &&
     {
+      std::unique_ptr<Chunk<T>[]> data = std::move(dataptr_);
+      dataptr_ = nullptr;
+      this->data_ = nullptr;
       this->r1_ = this->r2_ = 0;
       reservedChunks_ = 0;
-      std::unique_ptr<Chunk<T>[]> data = std::move(dataptr_);
       return data;
     }
 
