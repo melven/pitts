@@ -315,6 +315,51 @@ namespace PITTS
       }
 
 
+      //! contract Tensor3 and Tensor2 along last dimensions: A(:,:,*) * B(*,:) and subtract the result from C(:,:,:)
+      template<typename T>
+      void dot_contract1t_sub(const Tensor3<T>& A, const Tensor2<T>& B, Tensor3<T>& C)
+      {
+        const auto r1 = A.r1();
+        const auto n = A.n();
+        const auto r2 = A.r2();
+        assert(A.r2() == B.r1());
+        const auto r2_ = B.r2();
+
+        const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+          {{"r1", "n", "r2", "r2_"},{r1, n, r2, r2_}}, // arguments
+          {{r1*n*r2*r2_*kernel_info::FMA<T>()}, // flops
+          {(r1*n*r2+r2*r2_)*kernel_info::Load<T>() + (r1*n*r2_)*kernel_info::Store<T>()}} // data transfers
+          );
+
+        C.resize(r1, n, r2_);
+
+        EigenMap(unfold_left(C)).noalias() -= ConstEigenMap(unfold_left(A)) * ConstEigenMap(B);
+      }
+
+
+      //! contract Tensor3 and Tensor2 along first dimensions: A(*,:) * B(*,:,:) and subtract the result from C(:,:,:)
+      template<typename T>
+      void reverse_dot_contract1_sub(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
+      {
+        const auto r1 = A.r1();
+        const auto n = B.n();
+        const auto r2 = B.r2();
+        assert(A.r1() == B.r1());
+        const auto r1_ = A.r2();
+
+        const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+          {{"r1", "n", "r2", "r1_"},{r1, n, r2, r1_}}, // arguments
+          {{r1*n*r2*r1_*kernel_info::FMA<T>()}, // flops
+          {(r1*n*r2+r1*r1_)*kernel_info::Load<T>() + (r1_*n*r2)*kernel_info::Store<T>()}} // data transfers
+          );
+
+        C.resize(r1_, n, r2);
+
+        EigenMap(unfold_right(C)).noalias() -= ConstEigenMap(A).transpose() * ConstEigenMap(unfold_right(B));
+      }
+
+
+
       //! set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
       //!
       //! TODO: use only for debugging; currently still needed for PetrovGalerkin variant

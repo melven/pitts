@@ -101,7 +101,11 @@ namespace PITTS
     nOverlap = std::min(nOverlap, nMALS-1);
     internal::SweepIndex lastSwpIdx(nDim, nMALS, nOverlap, -1);
 
-    const T nrm_TTb = norm2(TTb);
+    // trying to avoid costly residual calculations if possible, currently only for simplified AMEn
+    const bool onlyLocalResidual = simplifiedAMEn && nMALS == 1 && projection == MALS_projection::RitzGalerkin;
+    const T localResidualTolerance = residualTolerance / (2*std::sqrt(T(nDim-1)));
+
+    const T nrm_TTb = onlyLocalResidual ? T(-1) : norm2(TTb);
 
 #ifndef NDEBUG
     const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
@@ -137,21 +141,30 @@ namespace PITTS
     // calculate the error norm
     internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
     Ax.update(-1, 0);
-    Ax_ortho.update(-1, 0);
-    Ax_b_ortho.update(-1, 0);
-
     assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
-    assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
+
+    if( !onlyLocalResidual )
+    {
+      Ax_ortho.update(-1, 0);
+      Ax_b_ortho.update(-1, 0);
+      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
+    }
 
     // calculate error
-    T residualNorm;
+    T max_localResidualNorm = T(0);
+    T residualNorm = nrm_TTb;
+    if( !onlyLocalResidual )
     {
       const T norm_Ax = Ax_ortho.data().front().second(0,0);
       auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
       residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
       assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
       std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+      if( residualNorm / nrm_TTb < residualTolerance )
+        return residualNorm;
+
     }
 
     // lambda to avoid code duplication: performs one step in a sweep
@@ -162,8 +175,11 @@ namespace PITTS
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
       Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
-      Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
-      Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      if( !onlyLocalResidual )
+      {
+        Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      }
 
       assert(check_Orthogonality(swpIdx, TTx));
       assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
@@ -197,17 +213,40 @@ namespace PITTS
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
       assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
 
-      // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
-      if (firstSweep && residualNorm / nrm_TTb > 0.5)
-        tt_x.setZero();
-      
-      const T absTol = residualTolerance * nrm_TTb * gmresRelTol;
-      const T relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
-      
-      if (useTTgmres)
-        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+      T absTol, relTol;
+      if( onlyLocalResidual )
+      {
+        tt_z = TensorTrain<T>(tt_b.dimensions());
+        apply(localTTOp, tt_x, tt_z);
+        const T nrm_tt_b = norm2(tt_b);
+        const T localResidualNorm = axpby(T(1), tt_b, T(-1), tt_z, T(0)) / nrm_tt_b;
+        max_localResidualNorm = std::max(max_localResidualNorm, localResidualNorm);
+        
+        // first Sweep: let GMRES start from zero
+        if( firstSweep && localResidualNorm > 0.5 )
+          tt_x.setZero(); // todo: tell GMRES that the initial guess is zero...
+        
+        absTol = localResidualTolerance * nrm_tt_b * gmresRelTol;
+        relTol = std::max(gmresRelTol, localResidualTolerance / localResidualNorm);
+        std::cout << "localResidualNorm: " << localResidualNorm << ", absTol: " << absTol << ", relTol: " << relTol << "\n";
+      }
       else
-        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
+      {
+        // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
+        if (firstSweep && residualNorm / nrm_TTb > 0.5)
+          tt_x.setZero(); // todo: tell GMRES that the initial guess is zero...
+        
+        absTol = residualTolerance * nrm_TTb * gmresRelTol;
+        relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+      }
+      
+      if( relTol < T(1) )
+      {
+        if (useTTgmres)
+          const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+        else
+          const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
+      }
       
       if( nAMEnEnrichment > 0 && simplifiedAMEn )
       {
@@ -315,12 +354,12 @@ namespace PITTS
         Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
 
         // orthogonalize wrt. subT0
-        Tensor2<T> tmp(subT0.r2(), subTr.r2());
         const T zNorm = internal::t3_nrm(subTr);
         if( zNorm > T(0) )
           internal::t3_scale(T(1)/zNorm, subTr);
-        EigenMap(tmp).noalias() = ConstEigenMap(unfold_left(subT0)).transpose() * ConstEigenMap(unfold_left(subTr));
-        EigenMap(unfold_left(subTr)).noalias() -= ConstEigenMap(unfold_left(subT0)) * ConstEigenMap(tmp);
+        Tensor2<T> tmp;
+        internal::reverse_dot_contract2(subT0, subTr, tmp); // subT0(*,*,:) * subTr(*,*,:)
+        dot_contract1t_sub(subT0, tmp, subTr); // subTr(:,:,:) -= subT0(:,:,*) * tmp(*,:)
         const T zNorm2 = internal::t3_nrm(subTr);
         //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
         if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
@@ -356,12 +395,12 @@ namespace PITTS
         Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
 
         // orthogonalize wrt. subT1
-        Tensor2<T> tmp(subT1.r1(), subTr.r1());
         const T zNorm = internal::t3_nrm(subTr);
         if( zNorm > T(0) )
           internal::t3_scale(T(1)/zNorm, subTr);
-        EigenMap(tmp).noalias() = ConstEigenMap(unfold_right(subT1)) * ConstEigenMap(unfold_right(subTr)).transpose();
-        EigenMap(unfold_right(subTr)).transpose().noalias() -= ConstEigenMap(unfold_right(subT1)).transpose() * ConstEigenMap(tmp);
+        Tensor2<T> tmp;
+        internal::dot_contract2(subT1, subTr, tmp); // subT1(:,*,*) * subTr(:,*,*)
+        reverse_dot_contract1_sub(tmp, subT1, subTr); // subTr(:,:,:) -= tmp(*,:) * subT1(*,:,:)
         const T zNorm2 = internal::t3_nrm(subTr);
         //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
         if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
@@ -394,10 +433,8 @@ namespace PITTS
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
-      if( residualNorm / nrm_TTb < residualTolerance )
-        break;
-
       // sweep left to right
+      max_localResidualNorm = T(0);
       for(auto swpIdx = lastSwpIdx.first(); swpIdx; swpIdx = swpIdx.next())
       {
         // skip iteration if this is the same as in the last right-to-left sweep
@@ -411,15 +448,22 @@ namespace PITTS
       }
       // update remaining sub-tensors of Ax
       Ax.update(nDim-1, nDim);
-      Ax_ortho.update(nDim-1, nDim);
-      Ax_b_ortho.update(nDim-1, nDim);
-
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, nDim), Ax.data()));
-      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), T(1), true, Ax_b_ortho.data()));
 
-      // check error
+      if( onlyLocalResidual )
       {
+        std::cout << "Sweep " << iSweep+0.5 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+        if( max_localResidualNorm < residualTolerance )
+          break;
+      }
+      else // !onlyLocalResidual
+      {
+        Ax_ortho.update(nDim-1, nDim);
+        Ax_b_ortho.update(nDim-1, nDim);
+        assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+        assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), T(1), true, Ax_b_ortho.data()));
+      
+        // check error
         const T norm_Ax = Ax_ortho.data().back().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
         residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
@@ -432,6 +476,7 @@ namespace PITTS
 
 
       // sweep right to left
+      max_localResidualNorm = T(0);
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
         // skip iteration if this is the same as in the last left-to-right sweep
@@ -445,20 +490,30 @@ namespace PITTS
       }
       // update remaining sub-tensors of right_Ax
       Ax.update(-1, 0);
-      Ax_ortho.update(-1, 0);
-      Ax_b_ortho.update(-1, 0);
-
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
-      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
 
-      // check error
+      if( onlyLocalResidual )
       {
+        std::cout << "Sweep " << iSweep+1 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+        if( max_localResidualNorm < residualTolerance )
+          break;
+      }
+      else // !onlyLocalResidual
+      {
+        Ax_ortho.update(-1, 0);
+        Ax_b_ortho.update(-1, 0);
+        assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+        assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
+
+        // check error
         const T norm_Ax = Ax_ortho.data().front().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
         residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
         std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+        if( residualNorm / nrm_TTb < residualTolerance )
+          break;
       }
     }
 
@@ -486,7 +541,7 @@ namespace PITTS
       std::cout << ConstEigenMap(B).bdcSvd().singularValues().transpose() << "\n";
 */
 
-    return residualNorm;
+    return onlyLocalResidual ? max_localResidualNorm : residualNorm;
   }
 
 }
