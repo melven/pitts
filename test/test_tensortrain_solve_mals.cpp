@@ -1,10 +1,3 @@
-// triggers some bug in Eigen: https://gitlab.com/libeigen/eigen/-/issues/2663
-#ifndef EIGEN_USE_LAPACKE
-#ifdef EIGEN_USE_BLAS
-#undef EIGEN_USE_BLAS
-#endif
-#endif
-
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_norm.hpp"
@@ -1406,7 +1399,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_symmetric_random_nDim5)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  double residualNorm = solveMALS(TTOpA, true, MALS_projection::RitzGalerkin, TTb, TTx, 1, eps, 10);
+  double residualNorm = solveMALS(TTOpA, true, MALS_projection::RitzGalerkin, TTb, TTx, 1, eps, 10, 2, 1, 0, false, false, 25, eps);
 
 
   apply(TTOpA, TTx, TTr);
