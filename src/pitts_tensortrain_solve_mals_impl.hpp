@@ -142,14 +142,14 @@ namespace PITTS
 
     assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
     assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
 
     // calculate error
     T residualNorm;
     {
       const T norm_Ax = Ax_ortho.data().front().second(0,0);
       auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
-      residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+      residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
       assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
       std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
     }
@@ -264,13 +264,16 @@ namespace PITTS
           const Tensor2<T>& prev_C = Ax_ortho.right()->get().second;
           internal::normalize_contract2(tmpAx, prev_C, t3);
           std::swap(t3, tmpAx);
-          t3.resize(tmpAx.r1(), tmpAx.n(), tmpAx.r2()+tmpb.r2());
-          concatLeftRight<T>(unfold_left(tmpAx), unfold_left(tmpb), unfold_left(t3));
-          // contract: t3(:,:,*) * prev_B(*,:)
+          //         prev_B = (tmpAx tmpb)  * (I   0)
+          //                                  (yTx R)
+          // but top rows (I 0) are not stored...
+          // => (tmpAx+tmpb*yTx   tmpb*R)
           const Tensor2<T>& prev_B = Ax_b_ortho.right()->get().second;
-          internal::normalize_contract2(t3, prev_B, subT[0]);
+          internal::normalize_contract2(tmpb, prev_B, t3);
+          EigenMap(unfold_left(t3)).leftCols(tmpAx.r2()) += ConstEigenMap(unfold_left(tmpAx));
+          subT[0] = std::move(t3);
         }
-        else // leftToRight
+        else // !leftToRight
         {
           if( iDim == nDim-1 )
             copy(TTb.subTensor(iDim), tmpb);
@@ -287,11 +290,15 @@ namespace PITTS
           const Tensor2<T>& prev_C = Ax_ortho.left()->get().second;
           internal::normalize_contract1(prev_C, tmpAx, t3);
           std::swap(t3, tmpAx);
-          t3.resize(tmpAx.r1()+tmpb.r1(), tmpAx.n(), tmpAx.r2());
-          concatTopBottom<T>(unfold_right(tmpAx), unfold_right(tmpb), unfold_right(t3));
-          // contract: prev_B(:,*) * t3(*,:,:)
+          //         prev_B = (I xTy)    *    (tmpAx)
+          //                  (0  R )         (tmpb)
+          // but left columns (I;0) are not stored...
+          // => (tmpAx+xTy*tmpb)
+          //    (R*tmpb)
           const Tensor2<T>& prev_B = Ax_b_ortho.left()->get().second;
-          internal::normalize_contract1(prev_B, t3, subT[0]);
+          internal::normalize_contract1(prev_B, tmpb, t3);
+          EigenMap(unfold_right(t3)).topRows(tmpAx.r1()) += ConstEigenMap(unfold_right(tmpAx));
+          subT[0] = std::move(t3);
         }
         tt_z = TensorTrain<T>(std::move(subT));
       }
@@ -409,13 +416,13 @@ namespace PITTS
 
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, nDim), Ax.data()));
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), true, Ax_b_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), T(1), true, Ax_b_ortho.data()));
 
       // check error
       {
         const T norm_Ax = Ax_ortho.data().back().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
-        residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
+        residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
         std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
@@ -443,13 +450,13 @@ namespace PITTS
 
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
       assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
 
       // check error
       {
         const T norm_Ax = Ax_ortho.data().front().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
-        residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+        residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
         std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
       }

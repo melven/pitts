@@ -59,8 +59,19 @@ namespace PITTS
     template<typename T>
     auto normalize_svd_only(const Tensor2<T>& M)
     {
-      const auto n = M.r1();
+      auto n = M.r1();
       const auto m = M.r2();
+
+      // remove rows that are just (almost) zero (from TSQR)
+      // circumvents Eigen bug: https://gitlab.com/libeigen/eigen/-/issues/2663
+      using RealType = decltype(std::abs(T(0)));
+      const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
+      for(; n > 1; n--)
+      {
+        if( ConstEigenMap(M).row(n-1).norm() > 10*tsqrError )
+          break;
+      }
+
       // 6.67 N^3 flops reported by LAPACK, round it to 7
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"n", "m"},{n, m}}, // arguments
@@ -70,11 +81,16 @@ namespace PITTS
 
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
+
+      //std::cout << "SVD of:\n" << ConstEigenMap(M) << std::endl;
+
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
-      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M));
+      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M).topRows(n));
 #else
-      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M), Eigen::ComputeThinV | Eigen::ComputeThinU);
+      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M).topRows(n), Eigen::ComputeThinV | Eigen::ComputeThinU);
 #endif
+
+      assert(!std::isnan(svd.singularValues()(0)));
 
       return svd;
     }

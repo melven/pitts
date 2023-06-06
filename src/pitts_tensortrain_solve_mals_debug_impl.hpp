@@ -149,7 +149,7 @@ namespace PITTS
 
       // check that left/right_Ax_b_ortho = left/rightNormalize(TTAx-TTb)
       template<typename T>
-      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho)
+      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, T alpha_b, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho)
       {
         using PITTS::debug::operator*;
         using PITTS::debug::operator-;
@@ -170,26 +170,30 @@ namespace PITTS
         if( !leftToRight )
         {
           mat Mleft(1,2);
-          Mleft << alpha_Ax, -1;
+          Mleft << alpha_Ax, -alpha_b;
           auto mapB = ConstEigenMap(Ax_b_ortho.front().second);
           const auto& subT = Ax_b_ortho.front().first;
           Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1(), subT.n()*subT.r2());
           Tensor3<T> newSubT(1, subT.n(), subT.r2());
           Eigen::Map<mat> mapNewSubT(&newSubT(0,0,0), 1, subT.n()*subT.r2());
-          mapNewSubT = Mleft * mapB * mapSubT;
+          mat tmpB(Mleft.cols(), mapSubT.rows());
+          tmpB << mat::Identity(tmpB.rows()-mapB.rows(), tmpB.cols()), mapB;
+          mapNewSubT = Mleft * tmpB * mapSubT;
           tmpAx_b.front() = std::move(newSubT);
         }
         else
         {
           mat Mright(2,1);
           Mright << alpha_Ax,
-                   -1;
+                   -alpha_b;
           auto mapB = ConstEigenMap(Ax_b_ortho.back().second);
           const auto& subT = Ax_b_ortho.back().first;
           Eigen::Map<const mat> mapSubT(&subT(0,0,0), subT.r1()*subT.n(), subT.r2());
           Tensor3<T> newSubT(subT.r1(), subT.n(), 1);
           Eigen::Map<mat> mapNewSubT(&newSubT(0,0,0), subT.r1()*subT.n(), 1);
-          mapNewSubT = mapSubT * mapB * Mright;
+          mat tmpB(mapSubT.cols(), Mright.rows());
+          tmpB << mat::Identity(tmpB.rows(), tmpB.cols()-mapB.cols()), mapB;
+          mapNewSubT = mapSubT * tmpB * Mright;
           tmpAx_b.back() = std::move(newSubT);
         }
         TensorTrain<T> TTAx_b(std::move(tmpAx_b));

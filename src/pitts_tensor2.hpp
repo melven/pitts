@@ -32,7 +32,7 @@ namespace PITTS
     //!
     ConstTensor2View(Chunk<T> *data, long long r1, long long r2)
     {
-      assert(data != nullptr);
+      assert(r1*r2 == 0 || data != nullptr);
       r1_ = r1;
       r2_ = r2;
       data_ = data;
