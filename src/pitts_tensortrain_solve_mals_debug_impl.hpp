@@ -251,6 +251,7 @@ namespace PITTS
         TTOpI.setEye();
         const TensorTrainOperator<T> WtW = transpose(TTOpW) * TTOpW;
         const T WtW_err = norm2((WtW - TTOpI).tensorTrain());
+        //std::cout << "WtW_err: " << WtW_err << std::endl;
         assert(WtW_err < 100*sqrt_eps);
 
         return true;

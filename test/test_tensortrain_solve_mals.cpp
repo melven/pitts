@@ -477,6 +477,15 @@ TEST(PITTS_TensorTrain_solve_mals, simplified_AMEn_random_nDim2_rank1)
   TensorTrainOperator_double TTOpA(2,5,5);
   TTOpA.setTTranks(1);
   randomize(TTOpA);
+  // make it diagonally dominant to obtain a well-posed problem
+  for(int iDim = 0; iDim < 2; iDim++)
+  {
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
+    for(int i = 0; i < 5; i++)
+      subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
+  }
   TensorTrain_double TTx(2,5), TTb(2,5);
   TTb.setTTranks(1);
   randomize(TTb);
@@ -502,6 +511,15 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_random_nDim2_rank1)
   TensorTrainOperator_double TTOpA(2,5,5);
   TTOpA.setTTranks(1);
   randomize(TTOpA);
+  // make it diagonally dominant to obtain a well-posed problem
+  for(int iDim = 0; iDim < 2; iDim++)
+  {
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
+    for(int i = 0; i < 5; i++)
+      subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
+  }
   TensorTrain_double TTx(2,5), TTb(2,5);
   TTb.setTTranks(1);
   randomize(TTb);
