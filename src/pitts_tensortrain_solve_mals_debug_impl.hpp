@@ -320,7 +320,7 @@ namespace PITTS
           //std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
           //std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
           const T Q_error = Q_err.array().abs().maxCoeff();
-          assert(Q_error <= 10*sqrt_eps*sigma0);
+          assert(Q_error <= 10*sqrt_eps*std::max(sigma0, T(1)));
           const T sigma_error = sigma_err.array().abs().maxCoeff();
           assert(sigma_error <= 10*sqrt_eps*std::max(sigma0, T(1)));
         }
