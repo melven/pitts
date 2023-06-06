@@ -969,6 +969,15 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim6_rank1)
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  // make it diagonally dominant to obtain a well-posed problem
+  for(int iDim = 0; iDim < 6; iDim++)
+  {
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
+    for(int i = 0; i < 4; i++)
+      subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
+  }
 
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
   TTx_ref.setTTranks(1);
@@ -998,13 +1007,22 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_symmetric_random_nDim6_rank1)
   EXPECT_NEAR(0, error/initialError, 0.01);
 }
 
-TEST(PITTS_TensorTrain_solve_mals, simplfied_AMEn_symmetric_random_nDim6_rank1)
+TEST(PITTS_TensorTrain_solve_mals, simplified_AMEn_symmetric_random_nDim6_rank1)
 {
   TensorTrainOperator_double TTOp_tmp(6,5,4);
   TTOp_tmp.setTTranks(1);
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  // make it diagonally dominant to obtain a well-posed problem
+  for(int iDim = 0; iDim < 6; iDim++)
+  {
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
+    for(int i = 0; i < 4; i++)
+      subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
+  }
   normalize(TTOpA);
 
   TensorTrainOperator_double TTOpI(6,4,4);
@@ -1047,6 +1065,15 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim6_rank1)
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
+  // make it diagonally dominant to obtain a well-posed problem
+  for(int iDim = 0; iDim < 6; iDim++)
+  {
+    Tensor3_double subT;
+    copy(TTOpA.tensorTrain().subTensor(iDim), subT);
+    for(int i = 0; i < 4; i++)
+      subT(0, TTOpA.index(iDim, i, i), 0) += 4;
+    TTOpA.tensorTrain().setSubTensor(iDim, std::move(subT));
+  }
   normalize(TTOpA);
 
   TensorTrainOperator_double TTOpI(6,4,4);
