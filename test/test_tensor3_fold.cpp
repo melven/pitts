@@ -248,6 +248,7 @@ TEST(PITTS_Tensor3_fold, fold_move_multivector)
   constexpr auto eps = 1.e-10;
 
   MultiVector_double mv(3 * 5 * 7, 1);
+  auto data_ptr = &mv(0,0);
   randomize(mv);
   MultiVector_double mv_ref;
   copy(mv, mv_ref);
@@ -258,6 +259,7 @@ TEST(PITTS_Tensor3_fold, fold_move_multivector)
   ASSERT_EQ(3, t3.r1());
   ASSERT_EQ(5, t3.n());
   ASSERT_EQ(7, t3.r2());
+  ASSERT_EQ(data_ptr, &t3(0,0,0));
 
   for(int i = 0; i < 3; i++)
     for(int j = 0; j < 5; j++)
@@ -273,6 +275,7 @@ TEST(PITTS_Tensor3_fold, fold_left_move_tensor2)
   using Tensor2_double = PITTS::Tensor2<double>;
 
   Tensor2_double mv(3*5, 7);
+  auto data_ptr = &mv(0,0);
   randomize(mv);
   Tensor2_double mv_ref;
   copy(mv, mv_ref);
@@ -285,6 +288,7 @@ TEST(PITTS_Tensor3_fold, fold_left_move_tensor2)
   ASSERT_EQ(3, t3.r1());
   ASSERT_EQ(5, t3.n());
   ASSERT_EQ(7, t3.r2());
+  ASSERT_EQ(data_ptr, &t3(0,0,0));
 
   for(int i = 0; i < 3; i++)
     for(int j = 0; j < 5; j++)
@@ -298,6 +302,7 @@ TEST(PITTS_Tensor3_fold, fold_right_move_tensor2)
   using Tensor2_double = PITTS::Tensor2<double>;
 
   Tensor2_double mv(3, 5*7);
+  auto data_ptr = &mv(0,0);
   randomize(mv);
   Tensor2_double mv_ref;
   copy(mv, mv_ref);
@@ -310,6 +315,7 @@ TEST(PITTS_Tensor3_fold, fold_right_move_tensor2)
   ASSERT_EQ(3, t3.r1());
   ASSERT_EQ(5, t3.n());
   ASSERT_EQ(7, t3.r2());
+  ASSERT_EQ(data_ptr, &t3(0,0,0));
 
   for(int i = 0; i < 3; i++)
     for(int j = 0; j < 5; j++)
