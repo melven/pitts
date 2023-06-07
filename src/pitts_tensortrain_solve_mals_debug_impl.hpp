@@ -269,6 +269,7 @@ namespace PITTS
         using PITTS::debug::operator*;
         using PITTS::debug::operator-;
         using mat = Eigen::MatrixX<T>;
+        using vec = Eigen::VectorX<T>;
 
         TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTv, swpIdx);
         if( leftToRight )
@@ -317,10 +318,13 @@ namespace PITTS
 
           Eigen::BDCSVD<mat> svd(ConstEigenMap(B)), svd_ref(ConstEigenMap(B_ref));
           const T sigma0 = svd_ref.singularValues()(0);
-          mat sigma_err = svd.singularValues() - svd_ref.singularValues();
-          auto mapQ = ConstEigenMap(Q);
-          auto mapQ_ref = ConstEigenMap(Q_ref);
-          mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().asDiagonal();
+          vec sigma_err = vec::Zero(std::max(svd_ref.singularValues().size(), svd.singularValues().size()));
+          sigma_err.topRows(svd.singularValues().size()) = svd.singularValues();
+          sigma_err.topRows(svd_ref.singularValues().size()) -= svd_ref.singularValues();
+          const int nmin = std::min(svd_ref.singularValues().size(), svd.singularValues().size());
+          auto mapQ = ConstEigenMap(Q).leftCols(nmin);
+          auto mapQ_ref = ConstEigenMap(Q_ref).leftCols(nmin);
+          mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().topRows(nmin).asDiagonal();
           //std::cout << "Q_err:\n" << Q_err << "\n";
           //std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
           //std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
@@ -375,10 +379,13 @@ namespace PITTS
 
           Eigen::BDCSVD<mat> svd(ConstEigenMap(B)), svd_ref(ConstEigenMap(B_ref));
           const T sigma0 = svd_ref.singularValues()(0);
-          mat sigma_err = svd.singularValues() - svd_ref.singularValues();
-          auto mapQ = ConstEigenMap(Qt).transpose();
-          auto mapQ_ref = ConstEigenMap(Qt_ref).transpose();
-          mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().asDiagonal();
+          vec sigma_err = vec::Zero(std::max(svd_ref.singularValues().size(), svd.singularValues().size()));
+          sigma_err.topRows(svd.singularValues().size()) = svd.singularValues();
+          sigma_err.topRows(svd_ref.singularValues().size()) -= svd_ref.singularValues();
+          const int nmin = std::min(svd_ref.singularValues().size(), svd.singularValues().size());
+          auto mapQ = ConstEigenMap(Qt).topRows(nmin).transpose();
+          auto mapQ_ref = ConstEigenMap(Qt_ref).topRows(nmin).transpose();
+          mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().topRows(nmin).asDiagonal();
           //std::cout << "Q_err:\n" << Q_err << "\n";
           //std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
           //std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
