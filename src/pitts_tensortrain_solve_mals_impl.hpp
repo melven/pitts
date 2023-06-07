@@ -478,7 +478,7 @@ namespace PITTS
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
         // skip iteration if this is the same as in the last left-to-right sweep
-        if( nMALS == nDim || swpIdx != lastSwpIdx )
+        if( swpIdx != lastSwpIdx )
           solveLocalProblem(swpIdx);
 
         if( nAMEnEnrichment > 0 )
