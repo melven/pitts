@@ -32,6 +32,8 @@ build_debug_with_coverage:
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
     - module load PrgEnv/gcc12-openmpi-python
+    # unload itensor as it has problems compiling this way...
+    - module unload -f itensor
     # prevent some problems with older Eigen
     - module unload -f eigen
     - module load eigen/eigen-master
