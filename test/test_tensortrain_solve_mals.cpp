@@ -1076,11 +1076,6 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim6_rank1)
   }
   normalize(TTOpA);
 
-  TensorTrainOperator_double TTOpI(6,4,4);
-  TTOpI.setEye();
-  const double Inrm = normalize(TTOpI);
-  axpby(Inrm, TTOpI, Inrm/20, TTOpA);
-
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
   TTx_ref.setTTranks(1);
   randomize(TTx_ref);
