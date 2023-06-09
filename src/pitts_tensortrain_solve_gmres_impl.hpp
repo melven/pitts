@@ -140,12 +140,8 @@ namespace PITTS
       for(int j = m-2; j >= 0; j--)
         nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTolerance, maxRank);
 
-      // now add it to the initial guess:
-      // we need to be careful with the tolerance here for good initial guesses
-      // (possibly called from MALS with rather big relTol when the previous solution / initial guess is already good)
-      T nrm_x = norm2(TTx);
-      const T relChangeX = nrm_delta_x / std::sqrt(nrm_delta_x*nrm_delta_x + nrm_x*nrm_x);
-      nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, relChangeX*rankTolerance, maxRank);
+      // it would be nice to adjust this tolerance here for adding the deltaX to X - but all my variants just made it worse when called from MALS
+      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTolerance, maxRank);
       TTx.editSubTensor(0, [nrm_x](Tensor3<T>& subT){internal::t3_scale(nrm_x, subT);});
     }
 
