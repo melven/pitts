@@ -16,6 +16,9 @@ for f in $*; do
   fgrep unhalted $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $6}' >> t3
   gmresIterText=$(fgrep 'apply(const TTOpApplyDenseHelper' $f)
   if [ "$?" != "0" ]; then
+    gmresIterText=$(fgrep 'apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&)' $f)
+  fi
+  if [ "$?" != "0" ]; then
     gmresIterText=$(fgrep 'apply(const TensorTrainOperator' $f)
   fi
   echo "$gmresIterText" | sed 's/.*double] *//' | awk '{print $2}' >> t4_
