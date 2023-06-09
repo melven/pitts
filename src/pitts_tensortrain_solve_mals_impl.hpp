@@ -230,8 +230,11 @@ namespace PITTS
         if (firstSweep && residualNorm / nrm_TTb > 0.5)
           tt_x.setZero();
         
-        absTol = residualTolerance * nrm_TTb * gmresRelTol;
-        relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+        absTol = gmresRelTol * residualTolerance * nrm_TTb;
+        if( nMALS == 1 )
+          relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+        else // nMALS > 1
+          relTol = gmresRelTol;
       }
       
       if( relTol < T(1) )
