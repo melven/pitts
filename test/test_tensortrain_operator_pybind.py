@@ -246,6 +246,24 @@ class TestTensorTrainOperator(unittest.TestCase):
         np.testing.assert_array_almost_equal(t2_ref, ttOp.getSubTensor(1))
         np.testing.assert_array_almost_equal(t3_ref, ttOp.getSubTensor(2))
 
+    def test_toDense(self):
+        ttOp = pitts_py.TensorTrainOperator_double([2,3,4],[2,3,4])
+        ttOp.setEye()
+        op = pitts_py.toDense(ttOp)
+        np.testing.assert_array_almost_equal(np.eye(24, 24), op)
+
+    def test_toQtt(self):
+        ttOp = pitts_py.TensorTrainOperator_double([4,2,8],[4,2,8])
+        ttOp.setTTranks(2)
+        pitts_py.randomize(ttOp)
+        qttOp = pitts_py.toQtt(ttOp)
+        self.assertEqual([2,]*6, qttOp.row_dimensions())
+        self.assertEqual([2,]*6, qttOp.col_dimensions())
+        op_ref = pitts_py.toDense(ttOp)
+        op = pitts_py.toDense(qttOp)
+        np.testing.assert_array_almost_equal(op_ref, op)
+
+
 
 
 if __name__ == '__main__':
