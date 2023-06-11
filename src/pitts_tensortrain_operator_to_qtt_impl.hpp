@@ -66,7 +66,6 @@ namespace PITTS
       newRowDims.push_back(n);
       newColDims.push_back(m);
       newSubTensors.push_back(std::move(subT));
-      subT = Tensor3<T>(0,0,0);
     }
 
     TensorTrainOperator<T> qttOp(newRowDims, newColDims);
