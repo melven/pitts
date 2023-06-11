@@ -1034,7 +1034,7 @@ TEST(PITTS_TensorTrain_solve_mals, simplified_AMEn_symmetric_random_nDim6_rank1)
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setOnes();
+  copy(TTb, TTx);
 
   copy(TTx, TTdx);
   double initialError = axpby(-1., TTx_ref, 1., TTdx);

@@ -12,6 +12,7 @@
 
 // includes
 #include <memory>
+#include <utility>
 #include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_performance.hpp"
@@ -70,6 +71,24 @@ namespace PITTS
       data_ = std::move(data);
       reservedChunks_ = reservedChunks;
       resize(r1, n, r2, false, true);
+    }
+
+    //! move construction operator: moved-from object should be empty
+    Tensor3(Tensor3<T>&& other) noexcept
+    {
+      *this = std::move(other);
+    }
+
+    //! move assignmen operator: moved-from object may reuse the memory of this...
+    Tensor3<T>& operator=(Tensor3<T>&& other) noexcept
+    {
+      // std::swap(*this, other) won't work unfortunately as swap uses move assignment internally!
+      std::swap(reservedChunks_, other.reservedChunks_);
+      r1_ = std::exchange(other.r1_, 0);
+      n_ = std::exchange(other.n_, 0);
+      r2_ = std::exchange(other.r2_, 0);
+      std::swap(data_, other.data_);
+      return *this;
     }
 
     //! allow access to the internal data pointer

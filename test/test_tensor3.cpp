@@ -46,6 +46,27 @@ TEST(PITTS_Tensor3, create_empty)
   ASSERT_EQ(0, M.r2());
 }
 
+TEST(PITTS_Tensor3, moved_from)
+{
+  using Tensor3_double = PITTS::Tensor3<double>;
+  Tensor3_double M(3,2,7);
+
+  Tensor3_double dummy(std::move(M));
+
+  ASSERT_EQ(0, M.r1());
+  ASSERT_EQ(0, M.n());
+  ASSERT_EQ(0, M.r2());
+  ASSERT_EQ(0, M.reservedChunks());
+
+  M.resize(7,1,2);
+  const auto dummy_reservedChunks = dummy.reservedChunks();
+  dummy = std::move(M);
+  // this internally swaps storage of M and dummy, so we can reuse the memory of dummy...
+  ASSERT_EQ(0, M.r1());
+  ASSERT_EQ(0, M.n());
+  ASSERT_EQ(0, M.r2());
+  ASSERT_EQ(dummy_reservedChunks, M.reservedChunks());
+}
 
 TEST(PITTS_Tensor3, resize)
 {
