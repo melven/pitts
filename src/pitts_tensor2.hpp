@@ -119,6 +119,36 @@ namespace PITTS
     //!
     Tensor2() = default;
 
+    //! move construction operator: moved-from object should be empty
+    Tensor2(Tensor2<T>&& other) noexcept
+    {
+      *this = std::move(other);
+    }
+
+    //! move assignmen operator: moved-from object may reuse the memory of this...
+    Tensor2<T>& operator=(Tensor2<T>&& other) noexcept
+    {
+      static_cast<Tensor2View<T>&>(*this) = other;
+      static_cast<Tensor2View<T>&>(other) = Tensor2View<T>();
+      std::swap(reservedChunks_, other.reservedChunks_);
+      std::swap(dataptr_, other.dataptr_);
+      return *this;
+    }
+
+    //! allow to move from this by casting to the underlying storage type
+    //!
+    //! @warning intended for internal use (e.g. unfold function)
+    //!
+    [[nodiscard]] operator std::unique_ptr<Chunk<T>[]>() &&
+    {
+      std::unique_ptr<Chunk<T>[]> data = std::move(dataptr_);
+      dataptr_ = nullptr;
+      this->data_ = nullptr;
+      this->r1_ = this->r2_ = 0;
+      reservedChunks_ = 0;
+      return data;
+    }
+
     //! adjust the desired tensor dimensions (destroying all data!)
     void resize(long long r1, long long r2, bool setPaddingToZero = true)
     {
@@ -140,20 +170,6 @@ namespace PITTS
       // ensure padding is zero
       if( setPaddingToZero )
         dataptr_[requiredChunks-1] = Chunk<T>{};
-    }
-
-    //! allow to move from this by casting to the underlying storage type
-    //!
-    //! @warning intended for internal use (e.g. unfold function)
-    //!
-    [[nodiscard]] operator std::unique_ptr<Chunk<T>[]>() &&
-    {
-      std::unique_ptr<Chunk<T>[]> data = std::move(dataptr_);
-      dataptr_ = nullptr;
-      this->data_ = nullptr;
-      this->r1_ = this->r2_ = 0;
-      reservedChunks_ = 0;
-      return data;
     }
 
     //! reserved memory (internal use)

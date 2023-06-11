@@ -27,6 +27,26 @@ TEST(PITTS_MultiVector, create)
   ASSERT_EQ(7, M.cols());
 }
 
+TEST(PITTS_MultiVector, moved_from)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  MultiVector_double M(3,2);
+
+  MultiVector_double dummy(std::move(M));
+
+  ASSERT_EQ(0, M.rows());
+  ASSERT_EQ(0, M.cols());
+  ASSERT_EQ(0, M.reservedChunks());
+
+  M.resize(7,15);
+  const auto dummy_reservedChunks = dummy.reservedChunks();
+  dummy = std::move(M);
+  // this internally swaps storage of M and dummy, so we can reuse the memory of dummy...
+  ASSERT_EQ(0, M.rows());
+  ASSERT_EQ(0, M.cols());
+  ASSERT_EQ(dummy_reservedChunks, M.reservedChunks());
+}
+
 // anonymous namespace
 namespace
 {

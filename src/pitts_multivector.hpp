@@ -12,6 +12,7 @@
 
 // includes
 #include <memory>
+#include <utility>
 #include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
 
@@ -67,6 +68,22 @@ namespace PITTS
       data_ = std::move(data);
       reservedChunks_ = reservedChunks;
       resize(rows, cols, false);
+    }
+
+    //! move construction operator: moved-from object should be empty
+    MultiVector(MultiVector<T>&& other) noexcept
+    {
+      *this = std::move(other);
+    }
+
+    //! move assignmen operator: moved-from object may reuse the memory of this...
+    MultiVector<T>& operator=(MultiVector<T>&& other) noexcept
+    {
+      std::swap(reservedChunks_, other.reservedChunks_);
+      rows_ = std::exchange(other.rows_, 0);
+      cols_ = std::exchange(other.cols_, 0);
+      std::swap(data_, other.data_);
+      return *this;
     }
 
     //! allow to move from this by casting to the underlying storage type
