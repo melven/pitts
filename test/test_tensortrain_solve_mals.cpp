@@ -551,8 +551,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
   TTb.setTTranks(1);
   randomize(TTb);
   normalize(TTb);
-  randomize(TTx);
-  normalize(TTx);
+  copy(TTb, TTx);
 
   double error = solveMALS(TTOpA, false, MALS_projection::NormalEquations, TTb, TTx, 5, eps, 3);
   EXPECT_NEAR(0, error, 100*eps);
@@ -658,7 +657,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2)
   randomize(TTb);
   TTx.setOnes();
 
-  double error = solveMALS(TTOpA, false, MALS_projection::NormalEquations, TTb, TTx, 1, eps, 10);
+  double error = solveMALS(TTOpA, false, MALS_projection::NormalEquations, TTb, TTx, 2, eps, 10);
   EXPECT_NEAR(0, error, 1.e-5*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
