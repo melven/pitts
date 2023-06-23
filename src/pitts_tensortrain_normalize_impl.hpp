@@ -157,7 +157,6 @@ namespace PITTS
       assert(lastIdx < nDim);
 
       // auxiliary matrix / tensor
-      Tensor2<T> t2;
       std::vector<Tensor3<T>> newSubT(2);
       const std::vector<TT_Orthogonality> newSubTOrtho = {TT_Orthogonality::none, TT_Orthogonality::right};
 
@@ -167,13 +166,11 @@ namespace PITTS
         const auto& subT = TT.subTensor(iDim);
 
         // calculate the SVD or QR of ( subT(: x : :) )^T
-        unfold_right(subT, t2);
+        auto [U, Vt] = rankTolerance > 0 || maxRank < subT.r1() ?
+          internal::normalize_svd(unfold_right(subT), false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+          internal::normalize_qb(unfold_right(subT), false);
 
-        const auto [U, Vt] = rankTolerance > 0 || maxRank < subT.r1() ?
-          internal::normalize_svd(t2, false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
-          internal::normalize_qb(t2, false);
-
-        fold_right(Vt, subT.n(), newSubT[1]);
+        newSubT[1] = fold_right(std::move(Vt), subT.n());
 
 // for controlling the error:
 //bool wasLeftOrtho = (TT.isOrthonormal(iDim-1) & TT_Orthogonality::left) != TT_Orthogonality::none;
