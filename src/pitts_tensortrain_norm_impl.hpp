@@ -35,16 +35,15 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
       assert(A.r2() == B.r1());
       assert(B.r2() == B.r1());
       C.resize(r1, n, r2);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "nChunks", "r2"},{r1, nChunks, r2}}, // arguments
-        {{r1*nChunks*r2*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*r2+r2*r2)*kernel_info::Load<Chunk<T>>() + (r1*nChunks*r2)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{r1*n*r2*r2*kernel_info::FMA<T>()}, // flops
+         {(r1*n*r2+0.5*r2*r2)*kernel_info::Load<T>() + (r1*n*r2)*kernel_info::Store<T>()}} // data transfers
         );
 
 #pragma omp parallel for collapse(2) schedule(static)
@@ -74,15 +73,15 @@ namespace PITTS
       const auto r1 = A.r1();
       assert(A.r1() == B.r1());
       const auto n = A.n();
-      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
+      assert(A.n() == B.n());
       assert(A.r2() == B.r2());
       C.resize(r1,r1);
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "nChunks", "r2"},{r1, nChunks, r2}}, // arguments
-        {{0.5*r1*(r1+1)*nChunks*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*r2+r1*nChunks*r2)*kernel_info::Load<Chunk<T>>() + (r1*r1)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        {{"r1", "n", "r2"},{r1, n, r2}}, // arguments
+        {{0.5*r1*(r1+1)*n*r2*kernel_info::FMA<T>()}, // flops
+         {(r1*n*r2+r1*n*r2)*kernel_info::Load<T>() + (r1*r1)*kernel_info::Store<T>()}} // data transfers
         );
 
       double tmpC[r1*r1];
