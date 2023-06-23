@@ -70,6 +70,7 @@ namespace PITTS
   //! @param nOverlap           overlap (number of sub-tensors) of two consecutive local problems in one sweep (0 for ALS 1 for MALS, must be < nMALS)
   //! @param nAMEnEnrichment    increases the rank after each step by nAMEnEnrichtment using directions from the current residual
   //!                           So with nMALS=1, nOverlap=0, nAMEnEnrichment > 0, one obtains the AMEn method.
+  //! @param simplifiedAMEn     Just use the local residual for the AMEn subspace enrichment
   //! @param useTTgmres         use TT-GMRES for the local problem instead of normal GMRES with dense vectors
   //! @param gmresMaxITer       max. number of iterations for the inner (TT-)GMRES iteration
   //! @param gmresRelTol        relative residual tolerance for the inner (TT-)GMRES iteration
@@ -84,7 +85,7 @@ namespace PITTS
               int nSweeps,
               T residualTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
               int maxRank = std::numeric_limits<int>::max(),
-              int nMALS = 2, int nOverlap = 1, int nAMEnEnrichment = 0,
+              int nMALS = 2, int nOverlap = 1, int nAMEnEnrichment = 0, bool simplifiedAMEn = false,
               bool useTTgmres = false, int gmresMaxIter = 25, T gmresRelTol = T(1.e-4));
 
 }

@@ -83,7 +83,7 @@ namespace PITTS
 
   // implementation of PITTS::GMRES
   template<typename T, typename LinearOperator, typename Vector>
-  T GMRES(const LinearOperator& OpA, bool symmetric, const Vector& b, Vector& x, int maxIter, const T& absResTol, const T& relResTol, const std::string_view& outputPrefix, bool verbose)
+  std::pair<T,T> GMRES(const LinearOperator& OpA, bool symmetric, const Vector& b, Vector& x, int maxIter, const T& absResTol, const T& relResTol, const std::string_view& outputPrefix, bool verbose)
   {
     using vec = Eigen::Matrix<T,Eigen::Dynamic,1>;
     using mat = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
@@ -95,12 +95,13 @@ namespace PITTS
     apply(OpA, x, r0);
     const auto nrm_b = norm2(b); // we need some prototype to generate T(-1) (could be an Eigen Array)
     const T zero = nrm_b-nrm_b;  // generates zero with the same length as nrm_b
+    const T one = zero + 1; // generates one with the same length as nrm_b
     const T minusOne = zero - 1; // generates minusOne with the same length as nrm_b
     const auto beta = axpy_norm2(minusOne, b, r0);
     if( verbose )
       std::cout << outputPrefix << "Initial residual norm: " << beta << ", rhs norm: " << nrm_b << "\n";
     if( internal::any( beta <= absResTol ) )
-      return beta;
+      return {beta, one};
     scale(T(1/beta), r0);
     v.emplace_back(std::move(r0));
 
@@ -159,7 +160,7 @@ namespace PITTS
     for(int j = 0; j < m; j++)
       axpy(T(-y(j)), v[j], x);
 
-    return rho;
+    return {rho, rho/beta};
   }
 
 }

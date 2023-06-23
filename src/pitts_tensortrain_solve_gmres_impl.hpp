@@ -49,10 +49,10 @@ namespace PITTS
 
   // implement TT GMRES solver
   template <typename T>
-  T solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
-               int maxIter, T absResTol, T relResTol,
-               int maxRank, bool adaptiveTolerance, bool symmetric,
-               const std::string_view &outputPrefix, bool verbose)
+  std::pair<T,T> solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
+                            int maxIter, T absResTol, T relResTol,
+                            int maxRank, bool adaptiveTolerance, bool symmetric,
+                            const std::string_view &outputPrefix, bool verbose)
   {
     using vec = Eigen::Matrix<T,Eigen::Dynamic,1>;
     using mat = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
@@ -76,7 +76,7 @@ namespace PITTS
       std::cout << outputPrefix << "Initial residual norm: " << beta << " (abs), " << beta / beta << " (rel), rhs norm: " << nrm_b << ", ranks: " << internal::to_string(V[0].getTTranks()) << "\n";
     
     if( beta <= absResTol )
-      return beta;
+      return {beta, T(1)};
 
     // relative residual tolerance used below also for calculating the required TT rankTolerance
     const T residualTolerance = std::max(relResTol, absResTol/beta);
@@ -140,15 +140,12 @@ namespace PITTS
       for(int j = m-2; j >= 0; j--)
         nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTolerance, maxRank);
 
-      // now add it to the initial guess
+      // it would be nice to adjust this tolerance here for adding the deltaX to X - but all my variants just made it worse when called from MALS
       const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTolerance, maxRank);
-      Tensor3<T> tmp;
-      copy(TTx.subTensor(0), tmp);
-      internal::t3_scale(nrm_x, tmp);
-      TTx.setSubTensor(0, std::move(tmp));
+      TTx.editSubTensor(0, [nrm_x](Tensor3<T>& subT){internal::t3_scale(nrm_x, subT);});
     }
 
-    return rho;
+    return {rho, rho/beta};
   }
 
 }

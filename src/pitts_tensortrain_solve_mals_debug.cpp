@@ -24,8 +24,8 @@ template bool check_Ax(const TensorTrainOperator<double>& TTOpA, const TensorTra
 template bool check_Ax_ortho(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, const std::vector<std::pair<Tensor3<float>,Tensor2<float>>>& Ax_ortho);
 template bool check_Ax_ortho(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, const std::vector<std::pair<Tensor3<double>,Tensor2<double>>>& Ax_ortho);
 
-template bool check_Ax_b_ortho(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, const TensorTrain<float>& TTb, float alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<float>,Tensor2<float>>>& Ax_b_ortho);
-template bool check_Ax_b_ortho(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, const TensorTrain<double>& TTb, double alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<double>,Tensor2<double>>>& Ax_b_ortho);
+template bool check_Ax_b_ortho(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, const TensorTrain<float>& TTb, float alpha_Ax, float alpha_b, bool leftToRight, const std::vector<std::pair<Tensor3<float>,Tensor2<float>>>& Ax_b_ortho);
+template bool check_Ax_b_ortho(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, const TensorTrain<double>& TTb, double alpha_Ax, double alpha_b, bool leftToRight, const std::vector<std::pair<Tensor3<double>,Tensor2<double>>>& Ax_b_ortho);
 
 template bool check_ProjectionOperator(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, SweepIndex swpIdx, const TensorTrainOperator<float>& TTv, const TensorTrainOperator<float>& TTAv);
 template bool check_ProjectionOperator(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTx, SweepIndex swpIdx, const TensorTrainOperator<double>& TTv, const TensorTrainOperator<double>& TTAv);
@@ -35,6 +35,9 @@ template bool check_Orthogonality(SweepIndex swpIdx, const TensorTrain<double>& 
 
 template bool check_systemDimensions(const TensorTrainOperator<float>& localTTOp, const TensorTrain<float>& tt_x, const TensorTrain<float>& tt_b);
 template bool check_systemDimensions(const TensorTrainOperator<double>& localTTOp, const TensorTrain<double>& tt_x, const TensorTrain<double>& tt_b);
+
+template bool check_AMEnSubspace(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTv, const TensorTrain<float>& TTx, const TensorTrain<float>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<float>& tt_z);
+template bool check_AMEnSubspace(const TensorTrainOperator<double>& TTOpA, const TensorTrain<double>& TTv, const TensorTrain<double>& TTx, const TensorTrain<double>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<double>& tt_z);
 
 template bool check_localProblem(const TensorTrainOperator<float>& TTOpA, const TensorTrain<float>& TTx, const TensorTrain<float>& TTb, const TensorTrain<float>& TTw, 
                                  bool ritzGalerkinProjection, SweepIndex swpIdx,

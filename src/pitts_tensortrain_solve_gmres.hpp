@@ -46,13 +46,13 @@ namespace PITTS
   //! @param symmetric          set to true for symmetric operators to exploit the symmetry (results in a MinRes variant)
   //! @param outputPrefix       string to prefix all output about the convergence history
   //! @param verbose            set to true to print the residual norm in each iteration to std::cout
-  //! @return                   residual norm of the result (||Ax - b||)
+  //! @return                   absolute and relative residual norms of the result: ||Ax-b||_F, ||Ax-b||_F / ||Ax0-b||_F
   //!
   template <typename T>
-  T solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
-               int maxIter, T absResTol, T relResTol,
-               int maxRank = std::numeric_limits<int>::max(), bool adaptiveTolerance = true, bool symmetric = false,
-               const std::string_view &outputPrefix = "", bool verbose = false);
+  std::pair<T,T> solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
+                            int maxIter, T absResTol, T relResTol,
+                            int maxRank = std::numeric_limits<int>::max(), bool adaptiveTolerance = true, bool symmetric = false,
+                            const std::string_view &outputPrefix = "", bool verbose = false);
 
 }
 

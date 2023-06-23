@@ -50,7 +50,7 @@ namespace PITTS
 
       //! check that left/right_Ax_b_ortho = left/rightNormalize(TTAx-TTb)
       template<typename T>
-      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho);
+      bool check_Ax_b_ortho(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, T alpha_Ax, T alpha_b, bool leftToRight, const std::vector<std::pair<Tensor3<T>,Tensor2<T>>>& Ax_b_ortho);
 
       //! check that v^T v = I and A v x_local = Av and
       template<typename T>
@@ -63,6 +63,10 @@ namespace PITTS
       //! check that dimensions of A, x and b fit to define A*x=b
       template<typename T>
       bool check_systemDimensions(const TensorTrainOperator<T>& localTTOp, const TensorTrain<T>& tt_x, const TensorTrain<T>& tt_b);
+
+      //! check AMEn subspace
+      template<typename T>
+      bool check_AMEnSubspace(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTv, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<T>& tt_z);
 
       //! check that the local problem is correct
       template<typename T>

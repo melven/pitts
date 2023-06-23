@@ -18,6 +18,7 @@
 #include "pitts_tensortrain_solve_mals.hpp"
 #include "pitts_tensortrain_solve_mals_helper.hpp"
 #include "pitts_tensor2.hpp"
+#include "pitts_tensor2_concat.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
@@ -49,7 +50,7 @@ namespace PITTS
               int nSweeps,
               T residualTolerance,
               int maxRank,
-              int nMALS, int nOverlap, int nAMEnEnrichment,
+              int nMALS, int nOverlap, int nAMEnEnrichment, bool simplifiedAMEn,
               bool useTTgmres, int gmresMaxIter, T gmresRelTol)
   {
     using namespace internal::solve_mals;
@@ -67,7 +68,10 @@ namespace PITTS
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
 
-      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, useTTgmres, gmresMaxIter, gmresRelTol);
+      // ensure that we obtain a residual tolerance relative to TTb not TTAtb
+      residualTolerance *= norm2(TTb) / norm2(TTAtb);
+
+      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, simplifiedAMEn, useTTgmres, gmresMaxIter, gmresRelTol);
     }
 
     if( symmetric && projection == MALS_projection::PetrovGalerkin )
@@ -86,6 +90,9 @@ namespace PITTS
       throw std::invalid_argument("TensorTrain solveMALS: operator and x dimensions mismatch!");
     if( TTOpA.row_dimensions() != TTOpA.column_dimensions() && projection == MALS_projection::RitzGalerkin )
       throw std::invalid_argument("TensorTrain solveMALS: rectangular operator not supported with RitzGalerkin approach (row_dims != col_dims)!");
+    
+    if( nAMEnEnrichment > 0 && nMALS > 1 )
+      throw std::invalid_argument("TensorTrain solveMALS: currently AMEn is only supported for nMALS=1!");
 
 
     // Generate index for sweeping (helper class)
@@ -94,7 +101,11 @@ namespace PITTS
     nOverlap = std::min(nOverlap, nMALS-1);
     internal::SweepIndex lastSwpIdx(nDim, nMALS, nOverlap, -1);
 
-    const T nrm_TTb = norm2(TTb);
+    // trying to avoid costly residual calculations if possible, currently only for simplified AMEn
+    const bool onlyLocalResidual = simplifiedAMEn && nMALS == 1 && projection == MALS_projection::RitzGalerkin;
+    const T localResidualTolerance = residualTolerance / (2*std::sqrt(T(nDim-1)));
+
+    const T nrm_TTb = onlyLocalResidual ? T(-1) : norm2(TTb);
 
 #ifndef NDEBUG
     const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
@@ -124,27 +135,36 @@ namespace PITTS
     // we store previous parts of x^T A x
     SweepData vTAx = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, Ax), dot_loop_from_right<T>(TTv, Ax));
 
-    // save local residual for enriching the subspace
-    std::unique_ptr<TensorTrain<T>> tt_r;
+    // store sub-tensor for enriching the subspace (AMEn)
+    TensorTrain<T> tt_z(0,0);
 
     // calculate the error norm
     internal::ensureRightOrtho_range(TTx, 0, nDim - 1);
     Ax.update(-1, 0);
-    Ax_ortho.update(-1, 0);
-    Ax_b_ortho.update(-1, 0);
-
     assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
-    assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-    assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
+
+    if( !onlyLocalResidual )
+    {
+      Ax_ortho.update(-1, 0);
+      Ax_b_ortho.update(-1, 0);
+      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
+    }
 
     // calculate error
-    T residualNorm;
+    T max_localResidualNorm = T(0);
+    T residualNorm = nrm_TTb;
+    if( !onlyLocalResidual )
     {
       const T norm_Ax = Ax_ortho.data().front().second(0,0);
       auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
-      residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+      residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
       assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
       std::cout << "Initial residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+      if( residualNorm / nrm_TTb < residualTolerance )
+        return residualNorm;
+
     }
 
     // lambda to avoid code duplication: performs one step in a sweep
@@ -155,8 +175,11 @@ namespace PITTS
       internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
       internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
       Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
-      Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
-      Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      if( !onlyLocalResidual )
+      {
+        Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+      }
 
       assert(check_Orthogonality(swpIdx, TTx));
       assert(check_Ax(TTOpA, TTx, swpIdx, Ax.data()));
@@ -173,6 +196,10 @@ namespace PITTS
         TTw = calculatePetrovGalerkinProjection(TTAv, swpIdx, TTx, true);
 
         assert(check_Orthogonality(swpIdx, TTw));
+
+        // previously calculated projection differs (1. due to truncation and 2. because orthogonalize is not unique)
+        vTAx.invalidate(0, nDim);
+        vTb.invalidate(0, nDim);
       }
 
       vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
@@ -186,52 +213,50 @@ namespace PITTS
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
       assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
 
-      // first Sweep: let GMRES start from zero, at least favorable for TT-GMRES!
-      if (firstSweep && residualNorm / nrm_TTb > 0.5)
-        tt_x.setZero();
-      
-      if (useTTgmres)
-        const T localRes = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
-      else
-        const T localRes = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, gmresRelTol * residualTolerance * nrm_TTb, gmresRelTol, " (M)ALS local problem: ", true);
-      
-      if( nAMEnEnrichment > 0 )
+      T absTol, relTol;
+      if( onlyLocalResidual )
       {
-        tt_r.reset(new TensorTrain<T>(tt_b.dimensions()));
-        apply(localTTOp, tt_x, *tt_r);
-        axpby(T(1), tt_b, T(-1), *tt_r, T(0));
+        // first Sweep: let GMRES start from zero
+        if( firstSweep )
+          tt_x.setZero();
+        
+        const T nrm_tt_b = norm2(tt_b);
+        absTol = localResidualTolerance * nrm_tt_b;
+        relTol = gmresRelTol;
+      }
+      else
+      {
+        // first Sweep: let GMRES start from zero
+        if (firstSweep && residualNorm / nrm_TTb > 0.5)
+          tt_x.setZero();
+        
+        absTol = gmresRelTol * residualTolerance * nrm_TTb;
+        if( nMALS == 1 )
+          relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+        else // nMALS > 1
+          relTol = gmresRelTol;
+      }
+      
+      if( relTol < T(1) )
+      {
+        T localAbsRes, localRelRes;
+        if (useTTgmres)
+          std::tie(localAbsRes, localRelRes) = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+        else
+          std::tie(localAbsRes, localRelRes) = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
+
+        // max local residual *before* the iteration
+        max_localResidualNorm = std::max(max_localResidualNorm, localAbsRes / localRelRes);
+      }
+      
+      if( nAMEnEnrichment > 0 && simplifiedAMEn )
+      {
+        tt_z = TensorTrain<T>(tt_b.dimensions());
+        apply(localTTOp, tt_x, tt_z);
+        axpby(T(1), tt_b, T(-1), tt_z, T(0));
       }
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
-
-#ifndef NDEBUG
-if( nAMEnEnrichment > 0 )
-{
-  TensorTrainOperator<T> TTOpW = projection == MALS_projection::PetrovGalerkin ? setupProjectionOperator(TTw, swpIdx) : setupProjectionOperator(TTx, swpIdx);
-  std::vector<int> colDimOpW_left(TTOpW.column_dimensions().size());
-  for(int iDim = 0; iDim < nDim; iDim++)
-    colDimOpW_left[iDim] = iDim < swpIdx.rightDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
-  TensorTrainOperator<T> TTOpW_left(TTOpW.row_dimensions(), colDimOpW_left);
-  TTOpW_left.setEye();
-  std::vector<Tensor3<T>> tmpSubT(swpIdx.leftDim());
-  for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
-    copy(TTOpW.tensorTrain().subTensor(iDim), tmpSubT[iDim]);
-  TTOpW_left.tensorTrain().setSubTensors(0, std::move(tmpSubT));
-  TensorTrain<T> TTz = transpose(TTOpW_left) * (TTb - TTOpA * TTx);
-  rightNormalize(TTz);
-  tmpSubT.resize(nMALS);
-  for(int iDim = swpIdx.leftDim(); iDim <= swpIdx.rightDim(); iDim++)
-    copy(TTz.subTensor(iDim), tmpSubT[iDim-swpIdx.leftDim()]);
-  tt_r->setSubTensors(0, std::move(tmpSubT));
-}
-#endif
-
-      if( projection == MALS_projection::PetrovGalerkin )
-      {
-        // recover original sub-tensor of projection space
-        vTb.invalidate(0, nDim);
-        vTAx.invalidate(0, nDim);
-      }
     };
 
     // AMEn idea: enrich subspace with some directions of the global residual (AMEn method)
@@ -246,39 +271,114 @@ if( nAMEnEnrichment > 0 )
       // only intended for nMALS == 1
       assert(swpIdx.leftDim() == swpIdx.rightDim());
 
+      if( !simplifiedAMEn )
+      {
+        // ensure indices are set correctly
+        internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
+        internal::ensureRightOrtho_range(TTx, swpIdx.rightDim(), nDim - 1);
+        Ax.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        Ax_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        Ax_b_ortho.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+        vTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+
+        const int iDim = swpIdx.leftDim();
+        Tensor3<T> tmpAx, tmpb, t3;
+        internal::apply_contract(TTOpA, iDim, TTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), tmpAx);
+        std::vector<Tensor3<T>> subT(1);
+
+        if( leftToRight )
+        {
+          if( iDim == 0 )
+            copy(TTb.subTensor(iDim), tmpb);
+          else
+          {
+            // first contraction: vTAx(*,:) * Ax(*,:,:)
+            internal::reverse_dot_contract1<T>(*vTAx.left(), tmpAx, t3);
+            std::swap(t3, tmpAx);
+            // now contract: vTb(*,:) * b(*,:,:)
+            internal::reverse_dot_contract1<T>(*vTb.left(), TTb.subTensor(iDim), tmpb);
+          }
+          internal::t3_scale(T(-1), tmpb);
+          // contract: tmpAx(:,:,*) * B(*,:)
+          const Tensor2<T>& prev_C = Ax_ortho.right()->get().second;
+          internal::normalize_contract2(tmpAx, prev_C, t3);
+          std::swap(t3, tmpAx);
+          //         prev_B = (tmpAx tmpb)  * (I   0)
+          //                                  (yTx R)
+          // but top rows (I 0) are not stored...
+          // => (tmpAx+tmpb*yTx   tmpb*R)
+          const Tensor2<T>& prev_B = Ax_b_ortho.right()->get().second;
+          internal::normalize_contract2(tmpb, prev_B, t3);
+          EigenMap(unfold_left(t3)).leftCols(tmpAx.r2()) += ConstEigenMap(unfold_left(tmpAx));
+          subT[0] = std::move(t3);
+        }
+        else // !leftToRight
+        {
+          if( iDim == nDim-1 )
+            copy(TTb.subTensor(iDim), tmpb);
+          else
+          {
+            // first contraction: Ax(:,:,*) * vTAx(:,*)
+            internal::dot_contract1<T>(tmpAx, *vTAx.right(), t3);
+            std::swap(t3, tmpAx);
+            // now contract: b(:,:,*) * vTb(:,*)
+            internal::dot_contract1<T>(TTb.subTensor(iDim), *vTb.right(), tmpb);
+          }
+          internal::t3_scale(T(-1), tmpb);
+          // contract: B(:,*) * tmpAx(*,:,:)
+          const Tensor2<T>& prev_C = Ax_ortho.left()->get().second;
+          internal::normalize_contract1(prev_C, tmpAx, t3);
+          std::swap(t3, tmpAx);
+          //         prev_B = (I xTy)    *    (tmpAx)
+          //                  (0  R )         (tmpb)
+          // but left columns (I;0) are not stored...
+          // => (tmpAx+xTy*tmpb)
+          //    (R*tmpb)
+          const Tensor2<T>& prev_B = Ax_b_ortho.left()->get().second;
+          internal::normalize_contract1(prev_B, tmpb, t3);
+          EigenMap(unfold_right(t3)).topRows(tmpAx.r1()) += ConstEigenMap(unfold_right(tmpAx));
+          subT[0] = std::move(t3);
+        }
+        tt_z = TensorTrain<T>(std::move(subT));
+      }
+      
+      assert(simplifiedAMEn || check_AMEnSubspace(TTOpA, TTv, TTx, TTb, swpIdx, leftToRight, tt_z));
+
       if( leftToRight )
       {
-        std::vector<Tensor3<T>> newSubT(2);
+
+        internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
+
+        const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
+        const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
+        Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
+
+        // orthogonalize wrt. subT0
+        const T zNorm = internal::t3_nrm(subTr);
+        if( zNorm > T(0) )
+          internal::t3_scale(T(1)/zNorm, subTr);
+        Tensor2<T> tmp;
+        internal::reverse_dot_contract2(subT0, subTr, tmp); // subT0(*,*,:) * subTr(*,*,:)
+        dot_contract1t_sub(subT0, tmp, subTr); // subTr(:,:,:) -= subT0(:,:,*) * tmp(*,:)
+        const T zNorm2 = internal::t3_nrm(subTr);
+        //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
+        if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
         {
-          internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
-          leftNormalize(*tt_r, T(0));
-          const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
-          const Tensor3<T>& subTr = tt_r->subTensor(tt_r->dimensions().size()-1);//TTz.subTensor(swpIdx.rightDim());
-          const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
-          const int addRank = std::min<int>(nAMEnEnrichment, subTr.r2());
-          std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
-          newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+addRank);
-          newSubT[1].resize(subT1.r1()+addRank, subT1.n(), subT1.r2());
-          newSubT[0].setConstant(T(0));
-          newSubT[1].setConstant(T(0));
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int k = 0; k < subT0.r2(); k++)
-            for(int j = 0; j < subT0.n(); j++)
-              for(int i = 0; i < subT0.r1(); i++)
-                newSubT[0](i,j,k) = subT0(i,j,k);
-          const auto r1 = std::min(subT0.r1(), subTr.r1());
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int k = 0; k < addRank; k++)
-            for(int j = 0; j < subT0.n(); j++)
-              for(int i = 0; i < r1; i++)
-                newSubT[0](i,j,subT0.r2()+k) = subTr(i,j,k);
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int k = 0; k < subT1.r2(); k++)
-            for(int j = 0; j < subT1.n(); j++)
-              for(int i = 0; i < subT1.r1(); i++)
-                newSubT[1](i,j,k) = subT1(i,j,k);
+          std::cout << " Not enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " as the residual does not contain any new directions!\n";
+          return;
         }
-        TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT));
+
+        const auto [Q, B] = internal::normalize_qb(unfold_left(subTr), true, T(0), nAMEnEnrichment);
+        std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+Q.r2() << "\n";
+
+        std::vector<Tensor3<T>> newSubT(2);
+        newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+Q.r2());
+        concatLeftRight<T>(unfold_left(subT0), Q, unfold_left(newSubT[0]));
+        newSubT[1].resize(subT1.r1()+Q.r2(), subT1.n(), subT1.r2());
+        concatTopBottom<T>(unfold_right(subT1), std::nullopt, unfold_right(newSubT[1]));
+        //std::cout << "ortho:\n" << ConstEigenMap(unfold_left(newSubT[0])).transpose() * ConstEigenMap(unfold_left(newSubT[0])) << std::endl;
+        TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT), {TT_Orthogonality::left, TT_Orthogonality::none});
 
         // these are not valid any more
         Ax.invalidate(swpIdx.rightDim()+1);
@@ -289,39 +389,38 @@ if( nAMEnEnrichment > 0 )
       }
       else // right-to-left
       {
+        internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, nDim-1);
+
+        const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
+        const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
+        Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
+
+        // orthogonalize wrt. subT1
+        const T zNorm = internal::t3_nrm(subTr);
+        if( zNorm > T(0) )
+          internal::t3_scale(T(1)/zNorm, subTr);
+        Tensor2<T> tmp;
+        internal::dot_contract2(subT1, subTr, tmp); // subT1(:,*,*) * subTr(:,*,*)
+        reverse_dot_contract1_sub(tmp, subT1, subTr); // subTr(:,:,:) -= tmp(*,:) * subT1(*,:,:)
+        const T zNorm2 = internal::t3_nrm(subTr);
+        //std::cout << "zNorm before/after: " << zNorm << " " << zNorm2 << std::endl;
+        if( zNorm2 <= std::numeric_limits<T>::epsilon()*std::sqrt(subT1.r1()*subT1.n())*1000 )
+        {
+          std::cout << " Not enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " as the residual does not contain any new directions!\n";
+          return;
+        }
+
+        const auto [B, Qt] = internal::normalize_qb(unfold_right(subTr), false, T(0), nAMEnEnrichment);
+        //std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT1.r1() << " to " << subT1.r1()+Qt.r1() << "\n";
 
         std::vector<Tensor3<T>> newSubT(2);
-        {
-          internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, swpIdx.nDim()-1);
-          rightNormalize(*tt_r, T(0));
-          const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
-          internal::ensureRightOrtho_range(*tt_r, 0, nMALS-1);
-          const Tensor3<T>& subTr = tt_r->subTensor(0);//TTz.subTensor(swpIdx.leftDim());
-          const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
-          const int addRank = std::min<int>(nAMEnEnrichment, subTr.r1());
-          std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+addRank << "\n";
-          newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+addRank);
-          newSubT[1].resize(subT1.r1()+addRank, subT1.n(), subT1.r2());
-          newSubT[0].setConstant(T(0));
-          newSubT[1].setConstant(T(0));
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int i = 0; i < subT0.r1(); i++)
-            for(int j = 0; j < subT0.n(); j++)
-              for(int k = 0; k < subT0.r2(); k++)
-                newSubT[0](i,j,k) = subT0(i,j,k);
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int i = 0; i < subT1.r1(); i++)
-            for(int j = 0; j < subT1.n(); j++)
-              for(int k = 0; k < subT1.r2(); k++)
-                newSubT[1](i,j,k) = subT1(i,j,k);
-          const auto r2 = std::min(subT1.r2(), subTr.r2());
-#pragma omp parallel for collapse(3) schedule(static)
-          for(int i = 0; i < addRank; i++)
-            for(int j = 0; j < subT0.n(); j++)
-              for(int k = 0; k < r2; k++)
-                newSubT[1](subT1.r1()+i,j,k) = subTr(i,j,k);
-        }
-        TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT));
+        newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+Qt.r1());
+        concatLeftRight<T>(unfold_left(subT0), std::nullopt, unfold_left(newSubT[0]));
+        newSubT[1].resize(subT1.r1()+Qt.r1(), subT1.n(), subT1.r2());
+        concatTopBottom<T>(unfold_right(subT1), Qt, unfold_right(newSubT[1]));
+        //std::cout << "ortho:\n" << ConstEigenMap(unfold_right(newSubT[1])) * ConstEigenMap(unfold_right(newSubT[1])).transpose() << std::endl;
+        //std::cout << "added part:\n" << ConstEigenMap(Qt) << std::endl;
+        TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT), {TT_Orthogonality::none, TT_Orthogonality::right});
 
         // these are not valid any more
         Ax.invalidate(swpIdx.leftDim()-1);
@@ -329,16 +428,14 @@ if( nAMEnEnrichment > 0 )
         Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
         vTAx.invalidate(swpIdx.leftDim()-1);
         vTb.invalidate(swpIdx.leftDim()-1);
-       }
+      }
     };
 
     // now everything is prepared, perform the sweeps
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
-      if( residualNorm / nrm_TTb < residualTolerance )
-        break;
-
       // sweep left to right
+      max_localResidualNorm = T(0);
       for(auto swpIdx = lastSwpIdx.first(); swpIdx; swpIdx = swpIdx.next())
       {
         // skip iteration if this is the same as in the last right-to-left sweep
@@ -352,18 +449,25 @@ if( nAMEnEnrichment > 0 )
       }
       // update remaining sub-tensors of Ax
       Ax.update(nDim-1, nDim);
-      Ax_ortho.update(nDim-1, nDim);
-      Ax_b_ortho.update(nDim-1, nDim);
-
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, nDim), Ax.data()));
-      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), true, Ax_b_ortho.data()));
 
-      // check error
+      if( onlyLocalResidual )
       {
+        std::cout << "Sweep " << iSweep+0.5 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+        if( max_localResidualNorm < residualTolerance )
+          break;
+      }
+      else // !onlyLocalResidual
+      {
+        Ax_ortho.update(nDim-1, nDim);
+        Ax_b_ortho.update(nDim-1, nDim);
+        assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+        assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[nDim-1].second(0,0), T(1), true, Ax_b_ortho.data()));
+      
+        // check error
         const T norm_Ax = Ax_ortho.data().back().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().back().second);
-        residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
+        residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
         std::cout << "Sweep " << iSweep+0.5 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
 
@@ -373,39 +477,72 @@ if( nAMEnEnrichment > 0 )
 
 
       // sweep right to left
+      max_localResidualNorm = T(0);
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
         // skip iteration if this is the same as in the last left-to-right sweep
-        if( nMALS != nDim && swpIdx == lastSwpIdx )
-          continue;
+        if( swpIdx != lastSwpIdx )
+          solveLocalProblem(swpIdx);
 
-        //if( nMALS == 1 && swpIdx.rightDim() < nDim-1 && nAMEnEnrichment > 0 )
-        //  enrichSubSpace(swpIdx.next(), false);
+        if( nAMEnEnrichment > 0 )
+          enrichSubspace(swpIdx, false);
 
-        solveLocalProblem(swpIdx);
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of right_Ax
       Ax.update(-1, 0);
-      Ax_ortho.update(-1, 0);
-      Ax_b_ortho.update(-1, 0);
-
       assert(check_Ax(TTOpA, TTx, internal::SweepIndex(nDim, 1, 0, -1), Ax.data()));
-      assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
-      assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), false, Ax_b_ortho.data()));
 
-      // check error
+      if( onlyLocalResidual )
       {
+        std::cout << "Sweep " << iSweep+1 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+        if( max_localResidualNorm < residualTolerance )
+          break;
+      }
+      else // !onlyLocalResidual
+      {
+        Ax_ortho.update(-1, 0);
+        Ax_b_ortho.update(-1, 0);
+        assert(check_Ax_ortho(TTOpA, TTx, Ax_ortho.data()));
+        assert(check_Ax_b_ortho(TTOpA, TTx, TTb, Ax_ortho.data()[0].second(0,0), T(1), false, Ax_b_ortho.data()));
+
+        // check error
         const T norm_Ax = Ax_ortho.data().front().second(0,0);
         auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
-        residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
+        residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
         std::cout << "Sweep " << iSweep+1 << " residual norm: " << residualNorm << " (abs), " << residualNorm / nrm_TTb << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+
+        if( residualNorm / nrm_TTb < residualTolerance )
+          break;
       }
     }
 
+/*
+    std::cout << "Ax ranks:\n";
+    for(const auto& subT: Ax.data())
+      std::cout << "   " << subT.r1() << " x " << subT.r2();
+    std::cout << "\n";
 
-    return residualNorm;
+    std::cout << "Ax_ortho ranks:\n";
+    for(const auto& [Q, B]: Ax_ortho.data())
+      std::cout << "   " << Q.r1() << " x " << Q.r2();
+    std::cout << "\n";
+    std::cout << "Ax_ortho B diag:\n";
+    for(const auto& [Q, B]: Ax_ortho.data())
+      std::cout << ConstEigenMap(B).bdcSvd().singularValues().transpose() << "\n";
+
+
+    std::cout << "Ax_b_ortho ranks:\n";
+    for(const auto& [Q, B]: Ax_b_ortho.data())
+      std::cout << "   " << Q.r1() << " x " << Q.r2();
+    std::cout << "\n";
+    std::cout << "Ax_b_ortho B diag:\n";
+    for(const auto& [Q, B]: Ax_b_ortho.data())
+      std::cout << ConstEigenMap(B).bdcSvd().singularValues().transpose() << "\n";
+*/
+
+    return onlyLocalResidual ? max_localResidualNorm : residualNorm;
   }
 
 }

@@ -8,5 +8,5 @@
 
 using namespace PITTS;
 
-template double PITTS::solveGMRES(const TensorTrainOperator<double> &TTOpA, const TensorTrain<double> &TTb, TensorTrain<double> &TTx, int maxIter, double absResTol, double relResTol, int maxRank, bool adaptiveTolerance, bool symmetric, const std::string_view &outputPrefix, bool verbose);
-template float PITTS::solveGMRES(const TensorTrainOperator<float> &TTOpA, const TensorTrain<float> &TTb, TensorTrain<float> &TTx, int maxIter, float absResTol, float relResTol, int maxRank, bool adaptiveTolerance, bool symmetric, const std::string_view &outputPrefix, bool verbose);
+template std::pair<double,double> PITTS::solveGMRES(const TensorTrainOperator<double> &TTOpA, const TensorTrain<double> &TTb, TensorTrain<double> &TTx, int maxIter, double absResTol, double relResTol, int maxRank, bool adaptiveTolerance, bool symmetric, const std::string_view &outputPrefix, bool verbose);
+template std::pair<float,float> PITTS::solveGMRES(const TensorTrainOperator<float> &TTOpA, const TensorTrain<float> &TTb, TensorTrain<float> &TTx, int maxIter, float absResTol, float relResTol, int maxRank, bool adaptiveTolerance, bool symmetric, const std::string_view &outputPrefix, bool verbose);

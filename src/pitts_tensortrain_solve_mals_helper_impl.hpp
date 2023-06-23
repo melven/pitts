@@ -15,6 +15,7 @@
 #include <vector>
 #include "pitts_tensortrain_solve_mals_helper.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
+#include "pitts_tensortrain_operator_apply_dense.hpp"
 #include "pitts_eigen.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_unfold.hpp"
@@ -423,8 +424,8 @@ namespace PITTS
       }
 
       template<typename T>
-      T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
-                        int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose)
+      std::pair<T,T> solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
+                                     int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose)
       {
         using arr = Eigen::ArrayX<T>;
         const int nDim = tt_x.dimensions().size();
@@ -433,15 +434,21 @@ namespace PITTS
         toDense(tt_x, mv_x);
         toDense(tt_b, mv_rhs);
 
+        const TTOpApplyDenseHelper<T> ttOpHelper(tt_OpA);
+        ttOpHelper.addPadding(mv_x);
+        ttOpHelper.addPadding(mv_rhs);
+
         // absolute tolerance is not invariant wrt. #dimensions
-        const arr localRes = GMRES<arr>(tt_OpA, symmetric, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
+        const auto [localAbsRes, localRelRes] = GMRES<arr>(ttOpHelper, symmetric, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
+
+        ttOpHelper.removePadding(mv_x);
 
         const auto r_left = tt_x.subTensor(0).r1();
         const auto r_right = tt_x.subTensor(nDim-1).r2();
         TensorTrain<T> new_tt_x = fromDense(mv_x, mv_rhs, tt_x.dimensions(), absTol/nDim, maxRank, false, r_left, r_right);
         std::swap(tt_x, new_tt_x);
 
-        return localRes(0);
+        return {localAbsRes(0), localRelRes(0)};
       }
     }
   }

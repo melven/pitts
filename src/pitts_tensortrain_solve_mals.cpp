@@ -8,5 +8,5 @@
 
 using namespace PITTS;
 
-template double PITTS::solveMALS(const TensorTrainOperator<double>& TTOpA, bool symmetric, const MALS_projection projection, const TensorTrain<double>& TTb, TensorTrain<double>& TTx, int nSweeps, double residualTolerance, int maxRank, int nMALS, int nOverlap, int nAMEnEnrichment, bool useTTgmres, int gmresMaxIter, double gmresRelTol);
-template float PITTS::solveMALS(const TensorTrainOperator<float>& TTOpA, bool symmetric, const MALS_projection projection, const TensorTrain<float>& TTb, TensorTrain<float>& TTx, int nSweeps, float residualTolerance, int maxRank, int nMALS, int nOverlap, int nAMEnEnrichment, bool useTTgmres, int gmresMaxIter, float gmresRelTol);
+template double PITTS::solveMALS(const TensorTrainOperator<double>& TTOpA, bool symmetric, const MALS_projection projection, const TensorTrain<double>& TTb, TensorTrain<double>& TTx, int nSweeps, double residualTolerance, int maxRank, int nMALS, int nOverlap, int nAMEnEnrichment, bool simplifiedAMEn, bool useTTgmres, int gmresMaxIter, double gmresRelTol);
+template float PITTS::solveMALS(const TensorTrainOperator<float>& TTOpA, bool symmetric, const MALS_projection projection, const TensorTrain<float>& TTb, TensorTrain<float>& TTx, int nSweeps, float residualTolerance, int maxRank, int nMALS, int nOverlap, int nAMEnEnrichment, bool simplifiedAMEn, bool useTTgmres, int gmresMaxIter, float gmresRelTol);

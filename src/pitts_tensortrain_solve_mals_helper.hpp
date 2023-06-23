@@ -17,6 +17,7 @@
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor2_concat.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
@@ -215,55 +216,56 @@ namespace PITTS
       }
 
       template<typename T>
+      const auto& extract_first(const T& t) {return t;}
+
+      template<typename T1, typename T2>
+      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
+
+      template<typename T>
       constexpr auto axpby_loop_from_left(const auto& TTx, const auto& TTy)
       {
         using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
         return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
         {
-          const auto& subTx = TTx.subTensor(iDim).first;
-          const auto& subTy = TTy.subTensor(iDim);
-          assert(subTx.n() == subTy.n());
-          const int n = subTx.n();
-          const int r2x = subTx.r2();
-          const int r2y = subTy.r2();
+          const auto& subTx = extract_first(TTx.subTensor(iDim));
+          const auto& subTy = extract_first(TTy.subTensor(iDim));
 
-          Tensor2<T> t2;
-          using mat = Eigen::MatrixX<T>;
+          Tensor3<T> t3x, t3y;
           if( !prev_QB )
           {
-            assert(subTx.r1() == 1 && subTy.r1() == 1);
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), n, r2x);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), n, r2y);
-            t2.resize(n, r2x+r2y);
-            EigenMap(t2).leftCols (r2x) = mapX;
-            EigenMap(t2).rightCols(r2y) = mapY;
+            copy(subTx, t3x);
+            copy(subTy, t3y);
           }
           else
           {
-            const int r1x = subTx.r1();
-            const int r1y = subTy.r1();
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n*r2x);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n*r2y);
-            // contract prev_B * (X 0; 0 Y)
-            const auto& prev_B = prev_QB->get().second;
-            t2.resize(prev_B.r1(), n*r2x+n*r2y);
-            EigenMap(t2).leftCols (n*r2x) = ConstEigenMap(prev_B).leftCols(r1x) * mapX;
-            EigenMap(t2).rightCols(n*r2y) = ConstEigenMap(prev_B).rightCols(r1y) * mapY;
-            t2.resize(t2.r1()*n, r2x+r2y, false);
+            // contract prev_B(:,*) * subTy(*,:,:)
+            internal::normalize_contract1(prev_QB->get().second, subTy, t3y);
+            // append zeros to subTx to obtain the same r1
+            t3x.resize(t3y.r1(), t3y.n(), subTx.r2());
+            concatTopBottom<T>(unfold_right(subTx), std::nullopt, unfold_right(t3x));
           }
 
-          // calculate QR of subT(: : x :)
-          auto [Q, B] = internal::normalize_qb(t2, true);
-          fold_left(Q, n, QB.first);
-          QB.second = std::move(B);
+          // orthogonalize t3y wrt. subTx
+          Tensor2<T> xTy;
+          // contract t3x(*,*,:)^T * t3y(*,*,:)
+          internal::reverse_dot_contract2(t3x, t3y, xTy);
+          // subTx is only orthogonalized inaccurately, so try to fix orthogonalization using QQ^T = V (V^TV)^(-1) V^T
+          Eigen::MatrixX<T> xTx = ConstEigenMap(unfold_left(subTx)).transpose() * ConstEigenMap(unfold_left(subTx));
+          // use a Cholesky decomposition of xTx (almost identity) to multiply with (V^TV)^(-1)
+          Eigen::LLT<Eigen::Ref<Eigen::MatrixX<T>>> llt(xTx); // in-place decomposition
+          llt.solveInPlace(EigenMap(xTy));
+          EigenMap(unfold_left(t3y)).noalias() -= ConstEigenMap(unfold_left(t3x)) * ConstEigenMap(xTy);
+
+          // orthogonalize t3y itself
+          const T tolerance = std::numeric_limits<T>::epsilon() * std::sqrt(t3y.r1()*t3y.n()*t3y.r2()) * 1000;
+          const auto [Q, B] = internal::normalize_qb(unfold_left(t3y), true, tolerance, t3y.r2(), true);
+
+          QB.first.resize(t3x.r1(), t3x.n(), t3x.r2()+Q.r2());
+          concatLeftRight<T>(unfold_left(t3x), Q, unfold_left(QB.first));
+          QB.second.resize(xTy.r1()+B.r1(), t3y.r2());
+          concatTopBottom<T>(xTy, B, QB.second);
         };
       }
-
-      template<typename T>
-      const auto& extract_first(const T& t) {return t;}
-
-      template<typename T1, typename T2>
-      const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
 
       template<typename T>
       constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
@@ -273,49 +275,89 @@ namespace PITTS
         {
           const auto& subTx = extract_first(TTx.subTensor(iDim));
           const auto& subTy = extract_first(TTy.subTensor(iDim));
-          assert(subTx.n() == subTy.n());
-          const int n = subTx.n();
-          const int r1x = subTx.r1();
-          const int r1y = subTy.r1();
 
-          Tensor2<T> t2;
-          using mat = Eigen::MatrixX<T>;
+          Tensor3<T> t3x, t3y;
           if( !prev_QB )
           {
-            assert(subTx.r2() == 1 && subTy.r2() == 1);
-            Eigen::Map<const mat> mapX(&subTx(0,0,0), r1x, n);
-            Eigen::Map<const mat> mapY(&subTy(0,0,0), r1y, n);
-            t2.resize(r1x+r1y,n);
-            EigenMap(t2).topRows   (r1x) = mapX;
-            EigenMap(t2).bottomRows(r1y) = mapY;
+            copy(subTx, t3x);
+            copy(subTy, t3y);
           }
           else
           {
-            const int r2x = subTx.r2();
-            const int r2y = subTy.r2();
-            // contract (X 0; 0 Y) * prev_B
-            // unfortunately, the memory layout is strided for the right-to-left axpby loop, so we need to copy stuff around...
-            const auto& prev_B = prev_QB->get().second;
-            auto& t3 = QB.first;
-            t3.resize(r1x+r1y,n,r2x+r2y);
-#pragma omp parallel for schedule(static) collapse(2) if((r2x+r2y)*n > 50)
-            for(int k = 0; k < r2x+r2y; k++)
-              for(int j = 0; j < n; j++)
-                for(int i = 0; i < r1x+r1y; i++)
-                  t3(i,j,k) = k < r2x && i < r1x ? subTx(i,j,k) : k >= r2x && i >= r1x ? subTy(i-r1x,j,k-r2x) : T(0);
-            Tensor2<T> tmp;
-            unfold_left(t3, tmp);
-            t2.resize((r1x+r1y)*n, prev_B.r2());
-            EigenMap(t2) = ConstEigenMap(tmp) * ConstEigenMap(prev_B);
-            t2.resize(r1x+r1y, n*t2.r2(), false);
+
+            // contract subTy(:,:,*) * prev_B(*,:)
+            internal::normalize_contract2(subTy, prev_QB->get().second, t3y);
+            // append zeros to subTx to obtain the same r2
+            t3x.resize(subTx.r1(), t3y.n(), t3y.r2());
+            concatLeftRight<T>(unfold_left(subTx), std::nullopt, unfold_left(t3x));
           }
 
-          // calculate LQt of subT(: x : :)
-          auto [B, Qt] = internal::normalize_qb(t2, false);
-          fold_right(Qt, n, QB.first);
-          QB.second = std::move(B);
+          // orthogonalize t3y wrt. subTx
+          Tensor2<T> yTx;
+          // contract t3y(:,*,*) * t3x(:,*,*)^T
+          internal::dot_contract2(t3y, t3x, yTx);
+          // subTx is only orthogonalized inaccurately, so try to fix orthogonalization using QQ^T = V (V^TV)^(-1) V^T
+          Eigen::MatrixX<T> xTx = ConstEigenMap(unfold_right(subTx)) * ConstEigenMap(unfold_right(subTx)).transpose();
+          // use a Cholesky decomposition of xTx (almost identity) to multiply with (V^TV)^(-1)
+          Eigen::LLT<Eigen::Ref<Eigen::MatrixX<T>>> llt(xTx); // in-place decomposition
+          llt.solveInPlace(EigenMap(yTx).transpose());
+          EigenMap(unfold_right(t3y)).noalias() -= ConstEigenMap(yTx) * ConstEigenMap(unfold_right(t3x));
+
+          // orthogonalize t3y itself
+          const T tolerance = std::numeric_limits<T>::epsilon() * std::sqrt(t3y.r1()*t3y.n()*t3y.r2()) * 1000;
+          const auto [B, Qt] = internal::normalize_qb(unfold_right(t3y), false, tolerance, t3y.r1(), true);
+
+          QB.first.resize(t3x.r1()+Qt.r1(), t3x.n(), t3x.r2());
+          concatTopBottom<T>(unfold_right(t3x), Qt, unfold_right(QB.first));
+          QB.second.resize(t3y.r1(), yTx.r2()+B.r2());
+          concatLeftRight<T>(yTx, B, QB.second);
         };
       }
+
+
+      //! contract Tensor3 and Tensor2 along last dimensions: A(:,:,*) * B(*,:) and subtract the result from C(:,:,:)
+      template<typename T>
+      void dot_contract1t_sub(const Tensor3<T>& A, const Tensor2<T>& B, Tensor3<T>& C)
+      {
+        const auto r1 = A.r1();
+        const auto n = A.n();
+        const auto r2 = A.r2();
+        assert(A.r2() == B.r1());
+        const auto r2_ = B.r2();
+
+        const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+          {{"r1", "n", "r2", "r2_"},{r1, n, r2, r2_}}, // arguments
+          {{r1*n*r2*r2_*kernel_info::FMA<T>()}, // flops
+          {(r1*n*r2+r2*r2_)*kernel_info::Load<T>() + (r1*n*r2_)*kernel_info::Store<T>()}} // data transfers
+          );
+
+        C.resize(r1, n, r2_);
+
+        EigenMap(unfold_left(C)).noalias() -= ConstEigenMap(unfold_left(A)) * ConstEigenMap(B);
+      }
+
+
+      //! contract Tensor3 and Tensor2 along first dimensions: A(*,:) * B(*,:,:) and subtract the result from C(:,:,:)
+      template<typename T>
+      void reverse_dot_contract1_sub(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
+      {
+        const auto r1 = A.r1();
+        const auto n = B.n();
+        const auto r2 = B.r2();
+        assert(A.r1() == B.r1());
+        const auto r1_ = A.r2();
+
+        const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
+          {{"r1", "n", "r2", "r1_"},{r1, n, r2, r1_}}, // arguments
+          {{r1*n*r2*r1_*kernel_info::FMA<T>()}, // flops
+          {(r1*n*r2+r1*r1_)*kernel_info::Load<T>() + (r1_*n*r2)*kernel_info::Store<T>()}} // data transfers
+          );
+
+        C.resize(r1_, n, r2);
+
+        EigenMap(unfold_right(C)).noalias() -= ConstEigenMap(A).transpose() * ConstEigenMap(unfold_right(B));
+      }
+
 
 
       //! set up TT operator for the projection (assumes given TTx is correctly orthogonalized)
@@ -345,8 +387,8 @@ namespace PITTS
       
 
       template<typename T>
-      T solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
-                        int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose);
+      std::pair<T,T> solveDenseGMRES(const TensorTrainOperator<T>& tt_OpA, bool symmetric, const TensorTrain<T>& tt_b, TensorTrain<T>& tt_x,
+                                     int maxRank, int maxIter, T absTol, T relTol, const std::string& outputPrefix, bool verbose);
     }
   }
 }

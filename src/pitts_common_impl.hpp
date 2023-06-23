@@ -16,6 +16,10 @@
 #include "pitts_common.hpp"
 #include "pitts_performance.hpp"
 
+//#ifndef EIGEN_USE_LAPACKE
+//#include <immintrin.h>
+//#endif
+
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>
 #endif
@@ -71,6 +75,16 @@ namespace PITTS
 
     // seed random number generator
     internal::randomGenerator.seed(randomSeed);
+
+//    // as a workaround for problems with Eigen::BDCSVD (https://gitlab.com/libeigen/eigen/-/issues/2663)
+//    // disable flush-to-zero mode
+//#ifndef EIGEN_USE_LAPACKE
+//#pragma omp parallel
+//    {
+//      _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF);
+//      _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+//    }
+//#endif
   }
 
 

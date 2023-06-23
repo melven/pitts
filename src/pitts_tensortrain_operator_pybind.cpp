@@ -9,6 +9,7 @@
 // includes
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/eigen.h>
 //#include <pybind11/complex.h>
 #include <pybind11/numpy.h>
 #include <string>
@@ -18,7 +19,10 @@
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_operator_apply_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
+#include "pitts_tensortrain_operator_to_dense.hpp"
+#include "pitts_tensortrain_operator_to_qtt.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_scope_info.hpp"
 
 namespace py = pybind11;
@@ -158,6 +162,20 @@ namespace PITTS
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&applyT<T>),
             py::arg("TTOpA"), py::arg("TTOpB"), py::arg("TTOpC"),
             "Apply a transposed TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA^T * TTOpB");
+        
+        m.def("toDense",
+            [](const TensorTrainOperator<T>& TTOp) -> Eigen::MatrixX<T>
+            {
+              Tensor2<T> op = toDense(TTOp);
+              // requires an additional copy for now...
+              return ConstEigenMap(op);
+            },
+            py::arg("TTOp"),
+            "calculate fully dense matrix from a tensor-train operator decomposition");
+        m.def("toQtt",
+            py::overload_cast<const TensorTrainOperator<T>&>(&toQtt<T>),
+            py::arg("TTOp"),
+            "calculate quantized tensor-train (QTT) format from a given tensor-train operator");
       }
     }
 

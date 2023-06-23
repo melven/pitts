@@ -40,7 +40,10 @@ TEST(PITTS_TensorTrain_solve_mals_helper, axpby_loop_from_right_nDim1)
   Mleft << 1, -1;
   mat x_y_ref(1,5);
   x_y_ref << 1,-1,0,0,0;
-  EXPECT_NEAR(x_y_ref, Mleft * ConstEigenMap(QB.second) * mapQ, eps);
+  mat tmpB(Mleft.cols(), mapQ.rows());
+  const auto& mapB = ConstEigenMap(QB.second);
+  tmpB << mat::Identity(tmpB.rows()-mapB.rows(), tmpB.cols()), mapB;
+  EXPECT_NEAR(x_y_ref, Mleft * tmpB * mapQ, eps);
 }
 
 TEST(PITTS_TensorTrain_solve_mals_helper, axpby_loop_from_right_nDim2_rank1)
