@@ -96,15 +96,15 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto r2 = A.r2();
+      assert(A.n() == B.n());
       assert(A.r2() == B.r2());
       const auto r1_ = B.r1();
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "r1_", "nChunks", "r2"},{r1, r1_, nChunks, r2}}, // arguments
-        {{r1*r1_*nChunks*r2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*r2+r1_*nChunks*r2)*kernel_info::Load<Chunk<T>>() + (r1_*r1)*kernel_info::Store<Chunk<T>>()}} // data transfers
+        {{"r1", "r1_", "n", "r2"},{r1, r1_, n, r2}}, // arguments
+        {{r1*n*r2*r1_*kernel_info::FMA<T>()}, // flops
+         {(r1*n*r2+r1_*n*r2)*kernel_info::Load<T>() + (r1*r1_)*kernel_info::Store<T>()}} // data transfers
         );
 
       C.resize(r1,r1_);
@@ -118,16 +118,15 @@ namespace PITTS
     {
       const auto r1 = A.r1();
       const auto n = A.n();
-      const auto nChunks = (long long)((A.n()-1)/Chunk<T>::size+1); // remove this
       const auto rA2 = A.r2();
       assert(A.r1() == B.r1());
       assert(A.n() == B.n());
       const auto rB2 = B.r2();
 
       const auto timer = PITTS::performance::createScopedTimer<TensorTrain<T>>(
-        {{"r1", "nChunks", "rA2", "rB2"},{r1, nChunks, rA2, rB2}}, // arguments
-        {{r1*nChunks*rA2*rB2*Chunk<T>::size*kernel_info::FMA<T>()}, // flops
-         {(r1*nChunks*rA2+r1*nChunks*rB2)*kernel_info::Load<Chunk<T>>() + (rA2*rB2)*kernel_info::Store<T>()}} // data transfers
+        {{"r1", "n", "rA2", "rB2"},{r1, n, rA2, rB2}}, // arguments
+        {{rA2*r1*n*rB2*kernel_info::FMA<T>()}, // flops
+         {(r1*n*rA2+r1*n*rB2)*kernel_info::Load<T>() + (rA2*rB2)*kernel_info::Store<T>()}} // data transfers
         );
 
       C.resize(rA2,rB2);
