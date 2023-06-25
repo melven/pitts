@@ -43,7 +43,7 @@ namespace PITTS
   //! @param mat    2d output tensor resized to dimension (r1*n,r2)
   //!
   template<typename T, class MatrixType>
-  void unfold_left(const Tensor3<T>& t3, MatrixType& mat)
+  [[deprecated("use a Tensor2View instead")]] void unfold_left(const Tensor3<T>& t3, MatrixType& mat)
   {
     const auto r1 = t3.r1();
     const auto n = t3.n();
@@ -75,7 +75,7 @@ namespace PITTS
   //! @param mat    2d output tensor resized to dimension (r1,n*r2)
   //!
   template<typename T, class MatrixType>
-  void unfold_right(const Tensor3<T>& t3, MatrixType& mat)
+  [[deprecated("use a Tensor2View instead")]] void unfold_right(const Tensor3<T>& t3, MatrixType& mat)
   {
     const auto r1 = t3.r1();
     const auto n = t3.n();
