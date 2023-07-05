@@ -30,6 +30,65 @@ void output_entries(double** M, int length, int m)
     putchar('\n');
 }
 
+void check(MultiVector<double>& M, int nThreads, int nIter, int m)
+{
+    int nMaxThreads = omp_get_max_threads();
+    std::vector<double*> plocalBuff_otherThreads(nMaxThreads);
+
+    // only work on a subset of threads if the input dimension is too small
+    if( nIter < nThreads*2 )
+        nThreads = 1 + (nIter-1)/2;
+        
+    for (int iThread = 0; iThread < nThreads; iThread++)
+    {
+        double* plocalBuff = new double[m];
+        // fill with zero
+        for (int i = 0; i < m; i++)
+            plocalBuff[i] = 0;
+        plocalBuff_otherThreads[iThread] = &plocalBuff[0];
+    }
+
+    for (int iThread = 0; iThread < nThreads; iThread++)
+    {
+        const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
+        for(long long iter = firstIter; iter <= lastIter; iter++)
+        {
+            const auto plocalBuff = plocalBuff_otherThreads[iThread];
+            //dummy_transformBlock(m, &M(iter,0), &plocalBuff[0]);
+            for(int i = 0; i < m; i++)
+            {
+                dummy_transformBlock_calc(m, &M(iter,0), &plocalBuff[0], i);
+                dummy_transformBlock_apply(m, &M(iter,0), &plocalBuff[0], i, i+1, i+1, m);
+            }
+        }
+    }
+
+    for(int nextThread = 1; nextThread < nThreads; nextThread*=2)
+    {
+        for (int iThread = 0; iThread < nThreads; iThread++)
+        {
+            if( iThread % (nextThread*2) == 0 && iThread+nextThread < nThreads )
+            {
+                const auto plocalBuff = plocalBuff_otherThreads[iThread];
+                const auto otherLocalBuff = plocalBuff_otherThreads[iThread+nextThread];
+                
+                //dummy_transformBlock(m, &otherLocalBuff[0], &plocalBuff[0]);
+                for(int i = 0; i < m; i++)
+                {
+                    dummy_transformBlock_calc(m, &otherLocalBuff[0], &plocalBuff[0], i);
+                    dummy_transformBlock_apply(m, &otherLocalBuff[0], &plocalBuff[0], i, i+1, i+1, m);
+                }
+            }
+        }
+    }
+    
+    printf("\nCheck entries:\n");
+    output_entries(plocalBuff_otherThreads.data(), nThreads, m);
+
+    for (int iThread = 0; iThread < nThreads; iThread++)
+        delete[] plocalBuff_otherThreads[iThread];
+}
+
 
 void dummy_transformBlock_calc(int m, const double* pdataIn, double* pdataResult, int col)
 {
@@ -40,9 +99,9 @@ void dummy_transformBlock_apply(int m, const double* pdataIn, double* pdataResul
 {
     for (int i = beginCol; i < endCol; i++)
         for (int j = applyBeginCol; j < applyEndCol; j++)
-            pdataResult[j] = 0.5*pdataResult[j] + 0.5*pdataIn[i];       
-}
+            pdataResult[j] = 0.5*pdataResult[j] + 0.5*pdataIn[i];
 
+}
 
 
 void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
@@ -77,17 +136,17 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
 
         if( nCol < 2 )
         {
-            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \tbase case ==> RETURN\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol, applyBeginCol, applyEndCol);
+            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \tbase case ==> RETURN\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol-1, applyBeginCol, applyEndCol-1);
             dummy_transformBlock_apply(m, pdataIn, pdataResult, beginCol, endCol, applyBeginCol, applyEndCol);
         }
         else
         {
             int middle = beginCol + nCol/2;
-            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \trecurse left (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol, applyBeginCol, applyEndCol, beginCol, middle, applyBeginCol, applyEndCol);
+            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \trecurse left (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol, applyBeginCol, applyEndCol, beginCol, middle-1, applyBeginCol, applyEndCol-1);
             tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
-            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \trecurse right (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol, applyBeginCol, applyEndCol, middle, endCol, applyBeginCol, applyEndCol);
+            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \trecurse right (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol, applyBeginCol, applyEndCol, middle, endCol-1, applyBeginCol, applyEndCol-1);
             tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
-            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \tRETURN\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol, applyBeginCol, applyEndCol);
+            printf("%s\033[%dmtree_apply:%s\tthread %d: \tcolumns %d-%d -> %d-%d: \tRETURN\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, endCol-1, applyBeginCol, applyEndCol-1);
 
         }
 
@@ -105,7 +164,7 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
         int nCol = endCol - beginCol;
         if( nCol < 2 )
         {
-            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \tbase case ==> RETURN\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol);
+            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \tbase case ==> RETURN\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol-1);
             for(int col = beginCol; col < endCol; col++)
             {
                 dummy_transformBlock_calc(m, pdataIn, pdataResult, col);
@@ -115,13 +174,13 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
         else
         {
             int middle = beginCol + nCol/2;
-            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \trecurse left (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol, beginCol, middle);
+            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \trecurse left (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol-1, beginCol, middle-1);
             tree_calc(tree_calc, beginCol, middle);
-            printf("%s\033[%dmtree_calc:%s\tthread %d: \tapplying columns %d-%d to %d-%d\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, middle, middle, endCol);
+            printf("%s\033[%dmtree_calc:%s\tthread %d: \tapplying columns %d-%d to %d-%d\033[0m\n", spaces, apply_color, antispaces, iThread, beginCol, middle-1, middle, endCol-1);
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
-            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \trecurse right (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol, middle, endCol);
+            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \trecurse right (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol-1, middle, endCol-1);
             tree_calc(tree_calc, middle, endCol);
-            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \tRETURN\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol);
+            printf("%s\033[%dmtree_calc:%s\tthread %d: \tcolumns %d to %d: \tRETURN\033[0m\n", spaces, calc_color, antispaces, iThread, beginCol, endCol-1);
         }
 
         depth--;
@@ -129,7 +188,7 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
         update_spaces(antispaces, 10 - depth);
     };
 
-    printf("%s\033[%dmtransform_block: \tthread %d: \tcombining columns %d to %d (all)\033[0m\n", spaces, calc_color, iThread, 0, m);
+    printf("%s\033[%dmtransform_block: \tthread %d: \tcombining columns %d to %d (all)\033[0m\n", spaces, calc_color, iThread, 0, m-1);
     tree_calc(tree_calc,0,m);
 }
 
@@ -139,26 +198,21 @@ void dummy_block_TSQR(int nIter, int m)
     MultiVector<double> M(nIter, m);
     for (int i = 0; i < nIter; i++)
         for (int j = 0; j < m; j++)
-            M(i,j) = i*(1./(1 << j));
-    // [  0    0    0 ...
-    // [ 1/1  1/2  1/4 ...
-    // [ 2* above row
-    // [ 3* that row ...
-    // [ .
-    // [   .
-    // [     .
+            M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
     int nMaxThreads = omp_get_max_threads();
     std::vector<double*> plocalBuff_otherThreads(nMaxThreads);
 
     printf("--- BEGIN OF block_TSQR ---\n");
 
+    int numthreads;
 #pragma omp parallel
     {
         auto [iThread,nThreads] = internal::parallel::ompThreadInfo();
         // only work on a subset of threads if the input dimension is too small
         if( nIter < nThreads*2 )
             nThreads = 1 + (nIter-1)/2;
+        numthreads = nThreads;
         
         std::unique_ptr<double[]> plocalBuff;
         if( iThread < nThreads )
@@ -205,10 +259,11 @@ void dummy_block_TSQR(int nIter, int m)
 #pragma omp master
         {
             printf("--- END OF block_TSQR ---\n");
-            double* ptr = plocalBuff.get();
-            output_entries(&ptr, 1, m);
+            output_entries(plocalBuff_otherThreads.data(), numthreads, m);
         }
+#pragma omp barrier // needed in order for other plocalBuff's memory (and hence memory pointed to by plocalBuff_otherThreads) not to be destroyed prematurely
     }
+    check(M, numthreads, nIter, m);
 }
 
 
@@ -216,7 +271,7 @@ int main(int argc, char* argv[])
 {
   PITTS::initialize(&argc, &argv);
 
-  int n = 8;
+  int n = 32;
   int m = 8;
 
   dummy_block_TSQR(n, m);
