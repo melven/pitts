@@ -303,15 +303,15 @@ namespace PITTS
         {
             if (orthog == TT_Orthogonality::none) return false;
 
-            Tensor2<T> core;
+            ConstTensor2View<T> core;
             for (int i = 0; i < A.dimensions().size() - 1; i++)
             {
                 int i_ = (orthog == TT_Orthogonality::left) ? i : i + 1; // shift range by one for right-orthogonality
 
                 if (orthog == TT_Orthogonality::left)
-                    unfold_left(A.subTensor(i_), core);
+                    core = unfold_left(A.subTensor(i_));
                 else
-                    unfold_right(A.subTensor(i_), core);
+                    core = unfold_right(A.subTensor(i_));
 
                 using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
                 auto mat = ConstEigenMap(core);
@@ -323,10 +323,10 @@ namespace PITTS
                 EigenMatrix orthErr = orth - EigenMatrix::Identity(orth.cols(), orth.rows());
                 if (orthErr.array().abs().maxCoeff() > eps)
                 {
-                  std::cout << "Error: Sub-Tensor " << i_ << " should be " << (orthog == TT_Orthogonality::left ? "left" : "right") << "-orthogonal I-V^TV is:\n";
-                  std::cout << orthErr << "\n";
-                  std::cout << "And the tolerance is: " << eps << "\n";
-                  return false;
+                    std::cout << "Error: Sub-Tensor " << i_ << " should be " << (orthog == TT_Orthogonality::left ? "left" : "right") << "-orthogonal I-V^TV is:\n";
+                    std::cout << orthErr << "\n";
+                    std::cout << "And the tolerance is: " << eps << "\n";
+                    return false;
                 }
             }
             return true;
