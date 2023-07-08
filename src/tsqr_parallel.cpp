@@ -2,6 +2,7 @@
 #include "pitts_parallel.hpp"
 #include "pitts_multivector.hpp"
 #include <stdio.h> // using printf because it behaves better when multithreading
+#include <barrier>
 
 using namespace PITTS;
 
@@ -201,7 +202,7 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
  * is small or big).
  * Besides that parallelization, the implementation remains the same as before.
  */
-void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult, int firstThread, int lastThread)
+void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult, int firstThread, int lastThread, std::barrier<>& bar)
 {
     int nChunks = 1;
     int colBlockSize = 1;
@@ -236,17 +237,18 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
             const int relThreadId = iThread - firstThread;
             const int nThreads = lastThread - firstThread;
             auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
-            localApplyEndCol++;
+            localApplyBeginCol += applyBeginCol;
+            localApplyEndCol += applyBeginCol + 1;
             
             printf("%s\033[%dmtree_apply:%s\tthread %d (in team [%d,%d]): \tcolumns %d-%d -> %lld-%lld: \tparallel base case ==> RETURN\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, localApplyBeginCol, localApplyEndCol-1);
-            dummy_transformBlock_apply(m, pdataIn, pdataResult, beginCol, endCol, applyBeginCol, applyEndCol);
+            dummy_transformBlock_apply(m, pdataIn, pdataResult, beginCol, endCol, localApplyBeginCol, localApplyEndCol);
         }
         else
         {
             int middle = beginCol + nCol/2;
-            printf("%s\033[%dmtree_apply:%s\tthread %d (in team [%d,%d]): \tcolumns %d-%d -> %d-%d: \trecurse left (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol, applyBeginCol, applyEndCol, beginCol, middle-1, applyBeginCol, applyEndCol-1);
+            printf("%s\033[%dmtree_apply:%s\tthread %d (in team [%d,%d]): \tcolumns %d-%d -> %d-%d: \trecurse left (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, applyBeginCol, applyEndCol-1, beginCol, middle-1, applyBeginCol, applyEndCol-1);
             tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
-            printf("%s\033[%dmtree_apply:%s\tthread %d (in team [%d,%d]): \tcolumns %d-%d -> %d-%d: \trecurse right (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol, applyBeginCol, applyEndCol, middle, endCol-1, applyBeginCol, applyEndCol-1);
+            printf("%s\033[%dmtree_apply:%s\tthread %d (in team [%d,%d]): \tcolumns %d-%d -> %d-%d: \trecurse right (col %d-%d -> %d-%d)\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, applyBeginCol, applyEndCol-1, middle, endCol-1, applyBeginCol, applyEndCol-1);
             tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
             printf("%s\033[%dmtree_apply:%s\tthread %d (in team [%d,%d]): \tcolumns %d-%d -> %d-%d: \tRETURN\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, applyBeginCol, applyEndCol-1);
         }
@@ -286,11 +288,11 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
             printf("%s\033[%dmtree_calc:%s\tthread %d (in team [%d,%d]): \tcolumns %d to %d: \trecurse left (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, beginCol, middle-1);
             tree_calc(tree_calc, beginCol, middle);
 
-#pragma omp barrier // synchronize the threads [firstThread, lastThread) (need to finish calculating it before applying it)
+            bar.arrive_and_wait(); // synchronize the threads [firstThread, lastThread) (need to finish calculating it before applying it)
             printf("%s\033[%dmtree_calc:%s\tthread %d (in team [%d,%d]): \tapplying columns %d-%d to %d-%d\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, middle-1, middle, endCol-1);
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
 
-#pragma omp barrier // synchronize the threads [firstThread, lastThread) (need to finish applying to it before calculating it)
+            bar.arrive_and_wait();  // synchronize the threads [firstThread, lastThread) (need to finish applying to it before calculating it)
             printf("%s\033[%dmtree_calc:%s\tthread %d (in team [%d,%d]): \tcolumns %d to %d: \trecurse right (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, middle, endCol-1);
             tree_calc(tree_calc, middle, endCol);
 
@@ -302,7 +304,7 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
         update_spaces(antispaces, 10 - depth);
     };
 
-    printf("%s\033[%dmtransform_block: \tthread %d: \tcombining columns %d to %d (all)\033[0m\n", spaces, calc_color, iThread, 0, m-1);
+    printf("%s\033[%dmtransform_block: \tthread %d (in team [%d,%d]): \tcombining columns %d to %d (all)\033[0m\n", spaces, calc_color, iThread, firstThread, lastThread-1, 0, m-1);
     tree_calc(tree_calc,0,m);
 }
 
@@ -391,6 +393,8 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
     int nMaxThreads = omp_get_max_threads();
     std::vector<double*> plocalBuff_otherThreads(nMaxThreads);
 
+    std::vector<std::unique_ptr<std::barrier<>>> localBarrier(nMaxThreads/*times falsesharing stride*/);
+
     printf("--- BEGIN OF block_TSQR ---\n");
 
     int numthreads;
@@ -400,7 +404,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         // only work on a subset of threads if the input dimension is too small
         if( nIter < nThreads*2 )
             nThreads = 1 + (nIter-1)/2;
-        numthreads = nThreads;
+        numthreads = nThreads; // technically race condition...
         
         std::unique_ptr<double[]> plocalBuff;
         if( iThread < nThreads )
@@ -415,10 +419,13 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 
             const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
 
+            // no synchronization after creation needed here because each thread uses exactly its own barrier
+            localBarrier[iThread].reset(new std::barrier(1));
+
             printf("TSQR: \tloopdepth 0 \tthreads [%d,%d]: \tcombining blocks %lld to %lld (M)\n", iThread, iThread, firstIter, lastIter);
             for(long long iter = firstIter; iter <= lastIter; iter++)
             {
-                par_dummy_transformBlock(m, &M(iter,0), &plocalBuff[0], iThread, iThread+1);
+                par_dummy_transformBlock(m, &M(iter,0), &plocalBuff[0], iThread, iThread+1, *localBarrier[iThread]);
                 // with global synchronization: this is funny stuff if not ALL threads call it the SAME number of times
             }
         }
@@ -427,25 +434,31 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         int depth = 1;
         for(int nextThread = 1; nextThread < nThreads; nextThread*=2)
         {
-#pragma omp barrier
-#pragma omp master
-            printf("\n* OMP BARRIER *\n\n");
-#pragma omp barrier
             const int threadteamSize = nextThread*2; // actual thread team size is lastThread-bossThread
             const int bossThread = iThread - iThread % threadteamSize;
             const int lastThread = std::min(bossThread + threadteamSize, nThreads);
             // in following special case, could add following unused threads
             //if (lastThread < nThreads && bossThread+3*nextThread >= nThreads)
             //    lastThread = nThreads;
-            
+
+            // create local barrier before(!) global barrier to ensure all threads in team have the same view of them
+            if (iThread == bossThread && iThread < nThreads) // iThread < nThreads s.t. lastThread-bossThread non-negative
+                localBarrier[bossThread].reset(new std::barrier(lastThread-bossThread));
+
+#pragma omp barrier
+#pragma omp master
+            printf("\n* OMP BARRIER *\n\n");
+#pragma omp barrier
+
             // with global synchronization: this is funny stuff if nIter is not a power of 2!!!
             if (bossThread+nextThread < nThreads)
             {
-                printf("TSQR: \tloopdepth %d \tthreads [%d,%d]: \tcombining block %d and %d (localBuffs)\n", depth, bossThread, lastThread-1, iThread, iThread+nextThread);
-                const auto otherLocalBuff = plocalBuff_otherThreads[iThread+nextThread];
-                par_dummy_transformBlock(m, &otherLocalBuff[0], &plocalBuff[0], bossThread, lastThread);
+                printf("TSQR: \tloopdepth %d \tthreads [%d,%d] (I'm thread %d): \tcombining block %d and %d (localBuffs)\n", depth, bossThread, lastThread-1, iThread, bossThread, bossThread+nextThread);
+                const auto bossLocalBuff = plocalBuff_otherThreads[bossThread];
+                const auto otherLocalBuff = plocalBuff_otherThreads[bossThread+nextThread];
+                par_dummy_transformBlock(m, &otherLocalBuff[0], &bossLocalBuff[0], bossThread, lastThread, *localBarrier[bossThread]);
             }
-        depth++;
+            depth++;
         }
 
 #pragma omp barrier
