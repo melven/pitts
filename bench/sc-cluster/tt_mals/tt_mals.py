@@ -29,6 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('-Rr', type=int, help='TT-ranks of the random part of the operator', default=2)
     parser.add_argument('-L', type=float, help='Coefficient of the Laplace/diffusion part of the operator', default=1.0)
     parser.add_argument('-C', type=float, help='Coefficient of the convection part of the operator, gets scaled by 1/sqrt(d) to obtain a dimension-independent constant convection velocity', default=0.1)
+    parser.add_argument('--SpinChainSZ', type=float, help='Coefficient of the SpinChain part of the operator', default=0)
 
     # preconditioner setup
     parser.add_argument('--preconditioner', type=str, help='type of the preconditioner', choices=['none', 'TT-rank1'], default='none')
@@ -52,6 +53,7 @@ if __name__ == '__main__':
     parser.add_argument('--maxRank', type=int, default=150, help='max. TT rank')
     parser.add_argument('--gmresMaxIter', type=int, help='max. number of inner GMRES iterations', default=100)
     parser.add_argument('--gmresRelTol', type=float, help='relative tolerance for the inner GMRES iterations', default=1.e-3)
+    parser.add_argument('--toQttOp', action='store_true', help='Convert operator to quantized tensor-train format.')
 
 
     args = parser.parse_args()
@@ -99,6 +101,21 @@ if __name__ == '__main__':
         symmetric = False
         kappa_est += args.C * 1.3 # * n / n
         kappa_w += args.C/args.n
+    if args.SpinChainSZ != 0.0:
+        # build spin-chain operator with ITensor
+        assert(args.n == 2)
+        siteSet = pitts_py.itensor.SpinHalf(args.d)
+        
+        ampo = pitts_py.itensor.AutoMPO(siteSet)
+        for j in range(1, args.d):
+            ampo += 0.5,"S+",j,"S-",j+1
+            ampo += 0.5,"S-",j,"S+",j+1
+            ampo +=     "Sz",j,"Sz",j+1
+
+        TTOpSpinChain = pitts_py.itensor.toTTOp(ampo)
+        pitts_py.axpby(args.SpinChainSZ, TTOpSpinChain, 1, TTOp)
+        kappa_est += args.SpinChinSZ
+        kappa_w += args.SpinChinSZ
     print('# TTOp dims/ranks:')
     print(TTOp)
     kappa_est /= kappa_w
