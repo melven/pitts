@@ -34,7 +34,7 @@ namespace PITTS
   }
 
   //! A tensor-train can be left- or right-orthogonal (or none of both)
-  enum class TT_Orthogonality : unsigned char
+  enum struct TT_Orthogonality : unsigned char
   {
     //! Currently not orthogonal or unknown
     none = 0,
@@ -287,8 +287,8 @@ namespace PITTS
       //!
       [[nodiscard]] TT_Orthogonality isOrthogonal() const noexcept
       {
-        const bool leftOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end()-1, [](TT_Orthogonality o){return o & TT_Orthogonality::left;});
-        const bool rightOrtho = std::all_of(orthonormal_.begin()+1, orthonormal_.end(), [](TT_Orthogonality o){return o & TT_Orthogonality::right;});
+        const bool leftOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end()-1, [](TT_Orthogonality o) -> bool {return (o & TT_Orthogonality::left) != TT_Orthogonality::none;});
+        const bool rightOrtho = std::all_of(orthonormal_.begin()+1, orthonormal_.end(), [](TT_Orthogonality o) -> bool {return (o & TT_Orthogonality::right) != TT_Orthogonality::none;});
         TT_Orthogonality result = TT_Orthogonality::none;
         if( leftOrtho )
           result = result | TT_Orthogonality::left;
@@ -303,8 +303,8 @@ namespace PITTS
       //!
       [[nodiscard]] TT_Orthogonality isOrthonormal() const noexcept
       {
-        const bool leftOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end(), [](TT_Orthogonality o){return o & TT_Orthogonality::left;});
-        const bool rightOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end(), [](TT_Orthogonality o){return o & TT_Orthogonality::right;});
+        const bool leftOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end(), [](TT_Orthogonality o) {return (o & TT_Orthogonality::left) != TT_Orthogonality::none;});
+        const bool rightOrtho = std::all_of(orthonormal_.begin(), orthonormal_.end(), [](TT_Orthogonality o) {return (o & TT_Orthogonality::right) != TT_Orthogonality::none;});
         TT_Orthogonality result = TT_Orthogonality::none;
         if( leftOrtho )
           result = result | TT_Orthogonality::left;
