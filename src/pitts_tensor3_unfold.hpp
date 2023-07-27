@@ -191,6 +191,30 @@ namespace PITTS
   }
 
 
+  //! right-unfold a 3d tensor into a 2d tensor, moving it's data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param mv     [in] tensor3 of dimension (r1,n,r2)
+  //!
+  template <typename T>
+  Tensor2<T> unfold_right(Tensor3<T>&& mv)
+  {
+    return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1(), mv.n()*mv.r2());
+  }
+
+  //! left-unfold a 3d tensor into a 2d tensor, moving it's data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param mv     [in] tensor3 of dimension (r1,n,r2)
+  //!
+  template <typename T>
+  Tensor2<T> unfold_left(Tensor3<T>&& mv)
+  {
+    return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1()*mv.n(), mv.r2());
+  }
+  
   //! reshape a 3d tensor to a vector flattening dimensions (without copying data)
   //!
   //! @tparam T             underlying data type (double, complex, ...)
@@ -207,6 +231,7 @@ namespace PITTS
     return MultiVector<T>(std::move(data), reservedChunks, size, 1);
   }
   template MultiVector<double> unfold(Tensor3<double>&&);
+
 
   //! create a Tensor2 view of a right-unfolded Tensor3
   //!
@@ -244,30 +269,6 @@ namespace PITTS
   ConstTensor2View<T> unfold_left(const Tensor3<T>& t3)
   {
     return ConstTensor2View<T>(const_cast<Chunk<T>*>(t3.data()), t3.r1()*t3.n(), t3.r2());
-  }
-
-  //! right-unfold a 3d tensor into a 2d tensor, moving it's data
-  //!
-  //! @tparam T     underlying data type (double, complex, ...)
-  //!
-  //! @param mv     [in] tensor3 of dimension (r1,n,r2)
-  //!
-  template <typename T>
-  Tensor2<T> unfold_right(Tensor3<T>&& mv)
-  {
-    return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1(), mv.n()*mv.r2());
-  }
-
-  //! left-unfold a 3d tensor into a 2d tensor, moving it's data
-  //!
-  //! @tparam T     underlying data type (double, complex, ...)
-  //!
-  //! @param mv     [in] tensor3 of dimension (r1,n,r2)
-  //!
-  template <typename T>
-  Tensor2<T> unfold_left(Tensor3<T>&& mv)
-  {
-    return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1()*mv.n(), mv.r2());
   }
 }
   
