@@ -136,7 +136,13 @@ namespace PITTS
   template <typename T>
   Tensor2<T> unfold_right(Tensor3<T>&& t3)
   {
-    return Tensor2<T>(std::move(t3), t3.reservedChunks(), t3.r1(), t3.n()*t3.r2());
+    // need to extract dimensions before move
+    const auto reservedChunks = t3.reservedChunks();
+    const auto r1 = t3.r1();
+    const auto n = t3.n();
+    const auto r2 = t3.r2();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t3);
+    return Tensor2<T>(std::move(data), reservedChunks, r1, n*r2);
   }
 
   //! left-unfold a 3d tensor into a 2d tensor, moving it's data
@@ -149,7 +155,13 @@ namespace PITTS
   template <typename T>
   Tensor2<T> unfold_left(Tensor3<T>&& t3)
   {
-    return Tensor2<T>(std::move(t3), t3.reservedChunks(), t3.r1()*t3.n(), t3.r2());
+    // need to extract dimensions before move
+    const auto reservedChunks = t3.reservedChunks();
+    const auto r1 = t3.r1();
+    const auto n = t3.n();
+    const auto r2 = t3.r2();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t3);
+    return Tensor2<T>(std::move(data), reservedChunks, r1*n, r2);
   }
   
   //! reshape a 3d tensor to a vector flattening dimensions (without copying data)
@@ -162,9 +174,14 @@ namespace PITTS
   template<typename T>
   MultiVector<T> unfold(Tensor3<T>&& t3)
   {
-    return MultiVector<T>(std::move(t3), t3.reservedChunks(), t3.r1() * t3.n() * t3.r2(), 1);
+    // need to extract dimensions before move
+    const auto reservedChunks = t3.reservedChunks();
+    const auto r1 = t3.r1();
+    const auto n = t3.n();
+    const auto r2 = t3.r2();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t3);
+    return MultiVector<T>(std::move(data), reservedChunks, r1*n*r2, 1);
   }
-  template MultiVector<double> unfold(Tensor3<double>&&);
 
 
   //! create a Tensor2 view of a right-unfolded Tensor3
