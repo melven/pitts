@@ -245,6 +245,19 @@ namespace PITTS
   {
     return ConstTensor2View<T>(const_cast<Chunk<T>*>(t3.data()), t3.r1()*t3.n(), t3.r2());
   }
+
+
+  template <typename T>
+  Tensor2<T> unfold_right(Tensor3<T>&& mv)
+  {
+    return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1(), mv.n()*mv.r2());
+  }
+
+  template <typename T>
+  Tensor2<T> unfold_left(Tensor3<T>&& mv)
+  {
+    return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1()*mv.n(), mv.r2());
+  }
 }
   
 #endif // PITTS_TENSOR3_UNFOLD_HPP
