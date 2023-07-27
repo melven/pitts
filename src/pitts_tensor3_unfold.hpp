@@ -246,13 +246,24 @@ namespace PITTS
     return ConstTensor2View<T>(const_cast<Chunk<T>*>(t3.data()), t3.r1()*t3.n(), t3.r2());
   }
 
-
+  //! right-unfold a 3d tensor into a 2d tensor, moving it's data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param mv     [in] tensor3 of dimension (r1,n,r2)
+  //!
   template <typename T>
   Tensor2<T> unfold_right(Tensor3<T>&& mv)
   {
     return Tensor2<T>(std::move(mv), mv.reservedChunks(), mv.r1(), mv.n()*mv.r2());
   }
 
+  //! left-unfold a 3d tensor into a 2d tensor, moving it's data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param mv     [in] tensor3 of dimension (r1,n,r2)
+  //!
   template <typename T>
   Tensor2<T> unfold_left(Tensor3<T>&& mv)
   {

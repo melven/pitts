@@ -189,7 +189,6 @@ namespace PITTS
   //!
   //! @param mv     input tensor2 of dimension (r1*n,r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
-  //! @param t3     output tensor resized to dimensions (r1,n,r2)
   //!
   template<typename T>
   Tensor3<T> fold_left(Tensor2<T>&& mv, long long n)
@@ -209,7 +208,6 @@ namespace PITTS
   //!
   //! @param mv     input tensor2 of dimension (r1,n*r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
-  //! @param t3     output tensor resized to dimensions (r1,n,r2)
   //!
   template<typename T>
   Tensor3<T> fold_right(Tensor2<T>&& mv, long long n)
