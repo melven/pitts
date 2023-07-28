@@ -50,7 +50,7 @@ namespace PITTS
   // implement TT GMRES solver
   template <typename T>
   std::pair<T,T> solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
-                            int maxIter, T absResTol, T relResTol,
+                            int maxIter, T absResTol, T relResTol, T estimatedCond,
                             int maxRank, bool adaptiveTolerance, bool symmetric,
                             const std::string_view &outputPrefix, bool verbose)
   {
@@ -87,6 +87,7 @@ namespace PITTS
     mat R = mat::Zero(maxIter, maxIter);
     vec c = vec::Zero(maxIter);
     vec s = vec::Zero(maxIter);
+vec rankTols = vec::Zero(maxIter);
 
     // current residual
     T rho = beta;
@@ -96,7 +97,8 @@ namespace PITTS
       TensorTrain<T> w(TTb.dimensions());
       apply(TTOpA, V[i], w);
 
-      T rankTolerance = residualTolerance / maxIter / T(2.0);
+      // according to Simoncini2003 (Inexact Krylov methods), this also needs a constant that depends on cond(H) or cond(A)...
+      T rankTolerance = residualTolerance / maxIter / T(2.0) / estimatedCond;
       if( adaptiveTolerance )
         rankTolerance *= beta / rho;
 
@@ -121,7 +123,8 @@ namespace PITTS
         std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / beta << " (rel), ranks: " << internal::to_string(V[i+1].getTTranks()) << "\n";
 
       // check convergence
-      if( rho/beta <= residualTolerance )
+      // (incorporate possible difference between exact and inexact residual norm)
+      if( rho/beta <= residualTolerance / T(2.0) )
         break;
     }
 
@@ -136,7 +139,7 @@ namespace PITTS
       // first add up the delta x (better accuracy as it is probably much smaller than the old x)
       auto& TTdelta_x = V[m-1];
       T nrm_delta_x = T(-y(m-1));
-      const T rankTolerance = residualTolerance / m / T(2.0) * std::min(T(1), beta/nrm_b);
+      const T rankTolerance = residualTolerance / m / T(2.0) * std::min(T(1), beta/nrm_b) / estimatedCond;
       for(int j = m-2; j >= 0; j--)
         nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTolerance, maxRank);
 

@@ -33,17 +33,17 @@ namespace PITTS
       void init_TensorTrain_solve_helper(py::module& m, [[maybe_unused]] const std::string& type_name)
       {
         m.def("solveMALS",
-            py::overload_cast< const TensorTrainOperator<T>&, bool, MALS_projection, const TensorTrain<T>&, TensorTrain<T>&, int, T, int, int, int, int, bool, bool, int, T>(&solveMALS<T>),
+            &solveMALS<T>,
             py::arg("TTOpA"), py::arg("symmetric"), py::arg("projection"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
             py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(),
             py::arg("nMALS")=2, py::arg("nOverlap")=1, py::arg("nAMEnEnrichment")=0, py::arg("simplifiedAMEn")=true,
-            py::arg("useTTgmres")=false, py::arg("gmresMaxIter") = 25, py::arg("gmresRelTol") = 1.e-4,
+            py::arg("useTTgmres")=false, py::arg("gmresMaxIter") = 25, py::arg("gmresRelTol") = 1.e-4, py::arg("estimatedConditionTTgmres") = 10,
             "Solve a linear system using the MALS (or ALS) algorithm\n\nApproximate TTx with TTOpA * TTx = TTb");
         
         m.def("solveGMRES",
             &solveGMRES<T>,
             py::arg("TTOpA"), py::arg("TTb"), py::arg("TTx"),
-            py::arg("maxIter"), py::arg("absResTol"), py::arg("relResTol"),
+            py::arg("maxIter"), py::arg("absResTol"), py::arg("relResTol"), py::arg("estimatedCondition"),
             py::arg("maxRank")=std::numeric_limits<int>::max(), py::arg("adaptiveTolerance")=true, py::arg("symmetric")=false,
             py::arg("outputPrefix")="", py::arg("verbose")=false,
             "TT-GMRES: iterative solver for linear systems in tensor-train format");
