@@ -67,14 +67,15 @@ namespace PITTS
     // adjust first vector in V to consider for symmetric cases
     const int firstV = symmetric ? std::max(0, nV-2) : 0;
 
-    T alpha = normalize(w, rankTolerance, maxRank);
     arr h = arr::Zero(nV+1);
     if( nV == 0 )
     {
-      h(0) = alpha;
+      h(0) = normalize(w, rankTolerance, maxRank);
       V.emplace_back(std::move(w));
       return h;
     }
+
+    T alpha = normalize(w, rankTolerance / (nV-firstV) / T(2), maxRank);
 
     arr Vtw = arr::Zero(nV);
     for(int iter = 0; iter < nIter; iter++)
@@ -90,6 +91,17 @@ namespace PITTS
         if( maxErr < rankTolerance )
           break;
       }
+
+      int nEff = nV - firstV;
+      if( skipDirs && pivoting )
+      {
+        nEff = 0;
+        for(int i = firstV; i < nV; i++)
+          if( std::abs(Vtw(i)) >= rankTolerance )
+            nEff++;
+      }
+      if( iter+1 < nIter )
+        nEff *= 2;
 
       for(int i = firstV; i < nV; i++)
       {
@@ -112,7 +124,7 @@ namespace PITTS
           beta = dot(V[pivot], w);
         
         h(pivot) += alpha * beta;
-        alpha = alpha * axpby(-beta, V[pivot], T(1), w, rankTolerance, maxRank);
+        alpha = alpha * axpby(-beta, V[pivot], T(1), w, rankTolerance / nEff, maxRank);
         Vtw(pivot) = T(0);
       }
     }
@@ -128,6 +140,8 @@ namespace PITTS
         std::cout << outputPrefix << "orthog. max. error: " << maxErr << ", w max. rank: " << internal::maxRank(w) << "\n";
       }
     }
+    
+    alpha = alpha * normalize(w, rankTolerance, maxRank);
 
     V.emplace_back(std::move(w));
     h(nV) = alpha;
