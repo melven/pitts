@@ -8,6 +8,10 @@ __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2022-08-05'
 
 import argparse
+try:
+    import pylikwid
+except ModuleNotFoundError:
+    pylikwid = None
 import pitts_py
 import timeit
 import numpy as np
@@ -17,6 +21,9 @@ from tt_convection_operator import ConvectionOperator
 
 
 if __name__ == '__main__':
+    if pylikwid is not None:
+        pylikwid.markerinit()
+
     pitts_py.initialize()
 
     parser = argparse.ArgumentParser(description="Run TT-MALS tests for a generated n^d problem (a*I + b*rand(rank_k) + c*Laplace + d*Convection")
@@ -202,12 +209,19 @@ if __name__ == '__main__':
         raise ValueError("Unknown preconditioner type '"+args.preconditioner+'"')
 
     pitts_py.clearPerformanceStatistics()
+    if pylikwid is not None:
+        pylikwid.markerregisterregion("solveMALS")
+        pylikwid.markerstartregion("solveMALS")
+
     resNorm = pitts_py.solveMALS(
             TTOp, symmetric, projection, b, x,
             nSweeps=args.nSweeps, residualTolerance=args.eps, maxRank=args.maxRank, nMALS=args.nMALS, nOverlap=args.nOverlap,
             useTTgmres=args.useTTgmres, gmresMaxIter=args.gmresMaxIter, gmresRelTol=args.gmresRelTol, nAMEnEnrichment=args.nAMEnEnrichment,
             simplifiedAMEn=not args.nonsimplifiedAMEn, estimatedConditionTTgmres = kappa_est)
 
+
+    if pylikwid is not None:
+        pylikwid.markerstopregion("solveMALS")
     print("resNorm %g" % resNorm)
     pitts_py.printPerformanceStatistics()
 
@@ -229,4 +243,7 @@ if __name__ == '__main__':
 
 
     pitts_py.finalize(verbose=False)
+
+    if pylikwid is not None:
+        pylikwid.markerclose()
 

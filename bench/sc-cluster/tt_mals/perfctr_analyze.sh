@@ -13,7 +13,7 @@ for f in $*; do
 
   fgrep '# Arguments' $f | sed 's/.*(n=//' | sed 's/, d=/ /' | sed "s/, I=.*rhs_type='/ /" | sed "s/', rhs_random_rank=/ /" | sed 's/, lhs_type.*//' | sed 's/rhs_ones.*/ones/' | sed 's/rhs_random //' >> t0_
 
-  fgrep RDTSC $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT *|[ 0-9.]*|[ 0-9.]*|[ 0-9.]*//' | awk '{print $6}' >> t1
+  fgrep 'Runtime (RDTSC)' $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT *|[ 0-9.]*|[ 0-9.]*|[ 0-9.]*//' | awk '{print $6}' >> t1
   fgrep "  DP [MFLOP" $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $5}' >> t2
   fgrep unhalted $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $6}' >> t3
   gmresIterText=$(fgrep 'apply(const TTOpApplyDenseHelper' $f)

@@ -14,5 +14,14 @@ export PYTHONUNBUFFERED=1
 ulimit -s unlimited
 export OMP_STACKSIZE=100M
 
-srun likwid-pin -c 0-15 python ttpy_amen.py
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank  5
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 10
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 15
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 20
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 25
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 30
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 35
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 40
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 45
+srun likwid-pin -c 0-15 python ttpy_amen.py -n 50 -d 10 --rhs_random_rank 50
 
