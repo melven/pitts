@@ -24,7 +24,7 @@ if __name__ == '__main__':
     if pylikwid is not None:
         pylikwid.markerinit()
 
-    pitts_py.initialize()
+    pitts_py.initialize(randomSeed=42)
 
     parser = argparse.ArgumentParser(description="Run TT-MALS tests for a generated n^d problem (a*I + b*rand(rank_k) + c*Laplace + d*Convection")
 
