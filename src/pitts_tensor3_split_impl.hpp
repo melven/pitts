@@ -449,6 +449,20 @@ namespace PITTS
       svd.setThreshold(rankTol);
       using Index = decltype(svd.rank());
       const auto r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
+      // This would be the correct truncation in the Frobenius norm but it does not work robustly in a complete algorithm
+      // as you don't know the norm of the exact tensor (so truncating twice gives a less accurate result!)
+      // using Index = decltype(svd.rank());
+      // Index r = svd.rank();
+      // T squaredError = 0;
+      // const T squaredNorm = svd.singularValues().squaredNorm();
+      // while( r > 1 )
+      // {
+      //   squaredError += svd.singularValues()(r-1)*svd.singularValues()(r-1);
+      //   if( squaredError > rankTol*rankTol * squaredNorm )
+      //     break;
+      //   r--;
+      // }
+      // r = std::max(Index(1), std::min(r, Index(maxRank)));
 
       // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
       using RealType = decltype(std::abs(T(0)));
