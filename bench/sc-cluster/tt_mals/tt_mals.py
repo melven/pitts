@@ -69,10 +69,16 @@ if __name__ == '__main__':
     elif args.projection == 'NormalEquations':
         projection = pitts_py.MALS_projection.NormalEquations
 
+    # we need to estimate the condition number for TT-gmres
+    kappa_est = 0
+    kappa_w = 0
+
     if args.I != 0.0:
         TTOpEye = pitts_py.TensorTrainOperator_double(dims, dims)
         TTOpEye.setEye()
         pits_py.axpby(args.I, TTOpEye, 1, TTOp)
+        kappa_est += args.I * 1
+        kappa_w += args.I
     if args.Rc != 0.0:
         TTOpRand = pitts_py.TensorTrainOperator_double(dims, dims)
         TTOpRand.setTTranks(args.Rr)
@@ -80,13 +86,31 @@ if __name__ == '__main__':
         pitts_py.normalize(TTOpRand)
         pitts_py.axpby(args.Rc, TTOpRand, 1, TTOp)
         symmetric = False
+        kappa_est += args.Rc * 4 * args.n
+        kappa_w += args.Rc
     if args.L != 0.0:
         TTOpLaplace = LaplaceOperator(dims)
         pitts_py.axpby(args.L, TTOpLaplace, 1, TTOp)
+        kappa_est += args.L * 0.4 # * n^2 / n^2
+        kappa_w += args.L/args.n/args.n
     if args.C != 0.0:
         TTOpConvection = ConvectionOperator(dims)
         pitts_py.axpby(args.C/np.sqrt(args.d), TTOpConvection, 1, TTOp)
         symmetric = False
+        kappa_est += args.C * 1.3 # * n / n
+        kappa_w += args.C/args.n
+    print('# TTOp dims/ranks:')
+    print(TTOp)
+    kappa_est /= kappa_w
+    print('# estimated condition number', kappa_est)
+
+    if args.toQttOp:
+        unquantizedTTOp = TTOp
+        TTOp = pitts_py.toQtt(unquantizedTTOp)
+        dims = TTOp.row_dimensions()
+        print('# quantized TTOp dims/ranks:')
+        print(TTOp)
+
 
     b = pitts_py.TensorTrain_double(dims)
     if args.rhs_type == 'rhs_random':
@@ -154,16 +178,19 @@ if __name__ == '__main__':
 
         wtime = timeit.default_timer() - wtime
         print('Preconditioner setup wtime:', wtime)
+
+        # precondtioning reduces the condition number...
+        kappa_est = min(30, kappa_est)
     else:
         raise ValueError("Unknown preconditioner type '"+args.preconditioner+'"')
-
 
     pitts_py.clearPerformanceStatistics()
     resNorm = pitts_py.solveMALS(
             TTOp, symmetric, projection, b, x,
             nSweeps=args.nSweeps, residualTolerance=args.eps, maxRank=args.maxRank, nMALS=args.nMALS, nOverlap=args.nOverlap,
             useTTgmres=args.useTTgmres, gmresMaxIter=args.gmresMaxIter, gmresRelTol=args.gmresRelTol, nAMEnEnrichment=args.nAMEnEnrichment,
-            simplifiedAMEn=not args.nonsimplifiedAMEn)
+            simplifiedAMEn=not args.nonsimplifiedAMEn, estimatedConditionTTgmres = kappa_est)
+
     print("resNorm %g" % resNorm)
     pitts_py.printPerformanceStatistics()
 

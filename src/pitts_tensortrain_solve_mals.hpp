@@ -58,23 +58,24 @@ namespace PITTS
   //!
   //! @tparam T             data type (double, float, complex)
   //!
-  //! @param TTOpA              tensor-train operator A
-  //! @param symmetric          is the operator symmetric?
-  //! @param projection         defines different variants for defining the local sub-problem in the MALS algorithm, for symmetric problems choose RitzGalerkin
-  //! @param TTb                right-hand side tensor-train b
-  //! @param TTx                initial guess on input, overwritten with the (approximate) result on output
-  //! @param nSweeps            desired number of MALS sweeps
-  //! @param residualTolerance  desired approximation accuracy, used to abort the iteration and to reduce the TTranks in the iteration
-  //! @param maxRank            maximal allowed TT-rank, enforced even if this violates the residualTolerance
-  //! @param nMALS              number of sub-tensors to combine as one local problem (1 for ALS, 2 for MALS, nDim for global GMRES)
-  //! @param nOverlap           overlap (number of sub-tensors) of two consecutive local problems in one sweep (0 for ALS 1 for MALS, must be < nMALS)
-  //! @param nAMEnEnrichment    increases the rank after each step by nAMEnEnrichtment using directions from the current residual
-  //!                           So with nMALS=1, nOverlap=0, nAMEnEnrichment > 0, one obtains the AMEn method.
-  //! @param simplifiedAMEn     Just use the local residual for the AMEn subspace enrichment
-  //! @param useTTgmres         use TT-GMRES for the local problem instead of normal GMRES with dense vectors
-  //! @param gmresMaxITer       max. number of iterations for the inner (TT-)GMRES iteration
-  //! @param gmresRelTol        relative residual tolerance for the inner (TT-)GMRES iteration
-  //! @return                   residual norm of the result (||Ax - b||)
+  //! @param TTOpA                      tensor-train operator A
+  //! @param symmetric                  is the operator symmetric?
+  //! @param projection                 defines different variants for defining the local sub-problem in the MALS algorithm, for symmetric problems choose RitzGalerkin
+  //! @param TTb                        right-hand side tensor-train b
+  //! @param TTx                        initial guess on input, overwritten with the (approximate) result on output
+  //! @param nSweeps                    desired number of MALS sweeps
+  //! @param residualTolerance          desired approximation accuracy, used to abort the iteration and to reduce the TTranks in the iteration
+  //! @param maxRank                    maximal allowed TT-rank, enforced even if this violates the residualTolerance
+  //! @param nMALS                      number of sub-tensors to combine as one local problem (1 for ALS, 2 for MALS, nDim for global GMRES)
+  //! @param nOverlap                   overlap (number of sub-tensors) of two consecutive local problems in one sweep (0 for ALS 1 for MALS, must be < nMALS)
+  //! @param nAMEnEnrichment            increases the rank after each step by nAMEnEnrichtment using directions from the current residual
+  //!                                   So with nMALS=1, nOverlap=0, nAMEnEnrichment > 0, one obtains the AMEn method.
+  //! @param simplifiedAMEn             Just use the local residual for the AMEn subspace enrichment
+  //! @param useTTgmres                 use TT-GMRES for the local problem instead of normal GMRES with dense vectors
+  //! @param gmresMaxITer               max. number of iterations for the inner (TT-)GMRES iteration
+  //! @param gmresRelTol                relative residual tolerance for the inner (TT-)GMRES iteration
+  //! @param estimatedConditionTTgmres  estimated condition number of the inner iteration, required for TT-gmres
+  //! @return                           residual norm of the result (||Ax - b||)
   //!
   template<typename T>
   T solveMALS(const TensorTrainOperator<T>& TTOpA,
@@ -86,7 +87,7 @@ namespace PITTS
               T residualTolerance = std::sqrt(std::numeric_limits<T>::epsilon()),
               int maxRank = std::numeric_limits<int>::max(),
               int nMALS = 2, int nOverlap = 1, int nAMEnEnrichment = 0, bool simplifiedAMEn = false,
-              bool useTTgmres = false, int gmresMaxIter = 25, T gmresRelTol = T(1.e-4));
+              bool useTTgmres = false, int gmresMaxIter = 25, T gmresRelTol = T(1.e-4), T estimatedConditionTTgmres = 10);
 
 }
 
