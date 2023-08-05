@@ -63,7 +63,7 @@ namespace PITTS
 
     // RHS norm (just for information, might be useful to adjust tolerances...)
     const T nrm_b = norm2(TTb);
-    const T r0_rankTol = relResTol / maxIter * T(0.1);
+    const T r0_rankTol = relResTol / maxIter * T(0.1) / estimatedCond;
     const T V0_rankTol = std::numeric_limits<T>::epsilon() * 100;
 
     std::vector<TensorTrain<T>> V;
@@ -87,7 +87,6 @@ namespace PITTS
     mat R = mat::Zero(maxIter, maxIter);
     vec c = vec::Zero(maxIter);
     vec s = vec::Zero(maxIter);
-vec rankTols = vec::Zero(maxIter);
 
     // current residual
     T rho = beta;
@@ -103,6 +102,13 @@ vec rankTols = vec::Zero(maxIter);
         rankTolerance *= beta / rho;
 
       H.col(i).segment(0, i+2) = gramSchmidt(V, w, rankTolerance, maxRank, symmetric, outputPrefix_gramSchmidt, verbose); // for standard MGS: , 1, false, true, false);
+      // H(i+1,i) = normalize(w, rankTolerance, maxRank);
+      // for(int j = 0; j <= i; j++)
+      // {
+      //   H(j,i) = H(i+1,i) * dot(V[j], w);
+      //   H(i+1,i) = axpby(-H(j,i), V[j], H(i+1,i), w, rankTolerance, maxRank);
+      // }
+      // V.emplace_back(std::move(w));
 
       // least squares solve using Givens rotations
       R(0,i) = H(0,i);
@@ -139,12 +145,12 @@ vec rankTols = vec::Zero(maxIter);
       // first add up the delta x (better accuracy as it is probably much smaller than the old x)
       auto& TTdelta_x = V[m-1];
       T nrm_delta_x = T(-y(m-1));
-      const T rankTolerance = residualTolerance / m / T(2.0) * std::min(T(1), beta/nrm_b) / estimatedCond;
+      const T rankTol_x = residualTolerance * std::min(T(1), beta/nrm_b) / estimatedCond;
       for(int j = m-2; j >= 0; j--)
-        nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTolerance, maxRank);
+        nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTol_x / m / T(2.0), maxRank);
 
       // it would be nice to adjust this tolerance here for adding the deltaX to X - but all my variants just made it worse when called from MALS
-      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTolerance, maxRank);
+      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTol_x, maxRank);
       TTx.editSubTensor(0, [nrm_x](Tensor3<T>& subT){internal::t3_scale(nrm_x, subT);});
     }
 
