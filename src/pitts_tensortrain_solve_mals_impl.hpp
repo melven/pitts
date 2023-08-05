@@ -231,11 +231,11 @@ namespace PITTS
           tt_x.setZero();
         
         absTol = gmresRelTol * residualTolerance * nrm_TTb;
-        // unfortunately, the dynamic tolerance doesn't work well for MALS (no convergence to desired residual due to too few inner iterations)
-        if( nMALS == 1 )
-          relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
-        else // nMALS > 1
-          relTol = gmresRelTol;
+        relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+        // solveGMRES (TT-GMRES) uses the bigger one of the absolute and the relative tolerance (times norm(rhs)) for truncating the solution
+        // This is too inaccurate close to the solution with the adaptive tolerance...
+        if( useTTgmres )
+          relTol = gmresRelTol; //std::min(T(0.1), relTol);
       }
       
       if( relTol < T(1) )
