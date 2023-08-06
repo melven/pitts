@@ -183,7 +183,7 @@ namespace PITTS
 
           // calculate QR of subT(: : x :)
           auto [Q, B] = internal::normalize_qb(t2, true);
-          fold_left(Q, subTz.n(), QB.first);
+          QB.first = fold_left(std::move(Q), subTz.n());
           QB.second = std::move(B);
         };
       }
@@ -210,7 +210,7 @@ namespace PITTS
 
           // calculate LQt of subT(: : x :)
           auto [B, Qt] = internal::normalize_qb(t2, false);
-          fold_right(Qt, subTz.n(), QB.first);
+          QB.first = fold_right(std::move(Qt), subTz.n());
           QB.second = std::move(B);
         };
       }
