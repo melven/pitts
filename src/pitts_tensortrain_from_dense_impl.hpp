@@ -54,10 +54,10 @@ namespace PITTS
       // special case: nDim = 1
       if( nDims == 1 )
       {
-        Tensor3<T> subT;
-        fold(X, r0, dimensions[0], rd, subT);
-        TensorTrain<T> result(dimensions);
-        result.setSubTensor(0, std::move(subT));
+        std::vector<Tensor3<T>> subT;
+        // hopefully not strange for the caller that we steel its memory here
+        subT.emplace_back(fold(std::move(X), r0, dimensions[0], rd));
+        TensorTrain<T> result(std::move(subT));
         return result;
       }
       std::cout << "Warning: sub-optimal input dimension in fromDense, performing an additional copy...\n";
