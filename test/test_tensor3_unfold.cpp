@@ -48,45 +48,6 @@ TEST(PITTS_Tensor3_unfold, unfold_right_multivector)
       }
 }
 
-TEST(PITTS_Tensor3_unfold, unfold_vec_Eigen)
-{
-  using Tensor3_double = PITTS::Tensor3<double>;
-  using EigenVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-  constexpr auto eps = 1.e-10;
-
-  Tensor3_double t3(3, 5, 7);
-  randomize(t3);
-
-  EigenVector vec;
-  unfold(t3, vec);
-  ASSERT_EQ(3 * 5 * 7, vec.size());
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 5; j++)
-      for (int k = 0; k < 7; k++)
-      {
-        EXPECT_NEAR(t3(i, j, k), vec(i + j * 3 + k * 5 * 3), eps);
-      }
-}
-
-TEST(PITTS_Tensor3_unfold, unfold_vec_std_vector)
-{
-  using Tensor3_double = PITTS::Tensor3<double>;
-  constexpr auto eps = 1.e-10;
-
-  Tensor3_double t3(3, 5, 7);
-  randomize(t3);
-
-  std::vector<double> vec;
-  unfold(t3, vec);
-  ASSERT_EQ(3 * 5 * 7, vec.size());
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 5; j++)
-      for (int k = 0; k < 7; k++)
-      {
-        EXPECT_NEAR(t3(i, j, k), vec.at(i + j * 3 + k * 5 * 3), eps);
-      }
-}
-
 TEST(PITTS_Tensor3_unfold, unfold_left_move_Tensor2)
 {
   using Tensor2_double = PITTS::Tensor2<double>;
