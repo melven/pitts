@@ -523,8 +523,6 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
-    using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
-
     const auto r1 = t3c.r1();
     const auto r2 = t3c.r2();
     if( r1*r2 == 0 )
@@ -534,21 +532,31 @@ namespace PITTS
       throw std::invalid_argument("Invalid desired dimensions (na*na != t3c.n())!");
 
     Tensor2<T> t3cMat;
-    t3cMat.resize(r1*na, nb*r2);
-    for(int i = 0; i < r1; i++)
+    ConstTensor2View<T> t3cView;
+    if( transpose )
+    {
+      t3cMat.resize(r1*na, nb*r2);
+#pragma omp parallel for collapse(2) schedule(static) if(r1*na*r2*nb > 500)
       for(int j = 0; j < r2; j++)
-        for(int k1 = 0; k1 < na; k1++)
-          for(int k2 = 0; k2 < nb; k2++)
-            t3cMat(i+k1*r1, k2+nb*j) = transpose ? t3c(i, k2+nb*k1, j) : t3c(i, k1+na*k2, j);
+        for(int k2 = 0; k2 < nb; k2++)
+          for(int k1 = 0; k1 < na; k1++)
+            for(int i = 0; i < r1; i++)
+              t3cMat(i+k1*r1, k2+nb*j) = t3c(i, k2+nb*k1, j);
+      t3cView = t3cMat;
+    }
+    else
+    {
+      t3cView = ConstTensor2View<T>(const_cast<Chunk<T>*>(t3c.data()), r1*na, nb*r2);
+    }
 
-    const auto [U,Vt] = rankTolerance != T(0) ?
-      internal::normalize_svd(t3cMat, leftOrthog, rankTolerance, maxRank) :
-      internal::normalize_qb(t3cMat, leftOrthog, rankTolerance, maxRank);
+    auto [U,Vt] = rankTolerance != T(0) ?
+      internal::normalize_svd(t3cView, leftOrthog, rankTolerance, maxRank) :
+      internal::normalize_qb(t3cView, leftOrthog, rankTolerance, maxRank);
 
     std::pair<Tensor3<T>,Tensor3<T>> result;
 
-    fold_left(U, na, result.first);
-    fold_right(Vt, nb, result.second);
+    result.first = fold_left(std::move(U), na);
+    result.second = fold_right(std::move(Vt), nb);
 
     return result;
   }
