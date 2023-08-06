@@ -1282,6 +1282,8 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_symmetric_random_nDim5)
 {
   TensorTrainOperator_double TTOp_tmp(5,5,4);
   TTOp_tmp.setTTranks(2);
+  // randomize twice to get other random numbers (failed in some rare cases...)
+  randomize(TTOp_tmp);
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(5,4,4);
   applyT(TTOp_tmp, TTOp_tmp, TTOpA);
