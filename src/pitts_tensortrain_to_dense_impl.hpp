@@ -57,17 +57,15 @@ namespace PITTS
     unfold_left(subT0, X);
 
     MultiVector<T> Y;
-    Tensor2<T> M;
     for(int iDim = 1; iDim < nDim; iDim++)
     {
       // copy sub-tensor to Tensor2 to pass it to transform later
       const auto& subT = TT.subTensor(iDim);
-      unfold_right(subT, M);
+      const auto& M = unfold_right(subT);
 
-      if( iDim+1 == nDim )
-        transform(X, M, Y, {X.rows()*subT.n()*subT.r2(),1});
-      else
-        transform(X, M, Y, {X.rows()*subT.n(),subT.r2()});
+      const auto totalSize = X.rows()*subT.n()*subT.r2();
+      const auto newCols = (iDim+1 == nDim) ? 1 : subT.r2();
+      transform(X, M, Y, {totalSize/newCols, newCols});
       std::swap(X, Y);
     }
     assert(X.rows() == totalSize && X.cols() == 1);

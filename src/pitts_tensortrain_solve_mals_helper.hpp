@@ -169,16 +169,16 @@ namespace PITTS
         {
           const auto& subTz = TTz.subTensor(iDim);
 
-          Tensor2<T> t2;
+          ConstTensor2View<T> t2;
           if( !prev_QB )
           {
-            unfold_left(subTz, t2);
+            t2 = unfold_left(subTz);
           }
           else
           {
             // contract prev_t2(:,*) * subTz(*,:,:)
             internal::normalize_contract1(prev_QB->get().second, subTz, QB.first);
-            unfold_left(QB.first, t2);
+            t2 = unfold_left(QB.first);
           }
 
           // calculate QR of subT(: : x :)
@@ -196,16 +196,16 @@ namespace PITTS
         {
           const auto& subTz = TTz.subTensor(iDim);
 
-          Tensor2<T> t2;
+          ConstTensor2View<T> t2;
           if( !prev_QB )
           {
-            unfold_right(subTz, t2);
+            t2 = unfold_right(subTz);
           }
           else
           {
             // contract subTz(:,:,*) * prev_t2(*,:)
             internal::normalize_contract2(subTz, prev_QB->get().second, QB.first);
-            unfold_right(QB.first, t2);
+            t2 = unfold_right(QB.first);
           }
 
           // calculate LQt of subT(: : x :)

@@ -34,16 +34,15 @@ namespace PITTS
     }
   }
 
-  //! reshape a 3d tensor to a matrix combining the first two dimensions (r1*n x r2)
+  //! reshape a 3d tensor to a multivector combining the first two dimensions (r1*n x r2)
   //!
-  //! @tparam T             underlying data type (double, complex, ...)
-  //! @tparam MatrixType    class for the matrix, must support resize and (i,j) element-wise access
+  //! @tparam T   underlying data type (double, complex, ...)
   //!
-  //! @param t3     3d input tensor of dimension (r1,n,r2)
-  //! @param mat    2d output tensor resized to dimension (r1*n,r2)
+  //! @param t3   3d input tensor of dimension (r1,n,r2)
+  //! @param mv   2d output tensor resized to dimension (r1*n,r2)
   //!
-  template<typename T, class MatrixType>
-  void unfold_left(const Tensor3<T>& t3, MatrixType& mat)
+  template<typename T>
+  void unfold_left(const Tensor3<T>& t3,  MultiVector<T>& mv)
   {
     const auto r1 = t3.r1();
     const auto n = t3.n();
@@ -55,27 +54,25 @@ namespace PITTS
          {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
         );
 
-    mat.resize(r1*n, r2);
+    mv.resize(r1*n, r2);
 #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
     for (int k = 0; k < r2; k++)
       for (int j = 0; j < n; j++)
         for (int i = 0; i < r1; i++)
         {
-          mat(i+j*r1,k) = t3(i,j,k);
+          mv(i+j*r1,k) = t3(i,j,k);
         }
   }
 
-
-  //! reshape a 3d tensor to a matrix combining the last two dimensions (r1 x n*r2)
+  //! reshape a 3d tensor to a mutlivector combining the last two dimensions (r1 x n*r2)
   //!
-  //! @tparam T             underlying data type (double, complex, ...)
-  //! @tparam MatrixType    class for the matrix, must support resize and (i,j) element-wise access
+  //! @tparam T   underlying data type (double, complex, ...)
   //!
-  //! @param t3     3d input tensor of dimension (r1,n,r2)
-  //! @param mat    2d output tensor resized to dimension (r1,n*r2)
+  //! @param t3   3d input tensor of dimension (r1,n,r2)
+  //! @param mv   2d output tensor resized to dimension (r1,n*r2)
   //!
-  template<typename T, class MatrixType>
-  void unfold_right(const Tensor3<T>& t3, MatrixType& mat)
+  template<typename T>
+  void unfold_right(const Tensor3<T>& t3, MultiVector<T>& mv)
   {
     const auto r1 = t3.r1();
     const auto n = t3.n();
@@ -87,13 +84,13 @@ namespace PITTS
          {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
         );
 
-    mat.resize(r1, n*r2);
+    mv.resize(r1, n*r2);
 #pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
     for (int k = 0; k < r2; k++)
       for (int j = 0; j < n; j++)
         for (int i = 0; i < r1; i++)
         {
-          mat(i,j+k*n) = t3(i,j,k);
+          mv(i,j+k*n) = t3(i,j,k);
         }
   }
 
@@ -129,6 +126,44 @@ namespace PITTS
   }
 
 
+  //! right-unfold a 3d tensor into a 2d tensor, moving it's data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param t3     input tensor3 of dimension (r1,n,r2)
+  //! @return       output tensor2 of dimension (r1,n*r2)
+  //!
+  template <typename T>
+  Tensor2<T> unfold_right(Tensor3<T>&& t3)
+  {
+    // need to extract dimensions before move
+    const auto reservedChunks = t3.reservedChunks();
+    const auto r1 = t3.r1();
+    const auto n = t3.n();
+    const auto r2 = t3.r2();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t3);
+    return Tensor2<T>(std::move(data), reservedChunks, r1, n*r2);
+  }
+
+  //! left-unfold a 3d tensor into a 2d tensor, moving it's data
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param t3     input tensor3 of dimension (r1,n,r2)
+  //! @return       output tensor2 of dimension (r1*n,r2)
+  //!
+  template <typename T>
+  Tensor2<T> unfold_left(Tensor3<T>&& t3)
+  {
+    // need to extract dimensions before move
+    const auto reservedChunks = t3.reservedChunks();
+    const auto r1 = t3.r1();
+    const auto n = t3.n();
+    const auto r2 = t3.r2();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t3);
+    return Tensor2<T>(std::move(data), reservedChunks, r1*n, r2);
+  }
+  
   //! reshape a 3d tensor to a vector flattening dimensions (without copying data)
   //!
   //! @tparam T             underlying data type (double, complex, ...)
@@ -139,12 +174,15 @@ namespace PITTS
   template<typename T>
   MultiVector<T> unfold(Tensor3<T>&& t3)
   {
-    const auto size = t3.r1() * t3.n() * t3.r2();
+    // need to extract dimensions before move
     const auto reservedChunks = t3.reservedChunks();
+    const auto r1 = t3.r1();
+    const auto n = t3.n();
+    const auto r2 = t3.r2();
     std::unique_ptr<Chunk<T>[]> data = std::move(t3);
-    return MultiVector<T>(std::move(data), reservedChunks, size, 1);
+    return MultiVector<T>(std::move(data), reservedChunks, r1*n*r2, 1);
   }
-  template MultiVector<double> unfold(Tensor3<double>&&);
+
 
   //! create a Tensor2 view of a right-unfolded Tensor3
   //!

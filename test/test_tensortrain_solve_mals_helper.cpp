@@ -32,9 +32,7 @@ TEST(PITTS_TensorTrain_solve_mals_helper, axpby_loop_from_right_nDim1)
   ResultType QB;
   loop(0, std::nullopt, QB);
 
-  Tensor2_double Q;
-  unfold_right(QB.first, Q);
-  auto mapQ = ConstEigenMap(Q);
+  auto mapQ = ConstEigenMap(unfold_right(QB.first));
   EXPECT_NEAR(mat::Identity(2,2), mapQ * mapQ.transpose(), eps);
   mat Mleft(1, 2);
   Mleft << 1, -1;
@@ -61,10 +59,8 @@ TEST(PITTS_TensorTrain_solve_mals_helper, axpby_loop_from_right_nDim2_rank1)
   mat Mleft(1, 2);
   Mleft << 1, -1;
 
-  Tensor2_double subT0;
-  unfold_right(QB[0].first, subT0);
   Tensor2_double newSubT0(1,5*2);
-  EigenMap(newSubT0) = Mleft * ConstEigenMap(subT0);
+  EigenMap(newSubT0) = Mleft * ConstEigenMap(unfold_right(QB[0].first));
   fold_right(newSubT0, 5, QB[0].first);
 
   std::vector<Tensor3_double> tmpXY(QB.size());

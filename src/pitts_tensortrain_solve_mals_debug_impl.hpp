@@ -294,14 +294,9 @@ namespace PITTS
           const int iDim = swpIdx.leftDim();
 
           const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
-
-          Tensor2<T> z, z_ref;
-          unfold_left(tt_z.subTensor(0), z);
-          if( iDim == 0 )
-          {
-            unfold_left(TTz.subTensor(iDim), z_ref);
-          }
-          else
+          
+          Tensor2<T> z_ref;
+          if( iDim != 0 )
           {
             // need to contract sub-tensors iDim-1 and iDim (boundary-rank vs. normal TT)
             const auto& subT_prev = TTz.subTensor(iDim-1);
@@ -314,10 +309,12 @@ namespace PITTS
             Eigen::Map<const mat> map(&subT(0,0,0), subT.r1(), subT.n()*subT.r2());
             z_ref.resize(map_prev.rows(), map.cols());
             EigenMap(z_ref) = map_prev * map;
-            z_ref.resize(subT_prev.n()*subT.n(), subT.r2(), false);
+            z_ref.resize(subT_prev.n()*subT.n(), subT.r2(), false); // why? doesn't seem to do anything
           }
-          const auto [Q, B] = internal::normalize_svd(z, true, sqrt_eps);
-          const auto [Q_ref, B_ref] = internal::normalize_svd(z_ref, true, sqrt_eps);
+          const auto [Q, B] = internal::normalize_svd(unfold_left(tt_z.subTensor(0)), true, sqrt_eps);
+          const auto [Q_ref, B_ref] = internal::normalize_svd(
+            (iDim == 0 ? unfold_left(TTz.subTensor(iDim)) : z_ref), 
+            true, sqrt_eps);
 
           Eigen::BDCSVD<mat> svd(ConstEigenMap(B)), svd_ref(ConstEigenMap(B_ref));
           const T sigma0 = svd_ref.singularValues()(0);
@@ -356,13 +353,8 @@ namespace PITTS
 
           const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 
-          Tensor2<T> z, z_ref;
-          unfold_right(tt_z.subTensor(0), z);
-          if( iDim == swpIdx.nDim()-1 )
-          {
-            unfold_right(TTz.subTensor(iDim), z_ref);
-          }
-          else
+          Tensor2<T> z_ref;
+          if( iDim != swpIdx.nDim()-1 )
           {
             // need to contract sub-tensors iDim+1 and iDim (boundary-rank vs. normal TT)
             const auto& subT = TTz.subTensor(iDim);
@@ -375,10 +367,12 @@ namespace PITTS
 
             z_ref.resize(map.rows(), map_next.cols());
             EigenMap(z_ref) = map * map_next;
-            z_ref.resize(subT.r1(), subT.n()*subT_next.n(), false);
+            z_ref.resize(subT.r1(), subT.n()*subT_next.n(), false); // why? doesn't seem to do anyting
           }
-          const auto [B, Qt] = internal::normalize_svd(z, false, sqrt_eps);
-          const auto [B_ref, Qt_ref] = internal::normalize_svd(z_ref, false, sqrt_eps);
+          const auto [B, Qt] = internal::normalize_svd(unfold_right(tt_z.subTensor(0)), false, sqrt_eps);
+          const auto [B_ref, Qt_ref] = internal::normalize_svd(
+            (iDim == swpIdx.nDim()-1 ? unfold_right(TTz.subTensor(iDim)) : z_ref), 
+            false, sqrt_eps);
 
           Eigen::BDCSVD<mat> svd(ConstEigenMap(B)), svd_ref(ConstEigenMap(B_ref));
           const T sigma0 = svd_ref.singularValues()(0);

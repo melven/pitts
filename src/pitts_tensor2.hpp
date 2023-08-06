@@ -119,6 +119,27 @@ namespace PITTS
     //!
     Tensor2() = default;
 
+    //! create a tensor from given memory with given size
+    //!
+    //! @warning intended for internal use (e.g. fold function)
+    //!
+    //! @param data           pointer to the reserved memory, must be of size reservedChunks
+    //! @param reservedChunks dimension of data array, must be at least big enough for r1*n*r2 / Chunk<T>::size
+    //! @param r1             dimension of the first index, can be small
+    //! @param r2             dimension of the third index, can be small
+    //!
+    Tensor2(std::unique_ptr<Chunk<T>[]>&& data, long long reservedChunks, long long r1, long long r2)
+    {
+      if(nullptr == data.get())
+        throw std::invalid_argument("Data pointer must be allocated!");
+      
+      dataptr_ = std::move(data);
+      this->data_ = dataptr_.get();
+      reservedChunks_ = reservedChunks;
+      this->r1_ = r1;
+      this->r2_ = r2;
+    }
+
     //! move construction operator: moved-from object should be empty
     Tensor2(Tensor2<T>&& other) noexcept
     {
