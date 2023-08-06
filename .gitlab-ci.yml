@@ -11,8 +11,8 @@ build_release:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
-    - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
-    - module load PrgEnv/gcc11-openmpi-python
+    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - module load PrgEnv/gcc13-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - mkdir build_release && cd build_release
@@ -65,8 +65,8 @@ build_debug_no_itensor:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
   needs: []
   script:
-    - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
-    - module load PrgEnv/gcc11-openmpi-python
+    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - module load PrgEnv/gcc13-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - module unload -f itensor
@@ -85,21 +85,18 @@ build_clang:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
-    - export MODULEPATH=/scratch/spack-23.1/share/spack/modules/linux-ubuntu20.04-x86_64_v3/
-    - module load ninja
-    - module load llvm/llvm-main
-    - module load cmake/cmake-master
-    - module load openmpi
+    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - module load PrgEnv/llvm16-mpich
     - module load py-pybind11
     - module load py-numpy
-    - module load cereal
-    - module load intel-oneapi-mkl/intel-oneapi-mkl-2023.0.0/intel-oneapi-mkl-2023.0.0-gcc-9.4.0-eyvz5fy
-    - module load eigen/eigen-master
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_clang/"
     - ccache -z
     - module unload -f itensor
+    # for -stdlib=libc++
+    - export LD_LIBRARY_PATH=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/llvm-16.0.6-mx55kfz3l4hdavaqhqhfxpblumzpx3nk/lib/x86_64-unknown-linux-gnu:$LD_LIBRARY_PATH
     - mkdir build_clang && cd build_clang
-    - cmake .. -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=clang++ -DPITTS_DEVELOP_BUILD=On
+    - export CXX="clang++ -stdlib=libc++"
+    - cmake -G Ninja .. -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_DEVELOP_BUILD=On
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
