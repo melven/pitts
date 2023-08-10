@@ -130,38 +130,6 @@ namespace PITTS
         }
   }
 
-
-  //! reshape a vector to a 3d tensor with given dimensions
-  //!
-  //! @tparam T           underlying data type (double, complex, ...)
-  //! @tparam VectorType  class for the vector, must support (i) element-wise access and provide dimension as size()
-  //!
-  //! @param vec      input vector of dimension (r1*n*r2)
-  //! @param r1       first dimension of the output tensor
-  //! @param n        second dimension of the output tensor
-  //! @param r2       third dimension of the output tensor
-  //!
-  template<typename T, class VectorType>
-  void fold(const VectorType& v, int r1, int n, int r2, Tensor3<T>& t3)
-  {
-    assert(v.size() == r1*n*r2);
-
-    const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-        {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
-         {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
-        );
-
-    t3.resize(r1, n, r2);
-#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
-    for (int k = 0; k < r2; k++)
-      for (int j = 0; j < n; j++)
-        for (int i = 0; i < r1; i++)
-        {
-          t3(i,j,k) = internal::elem(v, i+j*r1+k*n*r1);
-        }
-  }
-
   //! reshape a vector to a 3d tensor with given dimensions (without copying data)
   //!
   //! @tparam T       underlying data type (double, complex, ...)

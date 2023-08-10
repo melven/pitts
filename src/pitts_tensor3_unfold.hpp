@@ -19,21 +19,6 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! namespace for helper functionality
-  namespace internal
-  {
-    //! dispatch to either [i] or (i) for compatibility of std::vector and Eigen vectors
-    template<typename T>
-    auto& elem(T& v, int i)
-    {
-      constexpr bool has_bracket_operator = requires(const T& t, int i){t[i];};
-      if constexpr (has_bracket_operator)
-        return v[i];
-      else
-        return v(i);
-    }
-  }
-
   //! reshape a 3d tensor to a multivector combining the first two dimensions (r1*n x r2)
   //!
   //! @tparam T   underlying data type (double, complex, ...)
@@ -97,13 +82,12 @@ namespace PITTS
   //! reshape a 3d tensor to a vector flattening dimensions
   //!
   //! @tparam T             underlying data type (double, complex, ...)
-  //! @tparam VectorType    class for the vector, must support resize and (i) or [i] element-wise access
   //!
   //! @param t3     3d input tensor of dimension (r1,n,r2)
   //! @param vec    1d output tensor resized to dimension (r1*n*r2)
   //!
-  template<typename T, class VectorType>
-  void unfold(const Tensor3<T>& t3, VectorType& vec)
+  template<typename T>
+  void unfold(const Tensor3<T>& t3, MultiVector<T>& mv)
   {
     const auto r1 = t3.r1();
     const auto n = t3.n();
@@ -115,18 +99,15 @@ namespace PITTS
          {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
         );
 
-    vec.resize(r1*n*r2);
-#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
-    for (int k = 0; k < r2; k++)
-      for (int j = 0; j < n; j++)
-        for (int i = 0; i < r1; i++)
-        {
-          internal::elem(vec, i+j*r1+k*n*r1) = t3(i,j,k);
-        }
+    mv.resize(r1*n*r2, 1);
+    const auto nChunks = mv.colStrideChunks();
+#pragma omp parallel for schedule(static) if(nChunks > 50)
+    for(long long iChunk = 0; iChunk < nChunks; iChunk++)
+      mv.chunk(iChunk, 0) = t3.data()[iChunk];
   }
 
 
-  //! right-unfold a 3d tensor into a 2d tensor, moving it's data
+  //! reshape a 3d tensor into a 2d tensor, moving it's data
   //!
   //! @tparam T     underlying data type (double, complex, ...)
   //!
@@ -145,7 +126,7 @@ namespace PITTS
     return Tensor2<T>(std::move(data), reservedChunks, r1, n*r2);
   }
 
-  //! left-unfold a 3d tensor into a 2d tensor, moving it's data
+  //! reshape a 3d tensor into a 2d tensor, moving it's data
   //!
   //! @tparam T     underlying data type (double, complex, ...)
   //!
@@ -183,7 +164,6 @@ namespace PITTS
     return MultiVector<T>(std::move(data), reservedChunks, r1*n*r2, 1);
   }
 
-
   //! create a Tensor2 view of a right-unfolded Tensor3
   //!
   //! @tparam T     underlying data type (double, complex, ...)
@@ -197,6 +177,13 @@ namespace PITTS
     return Tensor2View<T>(t3.data(), t3.r1(), t3.n()*t3.r2());
   }
 
+  //! create a Tensor2 view of a right-unfolded Tensor3 (const version)
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param t3     [in]  Tensor3 of dimension (r1,n,r2)
+  //! @param t2     [out] Tensor2 alias of dimension (r1,n*r2)
+  //!
   template<typename T>
   ConstTensor2View<T> unfold_right(const Tensor3<T>& t3)
   {
@@ -216,6 +203,13 @@ namespace PITTS
     return Tensor2View<T>(t3.data(), t3.r1()*t3.n(), t3.r2());
   }
 
+  //! create a Tensor2 view of a left-unfolded Tensor3 (const version)
+  //!
+  //! @tparam T     underlying data type (double, complex, ...)
+  //!
+  //! @param t3     [in]  Tensor3 of dimension (r1,n,r2)
+  //! @param t2     [out] Tensor2 alias of dimension (r1*n,r2)
+  //!
   template<typename T>
   ConstTensor2View<T> unfold_left(const Tensor3<T>& t3)
   {
