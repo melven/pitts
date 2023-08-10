@@ -75,7 +75,10 @@ namespace PITTS
       return h;
     }
 
-    T alpha = normalize(w, rankTolerance / (nV-firstV) / T(2), maxRank);
+    // (estimated) number of truncations (without the final truncation in the end)
+    const int nTruncations = 1 + (nV - firstV) * std::min(2, nIter);
+
+    T alpha = normalize(w, rankTolerance / nTruncations / T(2), maxRank);
 
     arr Vtw = arr::Zero(nV);
     for(int iter = 0; iter < nIter; iter++)
@@ -92,17 +95,6 @@ namespace PITTS
           break;
       }
 
-      int nEff = nV - firstV;
-      if( skipDirs && pivoting )
-      {
-        nEff = 0;
-        for(int i = firstV; i < nV; i++)
-          if( std::abs(Vtw(i)) >= rankTolerance )
-            nEff++;
-      }
-      if( iter+1 < nIter )
-        nEff *= 2;
-
       for(int i = firstV; i < nV; i++)
       {
         int pivot = i;
@@ -116,32 +108,31 @@ namespace PITTS
         {
           if( pivoting )
             break;
-          else
-            continue;
+          continue;
         }
 
         if( pivoting && modified && i > 0 )
           beta = dot(V[pivot], w);
         
         h(pivot) += alpha * beta;
-        alpha = alpha * axpby(-beta, V[pivot], T(1), w, rankTolerance / nEff, maxRank);
+        alpha = alpha * axpby(-beta, V[pivot], T(1), w, rankTolerance / nTruncations / T(2), maxRank);
         Vtw(pivot) = T(0);
       }
     }
 
-    if( verbose )
-    {
-      if( (!pivoting) && modified )
-      {
-        for (int i = firstV; i < nV; i++)
-          Vtw(i) = dot(V[i], w);
+    //if( verbose )
+    //{
+    //  if( (!pivoting) && modified )
+    //  {
+    //    for (int i = firstV; i < nV; i++)
+    //      Vtw(i) = dot(V[i], w);
 
-        const T maxErr = Vtw.abs().maxCoeff();
-        std::cout << outputPrefix << "orthog. max. error: " << maxErr << ", w max. rank: " << internal::maxRank(w) << "\n";
-      }
-    }
+    //    const T maxErr = Vtw.abs().maxCoeff();
+    //    std::cout << outputPrefix << "orthog. max. error: " << maxErr << ", w max. rank: " << internal::maxRank(w) << "\n";
+    //  }
+    //}
     
-    alpha = alpha * normalize(w, rankTolerance, maxRank);
+    alpha = alpha * normalize(w, rankTolerance / T(2), maxRank);
 
     V.emplace_back(std::move(w));
     h(nV) = alpha;
