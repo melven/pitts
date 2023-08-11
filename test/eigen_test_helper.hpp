@@ -7,6 +7,7 @@
 // includes
 #include <gtest/gtest.h>
 #include "pitts_eigen.hpp"
+#include <random>
 
 
 // allow ASSERT_NEAR with Eigen classes
@@ -54,6 +55,35 @@ AssertionResult DoubleNearPredFormat(const char* expr1,
       << abs_error_expr << " evaluates to " << abs_error << ".";
 }
 }
+}
+
+namespace
+{
+  // helper function to generate random orthogonal matrix
+  Eigen::MatrixXd randomOrthoMatrix(int n, int m)
+  {
+    // Uses the formula X(X^TX)^(-1/2) with X_ij drawn from the normal distribution N(0,1)
+    // Source theorem 2.2.1 from
+    // Y. Chikuse: "Statistics on Special Manifolds", Springer, 2003
+    // DOI: 10.1007/978-0-387-21540-2
+    std::random_device randomSeed;
+    std::mt19937 randomGenerator(randomSeed());
+    std::normal_distribution<> distribution(0,1);
+
+    Eigen::MatrixXd X(n,m);
+    for(int i = 0; i < n; i++)
+      for(int j = 0; j < m; j++)
+        X(i,j) = distribution(randomGenerator);
+
+    // calculate the SVD X = U S V^T
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+    Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::ComputeThinV | Eigen::ComputeThinU> svd(X);
+#else
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
+    // now we can robustly calculate X(X^TX)^(-1/2) = U S V^T ( V S U^T U S V^T )^(-1/2) = U S V^T ( V S^2 V^T )^(-1/2) = U S V^T ( V S^(-1) V^T ) = U V^T
+    return svd.matrixU() * svd.matrixV().transpose();
+  }
 }
 
 #endif // EIGEN_TEST_HELPER_HPP
