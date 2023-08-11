@@ -181,32 +181,6 @@ namespace
     }
   }
 
-  // helper function to generate random orthogonal matrix
-  Eigen::MatrixXd randomOrthoMatrix(int n, int m)
-  {
-    // Uses the formula X(X^TX)^(-1/2) with X_ij drawn from the normal distribution N(0,1)
-    // Source theorem 2.2.1 from
-    // Y. Chikuse: "Statistics on Special Manifolds", Springer, 2003
-    // DOI: 10.1007/978-0-387-21540-2
-    std::random_device randomSeed;
-    std::mt19937 randomGenerator(randomSeed());
-    std::normal_distribution<> distribution(0,1);
-
-    Eigen::MatrixXd X(n,m);
-    for(int i = 0; i < n; i++)
-      for(int j = 0; j < m; j++)
-        X(i,j) = distribution(randomGenerator);
-
-    // calculate the SVD X = U S V^T
-#if EIGEN_VERSION_AT_LEAST(3,4,90)
-    Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::ComputeThinV | Eigen::ComputeThinU> svd(X);
-#else
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinV | Eigen::ComputeThinU);
-#endif
-    // now we can robustly calculate X(X^TX)^(-1/2) = U S V^T ( V S U^T U S V^T )^(-1/2) = U S V^T ( V S^2 V^T )^(-1/2) = U S V^T ( V S^(-1) V^T ) = U V^T
-    return svd.matrixU() * svd.matrixV().transpose();
-  }
-
   // helper function to determine the squared distance between two tensor trains: ||TTx - TTy||_2^2
   double squaredDistance(const TensorTrain_double& TTx, const TensorTrain_double& TTy, double scaleY)
   {
@@ -405,14 +379,14 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d2)
 
   // reduce required accuracy
   PITTS::copy(TT, TTtruncated);
-  nrm = PITTS::normalize(TTtruncated, 1/25.5);
+  nrm = PITTS::normalize(TTtruncated, std::sqrt(squaredTruncationError[25])/nrm_ref + eps);
   squaredError = squaredDistance(TT, TTtruncated, nrm);
   EXPECT_NEAR(squaredTruncationError[25], squaredError, eps);
   EXPECT_EQ(std::vector<int>({25}), TTtruncated.getTTranks());
 
   // further reduce required accuracy
   PITTS::copy(TT, TTtruncated);
-  nrm = PITTS::normalize(TTtruncated, 1/10.5);
+  nrm = PITTS::normalize(TTtruncated, std::sqrt(squaredTruncationError[10])/nrm_ref + eps);
   squaredError = squaredDistance(TT, TTtruncated, nrm);
   EXPECT_NEAR(squaredTruncationError[10], squaredError, eps);
   EXPECT_EQ(std::vector<int>({10}), TTtruncated.getTTranks());
