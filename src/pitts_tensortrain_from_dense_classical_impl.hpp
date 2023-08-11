@@ -20,6 +20,7 @@
 #include "pitts_eigen.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_tensor3_fold.hpp"
+#include "pitts_tensor3_split.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -61,7 +62,12 @@ namespace PITTS
     std::vector<Tensor3<T>> subTensors(dimensions.size());
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     EigenMatrix tmp = Eigen::Map<const EigenMatrix>(&(*first), 1, totalSize);
-    for(int iDim = 0; iDim+1 < dimensions.size(); iDim++)
+    using RealType = decltype(std::abs(T(1)));
+
+    const int nDim = dimensions.size();
+    const RealType rankTol = std::abs(rankTolerance) / std::sqrt(RealType(nDim-1));
+    RealType initialFrobeniusNorm;
+    for(int iDim = 0; iDim+1 < nDim; iDim++)
     {
       tmp.resize(tmp.rows()*dimensions[iDim], tmp.cols()/dimensions[iDim]);
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
@@ -69,8 +75,9 @@ namespace PITTS
 #else
       Eigen::BDCSVD<EigenMatrix> svd(tmp, Eigen::ComputeThinU | Eigen::ComputeThinV);
 #endif
-      svd.setThreshold(rankTolerance);
-      int rank = svd.rank();
+      if( iDim == 0 )
+        initialFrobeniusNorm = svd.singularValues().norm();
+      int rank = internal::rankInFrobeniusNorm(svd, rankTol * initialFrobeniusNorm);
       if( maxRank >= 0 )
         rank = std::min(rank, maxRank);
 

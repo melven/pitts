@@ -32,7 +32,7 @@ namespace PITTS
   //! @param X              input tensor, overwritten and modified output, dimension must be (size/lastDim, lastDim) where lastDim = dimensions.back()
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
   //! @param work           buffer for temporary data, will be resized and modified
-  //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
+  //! @param rankTolerance  approximation accuracy (error in the Frobenius norm), used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @param mpiGlobal      (experimental) perform a MPI parallel decomposition, this assumes that the data is distributed on the MPI processes and dimensions specify the local dimensions
   //! @param r0             first rank dimension of the first sub-tensor, handled like a zeroth dimension
