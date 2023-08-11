@@ -29,6 +29,25 @@ namespace PITTS
     //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
     template<typename T>
     std::pair<Tensor2<T>,Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false, bool useFrobeniusNorm = false, T* oldFrobeniusNorm = nullptr);
+
+
+    //! small helper function to calculate the rank for truncating in the Frobenius norm with a given tolerance
+    template<typename EigenSVD, typename T>
+    int rankInFrobeniusNorm(const EigenSVD& svd, T absoluteTolerance)
+    {
+      constexpr auto pow2 = [](auto x){return x*x;};
+      const T squaredTol = pow2(absoluteTolerance);
+      int rank = svd.rank();
+      T squaredError = 0;
+      while( rank > 1 )
+      {
+        squaredError += pow2(svd.singularValues()(rank-1));
+        if( squaredError > squaredTol )
+          break;
+        rank--;
+      }
+      return rank;
+    }
   }
 
 

@@ -470,28 +470,23 @@ namespace PITTS
 
       using Index = decltype(svd.rank());
       Index r = svd.rank();
+      RealType rankTol = std::abs(rankTolerance);
       if( useFrobeniusNorm )
       {
-        RealType rankTol = std::abs(rankTolerance) * (absoluteTolerance ? RealType(1) : svd.singularValues().norm());
-        RealType squaredError = 0;
-        while( r > 1 )
-        {
-          squaredError += svd.singularValues()(r-1)*svd.singularValues()(r-1);
-          if( squaredError > rankTol*rankTol )
-            break;
-          r--;
-        }
-        r = std::max(Index(1), std::min(r, Index(maxRank)));
+        if( !absoluteTolerance )
+          rankTol *= svd.singularValues().norm();
+        r = rankInFrobeniusNorm(svd, rankTol);
       }
       else
       {
-        // get reasonable rank tolerance
-        auto rankTol = std::abs(rankTolerance) * (absoluteTolerance ? RealType(1) : svd.singularValues()(0));
+        if( absoluteTolerance )
+          rankTol /= svd.singularValues()(0);
         rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
         svd.setThreshold(rankTol);
-        r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
+        r = svd.rank();
       }
+      r = std::max(Index(1), std::min(r, Index(maxRank)));
 
       return [&]()
       {

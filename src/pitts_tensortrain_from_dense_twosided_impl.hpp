@@ -21,6 +21,7 @@
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_tensor3_split.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -33,7 +34,7 @@ namespace PITTS
     namespace HOSVD
     {
       template<typename T>
-      void split(const MultiVector<T>& X, MultiVector<T>& Y, Tensor2<T>& M, int nextDim, T rankTolerance, int maxRank)
+      void split(const MultiVector<T>& X, MultiVector<T>& Y, Tensor2<T>& M, int nextDim, T rankTolerance, int maxRank, T& initialFrobeniusNorm)
       {
         using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
@@ -61,13 +62,14 @@ std::cout << "HOSVD::split  matrix dimensions: " << X.rows() << " x " << X.cols(
 #endif
         }
 
-std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
+        if( initialFrobeniusNorm == 0 )
+          initialFrobeniusNorm = svd.singularValues().norm();
 
-        // truncate svd
-        svd.setThreshold(rankTolerance);
-        int rank = svd.rank();
-        if( maxRank > 0 )
-          rank = std::min(maxRank, rank);
+        int rank = internal::rankInFrobeniusNorm(svd, rankTolerance);
+        if( maxRank >= 0 )
+          rank = std::min(rank, maxRank);
+
+        std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
 
         // copy right singular vectors
         M.resize(X.cols(), rank);
@@ -96,28 +98,31 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
     }
 
     const auto totalSize = std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
-    const auto nDims = dimensions.size();
-    if( X.rows() != totalSize/dimensions[nDims-1] || X.cols() != dimensions[nDims-1] )
+    const auto nDim = dimensions.size();
+    if( X.rows() != totalSize/dimensions[nDim-1] || X.cols() != dimensions[nDim-1] )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
     // actually convert to tensor train format
-    std::vector<Tensor3<T>> subTensors(nDims);
+    std::vector<Tensor3<T>> subTensors(nDim);
     Tensor2<T> M;
-    for(int ii = 0; ii < nDims; ii++)
+    using RealType = decltype(std::abs(T(1)));
+    const RealType rankTol = std::abs(rankTolerance) / std::sqrt(RealType(nDim-1));
+    RealType initialFrobeniusNorm = 0;
+    for(int ii = 0; ii < nDim; ii++)
     {
       if( ii % 2 == 0 )
       {
         // right part
-        const auto iDim = nDims - 1 - ii/2;
+        const auto iDim = nDim - 1 - ii/2;
         if( ii > 0 )
         {
           const auto r1 = subTensors[iDim+1].r1();
           const auto n = dimensions[iDim];
           transpose(work, X, {(work.rows()*work.cols())/(n*r1), n*r1}, true);
         }
-        if( ii != nDims-1 )
+        if( ii != nDim-1 )
         {
-          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank);
+          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank, initialFrobeniusNorm);
         }
         else
         {
@@ -142,9 +147,9 @@ std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
           const auto n = dimensions[iDim];
           transpose(work, X, {(work.cols()*work.rows())/(n*r2), n*r2}, false);
         }
-        if( ii != nDims - 1 )
+        if( ii != nDim - 1 )
         {
-          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank);
+          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank, initialFrobeniusNorm);
         }
         else
         {

@@ -27,7 +27,7 @@ namespace PITTS
   //! @param first          input iterator that points to the first index, e.g. std::begin(someContainer)
   //! @param last           input iterator that points behind the last index, e.g. std::end(someContainer)
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
-  //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
+  //! @param rankTolerance  approximation accuracy (error in the Frobenius norm), used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
   //! @return               resulting tensor train
   //!
