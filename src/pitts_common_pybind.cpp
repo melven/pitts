@@ -25,8 +25,8 @@ namespace PITTS
     void init_common(py::module& m)
     {
       m.def("initialize",
-          [](bool verbose){PITTS::initialize(nullptr, nullptr, verbose);},
-          py::arg("verbose")=true,
+          [](bool verbose, std::uint_fast64_t randomSeed){PITTS::initialize(nullptr, nullptr, verbose, randomSeed);},
+          py::arg("verbose")=true, py::arg("randomSeed")=internal::generateRandomSeed(),
           "Call MPI_Init if needed and print some general information");
       m.def("finalize",
           &PITTS::finalize,
