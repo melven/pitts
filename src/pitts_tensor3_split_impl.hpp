@@ -416,7 +416,7 @@ namespace PITTS
 
     // implement normalize_svd
     template<typename T>
-    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance, bool useFrobeniusNorm)
+    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance, bool useFrobeniusNorm, T* oldFrobeniusNorm)
     {
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       using RealType = decltype(std::abs(T(1)));
@@ -441,6 +441,9 @@ namespace PITTS
       normalize_svd_block_TSQR(mv, R);
 
       auto svd = normalize_svd_only(R);
+
+      if( oldFrobeniusNorm != nullptr )
+        *oldFrobeniusNorm = svd.singularValues().norm();
 
       // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
       const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());

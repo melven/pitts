@@ -379,14 +379,14 @@ TEST(PITTS_TensorTrain_normalize, approximation_error_d2)
 
   // reduce required accuracy
   PITTS::copy(TT, TTtruncated);
-  nrm = PITTS::normalize(TTtruncated, 1/25.5);
+  nrm = PITTS::normalize(TTtruncated, std::sqrt(squaredTruncationError[25])/nrm_ref + eps);
   squaredError = squaredDistance(TT, TTtruncated, nrm);
   EXPECT_NEAR(squaredTruncationError[25], squaredError, eps);
   EXPECT_EQ(std::vector<int>({25}), TTtruncated.getTTranks());
 
   // further reduce required accuracy
   PITTS::copy(TT, TTtruncated);
-  nrm = PITTS::normalize(TTtruncated, 1/10.5);
+  nrm = PITTS::normalize(TTtruncated, std::sqrt(squaredTruncationError[10])/nrm_ref + eps);
   squaredError = squaredDistance(TT, TTtruncated, nrm);
   EXPECT_NEAR(squaredTruncationError[10], squaredError, eps);
   EXPECT_EQ(std::vector<int>({10}), TTtruncated.getTTranks());

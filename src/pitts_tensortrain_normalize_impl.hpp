@@ -111,15 +111,24 @@ namespace PITTS
       std::vector<Tensor3<T>> newSubT(2);
       const std::vector<TT_Orthogonality> newSubTOrtho = {TT_Orthogonality::left, TT_Orthogonality::none};
 
+      T rankTol = rankTolerance / std::sqrt(T(nDim-1));
+
       for(int iDim = firstIdx; iDim < lastIdx; iDim++)
       {
         const auto& subT = TT.subTensor(iDim);
         const auto& subT_next = TT.subTensor(iDim+1);
 
+        T oldFrobeniusNorm;
+
         // calculate the SVD or QR of subT(: : x :)
-        auto [U, Vt] = rankTolerance > 0 || maxRank < subT.r2() ?
-          internal::normalize_svd(unfold_left(subT), true, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+        // for the SVD, use a relative tolerance in the Frobenius norm in the first call,
+        // then use an absolute tolerance multiplied with the norm obtained from the first call
+        auto [U, Vt] = rankTol > 0 || maxRank < subT.r2() ?
+          internal::normalize_svd(unfold_left(subT), true, rankTol, maxRank, iDim!=firstIdx, true, &oldFrobeniusNorm) :
           internal::normalize_qb(unfold_left(subT), true);
+        
+        if( iDim == firstIdx && rankTol > 0 )
+          rankTol *= oldFrobeniusNorm;
 
         newSubT[0] = fold_left(std::move(U), subT.n());
 
@@ -158,15 +167,24 @@ namespace PITTS
       std::vector<Tensor3<T>> newSubT(2);
       const std::vector<TT_Orthogonality> newSubTOrtho = {TT_Orthogonality::none, TT_Orthogonality::right};
 
+      T rankTol = rankTolerance / std::sqrt(T(nDim-1));
+
       for(int iDim = lastIdx; iDim > firstIdx; iDim--)
       {
         const auto& subT_prev = TT.subTensor(iDim-1);
         const auto& subT = TT.subTensor(iDim);
 
+        T oldFrobeniusNorm;
+
         // calculate the SVD or QR of ( subT(: x : :) )^T
-        auto [U, Vt] = rankTolerance > 0 || maxRank < subT.r1() ?
-          internal::normalize_svd(unfold_right(subT), false, rankTolerance / std::sqrt(T(nDim-1)), maxRank) :
+        // for the SVD, use a relative tolerance in the Frobenius norm in the first call,
+        // then use an absolute tolerance multiplied with the norm obtained from the first call
+        auto [U, Vt] = rankTol > 0 || maxRank < subT.r1() ?
+          internal::normalize_svd(unfold_right(subT), false, rankTol, maxRank, iDim!=lastIdx, true, &oldFrobeniusNorm) :
           internal::normalize_qb(unfold_right(subT), false);
+        
+        if( iDim == lastIdx && rankTol > 0 )
+          rankTol *= oldFrobeniusNorm;
 
         newSubT[1] = fold_right(std::move(Vt), subT.n());
 
