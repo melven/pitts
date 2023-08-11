@@ -257,7 +257,7 @@ TYPED_TEST(PITTS_Tensor3_split, normalize_svd_diagonal)
   Type prev_err = 0;
   for(auto err: absErr)
   {
-    const auto& [Q, B] = PITTS::internal::normalize_svd(M, true, err, 999, true);
+    const auto& [Q, B] = PITTS::internal::normalize_svd(M, true, err, 999, true, true);
     const auto& mapQ = ConstEigenMap(Q);
     const auto& mapB = ConstEigenMap(B);
     EXPECT_LE((mapM - mapQ*mapB).norm(), err + eps);
@@ -267,7 +267,7 @@ TYPED_TEST(PITTS_Tensor3_split, normalize_svd_diagonal)
 
   for(auto err: absErr)
   {
-    const auto& [B, Qt] = PITTS::internal::normalize_svd(M, false, err, 999, true);
+    const auto& [B, Qt] = PITTS::internal::normalize_svd(M, false, err, 999, true, true);
     const auto& mapB = ConstEigenMap(B);
     const auto& mapQt = ConstEigenMap(Qt);
     EXPECT_LE((mapM - mapB*mapQt).norm(), err + eps);

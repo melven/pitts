@@ -416,10 +416,10 @@ namespace PITTS
 
     // implement normalize_svd
     template<typename T>
-    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteToleranceInFrobeniusNorm)
+    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance, bool useFrobeniusNorm)
     {
-
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      using RealType = decltype(std::abs(T(1)));
 
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -442,32 +442,7 @@ namespace PITTS
 
       auto svd = normalize_svd_only(R);
 
-      using Index = decltype(svd.rank());
-      Index r = svd.rank();
-      if( absoluteToleranceInFrobeniusNorm )
-      {
-        T squaredError = 0;
-        while( r > 1 )
-        {
-          squaredError += svd.singularValues()(r-1)*svd.singularValues()(r-1);
-          if( squaredError > rankTolerance*rankTolerance )
-            break;
-          r--;
-        }
-        r = std::max(Index(1), std::min(r, Index(maxRank)));
-      }
-      else
-      {
-        // get reasonable rank tolerance
-        auto rankTol = std::abs(rankTolerance);
-        rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
-
-        svd.setThreshold(rankTol);
-        r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
-      }
-
       // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
-      using RealType = decltype(std::abs(T(0)));
       const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
       if( std::abs(svd.singularValues()(0)) < 1000*tsqrError )
       {
@@ -488,6 +463,31 @@ namespace PITTS
           EigenMap(result.second) = EigenMatrix::Identity(1, M.r2());
         }
         return result;
+      }
+
+      using Index = decltype(svd.rank());
+      Index r = svd.rank();
+      if( useFrobeniusNorm )
+      {
+        RealType rankTol = std::abs(rankTolerance) * (absoluteTolerance ? RealType(1) : svd.singularValues().norm());
+        RealType squaredError = 0;
+        while( r > 1 )
+        {
+          squaredError += svd.singularValues()(r-1)*svd.singularValues()(r-1);
+          if( squaredError > rankTol*rankTol )
+            break;
+          r--;
+        }
+        r = std::max(Index(1), std::min(r, Index(maxRank)));
+      }
+      else
+      {
+        // get reasonable rank tolerance
+        auto rankTol = std::abs(rankTolerance) * (absoluteTolerance ? RealType(1) : svd.singularValues()(0));
+        rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
+
+        svd.setThreshold(rankTol);
+        r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
       }
 
       return [&]()
