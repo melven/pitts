@@ -134,7 +134,7 @@ namespace PITTS
   //!
   //! @tparam T       underlying data type (double, complex, ...)
   //!
-  //! @param vec      input MultiVector of dimension (r1*n*r2, 1), moved from
+  //! @param mv       input MultiVector of dimension (r1*n*r2, 1), moved from
   //! @param r1       first dimension of the output tensor
   //! @param n        second dimension of the output tensor
   //! @param r2       third dimension of the output tensor
@@ -155,18 +155,18 @@ namespace PITTS
   //!
   //! @tparam T             underlying data type (double, complex, ...)
   //!
-  //! @param mv     input tensor2 of dimension (r1*n,r2)
+  //! @param t2     input tensor2 of dimension (r1*n,r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
   //!
   template<typename T>
-  Tensor3<T> fold_left(Tensor2<T>&& mv, long long n)
+  Tensor3<T> fold_left(Tensor2<T>&& t2, long long n)
   {
-    long long r1 = mv.r1() / n;
-    long long r2 = mv.r2();
-    assert(mv.r1() % n == 0);
+    long long r1 = t2.r1() / n;
+    long long r2 = t2.r2();
+    assert(t2.r1() % n == 0);
     
-    const auto reservedChunks = mv.reservedChunks();
-    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    const auto reservedChunks = t2.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t2);
     return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
   }
 
@@ -174,18 +174,18 @@ namespace PITTS
   //!
   //! @tparam T     underlying data type (double, complex, ...)
   //!
-  //! @param mv     input tensor2 of dimension (r1,n*r2)
+  //! @param t2     input tensor2 of dimension (r1,n*r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
   //!
   template<typename T>
-  Tensor3<T> fold_right(Tensor2<T>&& mv, long long n)
+  Tensor3<T> fold_right(Tensor2<T>&& t2, long long n)
   {
-    long long r1 = mv.r1();
-    long long r2 = mv.r2() / n;
-    assert(mv.r2() % n == 0);
+    long long r1 = t2.r1();
+    long long r2 = t2.r2() / n;
+    assert(t2.r2() % n == 0);
     
-    const auto reservedChunks = mv.reservedChunks();
-    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    const auto reservedChunks = t2.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t2);
     return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
   }
 
