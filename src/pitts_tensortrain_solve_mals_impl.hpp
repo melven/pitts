@@ -51,7 +51,7 @@ namespace PITTS
               T residualTolerance,
               int maxRank,
               int nMALS, int nOverlap, int nAMEnEnrichment, bool simplifiedAMEn,
-              bool useTTgmres, int gmresMaxIter, T gmresRelTol)
+              bool useTTgmres, int gmresMaxIter, T gmresRelTol, T estimatedConditionTTgmres)
   {
     using namespace internal::solve_mals;
 #ifndef NDEBUG
@@ -231,17 +231,21 @@ namespace PITTS
           tt_x.setZero();
         
         absTol = gmresRelTol * residualTolerance * nrm_TTb;
-        if( nMALS == 1 )
-          relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
-        else // nMALS > 1
-          relTol = gmresRelTol;
+        relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+        // solveGMRES (TT-GMRES) uses the bigger one of the absolute and the relative tolerance (times norm(rhs)) for truncating the solution
+        // This is too inaccurate close to the solution with the adaptive tolerance...
+        if( useTTgmres )
+          relTol = gmresRelTol; //std::min(T(0.1), relTol);
       }
       
       if( relTol < T(1) )
       {
         T localAbsRes, localRelRes;
         if (useTTgmres)
-          std::tie(localAbsRes, localRelRes) = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+        {
+          T estimatedCond = (nMALS == nDim) ? estimatedConditionTTgmres : 1;
+          std::tie(localAbsRes, localRelRes) = solveGMRES(localTTOp, tt_b, tt_x, gmresMaxIter, absTol, relTol, estimatedCond, maxRank, true, symmetric, " (M)ALS local problem: ", true);
+        }
         else
           std::tie(localAbsRes, localRelRes) = solveDenseGMRES(localTTOp, symmetric, tt_b, tt_x, maxRank, gmresMaxIter, absTol, relTol, " (M)ALS local problem: ", true);
 

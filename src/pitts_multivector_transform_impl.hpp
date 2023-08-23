@@ -21,7 +21,7 @@ namespace PITTS
 {
   // implement multivector transform
   template<typename T>
-  void transform(const MultiVector<T>& X, const Tensor2<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape)
+  void transform(const MultiVector<T>& X, const ConstTensor2View<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape)
   {
     // check dimensions
     if( X.cols() != M.r1() )

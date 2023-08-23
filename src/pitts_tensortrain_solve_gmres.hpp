@@ -41,6 +41,7 @@ namespace PITTS
   //! @param maxIter            maximal number of iterations
   //! @param absResTol          absolute residual tolerance: the iteration aborts if the absolute residual norm is smaller than absResTol
   //! @param relResTol          relative residual tolerance: the iteration aborts if the relative residual norm is smaller than relResTol
+  //! @param estimatedCond      estimated condition number of the operator, used for truncation tolerance
   //! @param maxRank            maximal allowed TT-rank, enforced even if this violates the residualTolerance
   //! @param adaptiveTolerance  use an adaptive tolerance for the tensor-train arithmetic in the iteration
   //! @param symmetric          set to true for symmetric operators to exploit the symmetry (results in a MinRes variant)
@@ -50,7 +51,7 @@ namespace PITTS
   //!
   template <typename T>
   std::pair<T,T> solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
-                            int maxIter, T absResTol, T relResTol,
+                            int maxIter, T absResTol, T relResTol, T estimatedCond,
                             int maxRank = std::numeric_limits<int>::max(), bool adaptiveTolerance = true, bool symmetric = false,
                             const std::string_view &outputPrefix = "", bool verbose = false);
 

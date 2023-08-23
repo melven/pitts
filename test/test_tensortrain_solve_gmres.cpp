@@ -24,7 +24,7 @@ TEST(PITTS_TensorTrain_solve_gmres, Opeye_ones_nDim1)
   TTb.setOnes();
   TTx.setOnes();
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 0, eps, eps, 999, true, false, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 0, eps, eps, 1., 999, true, false, "test: ", true);
   EXPECT_NEAR(0, error, eps);
 
   double errNrm = axpby(-1., TTb, 1., TTx);
@@ -39,7 +39,7 @@ TEST(PITTS_TensorTrain_solve_gmres, Opeye_ones_nDim2_guess_zero)
   TTb.setOnes();
   TTx.setZero();
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 1, eps, eps, 999, true, false, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 1, eps, eps, 1., 999, true, false, "test: ", true);
   EXPECT_NEAR(0, error, eps);
 
   double errNrm = axpby(-1., TTb, 1., TTx);
@@ -54,7 +54,7 @@ TEST(PITTS_TensorTrain_solve_gmres, Opeye_ones_nDim2_guess_zero_symm)
   TTb.setOnes();
   TTx.setZero();
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 1, eps, eps, 999, true, true, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 1, eps, eps, 1., 999, true, true, "test: ", true);
   EXPECT_NEAR(0, error, eps);
 
   double errNrm = axpby(-1., TTb, 1., TTx);
@@ -69,7 +69,7 @@ TEST(PITTS_TensorTrain_solve_gmres, random_nDim1)
   randomize(TTb);
   randomize(TTx);
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 5, eps, eps, 999, true, false, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 5, eps, eps, 10., 999, true, false, "test: ", true);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -88,7 +88,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim1_nonsymmAlg)
   randomize(TTb);
   randomize(TTx);
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 5, eps, eps, 999, true, false, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 5, eps, eps, 10., 999, true, false, "test: ", true);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -107,7 +107,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim1_symmAlg)
   randomize(TTb);
   randomize(TTx);
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 5, eps, eps, 999, true, true, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 5, eps, eps, 10., 999, true, true, "test: ", true);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -137,7 +137,7 @@ TEST(PITTS_TensorTrain_solve_gmres, random_nDim2_rank1)
   randomize(TTx);
   normalize(TTx);
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 25, eps, eps, 999, true, false, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 25, eps, eps, 1., 999, true, false, "test: ", true);
   EXPECT_NEAR(0, error, 100*eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -162,7 +162,7 @@ TEST(PITTS_TensorTrain_solve_gmres, random_nDim2)
   randomize(TTb);
   TTx.setOnes();
 
-  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 4, eps, eps, 999, true, false, "test: ", true);
+  const auto [error, relRes] = solveGMRES(TTOpA, TTb, TTx, 4, eps, eps, 1., 999, true, false, "test: ", true);
   EXPECT_NEAR(0, error, 1.e-5*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -201,7 +201,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_rank1_nonsymmAlg)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 999, true, false, "test: ", true);
+  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 1., 999, true, false, "test: ", true);
 
 
   apply(TTOpA, TTx, TTr);
@@ -246,7 +246,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_rank1_symmAlg)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 999, true, true, "test: ", true);
+  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 1., 999, true, true, "test: ", true);
 
 
   apply(TTOpA, TTx, TTr);
@@ -292,7 +292,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_nonsymmAlg)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 999, true, false, "test: ", true);
+  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 1., 999, true, false, "test: ", true);
 
 
   apply(TTOpA, TTx, TTr);
@@ -338,7 +338,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_symmAlg)
   double initialResidualNorm = axpby(-1., TTb, 1., TTr);
 
 
-  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 999, true, true, "test: ", true);
+  const auto [residualNorm, relResidualNorm] = solveGMRES(TTOpA, TTb, TTx, 25, 0.01, 0.01, 1., 999, true, true, "test: ", true);
 
 
   apply(TTOpA, TTx, TTr);

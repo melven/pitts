@@ -299,36 +299,47 @@ namespace PITTS
 
         // implement TT is_normalized
         template<typename T>
-        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps)
+        bool is_normalized(const TensorTrain<T>& tt, TT_Orthogonality orthog, double eps)
         {
-            if (orthog == TT_Orthogonality::none) return false;
+            if (orthog == TT_Orthogonality::none)
+                return false;
 
-            Tensor2<T> core;
-            for (int i = 0; i < A.dimensions().size() - 1; i++)
+            using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+            
+            const auto checkOrthogonalColumns = [orthog, eps](int iDim, const EigenMatrix& Q)
             {
-                int i_ = (orthog == TT_Orthogonality::left) ? i : i + 1; // shift range by one for right-orthogonality
-
-                if (orthog == TT_Orthogonality::left)
-                    unfold_left(A.subTensor(i_), core);
-                else
-                    unfold_right(A.subTensor(i_), core);
-
-                using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-                auto mat = ConstEigenMap(core);
-                EigenMatrix orth;
-                if (orthog == TT_Orthogonality::left)
-                    orth = mat.transpose() * mat;
-                else
-                    orth = mat * mat.transpose();
-                EigenMatrix orthErr = orth - EigenMatrix::Identity(orth.cols(), orth.rows());
+                const EigenMatrix orthErr = Q.transpose() * Q - EigenMatrix::Identity(Q.cols(), Q.cols());
                 if (orthErr.array().abs().maxCoeff() > eps)
                 {
-                  std::cout << "Error: Sub-Tensor " << i_ << " should be " << (orthog == TT_Orthogonality::left ? "left" : "right") << "-orthogonal I-V^TV is:\n";
-                  std::cout << orthErr << "\n";
-                  std::cout << "And the tolerance is: " << eps << "\n";
-                  return false;
+                    std::cout << "Error: Sub-Tensor " << iDim << " should be " << (orthog == TT_Orthogonality::left ? "left" : "right") << "-orthogonal I-V^TV is:\n";
+                    std::cout << orthErr << "\n";
+                    std::cout << "And the tolerance is: " << eps << "\n";
+                    return false;
+                }
+                return true;
+            };
+
+            const int nDim = tt.dimensions().size();
+
+            if( orthog == TT_Orthogonality::left )
+            {
+                for(int iDim = 0; iDim+1 < nDim; iDim++)
+                {
+                    const auto subT = ConstEigenMap(unfold_left(tt.subTensor(iDim)));
+                    if( !checkOrthogonalColumns(iDim, subT) )
+                        return false;
                 }
             }
+            else // orthog == TT_Orthogonality::right
+            {
+                for(int iDim = nDim-1; iDim > 0; iDim--)
+                {
+                    const auto subT = ConstEigenMap(unfold_right(tt.subTensor(iDim)));
+                    if( !checkOrthogonalColumns(iDim, subT.transpose()) )
+                        return false;
+                }
+            }
+
             return true;
         }
 

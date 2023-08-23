@@ -67,14 +67,18 @@ namespace PITTS
     // adjust first vector in V to consider for symmetric cases
     const int firstV = symmetric ? std::max(0, nV-2) : 0;
 
-    T alpha = normalize(w, rankTolerance, maxRank);
     arr h = arr::Zero(nV+1);
     if( nV == 0 )
     {
-      h(0) = alpha;
+      h(0) = normalize(w, rankTolerance, maxRank);
       V.emplace_back(std::move(w));
       return h;
     }
+
+    // (estimated) number of truncations (without the final truncation in the end)
+    const int nTruncations = 1 + (nV - firstV) * std::min(2, nIter);
+
+    T alpha = normalize(w, rankTolerance / nTruncations / T(2), maxRank);
 
     arr Vtw = arr::Zero(nV);
     for(int iter = 0; iter < nIter; iter++)
@@ -104,30 +108,31 @@ namespace PITTS
         {
           if( pivoting )
             break;
-          else
-            continue;
+          continue;
         }
 
         if( pivoting && modified && i > 0 )
           beta = dot(V[pivot], w);
         
         h(pivot) += alpha * beta;
-        alpha = alpha * axpby(-beta, V[pivot], T(1), w, rankTolerance, maxRank);
+        alpha = alpha * axpby(-beta, V[pivot], T(1), w, rankTolerance / nTruncations / T(2), maxRank);
         Vtw(pivot) = T(0);
       }
     }
 
-    if( verbose )
-    {
-      if( (!pivoting) && modified )
-      {
-        for (int i = firstV; i < nV; i++)
-          Vtw(i) = dot(V[i], w);
+    //if( verbose )
+    //{
+    //  if( (!pivoting) && modified )
+    //  {
+    //    for (int i = firstV; i < nV; i++)
+    //      Vtw(i) = dot(V[i], w);
 
-        const T maxErr = Vtw.abs().maxCoeff();
-        std::cout << outputPrefix << "orthog. max. error: " << maxErr << ", w max. rank: " << internal::maxRank(w) << "\n";
-      }
-    }
+    //    const T maxErr = Vtw.abs().maxCoeff();
+    //    std::cout << outputPrefix << "orthog. max. error: " << maxErr << ", w max. rank: " << internal::maxRank(w) << "\n";
+    //  }
+    //}
+    
+    alpha = alpha * normalize(w, rankTolerance / T(2), maxRank);
 
     V.emplace_back(std::move(w));
     h(nV) = alpha;

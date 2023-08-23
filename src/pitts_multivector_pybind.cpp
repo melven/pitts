@@ -106,7 +106,7 @@ namespace PITTS
             "Calculate upper triangular part R from a QR-decomposition of the given tall-skinny matrix (multi-vector) M");
 
         m.def("transform",
-            py::overload_cast< const MultiVector<T>&, const Tensor2<T>&, MultiVector<T>&, std::array<long long,2> >(&PITTS::transform<T>),
+            py::overload_cast< const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long,2> >(&PITTS::transform<T>),
             py::arg("X"), py::arg("M"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0},
             "Calculate the matrix-matrix product of a tall-skinny matrix (multivector) with a small matrix (Y <- X*M)");
 

@@ -57,10 +57,8 @@ namespace PITTS
           }
       std::swap(tmp_next, tmp);
     }
-
-    Tensor2<T> result;
-    unfold_left(tmp, result);
-    return result;
+    
+    return unfold_left(std::move(tmp));
   }
 }
 

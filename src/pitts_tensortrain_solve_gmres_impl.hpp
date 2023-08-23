@@ -50,7 +50,7 @@ namespace PITTS
   // implement TT GMRES solver
   template <typename T>
   std::pair<T,T> solveGMRES(const TensorTrainOperator<T> &TTOpA, const TensorTrain<T> &TTb, TensorTrain<T> &TTx,
-                            int maxIter, T absResTol, T relResTol,
+                            int maxIter, T absResTol, T relResTol, T estimatedCond,
                             int maxRank, bool adaptiveTolerance, bool symmetric,
                             const std::string_view &outputPrefix, bool verbose)
   {
@@ -63,7 +63,7 @@ namespace PITTS
 
     // RHS norm (just for information, might be useful to adjust tolerances...)
     const T nrm_b = norm2(TTb);
-    const T r0_rankTol = relResTol / maxIter * T(0.1);
+    const T r0_rankTol = relResTol / maxIter * T(0.1) / estimatedCond;
     const T V0_rankTol = std::numeric_limits<T>::epsilon() * 100;
 
     std::vector<TensorTrain<T>> V;
@@ -96,11 +96,19 @@ namespace PITTS
       TensorTrain<T> w(TTb.dimensions());
       apply(TTOpA, V[i], w);
 
-      T rankTolerance = residualTolerance / maxIter / T(2.0);
+      // according to Simoncini2003 (Inexact Krylov methods), this also needs a constant that depends on cond(H) or cond(A)...
+      T rankTolerance = residualTolerance / maxIter / T(2.0) / estimatedCond;
       if( adaptiveTolerance )
         rankTolerance *= beta / rho;
 
       H.col(i).segment(0, i+2) = gramSchmidt(V, w, rankTolerance, maxRank, symmetric, outputPrefix_gramSchmidt, verbose); // for standard MGS: , 1, false, true, false);
+      // H(i+1,i) = normalize(w, rankTolerance, maxRank);
+      // for(int j = 0; j <= i; j++)
+      // {
+      //   H(j,i) = H(i+1,i) * dot(V[j], w);
+      //   H(i+1,i) = axpby(-H(j,i), V[j], H(i+1,i), w, rankTolerance, maxRank);
+      // }
+      // V.emplace_back(std::move(w));
 
       // least squares solve using Givens rotations
       R(0,i) = H(0,i);
@@ -121,7 +129,8 @@ namespace PITTS
         std::cout << outputPrefix << "TT-GMRES iteration " << i+1 << " residual norm: " << rho << " (abs), " << rho / beta << " (rel), ranks: " << internal::to_string(V[i+1].getTTranks()) << "\n";
 
       // check convergence
-      if( rho/beta <= residualTolerance )
+      // (incorporate possible difference between exact and inexact residual norm)
+      if( rho/beta <= residualTolerance / T(2.0) )
         break;
     }
 
@@ -136,12 +145,12 @@ namespace PITTS
       // first add up the delta x (better accuracy as it is probably much smaller than the old x)
       auto& TTdelta_x = V[m-1];
       T nrm_delta_x = T(-y(m-1));
-      const T rankTolerance = residualTolerance / m / T(2.0) * std::min(T(1), beta/nrm_b);
+      const T rankTol_x = residualTolerance * std::min(T(1), beta/nrm_b) / estimatedCond;
       for(int j = m-2; j >= 0; j--)
-        nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTolerance, maxRank);
+        nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTol_x / m / T(2.0), maxRank);
 
       // it would be nice to adjust this tolerance here for adding the deltaX to X - but all my variants just made it worse when called from MALS
-      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTolerance, maxRank);
+      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTol_x, maxRank);
       TTx.editSubTensor(0, [nrm_x](Tensor3<T>& subT){internal::t3_scale(nrm_x, subT);});
     }
 

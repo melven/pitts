@@ -130,43 +130,11 @@ namespace PITTS
         }
   }
 
-
-  //! reshape a vector to a 3d tensor with given dimensions
-  //!
-  //! @tparam T           underlying data type (double, complex, ...)
-  //! @tparam VectorType  class for the vector, must support (i) element-wise access and provide dimension as size()
-  //!
-  //! @param vec      input vector of dimension (r1*n*r2)
-  //! @param r1       first dimension of the output tensor
-  //! @param n        second dimension of the output tensor
-  //! @param r2       third dimension of the output tensor
-  //!
-  template<typename T, class VectorType>
-  void fold(const VectorType& v, int r1, int n, int r2, Tensor3<T>& t3)
-  {
-    assert(v.size() == r1*n*r2);
-
-    const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
-        {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
-        {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
-         {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
-        );
-
-    t3.resize(r1, n, r2);
-#pragma omp parallel for collapse(3) schedule(static) if(r1*n*r2 > 500)
-    for (int k = 0; k < r2; k++)
-      for (int j = 0; j < n; j++)
-        for (int i = 0; i < r1; i++)
-        {
-          t3(i,j,k) = internal::elem(v, i+j*r1+k*n*r1);
-        }
-  }
-
   //! reshape a vector to a 3d tensor with given dimensions (without copying data)
   //!
   //! @tparam T       underlying data type (double, complex, ...)
   //!
-  //! @param vec      input MultiVector of dimension (r1*n*r2, 1), moved from
+  //! @param mv       input MultiVector of dimension (r1*n*r2, 1), moved from
   //! @param r1       first dimension of the output tensor
   //! @param n        second dimension of the output tensor
   //! @param r2       third dimension of the output tensor
@@ -187,19 +155,18 @@ namespace PITTS
   //!
   //! @tparam T             underlying data type (double, complex, ...)
   //!
-  //! @param mv     input tensor2 of dimension (r1*n,r2)
+  //! @param t2     input tensor2 of dimension (r1*n,r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
-  //! @param t3     output tensor resized to dimensions (r1,n,r2)
   //!
   template<typename T>
-  Tensor3<T> fold_left(Tensor2<T>&& mv, long long n)
+  Tensor3<T> fold_left(Tensor2<T>&& t2, long long n)
   {
-    long long r1 = mv.r1() / n;
-    long long r2 = mv.r2();
-    assert(mv.r1() % n == 0);
+    long long r1 = t2.r1() / n;
+    long long r2 = t2.r2();
+    assert(t2.r1() % n == 0);
     
-    const auto reservedChunks = mv.reservedChunks();
-    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    const auto reservedChunks = t2.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t2);
     return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
   }
 
@@ -207,19 +174,18 @@ namespace PITTS
   //!
   //! @tparam T     underlying data type (double, complex, ...)
   //!
-  //! @param mv     input tensor2 of dimension (r1,n*r2)
+  //! @param t2     input tensor2 of dimension (r1,n*r2)
   //! @param n      middle dimension of the output tensor, first dimension of mat must be a multiple of n
-  //! @param t3     output tensor resized to dimensions (r1,n,r2)
   //!
   template<typename T>
-  Tensor3<T> fold_right(Tensor2<T>&& mv, long long n)
+  Tensor3<T> fold_right(Tensor2<T>&& t2, long long n)
   {
-    long long r1 = mv.r1();
-    long long r2 = mv.r2() / n;
-    assert(mv.r2() % n == 0);
+    long long r1 = t2.r1();
+    long long r2 = t2.r2() / n;
+    assert(t2.r2() % n == 0);
     
-    const auto reservedChunks = mv.reservedChunks();
-    std::unique_ptr<Chunk<T>[]> data = std::move(mv);
+    const auto reservedChunks = t2.reservedChunks();
+    std::unique_ptr<Chunk<T>[]> data = std::move(t2);
     return Tensor3<T>(std::move(data), reservedChunks, r1, n, r2);
   }
 

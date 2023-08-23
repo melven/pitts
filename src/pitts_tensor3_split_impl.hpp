@@ -416,16 +416,12 @@ namespace PITTS
 
     // implement normalize_svd
     template<typename T>
-    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank)
+    std::pair<Tensor2<T>, Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance, int maxRank, bool absoluteTolerance, bool useFrobeniusNorm, T* oldFrobeniusNorm)
     {
-
       using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      using RealType = decltype(std::abs(T(1)));
 
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-
-      // get reasonable rank tolerance
-      auto rankTol = std::abs(rankTolerance);
-      rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
       //    M = Q R = Q U S V^T
       // => M = (QU) (SV^T)
@@ -446,12 +442,10 @@ namespace PITTS
 
       auto svd = normalize_svd_only(R);
 
-      svd.setThreshold(rankTol);
-      using Index = decltype(svd.rank());
-      const auto r = std::max(Index(1), std::min(svd.rank(), Index(maxRank)));
+      if( oldFrobeniusNorm != nullptr )
+        *oldFrobeniusNorm = svd.singularValues().norm();
 
       // block_TSQR introduces an error of sqrt(numeric_limits<T>::min())
-      using RealType = decltype(std::abs(T(0)));
       const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
       if( std::abs(svd.singularValues()(0)) < 1000*tsqrError )
       {
@@ -473,6 +467,26 @@ namespace PITTS
         }
         return result;
       }
+
+      using Index = decltype(svd.rank());
+      Index r = svd.rank();
+      RealType rankTol = std::abs(rankTolerance);
+      if( useFrobeniusNorm )
+      {
+        if( !absoluteTolerance )
+          rankTol *= svd.singularValues().norm();
+        r = rankInFrobeniusNorm(svd, rankTol);
+      }
+      else
+      {
+        if( absoluteTolerance )
+          rankTol /= svd.singularValues()(0);
+        rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
+
+        svd.setThreshold(rankTol);
+        r = svd.rank();
+      }
+      r = std::max(Index(1), std::min(r, Index(maxRank)));
 
       return [&]()
       {
@@ -509,8 +523,6 @@ namespace PITTS
   {
     const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
-    using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
-
     const auto r1 = t3c.r1();
     const auto r2 = t3c.r2();
     if( r1*r2 == 0 )
@@ -520,21 +532,31 @@ namespace PITTS
       throw std::invalid_argument("Invalid desired dimensions (na*na != t3c.n())!");
 
     Tensor2<T> t3cMat;
-    t3cMat.resize(r1*na, nb*r2);
-    for(int i = 0; i < r1; i++)
+    ConstTensor2View<T> t3cView;
+    if( transpose )
+    {
+      t3cMat.resize(r1*na, nb*r2);
+#pragma omp parallel for collapse(2) schedule(static) if(r1*na*r2*nb > 500)
       for(int j = 0; j < r2; j++)
-        for(int k1 = 0; k1 < na; k1++)
-          for(int k2 = 0; k2 < nb; k2++)
-            t3cMat(i+k1*r1, k2+nb*j) = transpose ? t3c(i, k2+nb*k1, j) : t3c(i, k1+na*k2, j);
+        for(int k2 = 0; k2 < nb; k2++)
+          for(int k1 = 0; k1 < na; k1++)
+            for(int i = 0; i < r1; i++)
+              t3cMat(i+k1*r1, k2+nb*j) = t3c(i, k2+nb*k1, j);
+      t3cView = t3cMat;
+    }
+    else
+    {
+      t3cView = ConstTensor2View<T>(const_cast<Chunk<T>*>(t3c.data()), r1*na, nb*r2);
+    }
 
-    const auto [U,Vt] = rankTolerance != T(0) ?
-      internal::normalize_svd(t3cMat, leftOrthog, rankTolerance, maxRank) :
-      internal::normalize_qb(t3cMat, leftOrthog, rankTolerance, maxRank);
+    auto [U,Vt] = rankTolerance != T(0) ?
+      internal::normalize_svd(t3cView, leftOrthog, rankTolerance, maxRank) :
+      internal::normalize_qb(t3cView, leftOrthog, rankTolerance, maxRank);
 
     std::pair<Tensor3<T>,Tensor3<T>> result;
 
-    fold_left(U, na, result.first);
-    fold_right(Vt, nb, result.second);
+    result.first = fold_left(std::move(U), na);
+    result.second = fold_right(std::move(Vt), nb);
 
     return result;
   }

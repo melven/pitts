@@ -7,6 +7,7 @@ Call ttpy amen for comparison for solving a linear system in TT format
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2023-03-28'
 
+import argparse
 import numpy as np
 import timeit
 import pitts_py
@@ -31,9 +32,19 @@ def pitts_ttOp_to_ttpy(tt):
 if __name__ == '__main__':
     pitts_py.initialize()
 
+    parser = argparse.ArgumentParser(description="Run ttpy and pitts_py AMEn tests for a generated n^d problem (Laplace + 10*Convection")
+    parser.add_argument('-n', type=int, help='individual dimensions n', required=True)
+    parser.add_argument('-d', type=int, help='number of dimensions d', required=True)
+    parser.add_argument('--rhs_random_rank', type=int, help='TT-ranks of the random right-hand side vector', default=2)
+    parser.add_argument('--preconditioner', type=str, help='type of the preconditioner', choices=['none', 'TT-rank1'], default='none')
+
+    args = parser.parse_args()
+    print('# Arguments:', args)
+
+    dims = [args.n]*args.d
+
     np.set_printoptions(linewidth=200)
 
-    dims = [50,]*10
     TTOp = LaplaceOperator(dims)
     symmetric = False
     if not symmetric:
@@ -41,7 +52,7 @@ if __name__ == '__main__':
         pitts_py.axpby(10/np.sqrt(len(dims)), TTOpConvection, 1, TTOp)
 
     TTb = pitts_py.TensorTrain_double(dims)
-    TTb.setTTranks(50)
+    TTb.setTTranks(args.rhs_random_rank)
     pitts_py.randomize(TTb)
     #TTb.setOnes()
     nrm_b = pitts_py.normalize(TTb)
@@ -49,8 +60,7 @@ if __name__ == '__main__':
     TTx = pitts_py.TensorTrain_double(dims)
     pitts_py.copy(TTb, TTx)
 
-    precondition = False
-    if precondition:
+    if args.preconditioner == 'TT-rank1':
         precond = TT_Rank1_preconditioner(TTOp, twosided=True)
 
         TTOp_unprecond = TTOp
@@ -88,7 +98,7 @@ if __name__ == '__main__':
     print(ttpy_TTx)
 
     wtime = timeit.default_timer()
-    ttpy_TTx = amen_solve(ttpy_TTOp, ttpy_TTb, ttpy_TTx, 1.e-8, nswp=40, local_iters=1, local_restart=80, verb=10, kickrank=50)
+    ttpy_TTx = amen_solve(ttpy_TTOp, ttpy_TTb, ttpy_TTx, 1.e-8, nswp=40, local_iters=1, local_restart=80, verb=10, kickrank=args.rhs_random_rank)
     print(ttpy_TTx)
     wtime = timeit.default_timer() - wtime
     print('wtime ttpy AMEN', wtime)
@@ -98,7 +108,7 @@ if __name__ == '__main__':
     pitts_py.clearPerformanceStatistics()
     wtime = timeit.default_timer()
     pitts_py.solveMALS(TTOp, symmetric, pitts_py.MALS_projection.RitzGalerkin, TTb, TTx,
-            nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-8, nMALS=1, nOverlap=0, nAMEnEnrichment=50,
+            nSweeps=40, residualTolerance=1.e-8, maxRank=150, useTTgmres=False, gmresMaxIter=80, gmresRelTol=1.e-8, nMALS=1, nOverlap=0, nAMEnEnrichment=args.rhs_random_rank,
             simplifiedAMEn=True)
     #pitts_py.solveGMRES(TTOp, TTb, TTx, maxIter=200, maxRank=150, symmetric=True, absResTol=100, relResTol=1.e-8)
     wtime = timeit.default_timer() - wtime
@@ -114,7 +124,7 @@ if __name__ == '__main__':
     nrm_err = (ttpy_TTx - ttpy_TTx_ref).norm()
     print('diff TTx pitts_py and ttpy_tt: abs. err', nrm_err, 'rel. err', nrm_err/nrm_x_ref)
 
-    if precondition:
+    if args.preconditioner != 'none':
         TTx_unprecond = pitts_py.TensorTrain_double(dims)
         pitts_py.apply(precond.TTOpR, TTx, TTx_unprecond)
 

@@ -28,7 +28,7 @@ namespace PITTS
   //! @param reshape  desired shape of the resulting multi-vector, total size must be n*k
   //!
   template<typename T>
-  void transform(const MultiVector<T>& X, const Tensor2<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape = {0, 0});
+  void transform(const MultiVector<T>& X, const ConstTensor2View<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape = {0, 0});
 
 }
 

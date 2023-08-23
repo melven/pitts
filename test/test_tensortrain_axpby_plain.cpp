@@ -261,6 +261,7 @@ TEST(PITTS_TensorTrain_axpby_plain, approximation_accuracy_d2)
   // accurate addition
   PITTS::copy(TTy, TTz);
   double nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz);
+  double nrm_ref = nrm;
   EXPECT_EQ(std::vector<int>({20}), TTz.getTTranks());
   nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
   nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
@@ -268,7 +269,7 @@ TEST(PITTS_TensorTrain_axpby_plain, approximation_accuracy_d2)
 
   // less accurate addition
   PITTS::copy(TTy, TTz);
-  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0.1);
+  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0.1/nrm_ref);
   EXPECT_GT(10, TTz.getTTranks()[0]);
   nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);
   nrm = PITTS::internal::axpby_plain(-1., TTx, nrm, TTz);
@@ -276,7 +277,7 @@ TEST(PITTS_TensorTrain_axpby_plain, approximation_accuracy_d2)
 
   // somewhat more accurate addition
   PITTS::copy(TTy, TTz);
-  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0.01);
+  nrm = PITTS::internal::axpby_plain(1., TTx, 1., TTz, 0.01/nrm_ref);
   EXPECT_LT(10, TTz.getTTranks()[0]);
   EXPECT_GT(20, TTz.getTTranks()[0]);
   nrm = PITTS::internal::axpby_plain(-1., TTy, nrm, TTz);

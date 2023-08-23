@@ -2,6 +2,8 @@
 #include "test_complex_helper.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_combine.hpp"
+#include "eigen_test_helper.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include <complex>
 
 template<typename T>
@@ -236,4 +238,40 @@ TYPED_TEST(PITTS_Tensor3_split, n_equals_six_transposed)
       }
 }
 
+TYPED_TEST(PITTS_Tensor3_split, normalize_svd_diagonal)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using vec = Eigen::VectorX<Type>;
+  using mat = Eigen::MatrixX<Type>;
+  constexpr auto eps = 1.e-10;
 
+  Tensor2 M(20, 30);
+  vec singularValues(20);
+  for(int i = 0; i < 20; i++)
+    singularValues(i) = i;
+  EigenMap(M) = randomOrthoMatrix(20,20) * singularValues.asDiagonal() * randomOrthoMatrix(20, 30);
+
+  const auto& mapM = ConstEigenMap(M);
+  std::vector<Type> absErr = {1, 2, 3, 4, 5, 10, 20, 100};
+  Type prev_err = 0;
+  for(auto err: absErr)
+  {
+    const auto& [Q, B] = PITTS::internal::normalize_svd(M, true, err, 999, true, true);
+    const auto& mapQ = ConstEigenMap(Q);
+    const auto& mapB = ConstEigenMap(B);
+    EXPECT_LE((mapM - mapQ*mapB).norm(), err + eps);
+    EXPECT_GT((mapM - mapQ*mapB).norm(), prev_err - eps);
+    EXPECT_NEAR(mat::Identity(mapQ.cols(), mapQ.cols()), mapQ.transpose() * mapQ, eps);
+  }
+
+  for(auto err: absErr)
+  {
+    const auto& [B, Qt] = PITTS::internal::normalize_svd(M, false, err, 999, true, true);
+    const auto& mapB = ConstEigenMap(B);
+    const auto& mapQt = ConstEigenMap(Qt);
+    EXPECT_LE((mapM - mapB*mapQt).norm(), err + eps);
+    EXPECT_GT((mapM - mapB*mapQt).norm(), prev_err - eps);
+    EXPECT_NEAR(mat::Identity(mapQt.rows(),mapQt.rows()), mapQt * mapQt.transpose(), eps);
+  }
+}
