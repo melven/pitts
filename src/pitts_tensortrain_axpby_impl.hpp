@@ -83,6 +83,9 @@ namespace PITTS
         }
 
         // dispatch
+#ifdef PITTS_TENSORTRAIN_PLAIN_AXPBY
+        return internal::axpby_plain(alpha, TTx, beta, TTy, rankTolerance, maxRank);
+#endif
 
         T gamma;
 

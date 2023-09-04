@@ -56,6 +56,12 @@ if(PITTS_DEVELOP_BUILD)
   add_definitions(-DPITTS_DEVELOP_BUILD)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 endif()
+# use non-optimized axpby algorithm for performance comparison
+option(PITTS_TENSORTRAIN_PLAIN_AXPBY "Use slower standard algorithm for evaluating tensor-train axpby operations (disables axpby_normalized).")
+mark_as_advanced(PITTS_TENSORTRAIN_PLAIN_AXPBY)
+if(PITTS_TENSORTRAIN_PLAIN_AXPBY)
+  add_definitions(-DPITTS_TENSORTRAIN_PLAIN_AXPBY)
+endif()
 
 
 ###
@@ -120,7 +126,6 @@ if(ITensor_FOUND)
 else()
   message(STATUS "Did not find ITensor, not building ITensor support.")
 endif()
-
 
 
 ###

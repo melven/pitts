@@ -221,6 +221,7 @@ namespace PITTS
       template<typename T1, typename T2>
       const auto& extract_first(const std::pair<T1,T2>& t12) {return t12.first;}
 
+#ifndef PITTS_TENSORTRAIN_PLAIN_AXPBY
       template<typename T>
       constexpr auto axpby_loop_from_left(const auto& TTx, const auto& TTy)
       {
@@ -266,7 +267,49 @@ namespace PITTS
           concatTopBottom<T>(xTy, B, QB.second);
         };
       }
+#else
+      template<typename T>
+      constexpr auto axpby_loop_from_left(const auto& TTx, const auto& TTy)
+      {
+        using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
+        return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
+        {
+          const auto& subTx = extract_first(TTx.subTensor(iDim));
+          const auto& subTy = extract_first(TTy.subTensor(iDim));
 
+          Tensor3<T> t3xy, t3tmp;
+          if( !prev_QB )
+          {
+            t3xy.resize(subTx.r1(), subTx.n(), subTx.r2()+subTy.r2());
+            concatLeftRight<T>(unfold_left(subTx), unfold_left(subTy), unfold_left(t3xy));
+          }
+          else
+          {
+            t3xy.resize(subTx.r1()+subTy.r1(), subTx.n(), subTx.r2()+subTy.r2());
+            for(int k = 0; k < t3xy.r2(); k++)
+              for(int j = 0; j < t3xy.n(); j++)
+                for(int i = 0; i < t3xy.r1(); i++)
+                {
+                  if( i < subTx.r1() && k < subTx.r2() )
+                    t3xy(i,j,k) = subTx(i,j,k);
+                  else if( i >= subTx.r1() && k >= subTx.r2() )
+                    t3xy(i,j,k) = subTy(i-subTx.r1(), j, k-subTx.r2());
+                  else
+                    t3xy(i,j,k) = T(0);
+                }
+            internal::normalize_contract1(prev_QB->get().second, t3xy, t3tmp);
+            std::swap(t3tmp, t3xy);
+          }
+
+          auto [Q, B] = internal::normalize_qb(unfold_left(t3xy), true);
+
+          QB.first = fold_left(std::move(Q), t3xy.n());
+          QB.second = std::move(B);
+        };
+      }
+#endif
+
+#ifndef PITTS_TENSORTRAIN_PLAIN_AXPBY
       template<typename T>
       constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
       {
@@ -313,6 +356,47 @@ namespace PITTS
           concatLeftRight<T>(yTx, B, QB.second);
         };
       }
+#else
+      template<typename T>
+      constexpr auto axpby_loop_from_right(const auto& TTx, const auto& TTy)
+      {
+        using ResultType = std::pair<Tensor3<T>,Tensor2<T>>;
+        return [&](int iDim, optional_cref<ResultType> prev_QB, ResultType& QB)
+        {
+          const auto& subTx = extract_first(TTx.subTensor(iDim));
+          const auto& subTy = extract_first(TTy.subTensor(iDim));
+
+          Tensor3<T> t3xy, t3tmp;
+          if( !prev_QB )
+          {
+            t3xy.resize(subTx.r1() + subTy.r1(), subTx.n(), subTx.r2());
+            concatTopBottom<T>(unfold_right(subTx), unfold_right(subTy), unfold_right(t3xy));
+          }
+          else
+          {
+            t3xy.resize(subTx.r1()+subTy.r1(), subTx.n(), subTx.r2()+subTy.r2());
+            for(int k = 0; k < t3xy.r2(); k++)
+              for(int j = 0; j < t3xy.n(); j++)
+                for(int i = 0; i < t3xy.r1(); i++)
+                {
+                  if( i < subTx.r1() && k < subTx.r2() )
+                    t3xy(i,j,k) = subTx(i,j,k);
+                  else if( i >= subTx.r1() && k >= subTx.r2() )
+                    t3xy(i,j,k) = subTy(i-subTx.r1(), j, k-subTx.r2());
+                  else
+                    t3xy(i,j,k) = T(0);
+                }
+            internal::normalize_contract2(t3xy, prev_QB->get().second, t3tmp);
+            std::swap(t3tmp, t3xy);
+          }
+
+          auto [B, Qt] = internal::normalize_qb(unfold_right(t3xy), false);
+
+          QB.first = fold_right(std::move(Qt), t3xy.n());
+          QB.second = std::move(B);
+        };
+      }
+#endif
 
 
       //! contract Tensor3 and Tensor2 along last dimensions: A(:,:,*) * B(*,:) and subtract the result from C(:,:,:)
