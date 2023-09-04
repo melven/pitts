@@ -62,6 +62,12 @@ mark_as_advanced(PITTS_TENSORTRAIN_PLAIN_AXPBY)
 if(PITTS_TENSORTRAIN_PLAIN_AXPBY)
   add_definitions(-DPITTS_TENSORTRAIN_PLAIN_AXPBY)
 endif()
+# use standard QB/SVD instead of Q-less TSQR
+option(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB "Use slower standard algorithm for normalization (QR/SVD) not exploiting our Q-less TSQR implementation.")
+mark_as_advanced(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
+if(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
+  add_definitions(-DPITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
+endif()
 
 
 ###

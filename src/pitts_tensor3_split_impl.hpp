@@ -34,7 +34,7 @@ namespace PITTS
 
     //! small wrapper around QR only with data size
     template<typename T>
-    auto normalize_qr_only(const Tensor2<T>& M, bool leftOrthog)
+    auto normalize_qr_only(const ConstTensor2View<T>& M, bool leftOrthog)
     {
       const auto n = M.r1();
       const auto m = M.r2();
@@ -57,7 +57,7 @@ namespace PITTS
 
     //! small wrapper around SVD only with data size
     template<typename T>
-    auto normalize_svd_only(const Tensor2<T>& M)
+    auto normalize_svd_only(const ConstTensor2View<T>& M, bool removeBottomZeroRows)
     {
       auto n = M.r1();
       const auto m = M.r2();
@@ -66,10 +66,13 @@ namespace PITTS
       // circumvents Eigen bug: https://gitlab.com/libeigen/eigen/-/issues/2663
       using RealType = decltype(std::abs(T(0)));
       const auto tsqrError = std::sqrt(std::numeric_limits<RealType>::min());
-      for(; n > 1; n--)
+      if( removeBottomZeroRows)
       {
-        if( ConstEigenMap(M).row(n-1).norm() > 10*tsqrError )
-          break;
+        for(; n > 1; n--)
+        {
+          if( ConstEigenMap(M).row(n-1).norm() > 10*tsqrError )
+            break;
+        }
       }
 
       // 6.67 N^3 flops reported by LAPACK, round it to 7
@@ -83,11 +86,12 @@ namespace PITTS
 
 
       //std::cout << "SVD of:\n" << ConstEigenMap(M) << std::endl;
+      const auto mapM = ConstEigenMap(M).topRows(n);
 
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
-      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(ConstEigenMap(M).topRows(n));
+      auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(mapM);
 #else
-      auto svd = Eigen::BDCSVD<EigenMatrix>(ConstEigenMap(M).topRows(n), Eigen::ComputeThinV | Eigen::ComputeThinU);
+      auto svd = Eigen::BDCSVD<EigenMatrix>(mapM, Eigen::ComputeThinV | Eigen::ComputeThinU);
 #endif
 
       assert(!std::isnan(svd.singularValues()(0)));
@@ -304,6 +308,7 @@ namespace PITTS
       auto rankTol = std::abs(rankTolerance);
       rankTol = std::max(rankTol, std::numeric_limits<decltype(rankTol)>::epsilon() * std::min(M.r1(),M.r2()));
 
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
       //    M = Q R = Q U S V^T
       // => M = (QU) (SV^T)
       // => (QU) = M V S^(-1)
@@ -322,6 +327,9 @@ namespace PITTS
       normalize_qb_block_TSQR(mv, R);
 
       auto qr = normalize_qr_only(R, true);
+#else
+      auto qr = normalize_qr_only(M, leftOrthog);
+#endif
 
       // we might want to consider an absolute tolerance, e.g. when orthogonalizing w.r.t. another set of orthogonal vectors...
       if( absoluteTolerance && qr.maxPivot() > 0 )
@@ -367,7 +375,9 @@ namespace PITTS
       Eigen::Map<Eigen::VectorXi>(colsPermutation.data(), r) = qr.colsPermutation().indices().head(r);
       Tensor2<T> tmpR(r, r);
       EigenMap(tmpR) = qr.matrixR().topLeftCorner(r,r).template triangularView<Eigen::Upper>();
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
       triangularSolve(mv, tmpR, colsPermutation);
+#endif
 
 //std::cout << "QB rank: " << r << ", maxPivot / minPivot: " << std::abs(qr.matrixR()(0,0) / qr.matrixR()(r-1,r-1)) << ", diagonal entries of R: " << qr.matrixR().topLeftCorner(r,r).diagonal().transpose() << "\n";
 //std::cout << "QB orthogonalityError: " << (ConstEigenMap(mv).transpose() * ConstEigenMap(mv) - EigenMatrix::Identity(r,r)).array().abs().maxCoeff() << "\n";
@@ -386,7 +396,11 @@ namespace PITTS
         {
           // return QR
           // X = QR,  RP = Q_2 R_2  =>  X P = Q Q_2 R_2  => X P R_2^(-1) = Q Q_2
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
           normalize_qb_copy(mv, result.first);
+#else
+          EigenMap(result.first) = qr.householderQ() * EigenMatrix::Identity(M.r1(), r);
+#endif
           auto B = EigenMap(result.second);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>();
           normalize_qb_reorder(qr.colsPermutation(), false, result.second);
@@ -398,7 +412,11 @@ namespace PITTS
           auto B = EigenMap(result.first);
           B = qr.matrixR().topRows(r).template triangularView<Eigen::Upper>().transpose();
           normalize_qb_reorder(qr.colsPermutation(), true, result.first);
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
           normalize_qb_transpose(mv, result.second);
+#else
+          EigenMap(result.second) = (qr.householderQ() * EigenMatrix::Identity(M.r2(), r)).transpose();
+#endif
         }
       }
 
@@ -423,6 +441,7 @@ namespace PITTS
 
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
       //    M = Q R = Q U S V^T
       // => M = (QU) (SV^T)
       // => (QU) = M V S^(-1)
@@ -440,7 +459,10 @@ namespace PITTS
       Tensor2<T> R;
       normalize_svd_block_TSQR(mv, R);
 
-      auto svd = normalize_svd_only(R);
+      auto svd = normalize_svd_only(R, true);
+#else
+      auto svd = normalize_svd_only(M, false);
+#endif
 
       if( oldFrobeniusNorm != nullptr )
         *oldFrobeniusNorm = svd.singularValues().norm();
@@ -502,14 +524,24 @@ namespace PITTS
         if( leftOrthog )
         {
           // return QB
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
           EigenMap(result.first) = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
           EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+#else
+          EigenMap(result.first) = svd.matrixU().leftCols(r);
+          EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+#endif
         }
         else
         {
           // return BQ
+#ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
           EigenMap(result.first) = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
           EigenMap(result.second) = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
+#else
+          EigenMap(result.first) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+          EigenMap(result.second) = svd.matrixV().leftCols(r).adjoint();
+#endif
         }
         return result;
       }();
