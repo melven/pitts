@@ -393,7 +393,8 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
     int nMaxThreads = omp_get_max_threads();
     std::vector<double*> plocalBuff_otherThreads(nMaxThreads);
 
-    std::vector<std::unique_ptr<std::barrier<>>> localBarrier(nMaxThreads/*times falsesharing stride*/);
+    char *_buf = new alignas(std::barrier<>) char[sizeof(std::barrier<>)*nMaxThreads/*timesfalsesharing stride*/];
+    std::barrier<> *localBarriers = (std::barrier<>*)_buf;
 
     printf("--- BEGIN OF block_TSQR ---\n");
 
@@ -420,14 +421,15 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
             const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
 
             // no synchronization after creation needed here because each thread uses exactly its own barrier
-            localBarrier[iThread].reset(new std::barrier(1));
+            new (&localBarriers[iThread]) std::barrier(1);
 
             printf("TSQR: \tloopdepth 0 \tthreads [%d,%d]: \tcombining blocks %lld to %lld (M)\n", iThread, iThread, firstIter, lastIter);
             for(long long iter = firstIter; iter <= lastIter; iter++)
             {
-                par_dummy_transformBlock(m, &M(iter,0), &plocalBuff[0], iThread, iThread+1, *localBarrier[iThread]);
+                par_dummy_transformBlock(m, &M(iter,0), &plocalBuff[0], iThread, iThread+1, localBarriers[iThread]);
                 // with global synchronization: this is funny stuff if not ALL threads call it the SAME number of times
             }
+            localBarriers[iThread].~barrier(); // no synchronization before destruction needed bc single ownership of barrier
         }
 
         // tree reduction over threads
@@ -443,7 +445,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 
             // create local barrier before(!) global barrier to ensure all threads in team have the same view of them
             if (iThread == bossThread && iThread < nThreads) // iThread < nThreads s.t. lastThread-bossThread non-negative
-                localBarrier[bossThread].reset(new std::barrier(lastThread-bossThread));
+                new (&localBarriers[bossThread]) std::barrier(lastThread-bossThread);
 
 #pragma omp barrier
 #pragma omp master
@@ -456,9 +458,14 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
                 printf("TSQR: \tloopdepth %d \tthreads [%d,%d] (I'm thread %d): \tcombining block %d and %d (localBuffs)\n", depth, bossThread, lastThread-1, iThread, bossThread, bossThread+nextThread);
                 const auto bossLocalBuff = plocalBuff_otherThreads[bossThread];
                 const auto otherLocalBuff = plocalBuff_otherThreads[bossThread+nextThread];
-                par_dummy_transformBlock(m, &otherLocalBuff[0], &bossLocalBuff[0], bossThread, lastThread, *localBarrier[bossThread]);
+                par_dummy_transformBlock(m, &otherLocalBuff[0], &bossLocalBuff[0], bossThread, lastThread, localBarriers[bossThread]);
             }
             depth++;
+
+            // destruct the local barrier
+            if (iThread == bossThread && iThread < nThreads)
+                localBarriers[bossThread].~barrier(); // needed? (only if destructor has any side effects)
+
         }
 
 #pragma omp barrier
@@ -469,6 +476,9 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         }
 #pragma omp barrier // needed in order for other plocalBuff's memory (and hence memory pointed to by plocalBuff_otherThreads) not to be destroyed prematurely
     }
+
+    delete[] _buf;
+
     return numthreads;
 }
 
