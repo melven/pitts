@@ -434,14 +434,20 @@ namespace PITTS
         toDense(tt_x, mv_x);
         toDense(tt_b, mv_rhs);
 
+#ifndef PITTS_TENSORTRAIN_MALS_SLOWCONTRACT
         const TTOpApplyDenseHelper<T> ttOpHelper(tt_OpA);
         ttOpHelper.addPadding(mv_x);
         ttOpHelper.addPadding(mv_rhs);
+#else
+        const auto& ttOpHelper = tt_OpA;
+#endif
 
         // absolute tolerance is not invariant wrt. #dimensions
         const auto [localAbsRes, localRelRes] = GMRES<arr>(ttOpHelper, symmetric, mv_rhs, mv_x, maxIter, arr::Constant(1, absTol), arr::Constant(1, relTol), outputPrefix, verbose);
 
+#ifndef PITTS_TENSORTRAIN_MALS_SLOWCONTRACT
         ttOpHelper.removePadding(mv_x);
+#endif
 
         const auto r_left = tt_x.subTensor(0).r1();
         const auto r_right = tt_x.subTensor(nDim-1).r2();

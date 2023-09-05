@@ -68,6 +68,12 @@ mark_as_advanced(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
 if(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
   add_definitions(-DPITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
 endif()
+# use standard / slower contraction scheme instead of optimized padded for TTOp * dense
+option(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT "Use slower standard contraction scheme for applying the local TT operator in the inner (dense) GMRES.")
+mark_as_advanced(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
+if(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
+  add_definitions(-DPITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
+endif()
 
 
 ###
