@@ -161,7 +161,6 @@ namespace PITTS
 #ifndef PITTS_TENSORTRAIN_PLAIN_AXPBY
       residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
 #else
-      const T residualNorm_ref = norm2(TTOpA * TTx - TTb);
       residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
 #endif
       assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
@@ -491,7 +490,6 @@ namespace PITTS
 #ifndef PITTS_TENSORTRAIN_PLAIN_AXPBY
         residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
 #else
-        const T residualNorm_ref = norm2(TTOpA * TTx - TTb);
         residualNorm = (norm_Ax*mapB.leftCols(1) - mapB.rightCols(1)).norm();
 #endif
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
@@ -538,7 +536,6 @@ namespace PITTS
 #ifndef PITTS_TENSORTRAIN_PLAIN_AXPBY
         residualNorm = (norm_Ax*Eigen::MatrixX<T>::Identity(mapB.rows(),mapB.cols()) - mapB).norm();
 #else
-        const T residualNorm_ref = norm2(TTOpA * TTx - TTb);
         residualNorm = (norm_Ax*mapB.topRows(1) - mapB.bottomRows(1)).norm();
 #endif
         assert(residualNorm - norm2(TTOpA * TTx - TTb) < sqrt_eps*nrm_TTb);
