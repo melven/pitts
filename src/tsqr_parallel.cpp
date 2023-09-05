@@ -477,7 +477,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 #pragma omp barrier // needed in order for other plocalBuff's memory (and hence memory pointed to by plocalBuff_otherThreads) not to be destroyed prematurely
     }
 
-    delete[] _buf;
+    operator delete[](_buf, std::align_val_t{alignof(std::barrier<>)});
 
     return numthreads;
 }
