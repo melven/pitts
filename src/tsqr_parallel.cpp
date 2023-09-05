@@ -393,7 +393,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
     int nMaxThreads = omp_get_max_threads();
     std::vector<double*> plocalBuff_otherThreads(nMaxThreads);
 
-    char *_buf = new alignas(std::barrier<>) char[sizeof(std::barrier<>)*nMaxThreads/*timesfalsesharing stride*/];
+    char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[sizeof(std::barrier<>)*nMaxThreads/*timesfalsesharing stride*/];
     std::barrier<> *localBarriers = (std::barrier<>*)_buf;
 
     printf("--- BEGIN OF block_TSQR ---\n");
