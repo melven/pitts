@@ -19,6 +19,7 @@
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
 #include <likwid.h>
+#include <cstring>
 #endif
 
 #ifdef PITTS_DEVELOP_BUILD
@@ -141,9 +142,12 @@ namespace PITTS
         explicit ScopedLikwidRegion(const char* name) :
           name_(name)
         {
+          // workaround for likwid bug: https://github.com/RRZE-HPC/likwid/issues/551
+          std::strncpy(shortenedName_, name_, 90);
+          shortenedName_[90] = '\0';
 #pragma omp parallel
           {
-            LIKWID_MARKER_START(name_);
+            LIKWID_MARKER_START(shortenedName_);
           }
         }
 
@@ -152,13 +156,14 @@ namespace PITTS
         {
 #pragma omp parallel
           {
-            LIKWID_MARKER_STOP(name_);
+            LIKWID_MARKER_STOP(shortenedName_);
           }
         }
 
       private:
         //! region name
         const char* name_;
+        char shortenedName_[91];
     };
 #endif
 
