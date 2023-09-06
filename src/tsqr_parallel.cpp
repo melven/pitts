@@ -462,7 +462,10 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
             }
             depth++;
 
-            // destruct the local barrier
+            // THIS MAY BE A RACE CONDITION, if other threads still use the barrier while it is being destroyed.
+            // But, https://en.cppreference.com/w/cpp/thread/barrier and https://godbolt.org/z/MfhKKoP1n suggest that
+            // after the last thread calls arrive_and_wait, a CompletionFunction is invoked which in turn unblocks all 
+            // threads, but the threads DO NOT need the barrier object in order to return from arrive_and_wait.
             if (iThread == bossThread && iThread < nThreads)
                 localBarriers[bossThread].~barrier(); // needed? (only if destructor has any side effects)
 
