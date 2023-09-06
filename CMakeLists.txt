@@ -28,7 +28,7 @@ option(PITTS_OPTIMIZE_FOR_HOST "Enable compiler optimization for current CPU arc
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(GCC_INLINE_FLAGS "--param inline-unit-growth=200 --param large-function-growth=1000 --param early-inlining-insns=2000 --param max-inline-insns-single=200 --param max-early-inliner-iterations=50 --param large-function-growth=1000 --param large-function-insns=2700")
   set(GCC_VARTRACK_FLAGS "--param max-gcse-memory=13107200  --param large-stack-frame=1024 --param max-hoist-depth=300 --param max-vartrack-size=0")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts -ffast-math -Wall -Wextra -Wno-unused -Wno-sign-compare ${GCC_INLINE_FLAGS} ${GCC_VARTRACK_FLAGS}")# -fverbose-asm")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts -ffast-math -Wall -Wextra -Wno-unused -Wno-sign-compare ${GCC_INLINE_FLAGS} ${GCC_VARTRACK_FLAGS} -fsanitize=thread")# -fverbose-asm")
   #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
   if(PITTS_OPTIMIZE_FOR_HOST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mprefer-vector-width=512")
