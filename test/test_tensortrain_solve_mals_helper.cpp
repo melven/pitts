@@ -60,7 +60,11 @@ TEST(PITTS_TensorTrain_solve_mals_helper, axpby_loop_from_right_nDim2_rank1)
   Mleft << 1, -1;
 
   Tensor2_double newSubT0(1,5*2);
+#ifndef PITTS_TENSORTRAIN_PLAIN_AXPBY
   EigenMap(newSubT0) = Mleft * ConstEigenMap(unfold_right(QB[0].first));
+#else
+  EigenMap(newSubT0) = Mleft * ConstEigenMap(QB[0].second) * ConstEigenMap(unfold_right(QB[0].first));
+#endif
   fold_right(newSubT0, 5, QB[0].first);
 
   std::vector<Tensor3_double> tmpXY(QB.size());

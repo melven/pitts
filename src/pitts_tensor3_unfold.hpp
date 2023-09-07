@@ -100,7 +100,7 @@ namespace PITTS
         );
 
     mv.resize(r1*n*r2, 1);
-    const auto nChunks = mv.colStrideChunks();
+    const auto nChunks = mv.rowChunks();
 #pragma omp parallel for schedule(static) if(nChunks > 50)
     for(long long iChunk = 0; iChunk < nChunks; iChunk++)
       mv.chunk(iChunk, 0) = t3.data()[iChunk];

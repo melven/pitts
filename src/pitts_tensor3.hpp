@@ -131,8 +131,9 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
       const long long requiredSize = r1*n*r2;
+      const long long nChunks = (requiredSize-1)/Chunk<T>::size+1;
       // ensure same amount of padding as in MultiVector
-      const long long requiredChunks = internal::paddedChunks((requiredSize-1)/Chunk<T>::size+1);
+      const long long requiredChunks = internal::paddedChunks(nChunks);
       if( requiredChunks > reservedChunks_ )
       {
         if( keepData )
@@ -144,7 +145,7 @@ namespace PITTS
       r2_ = r2;
       n_ = n;
       if (setPaddingToZero)
-        data_[requiredChunks-1] = Chunk<T>{};
+        data_[nChunks-1] = Chunk<T>{};
     }
 
     //! access tensor entries (some block ordering, const variant)

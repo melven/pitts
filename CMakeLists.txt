@@ -56,6 +56,24 @@ if(PITTS_DEVELOP_BUILD)
   add_definitions(-DPITTS_DEVELOP_BUILD)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 endif()
+# use non-optimized axpby algorithm for performance comparison
+option(PITTS_TENSORTRAIN_PLAIN_AXPBY "Use slower standard algorithm for evaluating tensor-train axpby operations (disables axpby_normalized).")
+mark_as_advanced(PITTS_TENSORTRAIN_PLAIN_AXPBY)
+if(PITTS_TENSORTRAIN_PLAIN_AXPBY)
+  add_definitions(-DPITTS_TENSORTRAIN_PLAIN_AXPBY)
+endif()
+# use standard QB/SVD instead of Q-less TSQR
+option(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB "Use slower standard algorithm for normalization (QR/SVD) not exploiting our Q-less TSQR implementation.")
+mark_as_advanced(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
+if(PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
+  add_definitions(-DPITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB)
+endif()
+# use standard / slower contraction scheme instead of optimized padded for TTOp * dense
+option(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT "Use slower standard contraction scheme for applying the local TT operator in the inner (dense) GMRES.")
+mark_as_advanced(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
+if(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
+  add_definitions(-DPITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
+endif()
 
 
 ###
@@ -120,7 +138,6 @@ if(ITensor_FOUND)
 else()
   message(STATUS "Did not find ITensor, not building ITensor support.")
 endif()
-
 
 
 ###
