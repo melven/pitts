@@ -503,18 +503,44 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 
 int main(int argc, char* argv[])
 {
+    constexpr bool test_extensive = true;
+
     PITTS::initialize(&argc, &argv);
 
-    const int n = 16;
-    const int m = 8;
-    MultiVector<double> M(n, m);
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < m; j++)
-            M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+    if (!test_extensive)
+    {
+        const int n = 16;
+        const int m = 8;
+        MultiVector<double> M(n, m);
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < m; j++)
+                M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
-    const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
+        const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
 
-    check(M, numThreadsUsed, n, m);
+        check(M, numThreadsUsed, n, m);
+    }
+    if (test_extensive)
+    {
+        const int n_low = 1;
+        const int n_upp = 32;
+        const int m_low = 8;
+        const int m_upp = 8;
+        for (int m = m_low; m < m_upp; m++)
+        {
+            for (int n = n_low; n < n_upp; n++)
+            {
+                MultiVector<double> M(n, m);
+                for (int i = 0; i < n; i++)
+                    for (int j = 0; j < m; j++)
+                        M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+
+                const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
+
+                check(M, numThreadsUsed, n, m);
+            }
+        }
+    }
 
     PITTS::finalize();
     return 0;
