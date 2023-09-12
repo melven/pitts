@@ -183,7 +183,7 @@ TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply_addRemovePadding)
 {
   const std::vector dims = {5, 7, 2, 3};
   const auto N = 5*7*2*3;
-  const auto n0 = dims[0];
+  const auto nlast = dims[3];
   TensorTrainOperator_double TTOp(dims, dims);
   TTOp.setTTranks({2,1,3});
   randomize(TTOp);
@@ -202,13 +202,13 @@ TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply_addRemovePadding)
   const double nrm = norm2(MVx)(0);
   EXPECT_NEAR(nrm_ref, nrm, eps);
 
-  // entries should be the same when reshaped to n0, N/n0
+  // entries should be the same when reshaped to N/nlast, nlast
   MultiVector_double MVxtmp;
   copy(MVx, MVxtmp);
-  MVxtmp.resize(n0, N/n0, false, true);
+  MVxtmp.resize(N/nlast, nlast, false, true);
   for(int i = 0; i < N; i++)
   {
-    EXPECT_EQ(MVx_ref(i,0), MVxtmp(i%n0, i/n0));
+    EXPECT_EQ(MVx_ref(i,0), MVxtmp(i%(N/nlast), i/(N/nlast)));
   }
 
   TTOpHelper.removePadding(MVx);
