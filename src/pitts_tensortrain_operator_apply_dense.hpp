@@ -59,6 +59,9 @@ namespace PITTS
       //! get the i-th tensor train operator rank
       const int& rA(int i) const {return rA_.at(i);}
 
+      //! get the (i+1)-th tensor train operator row dimension
+      const int& r(int i) const {return r_.at(i);}
+
       //! get number of dimensions
       int nDim() const {return nDim_;}
 
@@ -69,14 +72,20 @@ namespace PITTS
       long long nTotalPadded() const {return nTotalPadded_;}
 
       //! get unpadded size of the first dimension of the lhs/rhs tensors
-      long long n0() const {return n0_;}
+      long long nLast() const {return nLast_;}
 
       //! get padded size of the first dimension of the lhs/rhs tensors
-      long long n0padded() const {return n0padded_;}
+      long long nPadded() const {return nPadded_;}
 
 
       //! get the i-th buffer array
       MultiVector<T>& tmpv(int i) const {return tmpv_.at(i);}
+
+      //! get the additional buffer
+      std::vector<MultiVector<T>>& tmpX() const {return tmpX_;}
+
+      //! get the second additional buffer
+      std::vector<MultiVector<T>>& tmpY() const {return tmpY_;}
 
     private:
       //! reshaped sub-tensors
@@ -84,6 +93,9 @@ namespace PITTS
 
       //! dimension information (TTOp ranks)
       std::vector<int> rA_;
+
+      //! dimension information (TTOp dims)
+      std::vector<int> r_;
 
       //! number of dimensions
       int nDim_;
@@ -94,14 +106,20 @@ namespace PITTS
       //! total padded size of the lhs/rhs tensors
       long long nTotalPadded_;
 
-      //! unpadded size of the first dimension of the lhs/rhs tensors
-      long long n0_;
+      //! size of the last dimension of the lhs/rhs tensors
+      long long nLast_;
 
-      //! padded size of the first dimension of the lhs/rhs tensors
-      long long n0padded_;
+      //! padded size of nTotal_/nLast_
+      long long nPadded_;
 
       //! temporary buffers, stored for reusing without reallocating memory
       mutable std::vector<MultiVector<T>> tmpv_;
+
+      //! more temporary buffers for reusing without reallocating memory
+      mutable std::vector<MultiVector<T>> tmpX_;
+
+      //! more temporary buffers for reusing without reallocating memory
+      mutable std::vector<MultiVector<T>> tmpY_;
   };
 
   //! Faster multiplication of a tensor train operator with a dense tensor
