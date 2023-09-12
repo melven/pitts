@@ -179,7 +179,7 @@ TEST(PITTS_TensorTrainOperator_apply_dense, random_nDim4)
     }
 }
 
-TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply_addRemovePadding)
+TEST(PITTS_TensorTrainOperator_apply_dense, DISABLED_TTOpHelper_apply_addRemovePadding)
 {
   const std::vector dims = {5, 7, 2, 3};
   const auto N = 5*7*2*3;

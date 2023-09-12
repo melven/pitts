@@ -68,24 +68,8 @@ namespace PITTS
       //! get total (unpadded) size of the lhs/rhs tensors
       long long nTotal() const {return nTotal_;}
 
-      //! get total padded size of the lhs/rhs tensors
-      long long nTotalPadded() const {return nTotalPadded_;}
-
-      //! get unpadded size of the first dimension of the lhs/rhs tensors
-      long long nLast() const {return nLast_;}
-
-      //! get padded size of the first dimension of the lhs/rhs tensors
-      long long nPadded() const {return nPadded_;}
-
-
       //! get the i-th buffer array
       MultiVector<T>& tmpv(int i) const {return tmpv_.at(i);}
-
-      //! get the additional buffer
-      std::vector<MultiVector<T>>& tmpX() const {return tmpX_;}
-
-      //! get the second additional buffer
-      std::vector<MultiVector<T>>& tmpY() const {return tmpY_;}
 
     private:
       //! reshaped sub-tensors
@@ -103,23 +87,8 @@ namespace PITTS
       //! total (unpadded) size of the lhs/rhs tensors
       long long nTotal_;
 
-      //! total padded size of the lhs/rhs tensors
-      long long nTotalPadded_;
-
-      //! size of the last dimension of the lhs/rhs tensors
-      long long nLast_;
-
-      //! padded size of nTotal_/nLast_
-      long long nPadded_;
-
       //! temporary buffers, stored for reusing without reallocating memory
       mutable std::vector<MultiVector<T>> tmpv_;
-
-      //! more temporary buffers for reusing without reallocating memory
-      mutable std::vector<MultiVector<T>> tmpX_;
-
-      //! more temporary buffers for reusing without reallocating memory
-      mutable std::vector<MultiVector<T>> tmpY_;
   };
 
   //! Faster multiplication of a tensor train operator with a dense tensor

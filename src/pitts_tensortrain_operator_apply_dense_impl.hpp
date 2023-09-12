@@ -126,15 +126,17 @@ namespace PITTS
 
     //! assumes a very special memory layout: A(:,(*,1:rA)) * x((:,:),*)^T -> y((:,:),(:,1:rA))
     template<typename T>
-    void apply_dense_contract_padded(long long r, long long rA, const MultiVector<T>& x, const MultiVector<T>& A, MultiVector<T>& y, std::vector<MultiVector<T>>& tmpx, std::vector<MultiVector<T>>& tmpy)
+    void apply_dense_contract_padded(long long r, long long rA, const MultiVector<T>& x, const MultiVector<T>& A, MultiVector<T>& y)
     {
-      const auto yn = A.rows();
-      const auto xn = x.rows() / r;
+      //const auto yn = A.cols() / rA;
+      //const auto m = A.rows();
       const auto m = A.cols() / rA;
-      if( A.cols() % rA != 0 || x.cols() != m || x.rows() % r != 0 )
+      const auto yn = A.rows();
+      const auto xn = x.rows() / r / m;
+      if( A.cols() % rA != 0 || x.cols() != 1 || x.rows() != xn*r*m )
         throw std::invalid_argument("apply_dense_contract: invalid dimensions!");
 
-      y.resize(yn*xn, r*rA, false);
+      y.resize(yn*xn*r*rA, 1, false);
       
       const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
           {{"yn", "xn", "m", "rA", "r"},{yn, xn, m, rA, r}}, // arguments
@@ -144,75 +146,51 @@ namespace PITTS
       
       using mat = Eigen::MatrixX<T>;
 
-      // calculate the compute intensity of the optimal GEMM and loop over GEMMS
-      const double Ic = (xn*r*m*yn*rA)*2. / (8.*(xn*r*m + yn*m*rA + yn*xn*r*rA));
-      const double Ic_loop = (xn*m*yn)*2. / (8.*(xn*m + yn*m + yn*xn));
-      //std::cout << "Ic: " << Ic << ", Ic_loop: " << Ic_loop << "\n";
-      if( true ) //if( Ic > 20 )
-      {
 #pragma omp parallel
+      {
+        const long long blockSize = 64;
+        const auto [iThread, nThreads] = parallel::ompThreadInfo();
+        //const auto [xnrFirst, xnrLast] = parallel::distribute(xn*r, {iThread, nThreads});
+        const auto [xnrFirstBlock, xnrLastBlock] = parallel::distribute(((xn*r)-1)/blockSize+1, {iThread, nThreads});
+        const auto xnrFirst = xnrFirstBlock*blockSize;
+        const auto xnrLast = std::min(xnrLastBlock*blockSize+blockSize-1, xn*r-1);
+        const auto xnrLocal = xnrLast - xnrFirst + 1;
+        const double Ic = (2.*xn*r*m*rA) / (8.*xn*r*m + 8.*yn*m*rA + 8.*yn*xn*r*rA);
+        auto bs = blockSize;
+        if( Ic > 25 )
         {
-          const auto [iThread, nThreads] = parallel::ompThreadInfo();
-          const auto [rfirst, rlast] = parallel::distribute(r, {iThread, nThreads});
-          const auto rlocal = rlast - rfirst + 1;
-
+          while( bs < 2*m )
+            bs *= 2;
+          if( bs > xnrLocal/3 )
+            bs = xnrLocal;
+        }
+        for(long long ib = xnrFirst; ib <= xnrLast; ib+=bs)
+        {
+          const auto xnrRemain = std::min(xnrLast-ib+1, bs);
           for(long long iA = 0; iA < rA; iA++)
           {
-            const auto xstride = Eigen::OuterStride<>(&x(0,1) - &x(0,0));
+            const auto xstride = Eigen::OuterStride<>(xn*r);
+            const auto ystride = Eigen::OuterStride<>(yn);
             const auto Astride = Eigen::OuterStride<>(&A(0,1) - &A(0,0));
 
             using map = Eigen::Map<mat, Eigen::Unaligned, Eigen::OuterStride<>>;
             using const_map = Eigen::Map<const mat, Eigen::Unaligned, Eigen::OuterStride<>>;
 
-            const_map mapx(&x(rfirst*xn,0), xn*rlocal, m, xstride);
+            const_map mapx(&x(ib,0), xnrRemain, m, xstride);
             const_map mapA(&A(0,m*iA), yn, m, Astride);
-
-            MultiVector<T>& tmpy_ = tmpy[iThread];
-            tmpy_.resize(yn, xn*rlocal);
-            auto mapy = EigenMap(tmpy_);
+            //const_map mapA(&A(0,yn*iA), m, yn, Astride);
+            map mapy(&y(yn*ib+yn*r*xn*iA,0), yn, xnrRemain, ystride);
 
 #ifndef PITTS_DIRECT_GEMM
+            //mapy.noalias() = mapA.transpose() * mapx.transpose();
             mapy.noalias() = mapA * mapx.transpose();
 #else
-            cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, mapA.rows(), mapx.rows(), mapA.cols(), T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
+            cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
+            //cblas_gemm_mapper(CblasColMajor, CblasTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
 #endif
-            for(long long i = rfirst; i <= rlast; i++)
-              for(long long ixn = 0; ixn < xn; ixn++)
-              {
-                //for(long long iyn = 0; iyn < yn; iyn++)
-                //  y(iyn+yn*ixn, i+iA*r) = tmpy_(iyn, ixn+(i-rfirst)*xn);
-                const auto yChunks = (yn % Chunk<T>::size == 0) ? tmpy_.rowChunks() : tmpy_.rowChunks() - 1;
-                for(long long yChunk = 0; yChunk < yChunks; yChunk++)
-                  unaligned_store(tmpy_.chunk(yChunk, ixn+(i-rfirst)*xn), &y(yChunk*Chunk<T>::size+yn*ixn, i+iA*r));
-                for(long long iyn = yChunks*Chunk<T>::size; iyn < yn; iyn++)
-                  y(iyn+yn*ixn, i+iA*r) = tmpy_(iyn, ixn+(i-rfirst)*xn);
-              }
           }
         }
-        return;
       }
-
-#pragma omp parallel for schedule(static)
-      for(long long i = 0; i < r; i++)
-        for(long long iA = 0; iA < rA; iA++)
-        {
-          const auto xstride = Eigen::OuterStride<>(&x(0,1) - &x(0,0));
-          const auto ystride = Eigen::OuterStride<>(yn);
-          const auto Astride = Eigen::OuterStride<>(&A(0,1) - &A(0,0));
-
-          using map = Eigen::Map<mat, Eigen::Unaligned, Eigen::OuterStride<>>;
-          using const_map = Eigen::Map<const mat, Eigen::Unaligned, Eigen::OuterStride<>>;
-
-          const_map mapx(&x(i*xn,0), xn, m, xstride);
-          const_map mapA(&A(0,m*iA), yn, m, Astride);
-          map mapy(&y(0, i+iA*r), yn, xn, ystride);
-
-#ifndef PITTS_DIRECT_GEMM
-          mapy.noalias() = mapA * mapx.transpose();
-#else
-          cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, mapA.rows(), mapx.rows(), mapA.cols(), T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
-#endif
-        }
     }
   }
 
@@ -255,11 +233,6 @@ namespace PITTS
     // get dimensions
     nDim_ = TTOp.row_dimensions().size();
     nTotal_ = std::accumulate(TTOp.row_dimensions().begin(), TTOp.row_dimensions().end(), 1, std::multiplies<long long>());
-    nLast_ = TTOp.row_dimensions().back();
-    const auto nChunks = (nTotal_/nLast_-1)/Chunk<T>::size + 1;
-    const auto nChunksPadded = internal::paddedChunks(nChunks);
-    nPadded_ = nChunksPadded * Chunk<T>::size;
-    nTotalPadded_ = nPadded_* nLast_;
 
     // initialize requred data
     A_.resize(nDim_);
@@ -275,21 +248,21 @@ namespace PITTS
       const auto mi = TTOp.column_dimensions()[iDim];
       r_[(iDim + 1) % nDim_] = mi;
       A_[iDim].resize(ni, mi*subTOp.r2()*rA_[iDim]);
+      //A_[iDim].resize(mi*subTOp.r2(), ni*rA_[iDim]);
 #pragma omp parallel for collapse(2) schedule(static)
       for(long long k2 = 0; k2 < subTOp.r2(); k2++)
         for(long long j = 0; j < mi; j++)
           for(long long i = 0; i < ni; i++)
             for(long long k1 = 0; k1 < rA_[iDim]; k1++)
               A_[iDim](i, j+k2*mi+k1*mi*subTOp.r2()) = subTOp(k1, TTOp.index(iDim, i, j), k2);
+              //A_[iDim](j+k2*mi, i+ni*k1) = subTOp(k1, TTOp.index(iDim, i, j), k2);
     }
-
-    tmpX_.resize(omp_get_max_threads());
-    tmpY_.resize(omp_get_max_threads());
   }
 
   template<typename T>
   void TTOpApplyDenseHelper<T>::addPadding(MultiVector<T> &x) const
   {
+#if 0
     if( x.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
     if( x.rows() != nTotal_ )
@@ -303,11 +276,13 @@ namespace PITTS
     assert(x.colStrideChunks()*Chunk<T>::size == nPadded_);
 
     x.resize(nTotalPadded_, 1, false, true);
+#endif
   }
 
   template<typename T>
   void TTOpApplyDenseHelper<T>::removePadding(MultiVector<T> &y) const
   {
+#if 0
     if( y.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
     if( y.rows() != nTotalPadded_ )
@@ -318,11 +293,13 @@ namespace PITTS
     y.resize(nTotal_/nLast_, nLast_, false, true);
     std::swap(y, tmpv(0));
     reshape(tmpv(0), nTotal_, 1, y);
+#endif
   }
 
   template <typename T>
   inline void TTOpApplyDenseHelper<T>::preparePadding(MultiVector<T>& v) const
   {
+#if 0
     const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
 
     // ensure we have enough memory allocated to switch between n0 x N/n0 and nTotalPadded x 1
@@ -335,6 +312,7 @@ namespace PITTS
     for(long long j = 0; j < v.cols(); j++)
       for(long long iChunk = v.rowChunks()-1; iChunk < v.colStrideChunks(); iChunk++)
         v.chunk(iChunk, j) = Chunk<T>{};
+#endif
   }
 
   // implement TT Op Helper apply to dense
@@ -346,7 +324,7 @@ namespace PITTS
     // check for matching dimensions
     if( MVx.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
-    if( MVx.rows() != TTOp.nTotalPadded() )
+    if( MVx.rows() != TTOp.nTotal() )
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to apply!");
   
 
@@ -355,17 +333,17 @@ namespace PITTS
     std::swap(MVy, TTOp.tmpv(0));
 
     // reuse memory of MVx (avoids copy), restored below
-    MVx.resize(TTOp.nTotal()/TTOp.nLast(), TTOp.nLast(), false, true);
+    //MVx.resize(TTOp.nTotal()/TTOp.nLast(), TTOp.nLast(), false, true);
     std::swap(TTOp.tmpv(TTOp.nDim()), MVx);
 
     // perform actual calculation
     for(int iDim = TTOp.nDim()-1; iDim >= 0; iDim--)
-      internal::apply_dense_contract_padded(TTOp.r(iDim), TTOp.rA(iDim), TTOp.tmpv(iDim+1), TTOp.A(iDim), TTOp.tmpv(iDim), TTOp.tmpX(), TTOp.tmpY());
+      internal::apply_dense_contract_padded(TTOp.r(iDim), TTOp.rA(iDim), TTOp.tmpv(iDim+1), TTOp.A(iDim), TTOp.tmpv(iDim));
 
     std::swap(TTOp.tmpv(0), MVy);
-    MVy.resize(TTOp.nTotalPadded(), 1, false, true);
+    //MVy.resize(TTOp.nTotalPadded(), 1, false, true);
     std::swap(TTOp.tmpv(TTOp.nDim()), MVx);
-    MVx.resize(TTOp.nTotalPadded(), 1, false, true);
+    //MVx.resize(TTOp.nTotalPadded(), 1, false, true);
   }
 
 }
