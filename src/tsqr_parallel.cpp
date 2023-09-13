@@ -397,8 +397,10 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
     std::vector<double*> plocalBuff_allThreads(nMaxThreads);
 
     // allocate two localBarriers arrays in order to swap them in each loop iteration (in order to reuse barriers without needing a second global barrier just to handle synchronization before local barrier destruction/overwrite)
-    char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[2*(sizeof(std::barrier<>)*nMaxThreads/*timesfalsesharing stride*/)]; // make sure that there is a matching delete at the end of the function!
-    std::barrier<> *localBarriers[2] = {(std::barrier<>*)_buf, ((std::barrier<>*)_buf) + nMaxThreads/*times falsesharing stride*/};
+    const int false_sharing_stride = 4*1024; // play it very safe // std::hardware_destructive_interference_size;
+    const int bytes_per_barrier = (1 + (sizeof(std::barrier<>) - 1) / false_sharing_stride) * false_sharing_stride; // = sizeof(std::barrier<>) rounded up to a multiple of false_sharing_stride
+    char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[2*bytes_per_barrier*nMaxThreads]; // make sure that there is a matching delete at the end of the function!
+    std::barrier<> *localBarriers[2] = {(std::barrier<>*)_buf, (std::barrier<>*)(_buf + bytes_per_barrier*nMaxThreads)};
 
     //printf("--- BEGIN OF block_TSQR ---\n");
 
