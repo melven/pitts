@@ -35,6 +35,7 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   endif()
 elseif( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -Wall -Wextra -Wno-unused -Wno-sign-compare")
+  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
   if(PITTS_OPTIMIZE_FOR_HOST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mprefer-vector-width=512")
   endif()
@@ -74,6 +75,11 @@ mark_as_advanced(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
 if(PITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
   add_definitions(-DPITTS_TENSORTRAIN_MALS_SLOWCONTRACT)
 endif()
+# use faster direct MKL calls in some places (Eigen->MKL somehow is slower)
+option(PITTS_DIRECT_MKL_GEMM "Directly call MKL gemm in some places where this is faster than calling MKL through Eigen.")
+if(PITTS_DIRECT_MKL_GEMM)
+  add_definitions(-DPITTS_DIRECT_MKL_GEMM)
+endif()
 
 
 ###
@@ -88,6 +94,7 @@ link_libraries(MPI::MPI_CXX)
 
 # LAPACK
 find_package(LAPACK REQUIRED)
+#link_libraries(LAPACK::LAPACK)
 link_libraries(${LAPACK_LIBRARIES})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LAPACK_LINKER_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}") # -DMKL_DIRECT_CALL")

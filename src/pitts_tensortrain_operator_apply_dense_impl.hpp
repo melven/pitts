@@ -24,8 +24,9 @@
 #include "pitts_tensor3.hpp"
 #include "pitts_eigen.hpp"
 #include "pitts_parallel.hpp"
-
-#define PITTS_DIRECT_GEMM
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -89,7 +90,7 @@ namespace PITTS
         {
           Eigen::Map<Eigen::MatrixX<T>> yMap(&y(0, iCol), r1n, n_right);
           Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(0, iCol), mr2, n_right);
-#ifndef PITTS_DIRECT_GEMM
+#ifndef PITTS_DIRECT_MKL_GEMM
           yMap.noalias() = tmpA * xMap;
 #else
           cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasNoTrans, tmpA.rows(), xMap.cols(), tmpA.cols(), T(1), tmpA.data(), tmpA.colStride(), xMap.data(), xMap.colStride(), T(0), yMap.data(), yMap.colStride());
@@ -99,7 +100,7 @@ namespace PITTS
         {
           Eigen::Map<Eigen::MatrixX<T>> yMap(&y(0, iCol), m_left, r1n);
           Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(0, iCol), m_left, mr2);
-#ifndef PITTS_DIRECT_GEMM
+#ifndef PITTS_DIRECT_MKL_GEMM
           yMap.noalias() = xMap * tmpA.transpose();
 #else
           cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, xMap.rows(), tmpA.rows(), xMap.cols(), T(1), xMap.data(), xMap.colStride(), tmpA.data(), tmpA.colStride(), T(0), yMap.data(), yMap.colStride());
@@ -114,7 +115,7 @@ namespace PITTS
           {
             Eigen::Map<Eigen::MatrixX<T>> yMap(&y(ir * m_left * r1n, iCol), m_left, r1n);
             Eigen::Map<const Eigen::MatrixX<T>> xMap(&x(ir * m_left * mr2, iCol), m_left, mr2);
-#ifndef PITTS_DIRECT_GEMM
+#ifndef PITTS_DIRECT_MKL_GEMM
             yMap.noalias() = xMap * tmpA.transpose();
 #else
             cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, xMap.rows(), tmpA.rows(), xMap.cols(), T(1), xMap.data(), xMap.colStride(), tmpA.data(), tmpA.colStride(), T(0), yMap.data(), yMap.colStride());
@@ -181,7 +182,7 @@ namespace PITTS
             //const_map mapA(&A(0,yn*iA), m, yn, Astride);
             map mapy(&y(yn*ib+yn*r*xn*iA,0), yn, xnrRemain, ystride);
 
-#ifndef PITTS_DIRECT_GEMM
+#ifndef PITTS_DIRECT_MKL_GEMM
             //mapy.noalias() = mapA.transpose() * mapx.transpose();
             mapy.noalias() = mapA * mapx.transpose();
 #else
