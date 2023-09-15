@@ -35,6 +35,7 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+#ifdef PITTS_DIRECT_MKL_GEMM
     inline void cblas_gemm_mapper(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const double alpha, const double * A, const CBLAS_INDEX lda, const double * B, const CBLAS_INDEX ldb, const double beta, double * C, const CBLAS_INDEX ldc)
     {
       cblas_dgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
@@ -44,6 +45,7 @@ namespace PITTS
     {
       cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
     }
+#endif
 
 
     //! contract Tensor3-Operator (e.g. rank-4 tensor) and (flattened) dense tensor
