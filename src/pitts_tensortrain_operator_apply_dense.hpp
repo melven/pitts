@@ -65,8 +65,17 @@ namespace PITTS
       //! get number of dimensions
       int nDim() const {return nDim_;}
 
+      //! get the i-th (unpadded) dimension
+      long long dim(int i) const {return dims_.at(i);}
+
+      //! get the i-th padded dimension
+      long long paddedDim(int i) const {return paddedDims_.at(i);}
+
       //! get total (unpadded) size of the lhs/rhs tensors
       long long nTotal() const {return nTotal_;}
+
+      //! get total padded size of the lhs/rhs tensors
+      long long nTotalPadded() const {return nTotalPadded_;}
 
       //! get the i-th buffer array
       MultiVector<T>& tmpv(int i) const {return tmpv_.at(i);}
@@ -84,8 +93,17 @@ namespace PITTS
       //! number of dimensions
       int nDim_;
 
+      //! original dimensions (unpadded)
+      std::vector<long long> dims_;
+
+      //! padded dimensions
+      std::vector<long long> paddedDims_;
+
       //! total (unpadded) size of the lhs/rhs tensors
       long long nTotal_;
+
+      //! total padded size of the lhs/rhs tensors
+      long long nTotalPadded_;
 
       //! temporary buffers, stored for reusing without reallocating memory
       mutable std::vector<MultiVector<T>> tmpv_;

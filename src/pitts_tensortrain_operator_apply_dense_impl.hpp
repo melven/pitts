@@ -230,9 +230,43 @@ namespace PITTS
 
     const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
 
+    // special padding function, with less padding than just paddedChunks
+    constexpr auto pad = [](long long n)
+    {
+      if( n <= 64 )
+        return n;
+      // should be dividable by 4
+      while( n % 4 != 0 )
+        n++;
+      if( n % 676 == 0 )
+        n += 4;
+      if( n % 604 == 0 )
+        n += 4;
+      if( n % 164 == 0 )
+        n += 4;
+      if( n % 128 == 0 )
+        n += 4;
+      if( n >= 512 )
+        while( n % 128 == 124 || n % 128 == 0 || n % 128 == 4 )
+          n += 4;
+      return n;
+    };
+
     // get dimensions
     nDim_ = TTOp.row_dimensions().size();
-    nTotal_ = std::accumulate(TTOp.row_dimensions().begin(), TTOp.row_dimensions().end(), 1, std::multiplies<long long>());
+    dims_.resize(nDim_);
+    for(int iDim = 0; iDim < nDim_; iDim++)
+      dims_[iDim] = TTOp.row_dimensions()[iDim];
+    nTotal_ = std::accumulate(dims_.begin(), dims_.end(), 1, std::multiplies<long long>());
+    if( nDim_ > 3 )
+      paddedDims_ = dims_;
+    else
+    {
+      paddedDims_.resize(nDim_);
+      for(int iDim = 0; iDim < nDim_; iDim++)
+        paddedDims_[iDim] = pad(dims_[iDim]);
+    }
+    nTotalPadded_ = std::accumulate(paddedDims_.begin(), paddedDims_.end(), 1, std::multiplies<long long>());
 
     // initialize requred data
     A_.resize(nDim_);
@@ -244,75 +278,87 @@ namespace PITTS
     {
       const auto& subTOp = TTOp.tensorTrain().subTensor(iDim);
       rA_[iDim] = subTOp.r1(); 
-      const auto ni = TTOp.row_dimensions()[iDim];
-      const auto mi = TTOp.column_dimensions()[iDim];
-      r_[(iDim + 1) % nDim_] = mi;
-      A_[iDim].resize(ni, mi*subTOp.r2()*rA_[iDim]);
-      //A_[iDim].resize(mi*subTOp.r2(), ni*rA_[iDim]);
+      const auto ni = dims_[iDim];
+      const auto mi = dims_[iDim];
+      const auto niPadded = paddedDims_[iDim];
+      const auto miPadded = paddedDims_[iDim];
+      r_[(iDim + 1) % nDim_] = miPadded;
+      A_[iDim].resize(niPadded, miPadded*subTOp.r2()*rA_[iDim]);
 #pragma omp parallel for collapse(2) schedule(static)
       for(long long k2 = 0; k2 < subTOp.r2(); k2++)
-        for(long long j = 0; j < mi; j++)
-          for(long long i = 0; i < ni; i++)
+        for(long long j = 0; j < miPadded; j++)
+          for(long long i = 0; i < niPadded; i++)
             for(long long k1 = 0; k1 < rA_[iDim]; k1++)
-              A_[iDim](i, j+k2*mi+k1*mi*subTOp.r2()) = subTOp(k1, TTOp.index(iDim, i, j), k2);
-              //A_[iDim](j+k2*mi, i+ni*k1) = subTOp(k1, TTOp.index(iDim, i, j), k2);
+              A_[iDim](i, j+k2*miPadded+k1*miPadded*subTOp.r2()) = (j < mi && i < ni) ? subTOp(k1, TTOp.index(iDim, i, j), k2) : T(0);
     }
   }
 
   template<typename T>
   void TTOpApplyDenseHelper<T>::addPadding(MultiVector<T> &x) const
   {
-#if 0
     if( x.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
     if( x.rows() != nTotal_ )
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to addPadding!");
+    if( dims_ == paddedDims_ )
+      return;
 
     const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
+    if( nDim_ > 3 )
+      throw std::invalid_argument("TTOpApplyDenseHelper: padding only implemented for up to three dimensions!");
     
     std::swap(x, tmpv(0));
     preparePadding(x);
-    reshape(tmpv(0), nTotal_/nLast_, nLast_, x);
-    assert(x.colStrideChunks()*Chunk<T>::size == nPadded_);
-
-    x.resize(nTotalPadded_, 1, false, true);
-#endif
+    const long long n0 = nDim_ > 0 ? dims_[0] : 0;
+    const long long n1 = nDim_ > 1 ? dims_[1] : 0;
+    const long long n2 = nDim_ > 2 ? dims_[2] : 0;
+    const long long n0Padded = nDim_ > 0 ? paddedDims_[0] : 0;
+    const long long n1Padded = nDim_ > 1 ? paddedDims_[1] : 0;
+    const long long n2Padded = nDim_ > 2 ? paddedDims_[2] : 0;
+#pragma omp parallel for collapse(3) schedule(static)
+    for(long long i2 = 0; i2 < n2Padded; i2++)
+      for(long long i1 = 0; i1 < n1Padded; i1++)
+        for(long long i0 = 0; i0 < n0Padded; i0++)
+          x(i0 + i1*n0Padded + i2*n0Padded*n1Padded,0) = i0 < n0 && i1 < n1 && i2 < n2 ? tmpv(0)(i0 + i1*n0 + i2*n0*n1,0) : T(0);
   }
 
   template<typename T>
   void TTOpApplyDenseHelper<T>::removePadding(MultiVector<T> &y) const
   {
-#if 0
     if( y.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
     if( y.rows() != nTotalPadded_ )
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to removePadding!");
+    if( dims_ == paddedDims_ )
+      return;
 
     const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
 
-    y.resize(nTotal_/nLast_, nLast_, false, true);
-    std::swap(y, tmpv(0));
-    reshape(tmpv(0), nTotal_, 1, y);
-#endif
+    if( nDim_ > 3 )
+      throw std::invalid_argument("TTOpApplyDenseHelper: padding only implemented for up to three dimensions!");
+    
+    std::swap(y, tmpv(nDim_-1));
+    y.resize(nTotal_, 1);
+    const long long n0 = nDim_ > 0 ? dims_[0] : 0;
+    const long long n1 = nDim_ > 1 ? dims_[1] : 0;
+    const long long n2 = nDim_ > 2 ? dims_[2] : 0;
+    const long long n0Padded = nDim_ > 0 ? paddedDims_[0] : 0;
+    const long long n1Padded = nDim_ > 1 ? paddedDims_[1] : 0;
+    const long long n2Padded = nDim_ > 2 ? paddedDims_[2] : 0;
+#pragma omp parallel for collapse(3) schedule(static)
+    for(long long i2 = 0; i2 < n2; i2++)
+      for(long long i1 = 0; i1 < n1; i1++)
+        for(long long i0 = 0; i0 < n0; i0++)
+          y(i0 + i1*n0 + i2*n0*n1,0) = tmpv(nDim_-1)(i0 + i1*n0Padded + i2*n0Padded*n1Padded,0);
   }
 
   template <typename T>
   inline void TTOpApplyDenseHelper<T>::preparePadding(MultiVector<T>& v) const
   {
-#if 0
     const auto timer = PITTS::timing::createScopedTimer<TTOpApplyDenseHelper<T>>();
 
-    // ensure we have enough memory allocated to switch between n0 x N/n0 and nTotalPadded x 1
-    v.resize(nTotalPadded_, 1, false);
-
-    // for convenience resize to padded layout
-    v.resize(nTotal_/nLast_, nLast_, false, true);
-    // initialize padding in target memory to zero
-#pragma omp parallel for collapse(2) schedule(static)
-    for(long long j = 0; j < v.cols(); j++)
-      for(long long iChunk = v.rowChunks()-1; iChunk < v.colStrideChunks(); iChunk++)
-        v.chunk(iChunk, j) = Chunk<T>{};
-#endif
+    // ensure we have enough memory allocated to switch between padded and unpadded storage
+    v.resize(nTotalPadded_, 1, true);
   }
 
   // implement TT Op Helper apply to dense
@@ -324,7 +370,7 @@ namespace PITTS
     // check for matching dimensions
     if( MVx.cols() != 1 )
       throw std::invalid_argument("TTOpApplyDenseHelper: only works for MultiVectors with one column!");
-    if( MVx.rows() != TTOp.nTotal() )
+    if( MVx.rows() != TTOp.nTotalPadded() )
       throw std::invalid_argument("TTOpApplyDenseHelper: incorrect dimension on input to apply!");
   
 
