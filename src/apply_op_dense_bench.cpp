@@ -16,6 +16,9 @@
 #include "pitts_chunk_ops.hpp"
 #include <iostream>
 #include <charconv>
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
 
 
 namespace
@@ -35,8 +38,11 @@ namespace
          {(double(X.rows())*X.cols() + M.r1()*M.r2())*kernel_info::Load<T>() + (double(X.rows())*M.r2())*kernel_info::Store<T>()}} // data transfers
         );
     
-    //EigenMap(Y).noalias() = ConstEigenMap(X) * ConstEigenMap(M);
+#ifndef PITTS_DIRECT_MKL_GEMM
+    EigenMap(Y).noalias() = ConstEigenMap(X) * ConstEigenMap(M);
+#else
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, X.rows(), M.r2(), X.cols(), 1., &X(0,0), X.colStrideChunks()*Chunk<T>::size, &M(0,0), M.r1(), 0., &Y(0,0), Y.colStrideChunks()*Chunk<T>::size);
+#endif
   }
 
   //! assumes a very special memory layout: A(:,(*,1:rA)) * x(:,(:,*))^T -> y(:,(:,1:rA))
