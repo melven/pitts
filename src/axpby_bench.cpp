@@ -3,25 +3,56 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include <iostream>
+#include <charconv>
 
 
 int main(int argc, char* argv[])
 {
+  if( argc != 6 && argc != 8 )
+    throw std::invalid_argument("Requires 5 or 7 arguments (n d rX rY nIter [orthoX] [orthoY])!\n  (orthoX and orthoY can be 'L', 'N', or 'R')");
+
+  int n, d, rX, rY, nIter;
+  std::from_chars(argv[1], argv[2], n);
+  std::from_chars(argv[2], argv[3], d);
+  std::from_chars(argv[3], argv[4], rX);
+  std::from_chars(argv[4], argv[5], rY);
+  std::from_chars(argv[5], argv[6], nIter);
+
+  char orthoX = 'N', orthoY = 'N';
+  if( argc == 8 )
+  {
+    orthoX = *argv[6];
+    orthoY = *argv[7];
+    std::cout << "orthoX: " << orthoX << ", orthoY: " << orthoY << "\n";
+  }
+
   PITTS::initialize(&argc, &argv);
 
   using Type = double;
-  PITTS::TensorTrain<Type> TT1(10,100), TT2(10,100);
-  TT2.setTTranks(150);
-  TT1.setTTranks(20);
-  randomize(TT1);
-  randomize(TT2);
-  Type tmp = 0;
-  for(int iter = 0; iter < 10; iter++)
+  PITTS::TensorTrain<Type> TTx(d,n), TTy(d, n), TTz(d, n);
+  TTx.setTTranks(rX);
+  TTy.setTTranks(rY);
+  randomize(TTx);
+  randomize(TTy);
+  if( orthoX == 'L' )
+    leftNormalize(TTx, 0.);
+  else if( orthoY == 'R' )
+    rightNormalize(TTx, 0.);
+
+  if( orthoY == 'L' )
+    leftNormalize(TTy, 0.);
+  else if( orthoY == 'R' )
+    rightNormalize(TTy, 0.);
+
+  copy(TTy, TTz);
+
+  for(int iter = 0; iter < nIter; iter++)
   {
-    tmp += axpby(0.01, TT1, 0.9, TT2);
+    copy(TTz, TTy);
+    axpby(0.01, TTx, 0.9, TTy);
   }
-  std::cout << "random: " << tmp << std::endl;
 
   PITTS::finalize();
 
