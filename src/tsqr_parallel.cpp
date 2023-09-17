@@ -7,9 +7,14 @@
 
 using namespace PITTS;
 
+// set this to true when benchmarking (disables all testing, and all other output)
+#define BENCHMARK 1
+// set this to true to check barrier construction/destruction (no effect if BENCHMARK 1)
 #define CHECK_BARRIER_DESTRUCTION 1
+// set this to true to output only a checksum of the correct results, instead of a whole table to compare
+#define SILENT 1
 
-#if CHECK_BARRIER_DESTRUCTION
+#if CHECK_BARRIER_DESTRUCTION && !BENCHMARK
 // assuming that for all i, only the i'th thread ever destroys an i'th barrier,
 // we can check if deallocation is done correctly by keeping track of 2 counters
 // per thread
@@ -74,16 +79,32 @@ void update_spaces(char* spaces, int depth, char space = ' ')
 
 void output_entries(double** M, int length, int m)
 {
-    //printf("\n");
+#if BENCHMARK
+    return;
+#endif
+// else
+#if SILENT
+    long long checksum = 0;
+#else
+    printf("\n");
+#endif
     for (int i = 0; i < length; i++)
     {
         for (int j = 0; j < m; j++)
         {
-            //printf("%f\t", M[i][j]);
+#if SILENT
+            checksum += ((long long)(M[i][j]*7001) % 101);
         }
-        //printf("\n");
+#else
+            printf("%f\t", M[i][j]);
+        }
+        printf("\n");
+#endif
     }
-    //printf("\n");
+#if SILENT
+    printf("CHECKSUM = %lld", checksum);
+#endif
+    printf("\n");
 }
 
 void check(const MultiVector<double>& M, int nThreads, int nIter, int m)
@@ -365,13 +386,14 @@ int dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         // only work on a subset of threads if the input dimension is too small
         if( nIter < nThreads*2 )
             nThreads = 1 + (nIter-1)/2;
+#pragma omp master
         numthreads = nThreads;
         
         std::unique_ptr<double[]> plocalBuff;
         if( iThread < nThreads )
         {
             plocalBuff.reset(new double[m]);
-            if( nThreads > 1 )
+            //if( nThreads > 1 )
                 plocalBuff_allThreads[iThread] = &plocalBuff[0];
 
             // fill with zero
@@ -460,7 +482,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         if (iThread < nThreads)
         {
             plocalBuff.reset(new double[m]);
-            // if (nThreads > 1) this if statement not really needed: no gain from checking this just to save one assignment in special case
+            // if( nThreads > 1 ) this if statement not really needed: no gain from checking this just to save one assignment in special case
             plocalBuff_allThreads[iThread] = &plocalBuff[0];
 
             // fill with zero
@@ -536,7 +558,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 #pragma omp barrier
 #pragma omp master
         {
-            printf("--- END OF block_TSQR ---\n");
+            //printf("--- END OF block_TSQR ---\n");
             output_entries(plocalBuff_allThreads.data(), numthreads, m);
         }
         // wait for other threads to finish before destruction so the otherLocalBuff pointers and local barriers are still valid
@@ -559,12 +581,14 @@ int main(int argc, char* argv[])
     // n: proportional to number of threads, nThreads = ⌈n/2⌉
     // m: number of rows
     constexpr bool test_extensive = true;
-    constexpr bool benchmark = true;
 
     PITTS::initialize(&argc, &argv);
 
-    if (!test_extensive && !benchmark)
+#if !BENCHMARK
+
+    if (!test_extensive)
     {
+        printf("\n");
         const int n = 13;
         const int m = 8;
         MultiVector<double> M(n, m);
@@ -584,6 +608,7 @@ int main(int argc, char* argv[])
         }
 #endif
         check(M, numThreadsUsed, n, m);
+        printf("\n");
     }
 
     if (test_extensive)
@@ -596,6 +621,7 @@ int main(int argc, char* argv[])
         {
             for (int n = n_low; n < n_upp; n++)
             {
+                printf("\nTESTING FOR n=%d, m=%d\n", n, m);
                 MultiVector<double> M(n, m);
                 for (int i = 0; i < n; i++)
                     for (int j = 0; j < m; j++)
@@ -617,78 +643,79 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (benchmark)
+#else
+
+    const int n_low = 2;
+    const int n_upp = 1000;
+    const int m_low = 1;
+    const int m_upp = 100;
+    printf("\nWalltime (in milliseconds) for different numbers of threads\n\n");
+    for (int m = m_low; m < m_upp; m*=2)
+        printf("\t\tm = %d", m);
+    printf("\n\t\t_____________________________________________________________________________________________________");
+    const int tot_it = 10;
+    int numThreadsUsed;
+    MultiVector<double> Mwarm(1000, 1000);
+    for (int i = 0; i < 1000; i++)
+        for (int j = 0; j < 1000; j++)
+            Mwarm(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+    // BENCH NEW VERSION
+    printf("\n\nNEW PARALLEL VERSION:\n");
+    // warmup
+    numThreadsUsed = par_dummy_block_TSQR(Mwarm, 1000, 1000);
+    // measurement loop
+    for (int n = n_low; n < n_upp; n*=2)
     {
-        const int n_low = 2;
-        const int n_upp = 1000;
-        const int m_low = 1;
-        const int m_upp = 100;
-        printf("\nWalltime (in milliseconds) for different numbers of threads\n\n");
+        const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
+        printf("\n#threads=%d ", _nThreads);
+        if (_nThreads < 10) printf(" ");
+        printf("|\t");
+
         for (int m = m_low; m < m_upp; m*=2)
-            printf("\t\tm = %d", m);
-        printf("\n\t\t_____________________________________________________________________________________________________");
-        const int tot_it = 10;
-        int numThreadsUsed;
-        MultiVector<double> Mwarm(1000, 1000);
-        for (int i = 0; i < 1000; i++)
-            for (int j = 0; j < 1000; j++)
-                Mwarm(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
-        // BENCH NEW VERSION
-        printf("\n\nNEW PARALLEL VERSION:\n");
-        // warmup
-        numThreadsUsed = par_dummy_block_TSQR(Mwarm, 1000, 1000);
-        // measurement loop
-        for (int n = n_low; n < n_upp; n*=2)
         {
-            const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
-            printf("\n#threads=%d ", _nThreads);
-            if (_nThreads < 10) printf(" ");
-            printf("|\t");
+            MultiVector<double> M(n, m);
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < m; j++)
+                    M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
-            for (int m = m_low; m < m_upp; m*=2)
-            {
-                MultiVector<double> M(n, m);
-                for (int i = 0; i < n; i++)
-                    for (int j = 0; j < m; j++)
-                        M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+            double wtime = omp_get_wtime();
+            for (int i = 0; i < tot_it; i++)
+                numThreadsUsed = par_dummy_block_TSQR(M, n, m);
+            wtime = omp_get_wtime() - wtime;
 
-                double wtime = omp_get_wtime();
-                for (int i = 0; i < tot_it; i++)
-                    numThreadsUsed = par_dummy_block_TSQR(M, n, m);
-                wtime = omp_get_wtime() - wtime;
-
-                printf("%f\t", wtime*1000);
-            }
+            printf("%f\t", wtime*1000);
         }
-        // BENCH OLD VERSION
-        printf("\n\nOLD \"SERIAL\" VERSION:\n");
-        // warmup
-        numThreadsUsed = dummy_block_TSQR(Mwarm, 1000, 1000);
-        // measurement loop
-        for (int n = n_low; n < n_upp; n*=2)
-        {
-            const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
-            printf("\n#threads=%d ", _nThreads);
-            if (_nThreads < 10) printf(" ");
-            printf("|\t");
-
-            for (int m = m_low; m < m_upp; m*=2)
-            {
-                MultiVector<double> M(n, m);
-                for (int i = 0; i < n; i++)
-                    for (int j = 0; j < m; j++)
-                        M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
-
-                double wtime = omp_get_wtime();
-                for (int i = 0; i < tot_it; i++)
-                    numThreadsUsed = dummy_block_TSQR(M, n, m);
-                wtime = omp_get_wtime() - wtime;
-
-                printf("%f\t", wtime*1000);
-            }
-        }
-        printf("\n\n");
     }
+    // BENCH OLD VERSION
+    printf("\n\nOLD \"SERIAL\" VERSION:\n");
+    // warmup
+    numThreadsUsed = dummy_block_TSQR(Mwarm, 1000, 1000);
+    // measurement loop
+    for (int n = n_low; n < n_upp; n*=2)
+    {
+        const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
+        printf("\n#threads=%d ", _nThreads);
+        if (_nThreads < 10) printf(" ");
+        printf("|\t");
+
+        for (int m = m_low; m < m_upp; m*=2)
+        {
+            MultiVector<double> M(n, m);
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < m; j++)
+                    M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+
+            double wtime = omp_get_wtime();
+            for (int i = 0; i < tot_it; i++)
+                numThreadsUsed = dummy_block_TSQR(M, n, m);
+            wtime = omp_get_wtime() - wtime;
+
+            printf("%f\t", wtime*1000);
+        }
+    }
+    printf("\n\n");
+    
+#endif
 
     PITTS::finalize();
     return 0;
