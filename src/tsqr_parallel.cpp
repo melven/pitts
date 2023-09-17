@@ -151,7 +151,7 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
     int nChunks = 1;
     int colBlockSize = 1;
 
-    auto iThread = omp_get_thread_num();
+    auto iThread = omp_get_thread_num(); // only used for diagnostic output
     const int calc_color = 35;
     const int apply_color = 36;
     int depth = 0;
@@ -271,11 +271,11 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
         update_spaces(spaces, depth);
         update_spaces(antispaces, 10 - depth);
 
-        int nCol = endCol - beginCol;
-        int nApplyCol = applyEndCol - applyBeginCol;
+        const int nCol = endCol - beginCol;
 
         if( nCol < 2 )
         {
+            const int nApplyCol = applyEndCol - applyBeginCol;
             const int relThreadId = iThread - firstThread;
             const int nThreads = lastThread - firstThread;
             auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
@@ -480,7 +480,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
                  // barrier is not really needed here, but it simplifies code a little bit
                  // it can be left away if the overhead is significant (enough)
             }
-            // above barriers are destructed at bottom of first loop iteration of the next loop (setting wasBossThread accordingly below)
+            // above barriers are destructed at bottom of first iteration of the next loop (setting wasBossThread accordingly below)
         }
 
         // tree reduction over threads
