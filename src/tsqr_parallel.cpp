@@ -442,7 +442,8 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 
         // tree reduction over threads
         bool wasBossThread = (iThread < nThreads); // keep track of last iterations boss threads
-        for(int nextThread = 1, cnt = 1; nextThread < nThreads; nextThread*=2, cnt++)
+	int cnt = 1;
+        for(int nextThread = 1; nextThread < nThreads; nextThread*=2, cnt++)
         {
             int bossThread, lastThread; // first (including) and last (excluding) threads in the team
 
@@ -491,10 +492,13 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 #pragma omp barrier
 #pragma omp master
         {
-            //printf("--- END OF block_TSQR ---\n");
+            printf("--- END OF block_TSQR ---\n");
             output_entries(plocalBuff_allThreads.data(), numthreads, m);
         }
-#pragma omp barrier // needed in order for other thread's plocalBuff (and hence memory pointed to by plocalBuff_allThreads) not to be destroyed prematurely
+        // wait for other threads to finish before destruction so the otherLocalBuff pointers and local barriers are still valid
+  #pragma omp barrier
+        if (wasBossThread)
+            localBarriers[(cnt-1)%2][iThread].~barrier();
     }
 
     operator delete[](_buf, std::align_val_t{alignof(std::barrier<>)});
