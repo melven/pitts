@@ -523,15 +523,13 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
 
                 // destruct last iterations local barriers (we wait for one iteration to ensure that there is a global barrier between last use and destruction of the barrier)
                 // remark: explicit destruction only needed if the destructor has side effects
-                if (wasBossThread)
-                {
+                if (wasBossThread) {
                     //localBarriers[(cnt-1)%2][iThread].~barrier();
                     destruct_barrier(localBarriers[(cnt-1)%2][iThread], (cnt-1)%2);
-                    // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
-                    // remark: here we are using the fact that this iteration's boss threads are a subset of last iteration's boss threads (hence, this minimal update suffices)
-                    if (iThread != bossThread)
-                        wasBossThread = false;
                 }
+                // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
+                // remark: with this update, we are NOT making any assumptions about previous values of wasBossThread
+                wasBossThread = (iThread == bossThread);
             }
         }
 
