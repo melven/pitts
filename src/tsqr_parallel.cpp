@@ -3,8 +3,50 @@
 #include "pitts_multivector.hpp"
 #include <stdio.h> // using printf because it behaves better when multithreading
 #include <barrier>
+#include <cassert>
 
 using namespace PITTS;
+
+#define CHECK_BARRIER_DESTRUCTION 1
+
+#if CHECK_BARRIER_DESTRUCTION
+// assuming that for all i, only the i'th thread ever destroys an i'th barrier,
+// we can check if deallocation is done correctly by keeping track of 2 counters
+// per thread
+// important: the parameter mod needs to be corresponding to the barrier array used
+// for the checks to make any sense
+#include <atomic>
+std::atomic<int> barrier_count[2][128] = // dirty hack: upper-bounding number of threads by 128
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+void construct_barrier(std::barrier<>* address, int mod, int size)
+{
+    // we are assuming that only iThread ever constructs iThread's barrier
+    const int iThread = omp_get_thread_num();
+    assert(barrier_count[mod][iThread] == 0);
+    barrier_count[mod][iThread]++;
+    new (address) std::barrier(size);
+}
+void destruct_barrier(std::barrier<>& bar, int mod)
+{
+    // we are assuming that only iThread destructs iThread's barrier
+    const int iThread = omp_get_thread_num();
+    assert(barrier_count[mod][iThread] == 1);
+    barrier_count[mod][iThread]--;
+    bar.~barrier();
+}
+#else
+void construct_barrier(std::barrier<>* address, int mod, int size)
+{
+    new (address) std::barrier(size);
+}
+void destruct_barrier(std::barrier<>& bar, int mod)
+{
+    bar.~barrier();
+}
+#endif
 
 void dummy_transformBlock_calc(int m, const double* pdataIn, double* pdataResult, int col)
 {
@@ -428,7 +470,8 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
             const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
 
             // no synchronization after creation needed here because each thread uses exactly its own barrier
-            new (&localBarriers[0][iThread]) std::barrier(1);
+            //new (&localBarriers[0][iThread]) std::barrier(1);
+            construct_barrier(&localBarriers[0][iThread], 0, 1);
 
             //printf("TSQR: \tloopdepth 0 \tthreads [%d,%d]: \tcombining blocks %lld to %lld (M)\n", iThread, iThread, firstIter, lastIter);
             for(long long iter = firstIter; iter <= lastIter; iter++)
@@ -457,8 +500,10 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
                 //    lastThread = nThreads;
 
                 // create local barrier before global barrier to ensure all threads in team have the same view of them
-                if (iThread == bossThread) // iThread < nThreads s.t. lastThread-bossThread non-negative
-                    new (&localBarriers[cnt%2][bossThread]) std::barrier(lastThread-bossThread);
+                if (iThread == bossThread) {
+                    //new (&localBarriers[cnt%2][bossThread]) std::barrier(lastThread-bossThread);
+                    construct_barrier(&localBarriers[cnt%2][bossThread], cnt%2, lastThread-bossThread);
+                }
             }
 #pragma omp barrier
 #pragma omp master
@@ -480,7 +525,8 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
                 // remark: explicit destruction only needed if the destructor has side effects
                 if (wasBossThread)
                 {
-                    localBarriers[(cnt-1)%2][iThread].~barrier();
+                    //localBarriers[(cnt-1)%2][iThread].~barrier();
+                    destruct_barrier(localBarriers[(cnt-1)%2][iThread], (cnt-1)%2);
                     // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
                     // remark: here we are using the fact that this iteration's boss threads are a subset of last iteration's boss threads (hence, this minimal update suffices)
                     if (iThread != bossThread)
@@ -497,8 +543,10 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         }
         // wait for other threads to finish before destruction so the otherLocalBuff pointers and local barriers are still valid
   #pragma omp barrier
-        if (wasBossThread)
-            localBarriers[(cnt-1)%2][iThread].~barrier();
+        if (wasBossThread) {
+            //localBarriers[(cnt-1)%2][iThread].~barrier();
+            destruct_barrier(localBarriers[(cnt-1)%2][iThread], (cnt-1)%2);
+        }
     }
 
     operator delete[](_buf, std::align_val_t{alignof(std::barrier<>)});
@@ -527,7 +575,16 @@ int main(int argc, char* argv[])
                 M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
         const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
-
+#if CHECK_BARRIER_DESTRUCTION
+        for (int mod = 0; mod < 2; mod++) {
+            int sum = 0;
+            for (int i = 0; i < 128; i++) {
+                sum += std::abs(barrier_count[mod][i]);
+                barrier_count[mod][i] = 0;
+            }
+            assert(sum == 0);
+        }
+#endif
         check(M, numThreadsUsed, n, m);
     }
 
@@ -547,7 +604,16 @@ int main(int argc, char* argv[])
                         M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
                 const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
-
+#if CHECK_BARRIER_DESTRUCTION
+                for (int mod = 0; mod < 2; mod++) {
+                    int sum = 0;
+                    for (int i = 0; i < 128; i++) {
+                        sum += std::abs(barrier_count[mod][i]);
+                        barrier_count[mod][i] = 0;
+                    }
+                    assert(sum == 0);
+                }
+#endif
                 check(M, numThreadsUsed, n, m);
             }
         }
