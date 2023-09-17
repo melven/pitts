@@ -15,6 +15,7 @@
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_performance.hpp"
+#include "pitts_chunk_ops.hpp"
 
 //#ifndef EIGEN_USE_LAPACKE
 //#include <immintrin.h>
@@ -50,8 +51,6 @@ namespace PITTS
 #pragma omp parallel
     {
       const auto& [iThread, nThreads] = internal::parallel::ompThreadInfo();
-      if( iThread == 0 && verbose )
-        std::cout << "PITTS: OpenMP #threads: " << nThreads << "\n";
     }
 
     if( MPI_Initialized(&common::mpiInitializedBefore) != 0 )
@@ -63,7 +62,16 @@ namespace PITTS
 
     const auto& [iProc, nProcs] = internal::parallel::mpiProcInfo();
     if( iProc == 0 && verbose )
+    {
       std::cout << "PITTS: MPI #procs: " << nProcs << "\n";
+#pragma omp parallel
+      {
+        const auto& [iThread, nThreads] = internal::parallel::ompThreadInfo();
+        if( iThread == 0 )
+          std::cout << "PITTS: OpenMP #threads: " << nThreads << "\n";
+      }
+      std::cout << "PITTS: SIMD implementation: " << SIMD_implementation() << "\n";
+    }
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
     LIKWID_MARKER_INIT;

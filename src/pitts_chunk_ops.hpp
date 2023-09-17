@@ -12,11 +12,15 @@
 
 // includes
 #include "pitts_chunk.hpp"
+#include <string_view>
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! return the name of the used SIMD implementation
+  constexpr std::string_view SIMD_implementation();
+
   //! add the element-wise product of two chunks ( d_i = a_i * b_i + c_i )
   template<typename T>
   inline void fmadd(const Chunk<T>& a, const Chunk<T>& b, const Chunk<T>& c, Chunk<T>& d);
@@ -90,10 +94,13 @@ namespace PITTS
 // include appropriate implementation
 #if defined(__AVX512F__)
 # include "pitts_chunk_ops_avx512.hpp"
+  constexpr std::string_view PITTS::SIMD_implementation() {return "avx512";}
 #elif defined(__AVX2__)
 # include "pitts_chunk_ops_avx2.hpp"
+  constexpr std::string_view PITTS::SIMD_implementation() {return "avx2";}
 #else
 # include "pitts_chunk_ops_plain.hpp"
+  constexpr std::string_view PITTS::SIMD_implementation() {return "plain";}
 #endif
 
 
