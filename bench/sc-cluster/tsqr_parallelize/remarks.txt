@@ -1,5 +1,10 @@
 NOTES ON THE BENCHMARK RESULTS
 
+For some reason, striding the local barriers only has a negative effect on the dummy bench runtimes.
+Why, is unclear to me.
+
+-------------------------------------------------------------------------------------------------------------------------
+
 The question is, why is the new version so much slower for larger m? (Even though larger m shouldn't affect synchronization overhead)
 
 I doubt that there is any false sharing. The shared variables M, nIter, m are only read from. The only remaining shared variable plocalBuff_allThreads is initialized once and the memory it points to, ie the plocalBuff's, are allocated individually with new. (And the local barriers are allocated with a stride of 4KB.)
