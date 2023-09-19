@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cmath>
 #include <bit>
+#include <barrier>
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_performance.hpp"
@@ -339,6 +340,92 @@ namespace PITTS
             int middle = beginCol + (nCol/2/bs)*bs;
             tree_calc(tree_calc, beginCol, middle);
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
+            tree_calc(tree_calc, middle, endCol);
+          }
+        };
+
+        tree_calc(tree_calc,0,m);
+      }
+
+      //! Same as transformBlock, but implementing a parallelization of tree_apply over lastThread-firstThread OMP threads with contiguous thread id's.
+      //! 
+      //! All participating threads [firstThread,lastThread) need to call this function (with the same arguments)!
+      //!
+      //! @param firstThread	OMP thread id of first thread
+      //! @param lastThread	OMP thread of the last thread + 1
+      //! @param bar		preallocated barrier used to synchronize the threads
+      template<typename T>
+      void transformBlock_par(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize, int firstThread, int lastThread, std::barrier<>& bar)
+      {
+        const int mChunks = (m-1) / Chunk<T>::size + 1;
+        // we need enough buffer space because we store some additional vectors in it...
+        if( pdataIn == pdataResult )
+        {
+          // in-place
+          assert(resultOffset == nChunks);
+          assert(ldaResult >= mChunks + nChunks + 2);
+        }
+        else
+        {
+          // out-of-place
+          assert(resultOffset >= nChunks + 2);
+          assert(ldaResult >= mChunks + resultOffset);
+          pdataResult = pdataResult + resultOffset - nChunks;
+        }
+
+        // this is an approach for hierarchical blocking of
+        // for(int i = 0; i < m; i++)
+        //   calc i
+        //   for(int j = i+1; j < m; j++)
+        //     apply i to j
+
+        const int iThread = omp_get_thread_num();
+        const int bs = colBlockSize;
+
+        const auto tree_apply = [&](const auto& tree_apply, int beginCol, int endCol, int applyBeginCol, int applyEndCol) -> void
+        {
+          const int nCol = endCol - beginCol;
+
+          if( nCol < 2*bs )
+          {
+            const int nApplyCol = applyEndCol - applyBeginCol;
+            const int nThreads = lastThread - firstThread;
+            const int relThreadId = iThread - firstThread;
+            auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
+            localApplyBeginCol += applyBeginCol;
+            localApplyEndCol += applyBeginCol + 1;
+
+            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, localApplyBeginCol, localApplyEndCol);
+          }
+          else
+          {
+            int middle = beginCol + (nCol/2/bs)*bs;
+            tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
+            tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
+          }
+        };
+
+        const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
+        {
+          int nCol = endCol - beginCol;
+          if( nCol < 2*bs )
+          {
+            if (iThread == firstThread)
+            {
+              for(int col = beginCol; col < endCol; col++)
+              {
+                transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
+                transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol);
+              }
+            }
+          }
+          else
+          {
+            int middle = beginCol + (nCol/2/bs)*bs;
+            tree_calc(tree_calc, beginCol, middle);
+            bar.arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
+            tree_apply(tree_apply, beginCol, middle, middle, endCol);
+            bar.arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
             tree_calc(tree_calc, middle, endCol);
           }
         };
@@ -738,7 +825,12 @@ namespace PITTS
 //
 
     constexpr int falseSharingStride = 16;
-    std::vector<Chunk<T>*> plocalBuff_otherThreads(falseSharingStride*nMaxThreads);
+    std::vector<Chunk<T>*> plocalBuff_allThreads(falseSharingStride*nMaxThreads); // take care to index into with proper offset!
+
+    // allocate two localBarriers arrays in order to swap them in each loop iteration (in order to reuse barriers without needing a second global barrier just to handle synchronization before local barrier destruction/overwrite)
+    // remark (todo): no false sharing stride implemented (for now)
+    char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[2*sizeof(std::barrier<>)*nMaxThreads]; // make sure that there is a matching delete!
+    std::barrier<> *localBarriers[2] = {(std::barrier<>*)_buf, (std::barrier<>*)(_buf) + nMaxThreads};
 
 #pragma omp parallel
     {
@@ -751,8 +843,7 @@ namespace PITTS
       if( iThread < nThreads )
       {
         plocalBuff.reset(new Chunk<T>[nBuffer]);
-        if( nThreads > 1 )
-          plocalBuff_otherThreads[falseSharingStride*iThread] = &plocalBuff[localBuffOffset];
+        plocalBuff_allThreads[falseSharingStride*iThread] = plocalBuff.get();
 
         // fill with zero
         for(int j = 0; j < m; j++)
@@ -769,22 +860,55 @@ namespace PITTS
       }
 
       // tree reduction over threads
-      for(int nextThread = 1; nextThread < nThreads; nextThread*=2)
+      bool wasBossThread = false; // keep track of last iteration's boss threads
+      int cnt = 1;
+      for(int nextThread = 1; nextThread < nThreads; nextThread*=2, cnt++)
       {
-#pragma omp barrier
-        if( iThread % (nextThread*2) == 0 && iThread+nextThread < nThreads )
+        int bossThread, lastThread; // first (including) and last (excluding) threads in the team
+        if (iThread < nThreads)
         {
-          const auto otherLocalBuff = plocalBuff_otherThreads[falseSharingStride*(iThread+nextThread)];
-          internal::HouseholderQR::transformBlock(mChunks, m, &otherLocalBuff[0], ldaBuff, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+          const int threadteamSize = nextThread*2;
+          bossThread = iThread - iThread % threadteamSize;
+          lastThread = std::min(bossThread + threadteamSize, nThreads);
+          // in following special case, could add following unused threads
+          //if (lastThread < nThreads && bossThread+3*nextThread >= nThreads)
+          //    lastThread = nThreads;
+
+          // create this iteration's local barriers (before global barrier to ensure all threads in team have the same view of them)
+          if (iThread == bossThread)
+            new (&localBarriers[cnt%2][bossThread]) std::barrier(lastThread-bossThread);
+        }
+#pragma omp barrier
+        if (iThread < nThreads)
+        {
+          if (bossThread+nextThread < nThreads)
+          {
+            const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
+            const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
+            internal::HouseholderQR::transformBlock_par(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, colBlockingSize, bossThread, lastThread, localBarriers[cnt%2][bossThread]);
+          }
+
+          // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
+          // the very last iteration's local barriers are destructed after the loop and after another global barrier
+          // remark: explicit destruction only needed if the destructor has side effects
+          if (wasBossThread)
+            localBarriers[(cnt-1)%2][iThread].~barrier();
+          // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
+          wasBossThread = (iThread == bossThread);
         }
       }
 
       if( iThread == 0 )
         pThread0Buff = std::move(plocalBuff);
 
-      // wait for other threads to finish so the otherLocalBuff pointers are still valid
+      // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
 #pragma omp barrier
+      //if (iThread < nThreads) {
+      if (wasBossThread)
+        localBarriers[(cnt-1)%2][iThread].~barrier();
+      //}
     }
+    operator delete[](_buf, std::align_val_t{alignof(std::barrier<>)});
 
     if( mpiGlobal )
     {
