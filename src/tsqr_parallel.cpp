@@ -8,7 +8,7 @@
 using namespace PITTS;
 
 // set this to true when benchmarking (disables all testing, and all other output)
-#define BENCHMARK 1
+#define BENCHMARK 0
 // set this to true to check barrier construction/destruction (no effect if BENCHMARK 1)
 #define CHECK_BARRIER_DESTRUCTION 1
 // set this to true to output only a checksum of the correct results, instead of a whole table to compare
@@ -461,7 +461,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
     std::vector<double*> plocalBuff_allThreads(nMaxThreads);
 
     // allocate two localBarriers arrays in order to swap them in each loop iteration (in order to reuse barriers without needing a second global barrier just to handle synchronization before local barrier destruction/overwrite)
-    constexpr int barrier_stride = std::max(4*1024/sizeof(std::barrier<>), (size_t)1); // play it very safe // std::hardware_destructive_interference_size;
+    constexpr int barrier_stride = 1; // no stride
     char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[2*barrier_stride*sizeof(std::barrier<>)*nMaxThreads]; // make sure that there is a matching delete at the end of the function!
     std::barrier<> *localBarriers[2] = {(std::barrier<>*)_buf, (std::barrier<>*)_buf + barrier_stride*nMaxThreads};
 
