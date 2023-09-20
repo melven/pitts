@@ -12,16 +12,17 @@ file(GLOB CPP_SRCUNITTESTS *.cpp *.hpp)
 # ITensor adapters
 add_subdirectory(itensor)
 
-# speed up compilation times in dev builds
-if(PITTS_DEVELOP_BUILD)
-  link_libraries($<TARGET_OBJECTS:pitts_impl>)
-endif()
-
 # executable for the unit tests
 add_executable(pitts_tests EXCLUDE_FROM_ALL ${CPP_SRCUNITTESTS} ${GTEST_SOURCES})
 target_include_directories(pitts_tests PRIVATE ${GTEST_INCLUDE_PATH} ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(pitts_tests PRIVATE "-DGTEST_HAS_MPI=1")
 target_link_libraries(pitts_tests PRIVATE ${ITENSOR_TESTS})
+# speed up compilation times in dev builds
+if(PITTS_DEVELOP_BUILD)
+  target_link_libraries(pitts_tests PRIVATE $<TARGET_OBJECTS:pitts_impl>)
+  target_link_options(pitts_tests PRIVATE "-fuse-ld=lld")
+endif()
+
 
 
 #enable valgrind for memory checking of tests
