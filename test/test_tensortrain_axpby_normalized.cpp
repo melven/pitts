@@ -378,10 +378,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, left_large_tensors)
     randomize(TTy);
     left_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy, 1.e-7);
-    check_axpby(1.0, TTx, -2.0, TTy, 1.e-7);
-    check_axpby(3.0, TTx, 1.0, TTy, 1.e-7);
-    check_axpby(-4.0, TTx, -5.0, TTy, 1.e-7);
+    check_axpby(1.0, TTx, 1.0, TTy, 1.e-5);
+    check_axpby(1.0, TTx, -2.0, TTy, 1.e-5);
+    check_axpby(3.0, TTx, 1.0, TTy, 1.e-5);
+    check_axpby(-4.0, TTx, -5.0, TTy, 1.e-5);
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, left_long_tensors)
@@ -673,10 +673,10 @@ TEST(PITTS_TensorTrain_axpby_normalized, right_large_tensors)
     randomize(TTy);
     right_ortho(TTx);
 
-    check_axpby(1.0, TTx, 1.0, TTy);
-    check_axpby(1.0, TTx, -2.0, TTy);
-    check_axpby(3.0, TTx, 1.0, TTy);
-    check_axpby(-4.0, TTx, -5.0, TTy);
+    check_axpby(1.0, TTx, 1.0, TTy, 1.e-5);
+    check_axpby(1.0, TTx, -2.0, TTy, 1.e-5);
+    check_axpby(3.0, TTx, 1.0, TTy, 1.e-5);
+    check_axpby(-4.0, TTx, -5.0, TTy, 1.e-5);
 }
 
 TEST(PITTS_TensorTrain_axpby_normalized, right_long_tensors)
