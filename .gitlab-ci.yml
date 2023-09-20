@@ -13,10 +13,12 @@ build_release:
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
     - module load PrgEnv/gcc13-openmpi-python
+    # unload itensor as it has problems compiling this way...
+    - module unload -f itensor
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
     - mkdir build_release && cd build_release
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
@@ -59,7 +61,7 @@ build_debug_with_coverage:
     paths:
       - build_coverage/test/coverage*.html
 
-build_debug_no_itensor:
+build_debug:
   stage: build
   variables:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
@@ -69,7 +71,6 @@ build_debug_no_itensor:
     - module load PrgEnv/gcc13-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
     - ccache -z
-    - module unload -f itensor
     - mkdir build_debug && cd build_debug
     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
     - cmake --build . -- -j 15
@@ -104,25 +105,6 @@ build_clang:
     reports:
       junit: build_clang/test/pitts_tests*.xml
 
-build_release_amd:
-  stage: build
-  variables:
-    SCHEDULER_PARAMETERS: "-p amd -N 1 -n 3 -c 10 -t 00:10:00"
-  needs: []
-  script:
-    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
-    - module load PrgEnv/gcc13-openmpi-python
-    - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_amd/"
-    - ccache -z
-    - mkdir build_releas_amd && cd build_releas_amd
-    - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=On -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On
-    - cmake --build .
-    - cmake --build . --target check
-    - ccache -s
-  artifacts:
-    reports:
-      junit: build_release_amd/test/pitts_tests*.xml
-
 build_debug_amd_clang:
   stage: build
   variables:
@@ -138,7 +120,7 @@ build_debug_amd_clang:
     - module unload -f itensor
     # for -stdlib=libc++
     - export LD_LIBRARY_PATH=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/llvm-16.0.6-mx55kfz3l4hdavaqhqhfxpblumzpx3nk/lib/x86_64-unknown-linux-gnu:$LD_LIBRARY_PATH
-    - mkdir build_clang && cd build_clang
+    - mkdir build_debug_clang_amd && cd build_debug_clang_amd
     - export CXX="clang++ -stdlib=libc++"
     - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_DEVELOP_BUILD=On
     - cmake --build . -- -j 15
@@ -146,7 +128,7 @@ build_debug_amd_clang:
     - ccache -s
   artifacts:
     reports:
-      junit: build_debug_amd/test/pitts_tests*.xml
+      junit: build_debug_clang_amd/test/pitts_tests*.xml
 
 
 pages:
