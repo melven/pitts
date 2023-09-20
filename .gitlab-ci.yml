@@ -107,7 +107,7 @@ build_clang:
 build_debug_amd:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p amd -N 1 -n 1 -c 32 -t 00:10:00"
+    SCHEDULER_PARAMETERS: "-p amd -N 1 -n 3 -c 10 -t 00:10:00 -m cyclic:cyclic:cyclic"
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
