@@ -16,6 +16,7 @@ build_release:
     # unload itensor as it has problems compiling this way...
     - module unload -f itensor
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
+    - ccache -M 20GB
     - ccache -z
     - mkdir build_release && cd build_release
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On
@@ -45,6 +46,7 @@ build_debug_with_coverage:
     # prevent different threading libraries block each other...
     - export LD_LIBRARY_PATH=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/:$LD_LIBRARY_PATH
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
+    - ccache -M 20GB
     - ccache -z
     - mkdir build_coverage && cd build_coverage
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=Off -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_OPTIMIZE_FOR_HOST=False -DOpenMP_gomp_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
@@ -70,6 +72,7 @@ build_debug:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
     - module load PrgEnv/gcc13-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS/"
+    - ccache -M 20GB
     - ccache -z
     - mkdir build_debug && cd build_debug
     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
@@ -91,6 +94,7 @@ build_clang:
     - module load py-pybind11
     - module load py-numpy
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_clang/"
+    - ccache -M 20GB
     - ccache -z
     - module unload -f itensor
     # for -stdlib=libc++
@@ -116,6 +120,7 @@ build_debug_amd_clang:
     # module load py-pybind11
     # module load py-numpy
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_amd_clang/"
+    - ccache -M 20GB
     - ccache -z
     - module unload -f itensor
     # for -stdlib=libc++
