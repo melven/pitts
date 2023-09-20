@@ -96,7 +96,7 @@ build_clang:
     # for -stdlib=libc++
     - export LD_LIBRARY_PATH=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/llvm-16.0.6-mx55kfz3l4hdavaqhqhfxpblumzpx3nk/lib/x86_64-unknown-linux-gnu:$LD_LIBRARY_PATH
     - mkdir build_clang && cd build_clang
-    - export CXX="clang++ -stdlib=libc++"
+    - export CXX="clang++ -fsanitize=thread -stdlib=libc++"
     - cmake -G Ninja .. -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_DEVELOP_BUILD=On
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
@@ -121,7 +121,7 @@ build_debug_amd_clang:
     # for -stdlib=libc++
     - export LD_LIBRARY_PATH=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/llvm-16.0.6-mx55kfz3l4hdavaqhqhfxpblumzpx3nk/lib/x86_64-unknown-linux-gnu:$LD_LIBRARY_PATH
     - mkdir build_debug_clang_amd && cd build_debug_clang_amd
-    - export CXX="clang++ -stdlib=libc++"
+    - export CXX="clang++ -fsanitize=address -stdlib=libc++"
     - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_DEVELOP_BUILD=On
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
