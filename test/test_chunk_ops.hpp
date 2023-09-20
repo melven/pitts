@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include "pitts_random.hpp"
 #include <memory>
 #include <complex>
-#include <random>
 #include <sstream>
 
 //
@@ -35,22 +35,8 @@ namespace
   template<typename T>
   void randomize(T &v)
   {
-    std::random_device randomSeed;
-    std::mt19937 randomGenerator(randomSeed());
-    std::uniform_real_distribution<T> distribution(T(-1), T(1));
-
-    v = distribution(randomGenerator);
-  }
-
-  // specialize for complex numbers
-  template<typename T>
-  void randomize(std::complex<T>& v)
-  {
-    std::random_device randomSeed;
-    std::mt19937 randomGenerator(randomSeed());
-    std::uniform_real_distribution<T> distribution(T(-1), T(1));
-
-    v = std::complex<T>(distribution(randomGenerator), distribution(randomGenerator));
+    PITTS::internal::UniformUnitDistribution<T> distribution;
+    v = distribution(PITTS::internal::randomGenerator);
   }
 
   // random chunks
@@ -403,10 +389,11 @@ MY_TYPED_TEST(index_bcast)
 
   for(int i = 0; i < Chunk::size+10; i++)
   {
+    std::cout << "index_bcast with index: " << i << "\n";
     Chunk result;
     index_bcast(src, i, value, result);
 
-    Chunk result_ref = result;
+    Chunk result_ref = src;
     if( i < Chunk::size )
       result_ref[i] = value;
 
@@ -429,6 +416,8 @@ MY_TYPED_TEST(masked_load_after)
 
   for(int i = 0; i < Chunk::size+10; i++)
   {
+    std::cout << "masked_load_after with index: " << i << "\n";
+
     Chunk result;
     masked_load_after(src, i, result);
 
@@ -456,6 +445,8 @@ MY_TYPED_TEST(masked_store_after)
 
   for(int i = 0; i < Chunk::size+10; i++)
   {
+    std::cout << "masked_store_after with index: " << i << "\n";
+
     Chunk result;
     randomize(result);
     const Chunk result_in = result;

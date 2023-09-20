@@ -243,6 +243,7 @@ namespace PITTS
   template<>
   inline float sum<float>(const Chunk<float>& v)
   {
+    static_assert(Chunk<float>::size == 32);
     // not sure if this is actually faster that vadd;
     // I assume it pipelines better with other AVX512 ops
     __m512 vl0 = _mm512_load_ps(&v[0]);
@@ -275,6 +276,7 @@ namespace PITTS
   template<>
   inline double sum<double>(const Chunk<double>& v)
   {
+    static_assert(Chunk<double>::size == 16);
     // not sure if this is actually faster that vadd;
     // I assume it pipelines better with other AVX512 ops
     __m512d v00 = _mm512_load_pd(&v[0]);
@@ -345,7 +347,8 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __mmask16 mask = (1<<index)>>(16*i);
+      unsigned long one = 1;
+      __mmask16 mask = (one<<index)>>(16*i);
       __m512 xi = _mm512_load_ps(&src[16*i]);
       __m512 yi = _mm512_mask_broadcastss_ps(xi, mask, _mm_set_ps(0,0,0,value));
       _mm512_store_ps(&result[16*i], yi);
@@ -358,7 +361,8 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __mmask8 mask = (1<<index)>>(8*i);
+      unsigned long one = 1;
+      __mmask8 mask = (one<<index)>>(8*i);
       __m512d xi = _mm512_load_pd(&src[8*i]);
       __m512d yi = _mm512_mask_broadcastsd_pd(xi, mask, _mm_set_pd(0,value));
       _mm512_store_pd(&result[8*i], yi);
