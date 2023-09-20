@@ -104,6 +104,26 @@ build_clang:
     reports:
       junit: build_clang/test/pitts_tests*.xml
 
+build_debug_amd:
+  stage: build
+  variables:
+    SCHEDULER_PARAMETERS: "-p amd -N 1 -n 1 -c 32 -t 00:10:00"
+  needs: []
+  script:
+    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - module load PrgEnv/gcc13-openmpi-python
+    - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_amd/"
+    - ccache -z
+    - mkdir build_debug_amd && cd build_debug_amd
+    - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=On -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On
+    - cmake --build .
+    - cmake --build . --target check
+    - ccache -s
+  artifacts:
+    reports:
+      junit: build_debug_amd/test/pitts_tests*.xml
+
+
 pages:
   stage: deploy
   dependencies:
