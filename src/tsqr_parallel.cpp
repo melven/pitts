@@ -1,57 +1,24 @@
 #include "pitts_common.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_multivector.hpp"
-#include <stdio.h> // using printf because it behaves better when multithreading
-#include <barrier>
-#include <cassert>
+#include <cstdio> // using printf because it behaves better when multithreading
+#include <latch>
 
 using namespace PITTS;
 
-// set this to true when benchmarking (disables all testing, and all other output)
-#define BENCHMARK 0
-// set this to true to check barrier construction/destruction (no effect if BENCHMARK 1)
-#define CHECK_BARRIER_DESTRUCTION 1
-// set this to true to output only a checksum of the correct results, instead of a whole table to compare
-#define SILENT 1
+class Latch : public std::latch
+{
+    public:
+        Latch(std::ptrdiff_t expected = 0) : std::latch(expected) {}
+};
 
-#if CHECK_BARRIER_DESTRUCTION && !BENCHMARK
-// assuming that for all i, only the i'th thread ever destroys an i'th barrier,
-// we can check if deallocation is done correctly by keeping track of 2 counters
-// per thread
-// important: the parameter mod needs to be corresponding to the barrier array used
-// for the checks to make any sense
-#include <atomic>
-std::atomic<int> barrier_count[2][128] = // dirty hack: upper-bounding number of threads by 128
-    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-void construct_barrier(std::barrier<>* address, int mod, int size)
+using LatchArray3 = std::array<Latch, 3>;
+
+inline void resetLatch(Latch& l, std::ptrdiff_t expected)
 {
-    // we are assuming that only iThread ever constructs iThread's barrier
-    const int iThread = omp_get_thread_num();
-    assert(barrier_count[mod][iThread] == 0);
-    barrier_count[mod][iThread]++;
-    new (address) std::barrier(size);
+    l.~Latch();
+    new(&l) Latch(expected);
 }
-void destruct_barrier(std::barrier<>& bar, int mod)
-{
-    // we are assuming that only iThread destructs iThread's barrier
-    const int iThread = omp_get_thread_num();
-    assert(barrier_count[mod][iThread] == 1);
-    barrier_count[mod][iThread]--;
-    bar.~barrier();
-}
-#else
-void construct_barrier(std::barrier<>* address, int mod, int size)
-{
-    new (address) std::barrier(size);
-}
-void destruct_barrier(std::barrier<>& bar, int mod)
-{
-    bar.~barrier();
-}
-#endif
 
 void dummy_transformBlock_calc(int m, const double* pdataIn, double* pdataResult, int col)
 {
@@ -79,32 +46,16 @@ void update_spaces(char* spaces, int depth, char space = ' ')
 
 void output_entries(double** M, int length, int m)
 {
-#if BENCHMARK
-    return;
-#endif
-// else
-#if SILENT
-    long long checksum = 0;
-#else
-    printf("\n");
-#endif
+    //printf("\n");
     for (int i = 0; i < length; i++)
     {
         for (int j = 0; j < m; j++)
         {
-#if SILENT
-            checksum += ((long long)(M[i][j]*7001) % 101);
+            //printf("%f\t", M[i][j]);
         }
-#else
-            printf("%f\t", M[i][j]);
-        }
-        printf("\n");
-#endif
+        //printf("\n");
     }
-#if SILENT
-    printf("CHECKSUM = %lld", checksum);
-#endif
-    printf("\n");
+    //printf("\n");
 }
 
 void check(const MultiVector<double>& M, int nThreads, int nIter, int m)
@@ -172,7 +123,7 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
     int nChunks = 1;
     int colBlockSize = 1;
 
-    auto iThread = omp_get_thread_num(); // only used for diagnostic output
+    auto iThread = omp_get_thread_num();
     const int calc_color = 35;
     const int apply_color = 36;
     int depth = 0;
@@ -265,7 +216,7 @@ void dummy_transformBlock(int m, const double* pdataIn, double* pdataResult)
  * is small or big).
  * Besides that parallelization, the implementation remains the same as before.
  */
-void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult, int firstThread, int lastThread, std::barrier<>& bar)
+void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult, int firstThread, int lastThread, LatchArray3& bossLatches, LatchArray3& workerLatches)
 {
     int nChunks = 1;
     int colBlockSize = 1;
@@ -292,11 +243,11 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
         update_spaces(spaces, depth);
         update_spaces(antispaces, 10 - depth);
 
-        const int nCol = endCol - beginCol;
+        int nCol = endCol - beginCol;
+        int nApplyCol = applyEndCol - applyBeginCol;
 
         if( nCol < 2 )
         {
-            const int nApplyCol = applyEndCol - applyBeginCol;
             const int relThreadId = iThread - firstThread;
             const int nThreads = lastThread - firstThread;
             auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
@@ -320,6 +271,8 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
         update_spaces(spaces, depth);
         update_spaces(antispaces, 10 - depth);
     };
+
+    int globalCounter = 0;
 
     const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
     {
@@ -351,11 +304,25 @@ void par_dummy_transformBlock(int m, const double* pdataIn, double* pdataResult,
             //printf("%s\033[%dmtree_calc:%s\tthread %d (in team [%d,%d]): \tcolumns %d to %d: \trecurse left (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, beginCol, middle-1);
             tree_calc(tree_calc, beginCol, middle);
 
-            bar.arrive_and_wait(); // synchronize the threads [firstThread, lastThread) (need to finish calculating it before applying it)
+            const int cnt = globalCounter++;
+            if( iThread == firstThread )
+                bossLatches[cnt%3].count_down();
+            else
+                bossLatches[cnt%3].wait();
+
             //printf("%s\033[%dmtree_calc:%s\tthread %d (in team [%d,%d]): \tapplying columns %d-%d to %d-%d\033[0m\n", spaces, apply_color, antispaces, iThread, firstThread, lastThread-1, beginCol, middle-1, middle, endCol-1);
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
 
-            bar.arrive_and_wait();  // synchronize the threads [firstThread, lastThread) (need to finish applying to it before calculating it)
+            if( iThread != firstThread )
+                workerLatches[cnt%3].count_down();
+            
+            if( iThread == firstThread )
+            {
+                workerLatches[cnt%3].wait();
+                resetLatch(bossLatches[(cnt+2)%3], 1);
+                const int nThreads = lastThread - firstThread;
+                resetLatch(workerLatches[(cnt+2)%3], nThreads-1);
+            }
             //printf("%s\033[%dmtree_calc:%s\tthread %d (in team [%d,%d]): \tcolumns %d to %d: \trecurse right (col %d to %d)\033[0m\n", spaces, calc_color, antispaces, iThread, firstThread, lastThread-1, beginCol, endCol-1, middle, endCol-1);
             tree_calc(tree_calc, middle, endCol);
 
@@ -386,14 +353,13 @@ int dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         // only work on a subset of threads if the input dimension is too small
         if( nIter < nThreads*2 )
             nThreads = 1 + (nIter-1)/2;
-#pragma omp master
         numthreads = nThreads;
         
         std::unique_ptr<double[]> plocalBuff;
         if( iThread < nThreads )
         {
             plocalBuff.reset(new double[m]);
-            //if( nThreads > 1 )
+            if( nThreads > 1 )
                 plocalBuff_allThreads[iThread] = &plocalBuff[0];
 
             // fill with zero
@@ -460,10 +426,10 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
     int nMaxThreads = omp_get_max_threads();
     std::vector<double*> plocalBuff_allThreads(nMaxThreads);
 
-    // allocate two localBarriers arrays in order to swap them in each loop iteration (in order to reuse barriers without needing a second global barrier just to handle synchronization before local barrier destruction/overwrite)
-    constexpr int barrier_stride = 1; // no stride
-    char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[2*barrier_stride*sizeof(std::barrier<>)*nMaxThreads]; // make sure that there is a matching delete at the end of the function!
-    std::barrier<> *localBarriers[2] = {(std::barrier<>*)_buf, (std::barrier<>*)_buf + barrier_stride*nMaxThreads};
+    std::unique_ptr<LatchArray3[]> bossLatchBuff(new LatchArray3[nMaxThreads*2]);
+    std::unique_ptr<LatchArray3[]> workerLatchBuff(new LatchArray3[nMaxThreads*2]);
+    std::array<LatchArray3*,2> localBossLatches = {&bossLatchBuff[0], &bossLatchBuff[nMaxThreads]};
+    std::array<LatchArray3*,2> localWorkerLatches = {&workerLatchBuff[0], &workerLatchBuff[nMaxThreads]};
 
     //printf("--- BEGIN OF block_TSQR ---\n");
 
@@ -481,7 +447,7 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
         if (iThread < nThreads)
         {
             plocalBuff.reset(new double[m]);
-            // if( nThreads > 1 ) this if statement not really needed: no gain from checking this just to save one assignment in special case
+            // if (nThreads > 1) this if statement not really needed: no gain from checking this just to save one assignment in special case
             plocalBuff_allThreads[iThread] = &plocalBuff[0];
 
             // fill with zero
@@ -491,23 +457,26 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
             const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
 
             // no synchronization after creation needed here because each thread uses exactly its own barrier
-            //new (&localBarriers[0][iThread]) std::barrier(1);
-            construct_barrier(&localBarriers[0][barrier_stride*iThread], 0, 1);
+            resetLatch(localBossLatches[0][iThread][0], 1);
+            resetLatch(localBossLatches[0][iThread][1], 1);
+            resetLatch(localBossLatches[0][iThread][2], 1);
+            resetLatch(localWorkerLatches[0][iThread][0], 0);
+            resetLatch(localWorkerLatches[0][iThread][1], 0);
+            resetLatch(localWorkerLatches[0][iThread][2], 0);
 
             //printf("TSQR: \tloopdepth 0 \tthreads [%d,%d]: \tcombining blocks %lld to %lld (M)\n", iThread, iThread, firstIter, lastIter);
             for(long long iter = firstIter; iter <= lastIter; iter++)
             {
-                par_dummy_transformBlock(m, &M(iter,0), &plocalBuff[0], iThread, iThread+1, localBarriers[0][barrier_stride*iThread]);
+                par_dummy_transformBlock(m, &M(iter,0), &plocalBuff[0], iThread, iThread+1, localBossLatches[0][iThread], localWorkerLatches[0][iThread]);
                  // barrier is not really needed here, but it simplifies code a little bit
                  // it can be left away if the overhead is significant (enough)
             }
-            // above barriers are destructed at bottom of first iteration of the next loop (setting wasBossThread accordingly below)
+            // above barriers are destructed at bottom of first loop iteration of the next loop (setting wasBossThread accordingly below)
         }
 
         // tree reduction over threads
         bool wasBossThread = (iThread < nThreads); // keep track of last iterations boss threads
-	int cnt = 1;
-        for(int nextThread = 1; nextThread < nThreads; nextThread*=2, cnt++)
+        for(int nextThread = 1, cnt = 1; nextThread < nThreads; nextThread*=2, cnt++)
         {
             int bossThread, lastThread; // first (including) and last (excluding) threads in the team
 
@@ -521,16 +490,21 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
                 //    lastThread = nThreads;
 
                 // create local barrier before global barrier to ensure all threads in team have the same view of them
-                if (iThread == bossThread) {
-                    //new (&localBarriers[cnt%2][bossThread]) std::barrier(lastThread-bossThread);
-                    construct_barrier(&localBarriers[cnt%2][barrier_stride*bossThread], cnt%2, lastThread-bossThread);
+                if (iThread == bossThread) // iThread < nThreads s.t. lastThread-bossThread non-negative
+                {
+                    resetLatch(localBossLatches[cnt%2][bossThread][0], 1);
+                    resetLatch(localBossLatches[cnt%2][bossThread][1], 1);
+                    resetLatch(localBossLatches[cnt%2][bossThread][2], 1);
+                    resetLatch(localWorkerLatches[cnt%2][bossThread][0], lastThread-bossThread - 1);
+                    resetLatch(localWorkerLatches[cnt%2][bossThread][1], lastThread-bossThread - 1);
+                    resetLatch(localWorkerLatches[cnt%2][bossThread][2], lastThread-bossThread - 1);
                 }
             }
-#pragma omp barrier
-#pragma omp master
-        {
-            //printf("\n* OMP BARRIER *\n\n");
-        }
+//#pragma omp barrier
+//#pragma omp master
+//        {
+//            //printf("\n* OMP BARRIER *\n\n");
+//        }
 #pragma omp barrier
             if (iThread < nThreads)
             {
@@ -539,36 +513,29 @@ int par_dummy_block_TSQR(const MultiVector<double>& M, int nIter, int m)
                     //printf("TSQR: \tloopdepth %d \tthreads [%d,%d] (I'm thread %d): \tcombining block %d and %d (localBuffs)\n", cnt, bossThread, lastThread-1, iThread, bossThread, bossThread+nextThread);
                     const auto bossLocalBuff = plocalBuff_allThreads[bossThread];
                     const auto otherLocalBuff = plocalBuff_allThreads[bossThread+nextThread];
-                    par_dummy_transformBlock(m, &otherLocalBuff[0], &bossLocalBuff[0], bossThread, lastThread, localBarriers[cnt%2][barrier_stride*bossThread]);
+                    par_dummy_transformBlock(m, &otherLocalBuff[0], &bossLocalBuff[0], bossThread, lastThread, localBossLatches[cnt%2][bossThread], localWorkerLatches[cnt%2][bossThread]);
                 }
 
                 // destruct last iterations local barriers (we wait for one iteration to ensure that there is a global barrier between last use and destruction of the barrier)
                 // remark: explicit destruction only needed if the destructor has side effects
-                if (wasBossThread) {
-                    //localBarriers[(cnt-1)%2][iThread].~barrier();
-                    destruct_barrier(localBarriers[(cnt-1)%2][barrier_stride*iThread], (cnt-1)%2);
+                if (wasBossThread)
+                {
+                    // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
+                    // remark: here we are using the fact that this iteration's boss threads are a subset of last iteration's boss threads (hence, this minimal update suffices)
+                    if (iThread != bossThread)
+                        wasBossThread = false;
                 }
-                // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
-                // remark: with this update, we are NOT making any assumptions about previous values of wasBossThread
-                wasBossThread = (iThread == bossThread);
             }
         }
 
-#pragma omp barrier
-#pragma omp master
-        {
-            //printf("--- END OF block_TSQR ---\n");
-            output_entries(plocalBuff_allThreads.data(), numthreads, m);
-        }
-        // wait for other threads to finish before destruction so the otherLocalBuff pointers and local barriers are still valid
-  #pragma omp barrier
-        if (wasBossThread) {
-            //localBarriers[(cnt-1)%2][iThread].~barrier();
-            destruct_barrier(localBarriers[(cnt-1)%2][barrier_stride*iThread], (cnt-1)%2);
-        }
+//#pragma omp barrier
+//#pragma omp master
+//        {
+//            //printf("--- END OF block_TSQR ---\n");
+//            output_entries(plocalBuff_allThreads.data(), numthreads, m);
+//        }
+#pragma omp barrier // needed in order for other thread's plocalBuff (and hence memory pointed to by plocalBuff_allThreads) not to be destroyed prematurely
     }
-
-    operator delete[](_buf, std::align_val_t{alignof(std::barrier<>)});
 
     return numthreads;
 }
@@ -580,14 +547,12 @@ int main(int argc, char* argv[])
     // n: proportional to number of threads, nThreads = ⌈n/2⌉
     // m: number of rows
     constexpr bool test_extensive = true;
+    constexpr bool benchmark = true;
 
     PITTS::initialize(&argc, &argv);
 
-#if !BENCHMARK
-
-    if (!test_extensive)
+    if (!test_extensive && !benchmark)
     {
-        printf("\n");
         const int n = 13;
         const int m = 8;
         MultiVector<double> M(n, m);
@@ -596,18 +561,8 @@ int main(int argc, char* argv[])
                 M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
         const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
-#if CHECK_BARRIER_DESTRUCTION
-        for (int mod = 0; mod < 2; mod++) {
-            int sum = 0;
-            for (int i = 0; i < 128; i++) {
-                sum += std::abs(barrier_count[mod][i]);
-                barrier_count[mod][i] = 0;
-            }
-            assert(sum == 0);
-        }
-#endif
+
         check(M, numThreadsUsed, n, m);
-        printf("\n");
     }
 
     if (test_extensive)
@@ -620,101 +575,90 @@ int main(int argc, char* argv[])
         {
             for (int n = n_low; n < n_upp; n++)
             {
-                printf("\nTESTING FOR n=%d, m=%d\n", n, m);
                 MultiVector<double> M(n, m);
                 for (int i = 0; i < n; i++)
                     for (int j = 0; j < m; j++)
                         M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
                 const int numThreadsUsed = par_dummy_block_TSQR(M, n, m);
-#if CHECK_BARRIER_DESTRUCTION
-                for (int mod = 0; mod < 2; mod++) {
-                    int sum = 0;
-                    for (int i = 0; i < 128; i++) {
-                        sum += std::abs(barrier_count[mod][i]);
-                        barrier_count[mod][i] = 0;
-                    }
-                    assert(sum == 0);
-                }
-#endif
+
                 check(M, numThreadsUsed, n, m);
             }
         }
     }
 
-#else
-
-    const int n_low = 2;
-    const int n_upp = 1000;
-    const int m_low = 1;
-    const int m_upp = 100;
-    printf("\nWalltime (in milliseconds) for different numbers of threads\n\n");
-    for (int m = m_low; m < m_upp; m*=2)
-        printf("\t\tm = %d", m);
-    printf("\n\t\t_____________________________________________________________________________________________________");
-    const int tot_it = 10;
-    int numThreadsUsed;
-    MultiVector<double> Mwarm(1000, 1000);
-    for (int i = 0; i < 1000; i++)
-        for (int j = 0; j < 1000; j++)
-            Mwarm(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
-    // BENCH NEW VERSION
-    printf("\n\nNEW PARALLEL VERSION:\n");
-    // warmup
-    numThreadsUsed = par_dummy_block_TSQR(Mwarm, 1000, 1000);
-    // measurement loop
-    for (int n = n_low; n < n_upp; n*=2)
+    if (benchmark)
     {
-        const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
-        printf("\n#threads=%d ", _nThreads);
-        if (_nThreads < 10) printf(" ");
-        printf("|\t");
-
+        const int n_low = 2;
+        const int n_upp = 1000;
+        const int m_low = 1;
+        const int m_upp = 100;
+        printf("\nWalltime (in milliseconds) for different numbers of threads\n\n");
         for (int m = m_low; m < m_upp; m*=2)
+            printf("\t\tm = %d", m);
+        printf("\n\t\t_____________________________________________________________________________________________________");
+        const int tot_it = 10;
+        int numThreadsUsed;
+        MultiVector<double> Mwarm(1000, 1000);
+        for (int i = 0; i < 1000; i++)
+            for (int j = 0; j < 1000; j++)
+                Mwarm(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+        // BENCH NEW VERSION
+        printf("\n\nNEW PARALLEL VERSION:\n");
+        // warmup
+        numThreadsUsed = par_dummy_block_TSQR(Mwarm, 1000, 1000);
+        // measurement loop
+        for (int n = n_low; n < n_upp; n*=2)
         {
-            MultiVector<double> M(n, m);
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < m; j++)
-                    M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+            const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
+            printf("\n#threads=%d ", _nThreads);
+            if (_nThreads < 10) printf(" ");
+            printf("|\t");
 
-            double wtime = omp_get_wtime();
-            for (int i = 0; i < tot_it; i++)
-                numThreadsUsed = par_dummy_block_TSQR(M, n, m);
-            wtime = omp_get_wtime() - wtime;
+            for (int m = m_low; m < m_upp; m*=2)
+            {
+                MultiVector<double> M(n, m);
+                for (int i = 0; i < n; i++)
+                    for (int j = 0; j < m; j++)
+                        M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
-            printf("%f\t", wtime*1000);
+                double wtime = omp_get_wtime();
+                for (int i = 0; i < tot_it; i++)
+                    numThreadsUsed = par_dummy_block_TSQR(M, n, m);
+                wtime = omp_get_wtime() - wtime;
+
+                printf("%f\t", wtime*1000);
+            }
         }
-    }
-    // BENCH OLD VERSION
-    printf("\n\nOLD \"SERIAL\" VERSION:\n");
-    // warmup
-    numThreadsUsed = dummy_block_TSQR(Mwarm, 1000, 1000);
-    // measurement loop
-    for (int n = n_low; n < n_upp; n*=2)
-    {
-        const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
-        printf("\n#threads=%d ", _nThreads);
-        if (_nThreads < 10) printf(" ");
-        printf("|\t");
-
-        for (int m = m_low; m < m_upp; m*=2)
+        // BENCH OLD VERSION
+        printf("\n\nOLD \"SERIAL\" VERSION:\n");
+        // warmup
+        numThreadsUsed = dummy_block_TSQR(Mwarm, 1000, 1000);
+        // measurement loop
+        for (int n = n_low; n < n_upp; n*=2)
         {
-            MultiVector<double> M(n, m);
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < m; j++)
-                    M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
+            const int _nThreads = std::min(1 + (n-1)/2, omp_get_max_threads());
+            printf("\n#threads=%d ", _nThreads);
+            if (_nThreads < 10) printf(" ");
+            printf("|\t");
 
-            double wtime = omp_get_wtime();
-            for (int i = 0; i < tot_it; i++)
-                numThreadsUsed = dummy_block_TSQR(M, n, m);
-            wtime = omp_get_wtime() - wtime;
+            for (int m = m_low; m < m_upp; m*=2)
+            {
+                MultiVector<double> M(n, m);
+                for (int i = 0; i < n; i++)
+                    for (int j = 0; j < m; j++)
+                        M(i,j) = (((i+1)*7001+(j+1)*7919) % 101)/10;
 
-            printf("%f\t", wtime*1000);
+                double wtime = omp_get_wtime();
+                for (int i = 0; i < tot_it; i++)
+                    numThreadsUsed = dummy_block_TSQR(M, n, m);
+                wtime = omp_get_wtime() - wtime;
+
+                printf("%f\t", wtime*1000);
+            }
         }
+        printf("\n\n");
     }
-    printf("\n\n");
-    
-#endif
 
     PITTS::finalize();
     return 0;
