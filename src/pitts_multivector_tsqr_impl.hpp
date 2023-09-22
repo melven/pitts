@@ -279,6 +279,7 @@ namespace PITTS
       //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+2 for out-of-place calculation and nChunks for in-place calculation
       //! @param colBlockSize tuning parameter for better cache access if m is large, should be a multiple of 3 (because of some internal 3-way unrolling)
       //!
+      /*
       template<typename T>
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15)
       {
@@ -346,16 +347,17 @@ namespace PITTS
 
         tree_calc(tree_calc,0,m);
       }
+      */
 
       //! Same as transformBlock, but implementing a parallelization of tree_apply over lastThread-firstThread OMP threads with contiguous thread id's.
       //! 
       //! All participating threads [firstThread,lastThread) need to call this function (with the same arguments)!
       //!
-      //! @param firstThread	OMP thread id of first thread
-      //! @param lastThread	OMP thread of the last thread + 1
-      //! @param bar		preallocated barrier used to synchronize the threads
+      //! @param firstThread  OMP thread id of first thread
+      //! @param lastThread   OMP thread of the last thread + 1
+      //! @param bar	        preallocated barrier used to synchronize the threads
       template<typename T>
-      void transformBlock_par(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize, int firstThread, int lastThread, std::barrier<>& bar)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, std::barrier<>* bar = 0)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
@@ -388,14 +390,21 @@ namespace PITTS
 
           if( nCol < 2*bs )
           {
-            const int nApplyCol = applyEndCol - applyBeginCol;
-            const int nThreads = lastThread - firstThread;
-            const int relThreadId = iThread - firstThread;
-            auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
-            localApplyBeginCol += applyBeginCol;
-            localApplyEndCol += applyBeginCol + 1;
+            if (firstThread == lastThread)
+            {
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
+            }
+            else
+            {
+              const int nApplyCol = applyEndCol - applyBeginCol;
+              const int nThreads = lastThread - firstThread;
+              const int relThreadId = iThread - firstThread;
+              auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
+              localApplyBeginCol += applyBeginCol;
+              localApplyEndCol += applyBeginCol + 1;
 
-            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, localApplyBeginCol, localApplyEndCol);
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, localApplyBeginCol, localApplyEndCol);
+            }
           }
           else
           {
@@ -410,7 +419,7 @@ namespace PITTS
           int nCol = endCol - beginCol;
           if( nCol < 2*bs )
           {
-            if (iThread == firstThread)
+            if (iThread == firstThread || firstThread == lastThread)
             {
               for(int col = beginCol; col < endCol; col++)
               {
@@ -423,9 +432,9 @@ namespace PITTS
           {
             int middle = beginCol + (nCol/2/bs)*bs;
             tree_calc(tree_calc, beginCol, middle);
-            bar.arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
+            if (bar) bar->arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
-            bar.arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
+            if (bar) bar->arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
             tree_calc(tree_calc, middle, endCol);
           }
         };
@@ -885,7 +894,7 @@ namespace PITTS
           {
             const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
             const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
-            internal::HouseholderQR::transformBlock_par(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, colBlockingSize, bossThread, lastThread, localBarriers[cnt%2][bossThread]);
+            internal::HouseholderQR::transformBlock(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, colBlockingSize, bossThread, lastThread, &localBarriers[cnt%2][bossThread]);
           }
 
           // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
