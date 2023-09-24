@@ -21,7 +21,8 @@ build_release:
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_release/"
     - ccache -z
     - mkdir build_release && cd build_release
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On
+    # use correct (Intel) OpenMP library, not the one from the llvm folder
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On -DOpenMP_gomp_LIBRARY=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/intel-oneapi-mkl-2023.1.0-ys6bcestnth7dudrfc4n4ty6ih2o675r/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/intel-oneapi-mkl-2023.1.0-ys6bcestnth7dudrfc4n4ty6ih2o675r/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
