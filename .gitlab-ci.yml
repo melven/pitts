@@ -15,10 +15,14 @@ build_release:
     - module load PrgEnv/gcc13-openmpi-python
     # unload itensor as it has problems compiling this way...
     - module unload -f itensor
+    # bug fixed/improved Eigen version
+    - module unload -f eigen
+    - MODULEPATH="/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512" module load eigen/eigen-master
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_release/"
     - ccache -z
     - mkdir build_release && cd build_release
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On
+    # use correct (Intel) OpenMP library, not the one from the llvm folder
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On -DOpenMP_gomp_LIBRARY=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/intel-oneapi-mkl-2023.1.0-ys6bcestnth7dudrfc4n4ty6ih2o675r/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/intel-oneapi-mkl-2023.1.0-ys6bcestnth7dudrfc4n4ty6ih2o675r/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15
     - ccache -s
