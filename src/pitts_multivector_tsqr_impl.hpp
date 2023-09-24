@@ -20,7 +20,8 @@
 #include <cstdint>
 #include <cmath>
 #include <bit>
-#include <barrier>
+#include <latch>
+#include <array>
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_performance.hpp"
@@ -32,6 +33,23 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+    //! wrapper type for std::latch that provides default-initialization
+    class Latch : public std::latch
+    {
+        public:
+            Latch(std::ptrdiff_t expected = 0) : std::latch(expected) {}
+    };
+
+    // helper type with 3 std::latch'es
+    using LatchArray3 = std::array<Latch, 3>;
+
+    //! helper function to reinitialize an std::latch (ugly)
+    inline void resetLatch(Latch& l, std::ptrdiff_t expected)
+    {
+        l.~Latch();
+        new(&l) Latch(expected);
+    }
+
     //! helper namespace for TSQR routines
     namespace HouseholderQR
     {
@@ -355,9 +373,8 @@ namespace PITTS
       //!
       //! @param firstThread  OMP thread id of first thread
       //! @param lastThread   OMP thread of the last thread + 1
-      //! @param bar	        preallocated barrier used to synchronize the threads
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, std::barrier<>* bar = 0)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
@@ -414,6 +431,9 @@ namespace PITTS
           }
         };
 
+        // counter to select current latch for synchronization
+        unsigned int iterationCounter = 0;
+
         const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
         {
           int nCol = endCol - beginCol;
@@ -431,10 +451,37 @@ namespace PITTS
           else
           {
             int middle = beginCol + (nCol/2/bs)*bs;
+
             tree_calc(tree_calc, beginCol, middle);
-            if (bar) bar->arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
+
+            // wait for boss thread to finish...
+            const auto cnt = iterationCounter++;
+            if( bossLatches )
+            {
+              if( iThread == firstThread )
+                (*bossLatches)[cnt%3].count_down();
+              else
+                (*bossLatches)[cnt%3].wait();
+
+            }
+
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
-            if (bar) bar->arrive_and_wait(); // synchronize the threads [firstThread, lastThread)
+
+            // wait for all worker threads to finish and reset old currently unused latch
+            if( workerLatches )
+            {
+              if( iThread != firstThread )
+                (*workerLatches)[cnt%3].count_down();
+              
+              if( iThread == firstThread )
+              {
+                (*workerLatches)[cnt%3].wait();
+                resetLatch((*bossLatches)[(cnt+2)%3], 1);
+                const auto nThreads = lastThread - firstThread;
+                resetLatch((*workerLatches)[(cnt+2)%3], nThreads-1);
+              }
+            }
+
             tree_calc(tree_calc, middle, endCol);
           }
         };
@@ -836,10 +883,10 @@ namespace PITTS
     constexpr int falseSharingStride = 16;
     std::vector<Chunk<T>*> plocalBuff_allThreads(falseSharingStride*nMaxThreads); // take care to index into with proper offset!
 
-    // allocate two localBarriers arrays in order to swap them in each loop iteration (in order to reuse barriers without needing a second global barrier just to handle synchronization before local barrier destruction/overwrite)
-    // remark (todo): no false sharing stride implemented (for now)
-    char *_buf = new(std::align_val_t{alignof(std::barrier<>)}) char[2*sizeof(std::barrier<>)*nMaxThreads]; // make sure that there is a matching delete!
-    std::barrier<> *localBarriers[2] = {(std::barrier<>*)_buf, (std::barrier<>*)(_buf) + nMaxThreads};
+    std::unique_ptr<internal::LatchArray3[]> bossLatchBuff(new internal::LatchArray3[nMaxThreads*2]);
+    std::unique_ptr<internal::LatchArray3[]> workerLatchBuff(new internal::LatchArray3[nMaxThreads*2]);
+    std::array<internal::LatchArray3*,2> localBossLatches = {&bossLatchBuff[0], &bossLatchBuff[nMaxThreads]};
+    std::array<internal::LatchArray3*,2> localWorkerLatches = {&workerLatchBuff[0], &workerLatchBuff[nMaxThreads]};
 
 #pragma omp parallel
     {
@@ -883,9 +930,16 @@ namespace PITTS
           //if (lastThread < nThreads && bossThread+3*nextThread >= nThreads)
           //    lastThread = nThreads;
 
-          // create this iteration's local barriers (before global barrier to ensure all threads in team have the same view of them)
+          // create this iteration's local latches (before global barrier to ensure all threads in team have the same view of them)
           if (iThread == bossThread)
-            new (&localBarriers[cnt%2][bossThread]) std::barrier(lastThread-bossThread);
+          {
+            resetLatch(localBossLatches[cnt%2][bossThread][0], 1);
+            resetLatch(localBossLatches[cnt%2][bossThread][1], 1);
+            resetLatch(localBossLatches[cnt%2][bossThread][2], 1);
+            resetLatch(localWorkerLatches[cnt%2][bossThread][0], lastThread-bossThread - 1);
+            resetLatch(localWorkerLatches[cnt%2][bossThread][1], lastThread-bossThread - 1);
+            resetLatch(localWorkerLatches[cnt%2][bossThread][2], lastThread-bossThread - 1);
+          }
         }
 #pragma omp barrier
         if (iThread < nThreads)
@@ -894,14 +948,12 @@ namespace PITTS
           {
             const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
             const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
-            internal::HouseholderQR::transformBlock(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, colBlockingSize, bossThread, lastThread, &localBarriers[cnt%2][bossThread]);
+            internal::HouseholderQR::transformBlock(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
           }
 
           // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
           // the very last iteration's local barriers are destructed after the loop and after another global barrier
           // remark: explicit destruction only needed if the destructor has side effects
-          if (wasBossThread)
-            localBarriers[(cnt-1)%2][iThread].~barrier();
           // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
           wasBossThread = (iThread == bossThread);
         }
@@ -912,12 +964,7 @@ namespace PITTS
 
       // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
 #pragma omp barrier
-      //if (iThread < nThreads) {
-      if (wasBossThread)
-        localBarriers[(cnt-1)%2][iThread].~barrier();
-      //}
     }
-    operator delete[](_buf, std::align_val_t{alignof(std::barrier<>)});
 
     if( mpiGlobal )
     {
