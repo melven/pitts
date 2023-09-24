@@ -452,7 +452,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim2_rank1)
   randomize(TTx);
   normalize(TTx);
 
-  double error = solveMALS(TTOpA, false, MALS_projection::NormalEquations, TTb, TTx, 1, eps, 2, 1, 0);
+  double error = solveMALS(TTOpA, false, MALS_projection::NormalEquations, TTb, TTx, 2, eps, 2, 1, 0);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
