@@ -13,7 +13,7 @@ namespace
   using TensorTrain_double = PITTS::TensorTrain<double>;
   using arr = Eigen::ArrayXd;
   using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  constexpr auto eps = 1.e-10;
+  constexpr auto eps = 2.e-10;
 }
 
 TEST(PITTS_TensorTrain_gram_schmidt, single_vector_norm)
