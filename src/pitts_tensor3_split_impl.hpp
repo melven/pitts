@@ -525,8 +525,8 @@ namespace PITTS
         {
           // return QB
 #ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
-          EigenMap(result.first) = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
-          EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
+          EigenMap(result.first).noalias() = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
+          EigenMap(result.second).noalias() = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
 #else
           EigenMap(result.first) = svd.matrixU().leftCols(r);
           EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
@@ -536,8 +536,8 @@ namespace PITTS
         {
           // return BQ
 #ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
-          EigenMap(result.first) = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-          EigenMap(result.second) = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
+          EigenMap(result.first).noalias() = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
+          EigenMap(result.second).noalias() = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
 #else
           EigenMap(result.first) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
           EigenMap(result.second) = svd.matrixV().leftCols(r).adjoint();
