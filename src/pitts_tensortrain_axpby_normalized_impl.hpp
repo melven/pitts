@@ -29,11 +29,122 @@
 #include "pitts_chunk_ops.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_timer.hpp"
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
+
 
 namespace PITTS
 {
     namespace internal
     {
+#ifdef PITTS_DIRECT_MKL_GEMM
+        inline void cblas_gemm_mapper2(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const double alpha, const double * A, const CBLAS_INDEX lda, const double * B, const CBLAS_INDEX ldb, const double beta, double * C, const CBLAS_INDEX ldc)
+        {
+        cblas_dgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+        }
+
+        inline void cblas_gemm_mapper2(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const float alpha, const float * A, const CBLAS_INDEX lda, const float * B, const CBLAS_INDEX ldb, const float beta, float * C, const CBLAS_INDEX ldc)
+        {
+        cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+        }
+#endif
+        //! contraction (normal GEMM) for axpby_leftOrthogonalized: Mmt <- Mx^adj * Mytu
+        template<typename T>
+        void axpby_ortho_contract1l(const ConstTensor2View<T>& Mx, const ConstTensor2View<T>& Mytu, Tensor2<T>& Mmt)
+        {
+            const auto n = Mx.r2();
+            const auto m = Mytu.r2();
+            const auto k = Mytu.r1();
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"n", "m", "k"}, {n, m, k}},                                     // arguments
+                {{n*m*k*kernel_info::FMA<T>()},                                     // flops
+                 {(n*k+m*k)*kernel_info::Load<T>() + n*m*kernel_info::Store<T>()}} // data
+            );
+
+            Mmt.resize(n, m);
+
+            auto mapMx = ConstEigenMap(Mx);
+            auto mapMytu = ConstEigenMap(Mytu);
+            auto mapMmt = EigenMap(Mmt);
+#ifndef PITTS_DIRECT_MKL_GEMM
+            mapMmt.noalias() = mapMx.adjoint() * mapMytu;
+#else
+            cblas_gemm_mapper2(CblasColMajor, CblasTrans, CblasNoTrans, mapMmt.rows(), mapMmt.cols(), mapMx.rows(), T(1), mapMx.data(), mapMx.colStride(), mapMytu.data(), mapMytu.colStride(), T(0), mapMmt.data(), mapMmt.colStride());
+#endif
+        }
+
+        //! contraction (normal GEMM) for axpby_leftOrthogonalized: Mmt <- Mytl * Mx^adj
+        template<typename T>
+        void axpby_ortho_contract1r(const ConstTensor2View<T>& Mytl, const ConstTensor2View<T>& Mx, Tensor2<T>& Mmt)
+        {
+            const auto n = Mytl.r1();
+            const auto m = Mx.r1();
+            const auto k = Mytl.r2();
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"n", "m", "k"}, {n, m, k}},                                     // arguments
+                {{n*m*k*kernel_info::FMA<T>()},                                     // flops
+                 {(n*k+m*k)*kernel_info::Load<T>() + n*m*kernel_info::Store<T>()}} // data
+            );
+
+            Mmt.resize(n, m);
+
+            auto mapMytl = ConstEigenMap(Mytl);
+            auto mapMx = ConstEigenMap(Mx);
+            auto mapMmt = EigenMap(Mmt);
+#ifndef PITTS_DIRECT_MKL_GEMM
+            mapMmt.noalias() = mapMytl * mapMx.adjoint();
+#else
+            cblas_gemm_mapper2(CblasColMajor, CblasNoTrans, CblasTrans, mapMmt.rows(), mapMmt.cols(), mapMytl.cols(), T(1), mapMytl.data(), mapMytl.colStride(), mapMx.data(), mapMx.colStride(), T(0), mapMmt.data(), mapMmt.colStride());
+#endif
+        }
+
+        //! contraction (normal GEMM) for axpby_*Orthogonalized: Mytu <- Mytu - Mx * Mmt OR Mytl <- Mytl - Mmt * Mx
+        template<typename T>
+        void axpby_ortho_contract2(const ConstTensor2View<T>& Mx, const ConstTensor2View<T>& Mmt, Tensor2View<T>& Mytu)
+        {
+            const auto n = Mx.r1();
+            const auto m = Mmt.r2();
+            const auto k = Mx.r2();
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"n", "m", "k"}, {n, m, k}},                                     // arguments
+                {{n*m*k*kernel_info::FMA<T>()},                                     // flops
+                 {(n*k+m*k)*kernel_info::Load<T>() + n*m*kernel_info::Store<T>()}} // data
+            );
+
+            auto mapMx = ConstEigenMap(Mx);
+            auto mapMmt = ConstEigenMap(Mmt);
+            auto mapMytu = EigenMap(Mytu);
+#ifndef PITTS_DIRECT_MKL_GEMM
+            mapMytu -= mapMx * mapMmt;
+#else
+            cblas_gemm_mapper2(CblasColMajor, CblasNoTrans, CblasNoTrans, mapMytu.rows(), mapMytu.cols(), mapMx.cols(), T(-1), mapMx.data(), mapMx.colStride(), mapMmt.data(), mapMmt.colStride(), T(1), mapMytu.data(), mapMytu.colStride());
+#endif
+        }
+
+        //! contraction (normal GEMM) for axpby_*Orthogonalized: C <- A * B
+        template<typename T>
+        void axpby_ortho_contract3(const ConstTensor2View<T>& A, const ConstTensor2View<T>& B, Tensor2View<T> C)
+        {
+            const auto n = A.r1();
+            const auto m = B.r2();
+            const auto k = A.r2();
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"n", "m", "k"}, {n, m, k}},                                     // arguments
+                {{n*m*k*kernel_info::FMA<T>()},                                     // flops
+                 {(n*k+m*k)*kernel_info::Load<T>() + n*m*kernel_info::Store<T>()}} // data
+            );
+
+            auto mapA = ConstEigenMap(A);
+            auto mapB = ConstEigenMap(B);
+            auto mapC = EigenMap(C);
+#ifndef PITTS_DIRECT_MKL_GEMM
+            mapC.noalias() = mapA * mapB;
+#else
+            cblas_gemm_mapper2(CblasColMajor, CblasNoTrans, CblasNoTrans, mapC.rows(), mapC.cols(), mapA.cols(), T(1), mapA.data(), mapA.colStride(), mapB.data(), mapB.colStride(), T(0), mapC.data(), mapC.colStride());
+#endif
+        }
+
         /**
          * @brief Componentwise axpy for Tensor3 objects.
          * y <- a*x + y
@@ -391,11 +502,10 @@ namespace PITTS
                 Tensor2View<T> Mytu = unfold_left(Tytu);
 
                 // Mmt <- Mx^adj * Mytu
-                Mmt.resize(Tx.r2(), Tytu.r2());
-                EigenMap(Mmt) = ConstEigenMap(Mx).adjoint() * ConstEigenMap(Mytu);
+                axpby_ortho_contract1l<T>(Mx, Mytu, Mmt);
                 
                 // Mytu <- Mytu - Mx * Mmt
-                EigenMap(Mytu) -= ConstEigenMap(Mx) * ConstEigenMap(Mmt);
+                axpby_ortho_contract2(Mx, Mmt, Mytu);
                 
                 // Optimization potential:
                 // can save the below copy of Tytu if we directly store the above result into Ttmp
@@ -420,11 +530,13 @@ namespace PITTS
 
                 // calculate upper half of new Tyt: Tytu <- Mmt *1 Ty1 (mode-1 contraction)
                 Tytu.resize(r2, Ty1.n(), Ty1.r2());
-                EigenMap(unfold_right(Tytu)) = ConstEigenMap(Mmt) * ConstEigenMap(unfold_right(Ty1));
+                axpby_ortho_contract3(Mmt, unfold_right(Ty1), unfold_right(Tytu));
+                //EigenMap(unfold_right(Tytu)) = ConstEigenMap(Mmt) * ConstEigenMap(unfold_right(Ty1));
 
                 // calculate lower half of new Tyt: Tytl <- R *1 Ty1 (mode-1 contraction)
                 Tytl.resize(R.r1(), Ty1.n(), Ty1.r2());
-                EigenMap(unfold_right(Tytl)) = ConstEigenMap(R) * ConstEigenMap(unfold_right(Ty1));
+                axpby_ortho_contract3(R, unfold_right(Ty1), unfold_right(Tytl));
+                //EigenMap(unfold_right(Tytl)) = ConstEigenMap(R) * ConstEigenMap(unfold_right(Ty1));
 
                 // save this iteration's result into TTy
                 Tdummy[1].resize(Tdummy[0].r2(), Ty1.n(), Ty1.r2()); // update dimension_dummy
@@ -482,11 +594,10 @@ namespace PITTS
                 Tensor2View<T> Mytl = unfold_right(Tytl);
 
                 // Mmt <- Mytl * Mx^adj
-                Mmt.resize(Tytl.r1(), Tx.r1());
-                EigenMap(Mmt) = ConstEigenMap(Mytl) * ConstEigenMap(Mx).adjoint();
+                axpby_ortho_contract1r(Mytl, Mx, Mmt);
                 
                 // Mytl <- Mytl - Mmt * Mx
-                EigenMap(Mytl) -= ConstEigenMap(Mmt) * ConstEigenMap(Mx);
+                axpby_ortho_contract2(Mmt, Mx, Mytl);
 
                 // Ttmp <- concat(Tytl, Tytr, dim=3)
                 internal::t3_concat3(Tytl, Tytr, Ttmp);
@@ -503,11 +614,13 @@ namespace PITTS
 
                 // calculate left half of new Tyt: Tytl <- Ty1 *3 Mmt (mode-3 contraction)
                 Tytl.resize(Ty1.r1(), Ty1.n(), r1);
-                EigenMap(unfold_left(Tytl)) = ConstEigenMap(unfold_left(Ty1)) * ConstEigenMap(Mmt);
+                axpby_ortho_contract3(unfold_left(Ty1), Mmt, unfold_left(Tytl));
+                //EigenMap(unfold_left(Tytl)) = ConstEigenMap(unfold_left(Ty1)) * ConstEigenMap(Mmt);
 
                 // calculate right half of new Tyt: Tytr <- Ty1 *3 L (mode-3 contraction)
                 Tytr.resize(Ty1.r1(), Ty1.n(), L.r2());
-                EigenMap(unfold_left(Tytr)) = ConstEigenMap(unfold_left(Ty1)) * ConstEigenMap(L);
+                axpby_ortho_contract3(unfold_left(Ty1), L, unfold_left(Tytr));
+                //EigenMap(unfold_left(Tytr)) = ConstEigenMap(unfold_left(Ty1)) * ConstEigenMap(L);
 
                 // save result into TTy
                 Tdummy[0].resize(TTy.subTensor(k-1).r1(), TTy.subTensor(k-1).n(), Tdummy[1].r1()); // update dimension_dummy
