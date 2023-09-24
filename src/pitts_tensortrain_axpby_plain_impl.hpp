@@ -27,6 +27,7 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor2_concat.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -58,6 +59,31 @@ namespace PITTS
          {(r1x*n*r2x + r1y*n*r2y + r2sum*r2new)*kernel_info::Load<T>() + (r1sum*n*r2new)*kernel_info::Store<T>()}} // data transfers
         );
 
+#ifdef PITTS_TENSORTRAIN_PLAIN_AXPBY
+      {
+        Tensor3<T> t3xy(r1sum, n, r2sum);
+        if( first )
+        {
+          concatLeftRight<T>(unfold_left(X), unfold_left(Y), unfold_left(t3xy));
+        }
+        else
+        {
+#pragma omp parallel for collapse(3) schedule(static)
+          for (int k = 0; k < r2sum; k++)
+            for (int j = 0; j < n; j++)
+              for (int i = 0; i < r1sum; i++)
+              {
+                if (i < X.r1() && k < X.r2())
+                  t3xy(i, j, k) = X(i, j, k);
+                else if (i >= X.r1() && k >= X.r2())
+                  t3xy(i, j, k) = Y(i - X.r1(), j, k - X.r2());
+                else
+                  t3xy(i, j, k) = T(0);
+              }
+        }
+        internal::normalize_contract2(t3xy, B, C);
+      }
+#else
 
 #pragma omp parallel
 {
@@ -98,6 +124,7 @@ else
           }
 }
 }
+#endif
 
     }
   
