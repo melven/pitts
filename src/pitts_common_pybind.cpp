@@ -9,6 +9,7 @@
 // includes
 #include <pybind11/pybind11.h>
 #include "pitts_common_pybind.hpp"
+#include "pitts_mkl.hpp"
 #include "pitts_common.hpp"
 #include "pitts_performance.hpp"
 

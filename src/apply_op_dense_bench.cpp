@@ -1,3 +1,4 @@
+#include "pitts_mkl.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
@@ -16,9 +17,6 @@
 #include "pitts_chunk_ops.hpp"
 #include <iostream>
 #include <charconv>
-#ifdef PITTS_DIRECT_MKL_GEMM
-#include <mkl_cblas.h>
-#endif
 
 
 namespace

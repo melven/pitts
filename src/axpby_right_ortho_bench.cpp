@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 
+#include "pitts_mkl.hpp"
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"

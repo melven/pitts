@@ -1,4 +1,5 @@
 #include "omp.h"
+#include "pitts_mkl.hpp"
 #include "pitts_common.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_random.hpp"
