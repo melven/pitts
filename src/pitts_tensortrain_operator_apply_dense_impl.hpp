@@ -238,6 +238,7 @@ namespace PITTS
     {
       if( n <= 64 )
         return n;
+#ifdef __AVX512F__
       // should be dividable by 4
       while( n % 4 != 0 )
         n++;
@@ -252,6 +253,13 @@ namespace PITTS
       if( n >= 512 )
         while( n % 128 == 124 || n % 128 == 0 || n % 128 == 4 )
           n += 4;
+#else
+      // should be dividable by 2
+      while( n % 2 != 0 )
+        n++;
+      if( n % 32 == 0 )
+        n += 2;
+#endif
       return n;
     };
 
