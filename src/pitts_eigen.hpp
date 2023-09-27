@@ -36,5 +36,22 @@
 #endif
 
 #include <Eigen/Eigenvalues>
+// for ALIGNMENT
+#include "pitts_chunk.hpp"
+
+
+//! namespace for the library PITTS (parallel iterative tensor train solvers)
+namespace PITTS
+{
+  //! global alignment of PITTS::Chunk expressed for Eigen
+  constexpr auto EigenAligned = []()
+  {
+    if constexpr ( ALIGNMENT % 128 == 0 )
+      return Eigen::Aligned128;
+    else
+      return Eigen::Aligned64;
+    static_assert(ALIGNMENT % 64 == 0);
+  }();
+}
 
 #endif // PITTS_EIGEN_HPP
