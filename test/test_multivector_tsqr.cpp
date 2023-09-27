@@ -213,7 +213,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
 
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks(), false); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
   PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
@@ -265,7 +265,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_plac
       X.chunk(i,col)[j] = 77.;
     }
 
-  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks()); // memory layout ok because X is small enough
+  PITTS::internal::HouseholderQR::applyReflection2(nChunks, firstRow, col, &w.chunk(0,0), &v.chunk(0,0), vTw_chunk, &X_in.chunk(0,0), X_in.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks(), false); // memory layout ok because X is small enough
 
   PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &w.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
   PITTS::internal::HouseholderQR::applyReflection(nChunks, firstRow, col, &v.chunk(0,0), &X_ref.chunk(0,0), X_ref.colStrideChunks(), &X_ref.chunk(0,0), X_ref.colStrideChunks());
@@ -297,7 +297,64 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
     for(int j = 0; j < m; j++)
       X_ref(i,j) = X(i,j);
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks(), nChunks);
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks(), nChunks, false);
+
+  // check that the result is upper triangular
+  for(int i = 0; i < mChunks*Chunk::size; i++)
+  {
+    for(int j = 0; j < m; j++)
+    {
+      if( i > j )
+      {
+        ASSERT_NEAR(0., X(i,j), eps);
+      }
+    }
+  }
+
+  // use Eigen to check that the singular values and the right singular vectors are identical
+  auto mapX = ConstEigenMap(X);
+  auto mapX_ref = ConstEigenMap(X_ref);
+  //std::cout << "X:\n" << mapX << std::endl;
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapX.topRows(m));
+  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+#else
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+#endif
+
+  ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
+  // V can differ by sign, only consider absolute part
+  ASSERT_NEAR(svd_ref.matrixV().array().abs(), svd.matrixV().array().abs(), eps);
+}
+
+
+TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace_twoTriangularBlocks)
+{
+  constexpr auto eps = 1.e-8;
+  using Chunk = PITTS::Chunk<double>;
+  using MultiVector = PITTS::MultiVector<double>;
+
+  constexpr int m = 38;
+  constexpr int mChunks = (m-1) / Chunk::size + 1;
+  constexpr int nTotalChunks = 2*mChunks+2;
+  constexpr int nChunks = mChunks;
+  constexpr int n = mChunks * Chunk::size;
+  constexpr int nTotal = nTotalChunks * Chunk::size;
+
+  MultiVector X(nTotal,m), X_ref(nTotal,m);
+  randomize(X);
+  // make lower triangular part zero...
+  for(int j = 0; j < m; j++)
+    for(int i = j+1; i < n; i++)
+      X(i,j) = X(i+n,j) = 0;
+  for(int j = 0; j < m; j++)
+    for(int i = 2*n; i < nTotal; i++)
+      X(i,j) = 0;
+  // copy X to X_ref
+  copy(X, X_ref);
+
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &X.chunk(0,0), X.colStrideChunks(), nChunks, true);
 
   // check that the result is upper triangular
   for(int i = 0; i < mChunks*Chunk::size; i++)
@@ -361,7 +418,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
         X.chunk(i,col)[j] = 77;
       }
 
-  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks(), 2+nChunks);
+  PITTS::internal::HouseholderQR::transformBlock(nChunks, m, &X.chunk(0,0), X.colStrideChunks(), &Xresult.chunk(0,0), Xresult.colStrideChunks(), 2+nChunks, false);
 
   // check that the result is upper triangular, copied to the bottom
   for(int i = 0; i < n; i++)
