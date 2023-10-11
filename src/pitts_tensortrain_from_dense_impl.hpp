@@ -87,7 +87,7 @@ namespace PITTS
 #endif
     using RealType = decltype(std::abs(T(1)));
     const RealType rankTol = std::abs(rankTolerance) / std::sqrt(RealType(nDim-1));
-    RealType initialFrobeniusNorm;
+    RealType initialFrobeniusNorm = T(0);
     for(int iDim = nDim-1; iDim > 0; iDim--)
     {
       if( root )

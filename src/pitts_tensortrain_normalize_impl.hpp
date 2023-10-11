@@ -311,6 +311,9 @@ namespace PITTS
     // just calculate its norm and scale the last subtensor
     const T nrm = internal::t3_nrm(TT.subTensor(nDim-1));
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
+    // special case for boundary rank: this is also not correct as boundary rank should be handled like an additional dimension...
+    //const auto lastOrtho = TT.subTensor(nDim-1).r2() != 1 ? TT_Orthogonality::none : TT_Orthogonality::left;
+    //TT.editSubTensor(nDim-1, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, lastOrtho);
     TT.editSubTensor(nDim-1, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, TT_Orthogonality::left);
 
     return nrm;
@@ -332,6 +335,9 @@ namespace PITTS
     // just calculate its norm and scale the first subtensor
     const T nrm = internal::t3_nrm(TT.subTensor(0));
     const T invNrm = nrm == T(0) ? T(0) : 1/nrm;
+    // special case for boundary rank: this is also not correct as boundary rank should be handled like an additional dimension...
+    //const auto firstOrtho = TT.subTensor(0).r1() != 1 ? TT_Orthogonality::none : TT_Orthogonality::right;
+    //TT.editSubTensor(0, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, firstOrtho);
     TT.editSubTensor(0, [invNrm](Tensor3<T>& subT){internal::t3_scale(invNrm, subT);}, TT_Orthogonality::right);
 
     return nrm;

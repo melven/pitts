@@ -139,7 +139,8 @@ namespace PITTS
       if( A.cols() % rA != 0 || x.cols() != 1 || x.rows() != xn*r*m )
         throw std::invalid_argument("apply_dense_contract: invalid dimensions!");
 
-      y.resize(yn*xn*r*rA, 1, false);
+      // usually padding should already be initialized but we cannot be sure in all cases, right?
+      y.resize(yn*xn*r*rA, 1);//, false);
       
       const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
           {{"yn", "xn", "m", "rA", "r"},{yn, xn, m, rA, r}}, // arguments

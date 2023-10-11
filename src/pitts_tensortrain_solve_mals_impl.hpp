@@ -370,6 +370,13 @@ namespace PITTS
 
         internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
 
+        // these are not valid any more
+        Ax.invalidate(swpIdx.rightDim()+1);
+        Ax_ortho.invalidate(swpIdx.rightDim()+1);
+        Ax_b_ortho.invalidate(swpIdx.rightDim()+1);
+        vTAx.invalidate(swpIdx.rightDim()+1);
+        vTb.invalidate(swpIdx.rightDim()+1);
+
         const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
         const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
         Tensor3<T> subTr = tt_z.setSubTensor(0, Tensor3<T>(1,tt_z.dimensions()[0],1));
@@ -389,7 +396,10 @@ namespace PITTS
           return;
         }
 
-        const auto [Q, B] = internal::normalize_qb(unfold_left(subTr), true, T(0), nAMEnEnrichment);
+        int maxEnrichmentRank = nAMEnEnrichment;
+        maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT0.r1()*subT0.n()-subT0.r2());
+        maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT1.r2()*subT1.n()-subT1.r1());
+        const auto [Q, B] = internal::normalize_qb(unfold_left(subTr), true, T(0), maxEnrichmentRank, true);
         std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+Q.r2() << "\n";
 
         std::vector<Tensor3<T>> newSubT(2);
@@ -399,17 +409,17 @@ namespace PITTS
         concatTopBottom<T>(unfold_right(subT1), std::nullopt, unfold_right(newSubT[1]));
         //std::cout << "ortho:\n" << ConstEigenMap(unfold_left(newSubT[0])).transpose() * ConstEigenMap(unfold_left(newSubT[0])) << std::endl;
         TTx.setSubTensors(swpIdx.rightDim(), std::move(newSubT), {TT_Orthogonality::left, TT_Orthogonality::none});
-
-        // these are not valid any more
-        Ax.invalidate(swpIdx.rightDim()+1);
-        Ax_ortho.invalidate(swpIdx.rightDim()+1);
-        Ax_b_ortho.invalidate(swpIdx.rightDim()+1);
-        vTAx.invalidate(swpIdx.rightDim()+1);
-        vTb.invalidate(swpIdx.rightDim()+1);
       }
       else // right-to-left
       {
         internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, nDim-1);
+
+        // these are not valid any more
+        Ax.invalidate(swpIdx.leftDim()-1);
+        Ax_ortho.invalidate(swpIdx.leftDim()-1);
+        Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
+        vTAx.invalidate(swpIdx.leftDim()-1);
+        vTb.invalidate(swpIdx.leftDim()-1);
 
         const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
         const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());
@@ -430,7 +440,10 @@ namespace PITTS
           return;
         }
 
-        const auto [B, Qt] = internal::normalize_qb(unfold_right(subTr), false, T(0), nAMEnEnrichment);
+        int maxEnrichmentRank = nAMEnEnrichment;
+        maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT0.r1()*subT0.n()-subT0.r2());
+        maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT1.r2()*subT1.n()-subT1.r1());
+        const auto [B, Qt] = internal::normalize_qb(unfold_right(subTr), false, T(0), maxEnrichmentRank, true);
         //std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT1.r1() << " to " << subT1.r1()+Qt.r1() << "\n";
 
         std::vector<Tensor3<T>> newSubT(2);
@@ -441,13 +454,6 @@ namespace PITTS
         //std::cout << "ortho:\n" << ConstEigenMap(unfold_right(newSubT[1])) * ConstEigenMap(unfold_right(newSubT[1])).transpose() << std::endl;
         //std::cout << "added part:\n" << ConstEigenMap(Qt) << std::endl;
         TTx.setSubTensors(swpIdx.leftDim()-1, std::move(newSubT), {TT_Orthogonality::none, TT_Orthogonality::right});
-
-        // these are not valid any more
-        Ax.invalidate(swpIdx.leftDim()-1);
-        Ax_ortho.invalidate(swpIdx.leftDim()-1);
-        Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
-        vTAx.invalidate(swpIdx.leftDim()-1);
-        vTb.invalidate(swpIdx.leftDim()-1);
       }
     };
 
@@ -462,9 +468,21 @@ namespace PITTS
         if( nMALS == nDim || swpIdx != lastSwpIdx )
           solveLocalProblem(swpIdx, iSweep == 0);
 
+#ifndef NDEBUG
+  TensorTrain<T> TTx_beforeEnrichment(TTx.dimensions());
+  copy(TTx, TTx_beforeEnrichment);
+#endif
+
         if( nAMEnEnrichment > 0 )
           enrichSubspace(swpIdx, true);
         
+#ifndef NDEBUG
+  const T xDiff = axpby(T(-1), TTx, T(1), TTx_beforeEnrichment, T(0));
+  const T xNorm = norm2(TTx_beforeEnrichment);
+  std::cout << "Enrichment error: " << xDiff << ", xNorm: " << xNorm << "\n";
+  //assert(std::abs(xDiff) <= 10*std::abs(xNorm)*sqrt_eps);
+#endif
+
         lastSwpIdx = swpIdx;
       }
       // update remaining sub-tensors of Ax
@@ -508,8 +526,20 @@ namespace PITTS
         if( swpIdx != lastSwpIdx )
           solveLocalProblem(swpIdx);
 
+#ifndef NDEBUG
+  TensorTrain<T> TTx_beforeEnrichment(TTx.dimensions());
+  copy(TTx, TTx_beforeEnrichment);
+#endif
+
         if( nAMEnEnrichment > 0 )
           enrichSubspace(swpIdx, false);
+
+#ifndef NDEBUG
+  const T xDiff = axpby(T(-1), TTx, T(1), TTx_beforeEnrichment, T(0));
+  const T xNorm = norm2(TTx_beforeEnrichment);
+  std::cout << "Enrichment error: " << xDiff << ", xNorm: " << xNorm << "\n";
+  //assert(std::abs(xDiff) <= std::abs(xNorm)*sqrt_eps);
+#endif
 
         lastSwpIdx = swpIdx;
       }

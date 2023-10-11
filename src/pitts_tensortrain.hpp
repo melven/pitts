@@ -16,6 +16,11 @@
 #include <vector>
 #include <algorithm>
 #include "pitts_tensor3.hpp"
+//#ifndef NDEBUG
+//#include "pitts_tensor3_unfold.hpp"
+//#include "pitts_tensor2_eigen_adaptor.hpp"
+//#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -145,6 +150,7 @@ namespace PITTS
         Tensor3<T> oldSubTensor(std::move(subTensors_[i]));
         subTensors_[i] = std::move(newSubTensor);
         orthonormal_[i] = orthonormal;
+        //assert(checkSubTensorOrthogonality(i));
         return oldSubTensor;
       }
 
@@ -179,6 +185,7 @@ namespace PITTS
         }
 
         orthonormal_[i] = orthonormal;
+        //assert(checkSubTensorOrthogonality(i));
       }
 
       //! set a range of sub-tensors
@@ -216,10 +223,45 @@ namespace PITTS
         {
           std::swap(subTensors_[offset+i], tmp[i]);
           orthonormal_[offset+i] = orthonormal.size() > 0 ? orthonormal[i] : TT_Orthogonality::none;
+          //assert(checkSubTensorOrthogonality(offset+i));
         }
         return tmp;
       }
 
+/*
+#ifndef NDEBUG
+      bool checkSubTensorOrthogonality(int iDim) const
+      {
+          const auto sqrt_sqrt_eps = std::sqrt(std::sqrt(std::numeric_limits<T>::epsilon()));
+          auto orthoErr = std::abs(T(0));
+          using EigenMatrix = Eigen::MatrixX<T>;
+          const auto& subT = subTensor(iDim);
+          if( (orthonormal_[iDim] & TT_Orthogonality::left) != TT_Orthogonality::none )
+          {
+            const auto mapT = ConstEigenMap(unfold_left(subT));
+            EigenMatrix xTx = mapT.transpose() * mapT;
+            // allow complete zero
+            if( xTx.array().abs().maxCoeff() != 0 )
+              xTx -= EigenMatrix::Identity(xTx.rows(), xTx.cols());
+            orthoErr = std::max(orthoErr, xTx.array().abs().maxCoeff());
+          }
+          else if( (orthonormal_[iDim] & TT_Orthogonality::right) != TT_Orthogonality::none )
+          {
+            const auto mapT = ConstEigenMap(unfold_right(subT));
+            EigenMatrix xTx = mapT * mapT.transpose();
+            // allow complete zero
+            if( xTx.array().abs().maxCoeff() != 0 )
+              xTx -= EigenMatrix::Identity(xTx.rows(), xTx.cols());
+            orthoErr = std::max(orthoErr, xTx.array().abs().maxCoeff());
+          }
+          if( orthoErr > 10*sqrt_sqrt_eps )
+          {
+            std::cout << "orthoErr in checkSubTensorOrthogonality: " << orthoErr << "\n";
+          }
+          return true;
+      }
+#endif
+*/
       //! set a range of sub-tensors
       //!
       //! Intentionally moves from the input argument and returns the old sub-tensors.
