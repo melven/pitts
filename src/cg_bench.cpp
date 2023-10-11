@@ -1,3 +1,4 @@
+#include "pitts_mkl.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_common.hpp"
 #include "pitts_tensortrain.hpp"
