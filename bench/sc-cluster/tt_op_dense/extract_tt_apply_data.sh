@@ -4,7 +4,6 @@ eigensmall='tt_apply_op_dense__.sh-4006.out'
 eigenlarge='tt_apply_op_dense_large__.sh-4008.out'
 puremklsmall='tt_apply_op_dense.sh-4005.out'
 puremkllarge='tt_apply_op_dense_large.sh-4138.out'
-#puremkllarge='tt_apply_op_dense_large__.sh-4198.out'
 numpygemmsmall='tt_numpy_gemm.sh-4009.out'
 numpygemmlarge='tt_numpy_gemm_large.sh-4010.out'
 
