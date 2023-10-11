@@ -18,6 +18,7 @@
 #include "pitts_tensortrain_solve_mals_helper.hpp"
 #include "pitts_tensortrain_debug.hpp"
 #include "pitts_tensortrain_operator_debug.hpp"
+#include "pitts_tensortrain_operator_apply_transposed.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -249,12 +250,46 @@ namespace PITTS
 
         const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
 
+        /* // faster but too strict!
+        auto WtW_err = std::abs(T(0));
+        using EigenMatrix = Eigen::MatrixX<T>;
+        for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
+        {
+          const auto& subT = TTw.subTensor(iDim);
+          const auto mapT = ConstEigenMap(unfold_left(subT));
+          EigenMatrix wTw = mapT.transpose() * mapT;
+          auto eye = EigenMatrix::Identity(wTw.rows(), wTw.cols());
+          wTw -= eye;
+          const T err = wTw.array().abs().maxCoeff();
+          std::cout << "iDim " << iDim << " leftOrtho err: " << err << "\n";
+          WtW_err = std::max(WtW_err, std::abs(err));
+        }
+
+        for(int iDim = swpIdx.nDim()-1; iDim > swpIdx.rightDim(); iDim--)
+        {
+          const auto& subT = TTw.subTensor(iDim);
+          const auto mapT = ConstEigenMap(unfold_right(subT));
+          EigenMatrix wTw = mapT * mapT.transpose();
+          auto eye = EigenMatrix::Identity(wTw.rows(), wTw.cols());
+          wTw -= eye;
+          const T err = wTw.array().abs().maxCoeff();
+          std::cout << "iDim " << iDim << " righOrtho err: " << err << "\n";
+          WtW_err = std::max(WtW_err, std::abs(err));
+        }
+        */
+
+        // much slower
         // check orthogonality
         TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTw, swpIdx);
         TensorTrainOperator<T> TTOpI(TTOpW.column_dimensions(), TTOpW.column_dimensions());
         TTOpI.setEye();
-        const TensorTrainOperator<T> WtW = transpose(TTOpW) * TTOpW;
-        const T WtW_err = norm2((WtW - TTOpI).tensorTrain());
+        TensorTrainOperator<T> WtW = transpose(TTOpW) * TTOpW;
+        // to make it somewhat faster:
+        internal::ensureLeftOrtho_range(WtW.tensorTrain(), 0, swpIdx.leftDim());
+        internal::ensureRightOrtho_range(WtW.tensorTrain(), swpIdx.rightDim(), swpIdx.nDim() - 1);
+        const T WtW_err = axpby(T(1), TTOpI.tensorTrain(), T(-1), WtW.tensorTrain(), T(0));
+        //const T WtW_err = norm2((WtW - TTOpI).tensorTrain());
+
         if( WtW_err > 100*sqrt_eps )
         {
           std::cout << "WtW_err: " << WtW_err << std::endl;
@@ -432,6 +467,28 @@ namespace PITTS
         if( ritzGalerkinProjection )
         {
           assert(std::abs(dot(tt_x, tt_b) - dot(TTx, TTb)) <= sqrt_eps*std::abs(dot(TTx, TTb)));
+          TensorTrainOperator<T> TTOpV = setupProjectionOperator(TTx, swpIdx);
+
+          // check V^T b = tt_b
+          TensorTrain<T> Vtb_ref(TTOpV.column_dimensions());
+          applyT(TTOpV, TTb, Vtb_ref);
+          T Vtb_ref_nrm = normalize(Vtb_ref, T(0));
+          TensorTrain<T> Vtb(TTOpV.column_dimensions());
+          Vtb.setOnes();
+          int leftOffset = ( tt_b.subTensor(0).r1() > 1 ) ? -1 :  0;
+          Vtb.setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRank(tt_b));
+          const T error = axpby(Vtb_ref_nrm, Vtb_ref, T(-1), Vtb, T(0));
+          assert(std::abs(error) < sqrt_eps);
+
+          // check localTTOp = V^T A V
+          TensorTrainOperator<T> VtAV_ref = transpose(TTOpV) * TTOpA * TTOpV;
+          const T VtAV_nrm = normalize(VtAV_ref.tensorTrain(), T(0));
+          TensorTrainOperator<T> VtAV(TTOpV.column_dimensions(), TTOpV.column_dimensions());
+          VtAV.setOnes();
+          leftOffset = ( localTTOp.tensorTrain().subTensor(0).n() == 1 && localTTOp.tensorTrain().subTensor(0)(0,0,0) == T(1) ) ? 0 : -1;
+          VtAV.tensorTrain().setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRankOne(localTTOp));
+          const T errorOp = axpby(VtAV_nrm, VtAV_ref.tensorTrain(), T(-1), VtAV.tensorTrain(), T(0));
+          assert(std::abs(errorOp) < sqrt_eps*VtAV_nrm);
           return true;
         }
 
