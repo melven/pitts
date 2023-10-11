@@ -20,6 +20,8 @@
 #include <cstdint>
 #include <cmath>
 #include <bit>
+#include <latch>
+#include <array>
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_performance.hpp"
@@ -31,6 +33,23 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+    //! wrapper type for std::latch that provides default-initialization
+    class Latch : public std::latch
+    {
+        public:
+            Latch(std::ptrdiff_t expected = 0) : std::latch(expected) {}
+    };
+
+    // helper type with 3 std::latch'es
+    using LatchArray3 = std::array<Latch, 3>;
+
+    //! helper function to reinitialize an std::latch (ugly)
+    inline void resetLatch(Latch& l, std::ptrdiff_t expected)
+    {
+        l.~Latch();
+        new(&l) Latch(expected);
+    }
+
     //! helper namespace for TSQR routines
     namespace HouseholderQR
     {
@@ -121,10 +140,11 @@ namespace PITTS
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
       //! @param ldaResult    offset of columns in pdataResult
+      //! @param twoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
       template<typename T, int NC = 1>
       [[gnu::always_inline]]
-      inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
+      inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult, bool twoTriangularBlocks)
       {
 //for(int j = 0; j < NC; j++)
 //  std::cout << "apply " << col+j << "\n";
@@ -136,14 +156,27 @@ namespace PITTS
         if( pdata == pdataResult || firstRow >= nChunks )
         {
           // fast case: in-place operation
-          for(int i = firstRow; i <= nChunks+firstRow; i++)
+
+          const auto dot_step = [&](int i)
           {
             for(int j = 0; j < NC; j++)
             {
               fmadd(w[i], pdataResult[i+ldaResult*(col+j)], wTx[j]);
               fmadd(v[i], pdataResult[i+ldaResult*(col+j)], vTx[j]);
             }
+          };
+          if( !twoTriangularBlocks )
+          {
+            for(int i = firstRow; i <= nChunks+firstRow; i++)
+              dot_step(i);
           }
+          else
+          {
+            dot_step(firstRow);
+            for(int i = nChunks; i <= nChunks+firstRow; i++)
+              dot_step(i);
+          }
+
           for(int j = 0; j < NC; j++)
           {
             bcast_sum(wTx[j]);
@@ -153,7 +186,8 @@ namespace PITTS
           {
             fnmadd(vTw, wTx[j], vTx[j]);
           }
-          for(int i = firstRow; i <= nChunks+firstRow; i++)
+
+          const auto axpy_step = [&](int i )
           {
             Chunk<T> tmp[NC];
             for(int j = 0; j < NC; j++)
@@ -167,6 +201,17 @@ namespace PITTS
 
             for(int j = 0; j < NC; j++)
               pdataResult[i+ldaResult*(col+j)] = tmp[j];
+          };
+          if( !twoTriangularBlocks )
+          {
+            for(int i = firstRow; i <= nChunks+firstRow; i++)
+              axpy_step(i);
+          }
+          else
+          {
+            axpy_step(firstRow);
+            for(int i = nChunks; i <= nChunks+firstRow; i++)
+              axpy_step(i);
           }
         }
         else
@@ -238,13 +283,15 @@ namespace PITTS
       // forward declaration
       template<typename T>
       [[gnu::always_inline]]
-      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol);
-
+      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol, bool twoTriangularBlocks);
 
 
       //! Calculate the upper triangular part R from a QR-decomposition of a small rectangular block where the bottom left triangle is already zero
       //!
       //! Can work in-place or out-of-place.
+      //!
+      //! Implements a parallelization of tree_apply over lastThread-firstThread OMP threads with contiguous thread id's.
+      //! All participating threads [firstThread,lastThread) need to call this function (with the same arguments)!
       //!
       //! This function assumes a very specific memory layout of the data (with a chunk size cs):
       //!
@@ -277,9 +324,15 @@ namespace PITTS
       //! @param ldaResult    offset of columns in pdataResult
       //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+2 for out-of-place calculation and nChunks for in-place calculation
       //! @param colBlockSize tuning parameter for better cache access if m is large, should be a multiple of 3 (because of some internal 3-way unrolling)
+      //! @param twoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
+      //!
+      //! @param firstThread    OMP thread id of first thread
+      //! @param lastThread     OMP thread of the last thread + 1
+      //! @param bossLatches    synchronization objects for waiting on the boss thread
+      //! @param workerLatches  synchronization objects for waiting on the worker threads
       //!
       template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15)
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, bool twoTriangularBlocks, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
@@ -303,17 +356,30 @@ namespace PITTS
         //   for(int j = i+1; j < m; j++)
         //     apply i to j
 
+        const int iThread = omp_get_thread_num();
         const int bs = colBlockSize;
 
         const auto tree_apply = [&](const auto& tree_apply, int beginCol, int endCol, int applyBeginCol, int applyEndCol) -> void
         {
-          int nCol = endCol - beginCol;
-          // could also split by nApplyCol but doesn't seem to be help
-          //int nApplyCol = applyEndCol - applyBeginCol;
+          const int nCol = endCol - beginCol;
 
           if( nCol < 2*bs )
           {
-            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
+            if (firstThread == lastThread)
+            {
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol, twoTriangularBlocks);
+            }
+            else
+            {
+              const int nApplyCol = applyEndCol - applyBeginCol;
+              const int nThreads = lastThread - firstThread;
+              const int relThreadId = iThread - firstThread;
+              auto [localApplyBeginCol, localApplyEndCol] = internal::parallel::distribute(nApplyCol, {relThreadId, nThreads});
+              localApplyBeginCol += applyBeginCol;
+              localApplyEndCol += applyBeginCol + 1;
+
+              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, localApplyBeginCol, localApplyEndCol, twoTriangularBlocks);
+            }
           }
           else
           {
@@ -323,22 +389,57 @@ namespace PITTS
           }
         };
 
+        // counter to select current latch for synchronization
+        unsigned int iterationCounter = 0;
+
         const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
         {
           int nCol = endCol - beginCol;
           if( nCol < 2*bs )
           {
-            for(int col = beginCol; col < endCol; col++)
+            if (iThread == firstThread || firstThread == lastThread)
             {
-              transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol);
+              for(int col = beginCol; col < endCol; col++)
+              {
+                transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
+                transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol, twoTriangularBlocks);
+              }
             }
           }
           else
           {
             int middle = beginCol + (nCol/2/bs)*bs;
+
             tree_calc(tree_calc, beginCol, middle);
+
+            // wait for boss thread to finish...
+            const auto cnt = iterationCounter++;
+            if( bossLatches )
+            {
+              if( iThread == firstThread )
+                (*bossLatches)[cnt%3].count_down();
+              else
+                (*bossLatches)[cnt%3].wait();
+
+            }
+
             tree_apply(tree_apply, beginCol, middle, middle, endCol);
+
+            // wait for all worker threads to finish and reset old currently unused latch
+            if( workerLatches )
+            {
+              if( iThread != firstThread )
+                (*workerLatches)[cnt%3].count_down();
+              
+              if( iThread == firstThread )
+              {
+                (*workerLatches)[cnt%3].wait();
+                resetLatch((*bossLatches)[(cnt+2)%3], 1);
+                const auto nThreads = lastThread - firstThread;
+                resetLatch((*workerLatches)[(cnt+2)%3], nThreads-1);
+              }
+            }
+
             tree_calc(tree_calc, middle, endCol);
           }
         };
@@ -467,7 +568,7 @@ namespace PITTS
       [[gnu::always_inline]]
       inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
                                 Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset,
-                                int beginCol, int endCol, int applyBeginCol, int applyEndCol)
+                                int beginCol, int endCol, int applyBeginCol, int applyEndCol, bool twoTriangularBlocks)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -505,7 +606,7 @@ namespace PITTS
             {
               const Chunk<T>* w = v - ldaResult;
               const Chunk<T> vTw = w[nChunks+firstRow+1];
-              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult, twoTriangularBlocks);
             }
           }
         }
@@ -528,9 +629,9 @@ namespace PITTS
             const Chunk<T>* w = v - ldaResult;
             const Chunk<T> vTw = w[nChunks+firstRow+1];
             if( j+1 < applyEndCol )
-              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult, twoTriangularBlocks);
             else if( j < applyEndCol )
-              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult, twoTriangularBlocks);
           }
         }
 
@@ -633,7 +734,7 @@ namespace PITTS
               unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
         }
 
-        transformBlock(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks);
+        transformBlock(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, true);
 
         // copy back to inoutvec
         if( inoutvecChunked )
@@ -738,7 +839,12 @@ namespace PITTS
 //
 
     constexpr int falseSharingStride = 16;
-    std::vector<Chunk<T>*> plocalBuff_otherThreads(falseSharingStride*nMaxThreads);
+    std::vector<Chunk<T>*> plocalBuff_allThreads(falseSharingStride*nMaxThreads); // take care to index into with proper offset!
+
+    std::unique_ptr<internal::LatchArray3[]> bossLatchBuff(new internal::LatchArray3[nMaxThreads*2]);
+    std::unique_ptr<internal::LatchArray3[]> workerLatchBuff(new internal::LatchArray3[nMaxThreads*2]);
+    std::array<internal::LatchArray3*,2> localBossLatches = {&bossLatchBuff[0], &bossLatchBuff[nMaxThreads]};
+    std::array<internal::LatchArray3*,2> localWorkerLatches = {&workerLatchBuff[0], &workerLatchBuff[nMaxThreads]};
 
 #pragma omp parallel
     {
@@ -751,8 +857,7 @@ namespace PITTS
       if( iThread < nThreads )
       {
         plocalBuff.reset(new Chunk<T>[nBuffer]);
-        if( nThreads > 1 )
-          plocalBuff_otherThreads[falseSharingStride*iThread] = &plocalBuff[localBuffOffset];
+        plocalBuff_allThreads[falseSharingStride*iThread] = plocalBuff.get();
 
         // fill with zero
         for(int j = 0; j < m; j++)
@@ -764,25 +869,58 @@ namespace PITTS
         for(long long iter = firstIter; iter <= lastIter; iter++)
         {
           const int nRemainingChunks = nTotalChunks-iter*nChunks;
-          internal::HouseholderQR::transformBlock(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+          internal::HouseholderQR::transformBlock(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, false, colBlockingSize);
         }
       }
 
       // tree reduction over threads
-      for(int nextThread = 1; nextThread < nThreads; nextThread*=2)
+      bool wasBossThread = false; // keep track of last iteration's boss threads
+      int cnt = 1;
+      for(int nextThread = 1; nextThread < nThreads; nextThread*=2, cnt++)
       {
-#pragma omp barrier
-        if( iThread % (nextThread*2) == 0 && iThread+nextThread < nThreads )
+        int bossThread, lastThread; // first (including) and last (excluding) threads in the team
+        if (iThread < nThreads)
         {
-          const auto otherLocalBuff = plocalBuff_otherThreads[falseSharingStride*(iThread+nextThread)];
-          internal::HouseholderQR::transformBlock(mChunks, m, &otherLocalBuff[0], ldaBuff, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
+          const int threadteamSize = nextThread*2;
+          bossThread = iThread - iThread % threadteamSize;
+          lastThread = std::min(bossThread + threadteamSize, nThreads);
+          // in following special case, could add following unused threads
+          //if (lastThread < nThreads && bossThread+3*nextThread >= nThreads)
+          //    lastThread = nThreads;
+
+          // create this iteration's local latches (before global barrier to ensure all threads in team have the same view of them)
+          if (iThread == bossThread)
+          {
+            resetLatch(localBossLatches[cnt%2][bossThread][0], 1);
+            resetLatch(localBossLatches[cnt%2][bossThread][1], 1);
+            resetLatch(localBossLatches[cnt%2][bossThread][2], 1);
+            resetLatch(localWorkerLatches[cnt%2][bossThread][0], lastThread-bossThread - 1);
+            resetLatch(localWorkerLatches[cnt%2][bossThread][1], lastThread-bossThread - 1);
+            resetLatch(localWorkerLatches[cnt%2][bossThread][2], lastThread-bossThread - 1);
+          }
+        }
+#pragma omp barrier
+        if (iThread < nThreads)
+        {
+          if (bossThread+nextThread < nThreads)
+          {
+            const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
+            const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
+            internal::HouseholderQR::transformBlock(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, true, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
+          }
+
+          // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
+          // the very last iteration's local barriers are destructed after the loop and after another global barrier
+          // remark: explicit destruction only needed if the destructor has side effects
+          // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
+          wasBossThread = (iThread == bossThread);
         }
       }
 
       if( iThread == 0 )
         pThread0Buff = std::move(plocalBuff);
 
-      // wait for other threads to finish so the otherLocalBuff pointers are still valid
+      // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
 #pragma omp barrier
     }
 

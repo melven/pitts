@@ -11,5 +11,5 @@ totalSize=$(expr $totalSizeBytes / 8)
 
 for i in 50 100 150 200 250 300 350 400 450 500; do
   n=$(expr $totalSize / $i)
-  srun likwid-pin -c 0-15 ../../build/src/tsqr_bench $n $i 0 200
+  srun likwid-pin -c 0-15 ../../build_gcc_new/src/tsqr_bench $n $i 0 200
 done

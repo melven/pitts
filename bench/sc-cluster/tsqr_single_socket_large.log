@@ -1,380 +1,390 @@
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139772368947072 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139772360550400 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139772352153728 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139772343757056 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139772127340928 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139772118944256 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139772110547584 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139772102150912 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139772093754240 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139772085357568 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139772076960896 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139771523362048 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139771514965376 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139771506568704 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139771498172032 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139771489777408 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139771481384704 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22910371587968 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22910340122624 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22910227966080 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22910196500736 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22910026639744 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22909995174400 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22909825313408 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22909793848064 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22909623987072 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22909592521728 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22909422660736 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22909391195392 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22909221334400 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22909189869056 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22909020008064 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22910307862272 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22910301271808 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 18.871
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 18.6156
 singular values (new):
-1584.72 1584.68  1584.3 1584.22 1584.08 1583.87  1583.6 1583.58 1583.17 1583.13 1582.97  1582.9 1582.75 1582.65 1582.56 1582.42 1582.29 1582.12 1582.02 1581.87 1581.66 1581.58 1581.47 1581.41 1581.22 1581.16 1581.06 1580.96 1580.73 1580.55  1580.5 1580.41 1580.29 1580.24 1580.16 1580.01 1579.79 1579.64 1579.48 1579.42 1579.22 1579.02 1578.94 1578.91 1578.67  1578.3 1578.16 1578.13 1577.94 1577.32
+1585.26 1584.97 1584.71 1584.51 1584.26  1583.8 1583.63 1583.55 1583.48 1583.42 1583.28 1583.14 1583.02 1582.83 1582.49 1582.33 1582.31 1582.23 1581.95 1581.64 1581.61 1581.56 1581.46 1581.25 1581.07 1581.04  1580.9 1580.85 1580.69 1580.59 1580.41 1580.31 1580.11 1580.06 1579.95 1579.86 1579.64 1579.45 1579.36  1579.2 1578.98 1578.82 1578.58 1578.35 1578.23  1578.1 1577.92 1577.72 1577.49 1576.91
 Performance statistics:
 function                                                                                                                                                                                       	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 7500000, cols: 50, reductionFactor: 37, colBlockingSize: 12)	 18.8704   	 200       	 408.191   	 0         	 31.7961   	 12.8378   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 7500000, cols: 50)                                                                              	 0.257775  	 1         	 0         	 0         	 11.638    	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 7500000, cols: 50, reductionFactor: 37, colBlockingSize: 12)	 18.6152   	 200       	 413.786   	 0         	 32.232    	 12.8378   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 7500000, cols: 50)                                                                              	 0.235765  	 1         	 0         	 0         	 12.7245   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 18.8704   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.257775  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.000209222	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.419e-06 	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 18.6152   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.235765  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.000156079	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.298e-06 	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139771060881280 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139771052484608 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139771044087936 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139771035691264 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139771027294592 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139771018897920 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139771010501248 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139771002104576 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139770516728704 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139770508332032 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139770499935360 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139770491538688 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139770483142016 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139770474745344 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139770466348672 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139769912751872 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139769904359168 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22734786008960 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22734671177728 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22734639712384 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22734536960256 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22734505494912 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22734335633920 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22734304168576 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22734134307584 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22734102842240 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22733932981248 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22733901515904 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22733731654912 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22733700189568 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22733530328576 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22733498863232 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22734753748736 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22734747158272 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 33.2388
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 32.939
 singular values (new):
-1123.52 1123.06 1122.92 1122.81 1122.74 1122.66 1122.54  1122.1 1122.02 1121.93 1121.89 1121.74 1121.68  1121.5 1121.46  1121.4 1121.24  1121.1 1121.03 1120.93 1120.83 1120.74 1120.56 1120.42 1120.33 1120.24 1120.15 1120.02 1119.94 1119.87 1119.79  1119.6 1119.52 1119.51 1119.39 1119.27  1119.2 1119.08 1119.05 1118.86  1118.8 1118.77 1118.67 1118.52 1118.36 1118.31 1118.19 1118.08    1118 1117.98 1117.85  1117.8  1117.7 1117.66 1117.57  1117.5 1117.38  1117.3 1117.25 1117.17  1117.1 1116.93 1116.87  1116.8 1116.63 1116.59 1116.56 1116.47 1116.36  1116.3 1116.26 1116.09 1116.01 1115.96 1115.86 1115.77  1115.7 1115.45  1115.4 1115.22 1115.14 1115.08 1114.99 1114.92 1114.82 1114.72 1114.67 1114.44 1114.33 1114.27 1114.04 1113.97  1113.8 1113.76 1113.42 1113.41 1113.34 1112.96 1112.86 1112.63
+ 1123.7 1123.39 1123.22 1122.94 1122.81 1122.62 1122.56 1122.41 1122.26 1122.13 1121.95 1121.82 1121.79 1121.74 1121.45 1121.38 1121.35 1121.25 1121.08 1121.01  1120.9 1120.78 1120.73 1120.53 1120.51 1120.32 1120.26 1120.15 1120.05 1119.98 1119.89 1119.76 1119.72 1119.64 1119.49 1119.38  1119.3 1119.23  1119.2 1119.04 1118.84 1118.79 1118.72 1118.66  1118.6 1118.56 1118.43 1118.22 1118.16 1117.99 1117.95 1117.86  1117.8  1117.7 1117.59 1117.55 1117.44 1117.39 1117.27 1117.21 1117.13 1117.01 1116.96 1116.76 1116.69  1116.6 1116.47  1116.4 1116.31 1116.28 1116.07 1116.01  1115.9 1115.87 1115.64 1115.61 1115.49 1115.34 1115.29 1115.24 1115.14 1115.04 1114.88 1114.79 1114.77 1114.69 1114.53 1114.33  1114.3  1114.2 1113.91 1113.81 1113.66  1113.6 1113.49 1113.26 1113.23 1112.89 1112.76 1112.37
 Performance statistics:
 function                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 3750000, cols: 100, reductionFactor: 37, colBlockingSize: 12)	 33.2381   	 200       	 463.486   	 0         	 18.052    	 25.675    
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 3750000, cols: 100)                                                                              	 0.259048  	 1         	 0         	 0         	 11.5809   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 3750000, cols: 100, reductionFactor: 37, colBlockingSize: 12)	 32.9385   	 200       	 467.702   	 0         	 18.2163   	 25.675    
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 3750000, cols: 100)                                                                              	 0.242735  	 1         	 0         	 0         	 12.3592   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 33.2381   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.259048  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.000291649	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 6.05e-06  	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 32.9385   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.242735  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.000306537	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 1.7334e-05	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139996547950464 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139996472272896 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139996463876224 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139996455479552 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139996447082880 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139996438686208 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139996430289536 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139996421892864 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139995935402880 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139995927006208 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139995918609536 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139995910212864 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139995901816192 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139995893419520 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139995885022848 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139995398534912 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139995390142208 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22416382826368 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22416351361024 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22416239618176 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22416208152832 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22416038291840 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22416006826496 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22415836965504 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22415805500160 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22415635639168 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22415604173824 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22415434312832 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22415402847488 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22415232986496 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22415201521152 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22415031660160 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22416319100672 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22416312510208 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 48.1497
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 47.4693
 singular values (new):
-919.701 919.555 919.145 919.011 918.947 918.808 918.724 918.493 918.459  918.27 918.236  918.11 918.056 917.836 917.721 917.664  917.63 917.468 917.376 917.228 917.135  917.11 917.009 916.907 916.789 916.738 916.641 916.575 916.525 916.452 916.379 916.275  916.19 916.113 916.063 915.982 915.859 915.676 915.538 915.483  915.41 915.357 915.302 915.184 915.083 915.037 914.907  914.87 914.815 914.757 914.705 914.643 914.587 914.486 914.396 914.344 914.219 914.119 914.049 913.971 913.873 913.842  913.73 913.715 913.627  913.57 913.552 913.492  913.36 913.324 913.261 913.181 913.072 913.005 912.929 912.891 912.834 912.735 912.656 912.567 912.515 912.443 912.376 912.257 912.186 912.103  912.02 911.921 911.838 911.768 911.714 911.665 911.566  911.47  911.41 911.385 911.286 911.243 911.164 911.098 911.027 910.958 910.909 910.836 910.801  910.68 910.467 910.418 910.394 910.358  910.25 910.168 910.136 909.961 909.913 909.816 909.676 909.566 909.495 909.438 909.355 909.233 909.176 909.005 908.919 908.855 908.725 908.692 908.638 908.461 908.429  908.25 908.197 908.089     908 907.955 907.828 907.687  907.63 907.607  907.43 907.173 907.162 907.055  906.79 906.636 906.484 906.402 906.188 906.054
+919.628 919.515   919.4 919.142 919.025 918.728 918.655  918.56 918.388  918.21 918.171 918.023 917.968 917.872 917.772 917.567 917.471 917.341 917.269   917.2 917.163 917.037 916.939 916.782 916.692 916.606 916.591 916.548 916.489 916.402  916.34 916.169   916.1 916.066 916.001 915.936 915.819 915.795  915.67 915.514 915.428 915.359 915.211 915.162 915.142 915.085 914.957 914.915 914.835 914.782 914.727 914.671 914.595 914.499   914.4  914.37 914.302 914.185 914.117 914.029  913.98 913.949 913.747 913.729 913.671  913.54 913.492 913.435 913.307 913.278 913.171 912.989 912.977 912.918 912.871 912.773 912.744 912.652 912.596 912.501 912.498  912.35 912.303 912.235 912.144 912.133 912.062  911.98 911.901 911.837 911.695 911.626 911.597 911.508 911.452 911.353 911.289  911.24 911.167 911.102 910.968 910.889  910.79 910.732 910.692 910.662 910.574 910.473 910.455 910.409 910.315 910.228 910.114 910.049 909.917 909.899 909.721 909.607 909.507 909.474 909.428 909.297  909.19 909.181 909.088 908.952  908.88 908.813 908.706 908.601 908.528 908.423 908.262 908.245  908.13 908.106 907.986 907.822 907.796  907.61 907.474 907.444 907.424 907.354 907.129 906.931 906.705 906.532 906.354 905.993
 Performance statistics:
 function                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 2500000, cols: 150, reductionFactor: 37, colBlockingSize: 12)	 48.149    	 200       	 479.93    	 0         	 12.4621   	 38.5112   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 2500000, cols: 150)                                                                              	 0.258109  	 1         	 0         	 0         	 11.623    	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 2500000, cols: 150, reductionFactor: 37, colBlockingSize: 12)	 47.4687   	 200       	 486.808   	 0         	 12.6407   	 38.5112   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 2500000, cols: 150)                                                                              	 0.243785  	 1         	 0         	 0         	 12.3059   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 48.149    	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.258109  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.000666072	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.6861e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 47.4687   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.243785  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.000504973	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 1.9111e-05	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140243581253504 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140243500001280 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140243491604608 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140243483207936 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140243474811264 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140243466414592 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140243458017920 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140243449621248 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140242963131264 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140242954734592 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140242946337920 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140242937941248 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140242929544576 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 140242921147904 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 140242912751232 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 140242426263296 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140242417870592 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22424930363264 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22424829552640 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22424798087296 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22424695335168 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22424663869824 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22424494008832 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22424462543488 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22424292682496 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22424261217152 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22424091356160 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22424059890816 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22423890029824 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22423858564480 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22423688703488 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22423657238144 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22424766625536 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22424631289600 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 62.5888
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 61.3606
 singular values (new):
-798.543 798.218 798.195 798.041  797.89 797.826 797.522 797.423 797.296 797.271  797.19  797.13 797.072 796.908 796.762 796.647 796.615 796.589 796.389 796.276 796.144 796.045  795.97 795.945 795.884 795.766 795.716 795.587 795.512 795.371 795.312 795.272 795.169 795.102 795.084 794.972 794.859 794.804 794.706 794.645 794.535 794.469 794.424 794.316 794.177  794.16 794.063 794.002  793.96 793.884 793.857 793.823 793.674 793.635 793.555 793.446 793.411   793.3 793.136 793.103 793.073 793.025 793.001  792.88 792.857 792.744 792.663 792.602 792.562 792.553 792.409 792.333 792.303  792.25 792.171 792.063 791.983 791.927 791.887 791.831 791.789 791.759 791.671 791.644  791.55  791.51 791.417 791.284 791.253 791.207 791.108 791.079 791.038  790.96 790.923 790.835 790.803 790.716 790.626  790.58 790.503  790.44 790.419  790.38 790.257 790.221 790.183 790.134 789.983  789.97 789.887 789.838 789.746 789.662 789.611 789.545 789.481 789.415 789.353 789.306 789.253 789.207 789.095 789.003  788.89 788.755 788.723  788.68 788.675 788.611 788.592 788.492 788.452 788.429 788.294  788.26 788.208 788.148 788.117 788.016 787.945 787.877  787.78 787.753  787.55 787.514 787.412 787.371 787.305 787.222 787.179 787.113 787.056 786.988 786.952 786.864 786.742 786.675  786.59 786.553 786.459 786.434 786.413 786.308  786.18 786.108 786.057  786.03 785.872 785.863 785.718 785.666  785.61  785.54 785.459 785.343 785.325 785.261   785.2 784.969 784.923 784.842 784.674 784.601 784.443 784.401 784.353 784.255  784.21  784.09 783.983 783.882 783.785 783.679 783.486 783.308  783.21 783.125 783.058 782.565
+798.233 798.122 797.854 797.726 797.608 797.522 797.455 797.391 797.312 797.245 796.981 796.912 796.865 796.813  796.68 796.642 796.404 796.333 796.311 796.177  796.08  796.02 795.997 795.887 795.817 795.725 795.623 795.598 795.461   795.4 795.305 795.216 795.103 795.056 794.952  794.89 794.818 794.759 794.615 794.531 794.522 794.413 794.296 794.256 794.218 794.123 794.096 794.036 793.962 793.903 793.776 793.757 793.654 793.569 793.496 793.451 793.429   793.3 793.278 793.237 793.134 793.037 792.988  792.93 792.844 792.791 792.636 792.613 792.557  792.47 792.406 792.346 792.278 792.206 792.106 792.049 791.993 791.991 791.852 791.798  791.77 791.665 791.617 791.569 791.536  791.46 791.439 791.295  791.24  791.18 791.149 791.062 790.911 790.843 790.809 790.783 790.723 790.707 790.672 790.512 790.459 790.439 790.406 790.362 790.165 790.143 790.088 789.999 789.943 789.921  789.88 789.805  789.71 789.695 789.631 789.585 789.549 789.485 789.356 789.327 789.253 789.174 789.049 788.994  788.95 788.842 788.794 788.739 788.713 788.621  788.56 788.509 788.436 788.393 788.225 788.208 788.143 788.059 787.978 787.961 787.886 787.807 787.749 787.701 787.585 787.541 787.537 787.339 787.258 787.224 787.136 787.101 786.985 786.948 786.856 786.811 786.747 786.724 786.618 786.524 786.374 786.336 786.315 786.203 786.182  786.15 786.044 786.017 785.964 785.927 785.721 785.695 785.668  785.58  785.53  785.41 785.365 785.242 785.161 785.031  784.99 784.883 784.753 784.671 784.575  784.43  784.38 784.301 784.209 783.974 783.915 783.869 783.812 783.663  783.47 783.358 783.221  783.02 782.813 782.407
 Performance statistics:
 function                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1875000, cols: 200, reductionFactor: 30, colBlockingSize: 12)	 62.5881   	 200       	 495.302   	 0         	 9.58751   	 51.6612   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1875000, cols: 200)                                                                              	 0.259353  	 1         	 0         	 0         	 11.5672   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1875000, cols: 200, reductionFactor: 30, colBlockingSize: 12)	 61.3601   	 200       	 505.215   	 0         	 9.77939   	 51.6612   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1875000, cols: 200)                                                                              	 0.250394  	 1         	 0         	 0         	 11.9811   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 62.5881   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.259353  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.000586587	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.5667e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 61.3601   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.250394  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.00066437	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.1462e-05	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139774309693312 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139774301296640 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139774292899968 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139774284503296 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139774073497984 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139774065101312 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139774056704640 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139774048307968 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139774039911296 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139774031514624 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139774023117952 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139773469519104 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139773461122432 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139773452725760 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139773444329088 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139773435934464 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139773427541760 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22527557105536 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22527439005696 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22527407540352 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22527304788224 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22527273322880 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22527103461888 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22527071996544 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22526902135552 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22526870670208 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22526700809216 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22526669343872 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22526499482880 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22526468017536 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22526298156544 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22526266691200 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22527524845312 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22527518254848 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 77.7686
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 75.4471
 singular values (new):
- 716.14 715.953 715.757 715.566 715.383 715.264 715.178 714.961 714.876 714.717 714.647 714.563 714.471 714.319 714.252 714.221 714.147 714.041 713.977 713.834 713.756 713.703 713.566 713.446 713.437 713.347  713.29 713.238  713.17 713.021 712.966 712.932 712.883 712.758 712.631 712.593 712.536 712.493 712.469 712.329  712.29 712.213 712.092 712.011 711.919 711.883  711.81 711.796 711.758 711.584 711.532 711.453 711.433 711.265 711.191 711.156 711.125 711.112 711.059  710.98 710.958 710.886 710.795 710.731 710.603 710.548 710.503 710.438 710.412 710.387 710.295 710.231 710.193 710.126  710.09 710.019 709.941 709.824 709.772 709.722 709.662 709.641 709.584 709.446 709.422 709.372  709.33 709.231 709.174 709.085 709.057 709.036 708.959 708.894  708.85 708.773 708.726 708.681 708.652 708.492 708.447 708.388 708.383   708.3 708.264 708.214 708.081  708.07 707.964 707.945 707.885 707.857 707.817 707.719 707.713 707.589 707.559 707.511  707.51 707.467 707.335  707.28 707.249 707.158  707.08  707.05  707.01 706.978 706.913 706.883  706.82 706.709 706.611  706.57 706.541 706.534 706.475 706.383 706.338 706.264 706.161  706.11 706.087 705.996 705.918 705.882 705.849 705.785 705.757 705.688 705.643  705.59 705.533 705.451 705.424 705.369 705.284 705.252  705.23  705.11 705.059 705.012 704.967 704.814 704.754  704.71 704.649  704.56 704.501 704.413 704.391  704.34  704.28 704.248 704.182  704.12 704.046 704.001 703.974 703.903 703.794 703.753 703.706 703.642 703.621 703.553 703.503 703.438 703.393 703.359 703.275 703.171 703.062 702.992 702.966 702.922 702.855 702.777 702.648 702.591 702.555 702.459 702.405 702.299 702.242 702.203 702.159 702.071 702.051 701.977 701.859 701.802 701.644 701.547 701.503  701.46 701.404 701.307 701.239 701.174 701.095 701.023 700.956  700.92 700.793 700.683 700.665 700.557 700.522 700.398 700.314 700.222 700.181 700.098 699.987 699.903 699.827 699.792 699.752 699.592  699.51 699.442 699.233 699.169 699.108 698.823  698.53 698.467 698.223 697.999
+716.265 715.977   715.7 715.567 715.352 715.222 715.149 714.948 714.926 714.814 714.776 714.571 714.486 714.392 714.359 714.181 714.121 713.944 713.937 713.856 713.833 713.732 713.551 713.537 713.393 713.326 713.231 713.177 713.033 712.929 712.919 712.871 712.794 712.752  712.73 712.619 712.513 712.448 712.303 712.272 712.212 712.179 712.103 712.067 711.966 711.908 711.839 711.763 711.695 711.611 711.588 711.539 711.424 711.358  711.22 711.133 711.056 711.031 710.973 710.889 710.874 710.838 710.772 710.734 710.607 710.522 710.475 710.464 710.307 710.283 710.275 710.172 710.109 710.101 709.982 709.959 709.873 709.786  709.76 709.716 709.597 709.516 709.471 709.468 709.359 709.347 709.267 709.204 709.178 709.127 708.998 708.944 708.884 708.845 708.767 708.749 708.692 708.633 708.608 708.565 708.515 708.459 708.336 708.306 708.257 708.222  708.11 707.996 707.955 707.864 707.828 707.766 707.742 707.698  707.61 707.604 707.508 707.461 707.422 707.351 707.284 707.253  707.19 707.105 707.051  707.04  707.02 706.946 706.897 706.867 706.693 706.656 706.572 706.558 706.498 706.458 706.414  706.35 706.295 706.226 706.222 706.102 706.076 706.027 706.014 705.913 705.852 705.788 705.767 705.673 705.623 705.536 705.522 705.491 705.384 705.346 705.289 705.176  705.15 705.076 705.017 704.958 704.906 704.808  704.74 704.672 704.586   704.5 704.491 704.442 704.417 704.336 704.307  704.25 704.165 704.081 704.037 703.962 703.931 703.804 703.745 703.702 703.694 703.604 703.515 703.484 703.383 703.353 703.247 703.175 703.128 703.054 702.985 702.938 702.851 702.835 702.737  702.73 702.597 702.559 702.479 702.468 702.436 702.316 702.246 702.208 702.107 702.046 702.013 701.911  701.82 701.777 701.745 701.683  701.59 701.549 701.452 701.365 701.253 701.107  701.05 701.007 700.941  700.91 700.783 700.711 700.608 700.533 700.494  700.41 700.375 700.369 700.197 700.112 699.964 699.936 699.792 699.729 699.659  699.47 699.412 699.286 699.236 699.098 698.991 698.782 698.715 698.474 698.412 698.119
 Performance statistics:
 function                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1500000, cols: 250, reductionFactor: 24, colBlockingSize: 12)	 77.7678   	 200       	 502.296   	 0         	 7.71656   	 65.0933   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1500000, cols: 250)                                                                              	 0.258522  	 1         	 0         	 0         	 11.6044   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1500000, cols: 250, reductionFactor: 24, colBlockingSize: 12)	 75.4465   	 200       	 517.751   	 0         	 7.95398   	 65.0933   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1500000, cols: 250)                                                                              	 0.254691  	 1         	 0         	 0         	 11.779    	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 77.7678   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.258522  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.00103865	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.6695e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 75.4465   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.254691  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.000793879	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.2119e-05	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140255688251264 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140255679854592 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140255671457920 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140255663061248 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140255445379456 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140255436982784 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140255428586112 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140255420189440 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140255411792768 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140255403396096 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140255394999424 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140254841400576 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140254833003904 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 140254824607232 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 140254816210560 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 140254807815936 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140254799423232 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22887171684224 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22887140218880 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22887108753536 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22886874081536 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22886842616192 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22886739864064 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22886708398720 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22886538537728 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22886507072384 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22886337211392 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22886305746048 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22886135885056 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22886104419712 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22885934558720 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22885903093376 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22886811154176 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22886675547904 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 93.1824
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 89.4335
 singular values (new):
-655.318 655.123 654.983 654.876 654.782 654.655 654.509 654.452  654.23 654.154 654.036 653.885 653.785 653.707 653.652 653.478 653.287 653.237  653.17 653.074 653.018 652.925 652.854  652.79 652.708 652.676 652.585 652.518 652.496 652.402 652.331 652.229  652.12 652.113 652.073 651.909 651.868 651.735 651.702  651.67 651.599 651.559 651.504  651.45 651.412 651.294 651.175 651.136 651.072 651.008 650.957 650.905 650.832 650.684 650.653 650.641 650.572 650.483 650.458 650.454 650.312 650.259 650.195 650.167 650.093 650.065 649.966 649.924 649.887 649.824  649.78 649.696 649.647 649.595  649.51 649.498 649.454 649.367 649.336 649.247 649.195 649.165  649.08 649.015 648.977 648.933 648.902  648.82 648.763 648.724 648.667 648.651  648.54 648.473 648.446 648.308  648.27 648.255 648.235  648.14 648.065 648.039 647.924 647.881 647.842 647.826 647.798 647.695 647.648 647.591 647.542  647.46 647.443 647.397 647.346 647.297 647.259 647.141 647.088 647.025 646.992 646.944 646.854 646.807 646.778 646.747 646.687 646.654 646.637 646.505 646.469 646.423 646.382 646.307 646.234 646.168 646.156  646.06  646.03 645.978 645.948 645.882 645.844  645.79 645.697  645.66 645.637 645.568 645.547 645.481 645.454  645.41 645.327 645.225 645.213 645.169 645.046 645.015 644.972 644.949  644.88 644.831 644.774 644.677  644.67 644.602  644.55 644.473 644.448 644.405 644.368  644.29 644.227 644.188 644.145 644.099 644.045 643.997 643.964 643.861 643.812 643.747 643.741 643.668 643.623 643.551 643.508 643.421 643.383 643.372 643.339 643.272 643.221 643.148 643.115 643.082 643.031 642.942  642.91 642.854 642.794 642.739 642.687  642.64 642.541  642.53  642.47 642.383 642.345 642.276 642.232  642.21 642.163 642.122 642.049 642.035 641.931 641.835 641.801 641.743 641.712 641.702 641.547  641.47 641.457 641.397 641.322 641.263 641.242   641.2 641.139  641.08 641.024 641.003 640.984 640.899 640.766 640.704 640.606 640.567 640.519  640.43 640.384 640.361 640.327 640.224 640.105 640.088 640.032 639.956 639.899 639.847 639.825 639.739 639.689 639.652 639.465 639.427  639.33 639.291 639.266 639.199 639.143 639.038 639.017 638.901 638.884 638.744 638.715 638.608 638.562 638.527   638.4 638.322 638.258 638.223  638.17 638.056 637.996 637.923 637.833  637.72 637.618 637.521 637.468 637.434 637.281 637.195 637.135 637.038 636.934 636.865 636.802 636.584 636.545 636.444 636.261  636.24 635.921  635.77
+655.448 654.965 654.743 654.618 654.477 654.414 654.338  654.23 654.086 654.037 653.899 653.743 653.672 653.656  653.55 653.401 653.384 653.274 653.168 653.104 653.013 652.983 652.908 652.829 652.749 652.672 652.539 652.486 652.471 652.412 652.286 652.255 652.232 652.003 651.996  651.96 651.812 651.802 651.734 651.604 651.543 651.513 651.436 651.368 651.292 651.262 651.195 651.122 651.088 651.034 650.971 650.876 650.849  650.78 650.731 650.705 650.613 650.544 650.524 650.446 650.408 650.372 650.302 650.171 650.123 650.106 650.066 649.949 649.878 649.865 649.825 649.795 649.643 649.605 649.563 649.526 649.437 649.386 649.313 649.261 649.198 649.112 649.079 649.034 648.956  648.89 648.867 648.776 648.728 648.648 648.556 648.495  648.42 648.387 648.358 648.303 648.295 648.203 648.126 648.104 648.054 647.916 647.899 647.859 647.815 647.735 647.721 647.685 647.595 647.487 647.451 647.431 647.381 647.292 647.262 647.142 647.106 647.069 647.023 646.965 646.938 646.879 646.841 646.737 646.708 646.634 646.567 646.536 646.526  646.45 646.421   646.4 646.326 646.277 646.243 646.226 646.143  646.06 646.019 646.001 645.954 645.905 645.855 645.809 645.711 645.684  645.64 645.565 645.527 645.505 645.457 645.419  645.35  645.32 645.233 645.198 645.173  645.09 645.053 644.986 644.924 644.874 644.853 644.787 644.771 644.672 644.596 644.568 644.516 644.485 644.418 644.396 644.321 644.234 644.218 644.131 644.083 644.012 643.973 643.942 643.871  643.79  643.78 643.713 643.689 643.616 643.585 643.547 643.478 643.385 643.356 643.324 643.271 643.195 643.158 643.118 643.087 643.027  642.94 642.932 642.822 642.767 642.725 642.686 642.633 642.581 642.509 642.374 642.354 642.311 642.216 642.153 642.111 642.093 641.999 641.965 641.937 641.847 641.836 641.686 641.663 641.606 641.546 641.523 641.432 641.422 641.334 641.296 641.237 641.183 641.117 641.095 641.035 640.985 640.891 640.852 640.803 640.729 640.681  640.65 640.615 640.553 640.482 640.439 640.368 640.325 640.274 640.186 640.149 640.035 639.944 639.888  639.82 639.727 639.686 639.603 639.534 639.474 639.447 639.383 639.303  639.23 639.179 639.126 639.053 639.038 639.011 638.895 638.825 638.774 638.686 638.573 638.502 638.413 638.404 638.323 638.104 638.011 637.946 637.877 637.823 637.722 637.653 637.522 637.459 637.403 637.264 637.174 637.058 637.039 636.899 636.833 636.648 636.583 636.516 636.332 636.166 636.114 635.765 635.644
 Performance statistics:
 function                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1250000, cols: 300, reductionFactor: 20, colBlockingSize: 12)	 93.1817   	 200       	 507.074   	 0         	 6.44058   	 78.7311   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1250000, cols: 300)                                                                              	 0.257653  	 1         	 0         	 0         	 11.6436   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1250000, cols: 300, reductionFactor: 20, colBlockingSize: 12)	 89.4329   	 200       	 528.329   	 0         	 6.71055   	 78.7311   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1250000, cols: 300)                                                                              	 0.252046  	 1         	 0         	 0         	 11.9026   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 93.1817   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.257653  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.000937259	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.7626e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 89.4329   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.252046  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.000951718	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 1.964e-05 	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139763464996736 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139763456600064 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139763448203392 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139763439806720 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139763431410048 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139763423013376 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139763414616704 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139762933426944 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139762925030272 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139762916633600 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139762908236928 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139762899840256 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139762891443584 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139762883046912 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139762396556928 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139762388162304 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139762379769600 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22723910227840 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22723799541760 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22723768076416 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22723665324288 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22723633858944 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22723463997952 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22723432532608 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22723262671616 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22723231206272 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22723061345280 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22723029879936 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22722860018944 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22722828553600 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22722658692608 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22722627227264 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22723877967616 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22723871377152 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 110.864
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 107.218
 singular values (new):
-608.134 608.088  608.01 607.732 607.539 607.458 607.323 607.192 607.137 607.016 606.841  606.76 606.732 606.629  606.57 606.534 606.422 606.282 606.125  606.04 606.019 605.942 605.896 605.786 605.701 605.627 605.575 605.444 605.376  605.35 605.278 605.196 605.156 605.145  605.06 604.936 604.849 604.824 604.807  604.77 604.668 604.608  604.56 604.482 604.425 604.389 604.316 604.304 604.226 604.171 604.083 604.064 603.928 603.837 603.798 603.713 603.652   603.6 603.589 603.484 603.454 603.387 603.314 603.267 603.211 603.122 603.096 603.022  602.96 602.893 602.849 602.832 602.755 602.688 602.665 602.635 602.556 602.516  602.49 602.437 602.358  602.32 602.262 602.178 602.131 601.993 601.957 601.927 601.883 601.854 601.761 601.712 601.617 601.602 601.583 601.534 601.487 601.398 601.351  601.32 601.248 601.135 601.084 601.077 601.054 600.996 600.946 600.862 600.846 600.823 600.733 600.678 600.643  600.62 600.545 600.475 600.428 600.416 600.332 600.296 600.232 600.222 600.124 600.118 600.031  600.03 599.947 599.931 599.893 599.811 599.776 599.704 599.697 599.642 599.602 599.557 599.473 599.401 599.365 599.356 599.291 599.255 599.166 599.138 599.074 599.007 598.969 598.955 598.903 598.836 598.776 598.704 598.671 598.648 598.584 598.506 598.464 598.374 598.349 598.272 598.227 598.203 598.179 598.145 598.093 598.073 597.959 597.944  597.92  597.89 597.835 597.732 597.669 597.641 597.568 597.503 597.476 597.436 597.394 597.339 597.284 597.244 597.222 597.181 597.151 597.046 596.965 596.949 596.901 596.861 596.821 596.759 596.716 596.685 596.611 596.532 596.483  596.47  596.41 596.351 596.327 596.269  596.24 596.137 596.087 596.066 596.029 595.957 595.902  595.87 595.821 595.747 595.727 595.673 595.618 595.589  595.52 595.455 595.394 595.386 595.335 595.296 595.249 595.192 595.141 595.075 595.025 594.997 594.936 594.916 594.879 594.811 594.753 594.695 594.635 594.611 594.574 594.481  594.45 594.417 594.329 594.286 594.245  594.21 594.166 594.144 594.113 594.054 593.986 593.906 593.877 593.858 593.796 593.683 593.641 593.502 593.495 593.488 593.438 593.386 593.238  593.23 593.181 593.158 593.102 593.082 593.026 592.961 592.954 592.812 592.775 592.692  592.65 592.625  592.57 592.548 592.476 592.395 592.319 592.279 592.232 592.192  592.15 592.118 592.052 591.973  591.91 591.863 591.754 591.733 591.642 591.573 591.567 591.506  591.42 591.387 591.275 591.195 591.106  591.07 591.017  590.91 590.863 590.801 590.719 590.653 590.623 590.579 590.546 590.516 590.465 590.352 590.314 590.236 590.167 590.142 590.103 589.982 589.917 589.859 589.803 589.705 589.636 589.619 589.506 589.456 589.286 589.265 589.184 589.075 589.056  588.92 588.905  588.76  588.75 588.708  588.57 588.512 588.491  588.38 588.326 588.092 587.996 587.963 587.797 587.756 587.735 587.568 587.205 587.009
+607.975 607.808 607.788 607.699  607.53 607.491 607.365 607.299 607.126 606.984 606.953 606.806 606.678  606.56 606.493 606.446 606.369  606.28 606.204 606.112 606.042 605.941 605.928  605.87 605.783 605.676 605.615 605.538 605.437 605.369 605.305 605.243 605.095  605.05 605.011 604.969 604.823 604.808 604.797  604.67 604.632 604.595 604.544 604.487 604.405 604.317 604.261 604.187 604.086 604.054 604.005 603.892 603.826   603.8 603.754 603.707 603.649 603.604 603.579 603.498 603.432 603.318 603.271 603.184 603.113 603.043  603.02 602.976 602.963 602.865 602.853  602.79 602.732  602.71  602.68 602.572 602.557 602.507 602.463  602.43  602.39 602.322 602.291 602.207 602.154 602.108 602.052 602.018 601.928 601.886 601.781 601.744 601.722 601.644 601.616 601.562 601.488 601.415 601.363 601.323 601.311 601.233 601.199 601.064 601.048     601 600.942 600.865 600.812 600.785 600.732 600.681 600.645 600.577 600.546  600.52 600.489 600.414 600.378 600.325 600.302 600.285 600.149 600.134 600.096 600.019 599.972 599.882 599.811 599.774 599.755 599.709 599.675 599.644 599.566 599.493 599.423 599.415 599.365 599.326 599.272 599.214 599.127  599.12 599.068  598.97 598.954 598.918 598.842 598.814 598.738 598.698 598.629 598.568 598.531 598.475 598.428 598.343 598.307 598.292  598.23 598.198 598.169 598.124 598.123 598.075 597.993 597.955 597.879 597.841 597.762 597.729 597.646  597.61  597.57 597.497 597.441 597.403 597.349 597.319 597.287 597.233 597.161 597.138 597.076 597.028  596.97 596.923 596.917 596.887 596.808  596.74 596.723 596.653 596.597 596.558 596.501 596.418 596.345 596.337  596.28 596.247 596.189  596.14 596.094 596.083 596.043 596.003 595.963 595.917 595.822 595.773 595.721  595.71 595.643 595.622 595.546 595.454 595.355 595.312 595.254 595.242 595.208 595.191 595.112 595.065 595.031  594.97 594.939 594.897 594.872 594.823 594.774 594.683 594.648 594.598 594.562  594.53  594.44 594.431 594.313 594.291 594.268 594.229 594.201 594.161 594.066 594.027 593.973 593.924 593.863 593.833 593.731  593.72 593.636 593.587 593.535 593.493 593.438  593.38 593.306 593.273 593.269 593.178 593.137 593.086 593.003 592.924 592.844 592.815 592.777 592.763 592.646 592.605 592.549  592.52  592.49 592.413  592.37 592.352 592.237 592.182 592.158 592.111  592.05     592 591.917 591.885 591.845 591.728  591.71  591.62 591.574  591.51 591.421 591.397 591.303 591.262 591.238 591.128  591.11 591.019 590.992 590.885 590.834 590.736 590.693 590.657 590.592 590.551 590.472 590.399 590.335 590.292 590.214 590.142 590.113  590.01 589.998 589.806 589.739 589.711 589.634 589.503 589.474 589.461 589.334 589.223 589.198 589.158 589.084 589.063 588.937 588.764 588.682 588.586 588.539 588.453  588.32  588.26 588.162 588.049 588.002 587.877 587.784 587.571 587.565 587.454 587.229 586.863
 Performance statistics:
 function                                                                                                                                                                                        	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1071428, cols: 350, reductionFactor: 17, colBlockingSize: 12)	 110.864   	 200       	 501.41    	 0         	 5.41381   	 92.6168   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1071428, cols: 350)                                                                              	 0.258697  	 1         	 0         	 0         	 11.5966   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 1071428, cols: 350, reductionFactor: 17, colBlockingSize: 12)	 107.217   	 200       	 518.464   	 0         	 5.59795   	 92.6168   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1071428, cols: 350)                                                                              	 0.258386  	 1         	 0         	 0         	 11.6105   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 110.864   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.258697  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.00149307	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.5975e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 107.217   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.258386  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.0011126 	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.0754e-05	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139856833288064 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139856751618048 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139856743221376 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139856734824704 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139856726428032 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139856718031360 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139856709634688 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139856701238016 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139856214748032 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139856206351360 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139856197954688 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139856189558016 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139856181161344 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139856172764672 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139856164368000 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139855677880064 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139855669487360 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22950054516608 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22950023051264 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22949991585920 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22949755087104 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22949723621760 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22949620869632 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22949589404288 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22949419543296 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22949388077952 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22949218216960 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22949186751616 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22949016890624 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22948985425280 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22948815564288 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22948784098944 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22949959325440 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22949557942016 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 129.074
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 123.411
 singular values (new):
-570.641  570.23 570.112 570.037 569.944 569.762 569.617 569.384 569.303 569.249 569.159 569.053 569.039 568.812 568.772 568.701 568.605 568.572 568.494 568.347 568.264 568.212 568.142 568.042 568.028 567.951 567.797 567.771 567.734 567.593 567.512 567.481 567.393 567.297 567.282 567.176 567.128 567.101 567.042 566.975 566.938 566.903 566.848 566.766 566.704  566.63 566.604 566.497 566.432 566.378 566.319  566.24 566.156 566.096 566.055 565.992 565.933 565.822  565.77 565.736 565.663 565.573   565.5 565.441 565.387 565.364 565.338 565.265 565.229  565.19 565.113 565.055 565.021 565.002 564.931 564.859 564.798 564.721 564.673 564.588 564.564 564.501 564.415 564.365 564.332 564.292 564.222 564.208 564.156 564.116 564.102 564.018 563.986 563.913 563.888 563.823 563.785 563.688 563.681 563.645  563.58 563.546  563.45 563.377 563.355 563.301 563.256 563.221 563.157 563.123 563.086 563.013  562.99 562.938 562.894 562.873 562.857 562.784 562.751   562.7 562.633 562.603  562.59 562.498 562.477 562.399  562.37 562.285 562.228 562.206 562.157 562.125 562.051 562.023 561.951  561.92  561.83 561.813 561.758 561.749 561.714  561.65 561.625 561.545  561.46 561.445 561.371 561.319 561.298 561.247 561.236 561.164 561.137 561.122 561.057 561.037 560.971 560.898 560.886   560.8 560.736 560.703 560.663 560.633   560.6  560.53 560.437 560.417 560.383 560.352 560.319 560.307  560.21 560.145 560.093 560.039 559.973 559.927 559.897 559.876 559.859 559.794 559.703 559.662  559.66 559.576 559.559 559.501 559.458 559.428 559.423 559.351 559.314 559.264 559.232 559.162 559.105 559.057 559.036 558.992 558.937 558.929 558.888 558.857 558.819 558.708 558.687 558.636 558.556 558.549 558.495 558.416 558.384 558.356 558.334 558.288 558.219 558.192 558.162 558.109 558.049 557.946 557.907 557.894 557.876 557.795 557.762 557.745 557.674 557.648 557.607 557.554 557.533 557.465 557.437  557.35 557.339 557.268 557.149   557.1  557.08 557.073 557.046 556.968 556.952 556.892 556.869 556.821 556.769 556.729 556.707 556.695 556.629 556.512 556.476 556.389 556.369 556.336 556.294 556.243 556.238 556.165 556.149  556.05 556.018 555.965 555.959  555.91 555.887 555.868 555.772 555.706 555.653 555.628 555.581 555.506 555.496 555.452 555.414 555.362 555.327 555.267 555.208 555.199 555.173 555.161 555.075 555.019 554.975 554.881 554.839 554.791 554.735 554.626  554.61 554.586 554.525 554.503  554.49 554.406 554.319 554.293 554.236 554.221 554.139 554.122 554.041 554.005 553.875 553.822 553.791 553.773 553.651 553.623 553.588 553.564 553.506 553.376 553.315 553.262  553.23 553.164 553.133 553.058 553.046 553.027 552.931 552.902 552.816 552.767 552.735 552.686 552.592  552.52 552.501 552.493 552.369 552.327 552.297 552.236 552.168 552.141 552.091 552.023 551.932 551.845 551.813 551.759 551.699 551.655 551.557 551.527 551.494 551.446 551.415 551.387 551.305 551.237 551.147 551.084  551.03 550.993 550.929 550.849 550.729 550.699 550.623 550.534 550.478 550.438 550.406 550.378 550.287 550.185 550.035 549.986 549.982 549.932 549.833 549.798 549.572 549.558 549.489 549.356 549.294 549.223 549.195 549.126 549.055 548.895 548.765 548.711 548.539 548.455 548.275 548.174 548.138 548.054 547.813 547.569
+ 570.48 570.125 569.947  569.78 569.674 569.544 569.426 569.338 569.246 569.177 568.971 568.956 568.873 568.839 568.783 568.693 568.627 568.412 568.315 568.307 568.259 568.175 568.152 567.976 567.905 567.851 567.785 567.721 567.703 567.664  567.61 567.498 567.494 567.373 567.337  567.26 567.211 567.141 567.107 567.065  566.89 566.844 566.799 566.692 566.659 566.556 566.457  566.43 566.374 566.345 566.318 566.265 566.214  566.16 566.099 566.045 565.929 565.892 565.833 565.807 565.741 565.647 565.575 565.537 565.509 565.409 565.379 565.336 565.332 565.226 565.201 565.079 565.049 565.015 564.966 564.913 564.824  564.81  564.74 564.649 564.628 564.593 564.589 564.511  564.47 564.434 564.396 564.329 564.279 564.241 564.169 564.134 564.019 563.974 563.941 563.878 563.852 563.806 563.727 563.694 563.619 563.566 563.528 563.491  563.48 563.413 563.355 563.269 563.215 563.173 563.135 563.009 563.004 562.963 562.933  562.89  562.85  562.78 562.747 562.694 562.654 562.613 562.577 562.564 562.492 562.413 562.361 562.272 562.247 562.217 562.152 562.144 562.078 562.011 561.977 561.939 561.883 561.868 561.811 561.762 561.734 561.642 561.593  561.57 561.512 561.477 561.433  561.38 561.336 561.297  561.25 561.215 561.137 561.123 561.084 561.028 560.964 560.953 560.883 560.857 560.798 560.744 560.663 560.605 560.559 560.531 560.493 560.425 560.392 560.357 560.328 560.242 560.181 560.153 560.123  560.08 560.013 559.981 559.972 559.927 559.905 559.844 559.791 559.758 559.685 559.601 559.575 559.508 559.501 559.428 559.346 559.312 559.261 559.189 559.167 559.153 559.131 559.049 558.995 558.944 558.931 558.883 558.843 558.798  558.77 558.752 558.643 558.634 558.565 558.554 558.469 558.426 558.364 558.315 558.266 558.221 558.187 558.151 558.094 558.052 558.027 557.979  557.93 557.914 557.865 557.834 557.799  557.76 557.658 557.611 557.561 557.539  557.51 557.483 557.393 557.354 557.327 557.274 557.213 557.117 557.111  557.07 557.027 556.986 556.918 556.847 556.821 556.778 556.773 556.734 556.624 556.566 556.556 556.508 556.457 556.404 556.358 556.318 556.266  556.22 556.174 556.119 556.072 556.064 556.023 556.011 555.891 555.834 555.814 555.756 555.714 555.675 555.622 555.596 555.517 555.461  555.44 555.348 555.316   555.3  555.24 555.207 555.193 555.133 555.115 555.037 554.974 554.953 554.914 554.877 554.816 554.721 554.648 554.589 554.533 554.482 554.439 554.373  554.36 554.355 554.294 554.257 554.211 554.141 554.095 554.049 553.984 553.952 553.924 553.855 553.763 553.754 553.742 553.649 553.631  553.54 553.516 553.416 553.382 553.341 553.299  553.24 553.193 553.114 553.103 553.024 552.994 552.942  552.87  552.82 552.711 552.662 552.578 552.549 552.527 552.446  552.39 552.376 552.292 552.275 552.212 552.109 552.039 552.026 551.959 551.946  551.83 551.784 551.771 551.706 551.644 551.585 551.514 551.464 551.296 551.264 551.179 551.134 551.082 550.995 550.929 550.913 550.843 550.787 550.757 550.658 550.547 550.494 550.424 550.369 550.281 550.221 550.173 550.154 550.051 549.974  549.92 549.867 549.809 549.778 549.618 549.547 549.478 549.328 549.305  549.18 549.134 549.049  548.97 548.889 548.815 548.774  548.71 548.624 548.409 548.343 548.175 547.915 547.786 547.735
 Performance statistics:
 function                                                                                                                                                                                       	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 937500, cols: 400, reductionFactor: 15, colBlockingSize: 12)	 129.073   	 200       	 495.842   	 0         	 4.6505    	 106.621   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 937500, cols: 400)                                                                              	 0.258895  	 1         	 0         	 0         	 11.5877   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 937500, cols: 400, reductionFactor: 15, colBlockingSize: 12)	 123.41    	 200       	 518.596   	 0         	 4.86391   	 106.621   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 937500, cols: 400)                                                                              	 0.260157  	 1         	 0         	 0         	 11.5315   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 129.073   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.258895  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.00174482	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 1.8494e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 123.41    	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.260157  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.00117648	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.597e-05 	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 139940135339904 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 139940126943232 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 139940118546560 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 139940110149888 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 139939899500928 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 139939891104256 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 139939882707584 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 139939874310912 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 139939865914240 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 139939857517568 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 139939849120896 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 139939295522048 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 139939287125376 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 139939278728704 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 139939270332032 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 139939261937408 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 139939253544704 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22981612689280 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22981497579520 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22981466114176 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22981363362048 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22981331896704 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22981162035712 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22981130570368 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22980960709376 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22980929244032 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22980759383040 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22980727917696 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22980558056704 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22980526591360 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22980356730368 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22980325265024 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22981580429056 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22981573838592 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 150.057
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 144.179
 singular values (new):
-539.236 538.885 538.753 538.726 538.498 538.369 538.308 538.214 538.149 537.945 537.829 537.759 537.712  537.54 537.438 537.385  537.37 537.324  537.25 537.165 537.051 537.048 537.018 536.836 536.792 536.775 536.657  536.61  536.47 536.377 536.343 536.269 536.234 536.125 536.083 536.027 535.993 535.883 535.792 535.751 535.684 535.644 535.576 535.538 535.462 535.452 535.404 535.377 535.212 535.134 535.124 535.051 535.032 534.961  534.94 534.846 534.768 534.737 534.663 534.582 534.544 534.473 534.465  534.41 534.388 534.362 534.257 534.195 534.131 534.124 534.071 534.014 533.939 533.894 533.867 533.805 533.729 533.689 533.683 533.572 533.524 533.461 533.417 533.386 533.356 533.297 533.174 533.169  533.15 533.106  533.04 532.999 532.926 532.904 532.788  532.78 532.746 532.738 532.705 532.588 532.539 532.498 532.495 532.413  532.31  532.27 532.208 532.184 532.157 532.124 532.064 532.028 531.966 531.878 531.839 531.807 531.744 531.712 531.654 531.626  531.58 531.514 531.491  531.42 531.408 531.376 531.279 531.236 531.194 531.179   531.1  531.08 530.996 530.988  530.98 530.889 530.866 530.839 530.791 530.722 530.677 530.634 530.611 530.566 530.524 530.468 530.411 530.399 530.342 530.298 530.261  530.19  530.18 530.093 530.071 530.048 530.004 529.954 529.874 529.815 529.788 529.747 529.723 529.664 529.619 529.604  529.53 529.498 529.457 529.433 529.387 529.355 529.319 529.228 529.188 529.132 529.095 529.045 529.017 528.977  528.88 528.865 528.824 528.786 528.766 528.703 528.683 528.616   528.6 528.516 528.458 528.444 528.384 528.364 528.336 528.298 528.279 528.182  528.14 528.118 528.061 528.008 527.986 527.954 527.927 527.868 527.832 527.779  527.72 527.708 527.606 527.566 527.504 527.467 527.443  527.44 527.406 527.357 527.293 527.251 527.192 527.153 527.063 527.037 527.011 526.983 526.926 526.911 526.864 526.848 526.807 526.776 526.717 526.624   526.6 526.574  526.53 526.484 526.406 526.361  526.32   526.3 526.238 526.192 526.119 526.117  526.09 526.029 525.986 525.969 525.927 525.906 525.813 525.804 525.764 525.713 525.639 525.628 525.556 525.518 525.462 525.442 525.425 525.396 525.381 525.325 525.279 525.171 525.121 525.096 525.041  525.03 524.985 524.915 524.892 524.837  524.79 524.737   524.7 524.666 524.642 524.566 524.541 524.521 524.478 524.444  524.43 524.368  524.29 524.217 524.178 524.118 524.106 524.067 523.996 523.971 523.931 523.918 523.835 523.779 523.755 523.742 523.706 523.646 523.612 523.503 523.444 523.422 523.403  523.38 523.322 523.277 523.184 523.165 523.115 523.075 523.049 523.009 522.997  522.91 522.882 522.834 522.773 522.711 522.655 522.625 522.606 522.536 522.501 522.441 522.421 522.379 522.311 522.307 522.271 522.198 522.124 522.067  522.04 522.005 521.924  521.88 521.845 521.802 521.777  521.69 521.635 521.611 521.548 521.508 521.478 521.442  521.37 521.319 521.304 521.266 521.203  521.18 521.112 521.074 521.042 521.034 520.907 520.838 520.797  520.75 520.683 520.632 520.595 520.558 520.473 520.396 520.333 520.295 520.274  520.18 520.144 520.112 520.104 520.009 519.974 519.933 519.875 519.801 519.737 519.698 519.672 519.667 519.551 519.489 519.468 519.361 519.293 519.285 519.202 519.182 519.108  519.06 519.014 518.929 518.918 518.852 518.781 518.685 518.658 518.626 518.584  518.52 518.413 518.348 518.295 518.178 518.111 518.036 517.984 517.883  517.82 517.767 517.748  517.64  517.61  517.55 517.503 517.483 517.454  517.32 517.261 517.158 517.117 517.023 516.896 516.853 516.742 516.732 516.682  516.64  516.54  516.38 516.325 516.274 516.164 516.099 515.891  515.84 515.671 515.579 515.528 515.372 515.234 515.035
+539.016 538.713 538.602 538.444  538.41 538.221 538.181 538.098 537.992 537.935 537.808 537.782  537.61 537.579 537.453 537.383 537.258 537.217 537.164 537.097 537.058 536.994 536.949 536.833 536.781 536.665 536.548 536.482 536.445 536.354 536.325 536.284 536.211 536.153 536.118 535.981 535.959 535.885 535.857  535.83 535.734 535.711 535.561 535.511 535.479 535.462 535.404 535.261 535.241 535.169 535.128 535.039 535.019 534.973 534.932 534.849 534.814 534.748 534.674 534.639 534.585 534.496 534.428 534.375 534.335 534.283 534.228  534.17 534.102 534.072 534.008 533.964 533.903 533.874 533.858 533.749 533.669  533.65 533.617 533.551 533.498 533.482 533.442 533.373 533.351 533.317 533.218 533.142 533.134 533.037 533.036  532.95  532.91 532.848 532.793 532.724 532.692 532.662 532.576 532.516 532.464 532.426 532.397 532.342 532.305 532.251 532.213 532.184 532.162 532.075 532.053 532.018 531.949   531.9 531.865 531.817 531.744  531.68 531.614 531.575 531.538  531.52  531.43 531.399 531.378 531.345 531.324 531.271 531.251 531.202 531.164 531.082  531.06 530.971 530.945 530.903 530.851 530.771 530.715 530.698 530.648 530.613  530.53  530.52 530.494  530.48 530.383 530.325 530.294  530.26 530.193 530.169 530.056 530.054  530.01 529.996 529.925 529.895 529.866 529.812 529.774 529.752 529.711 529.666 529.631 529.588 529.503 529.461 529.421 529.413 529.368 529.289 529.285 529.245 529.202 529.151 529.124 529.031     529 528.964 528.859 528.847 528.828 528.749 528.728 528.642 528.602 528.584 528.565 528.482 528.445 528.398 528.363 528.321 528.283 528.275 528.235 528.185 528.116 528.082 528.021     528 527.962 527.929 527.882 527.842 527.804 527.779  527.74 527.671  527.63 527.567 527.545 527.442 527.435 527.404 527.373 527.315 527.301 527.261  527.23 527.145   527.1  527.06 526.994 526.957 526.928 526.862 526.823 526.809 526.746 526.711 526.664 526.638 526.593 526.551 526.509 526.458 526.435 526.417  526.35 526.271 526.249 526.197 526.163 526.131 526.096 526.033 526.001  525.98 525.962 525.847 525.819 525.769 525.753  525.68 525.651 525.634 525.574 525.538 525.428 525.381  525.35 525.328  525.29 525.267 525.215 525.169 525.122 525.098 525.054 525.014 524.976 524.951 524.925 524.832 524.813  524.77 524.696 524.628 524.586 524.572 524.537 524.458  524.43 524.417 524.326 524.277 524.267 524.235 524.207 524.177 524.107 524.098 524.057 524.006 523.982 523.907 523.871 523.816 523.755 523.713 523.642 523.621 523.584 523.548 523.512 523.466 523.392 523.361 523.315 523.273 523.218 523.166 523.151 523.105 523.045 523.027 522.962 522.946  522.92 522.846 522.819  522.78 522.713 522.682 522.574 522.543 522.519 522.459 522.425 522.395 522.356 522.304 522.198 522.182 522.146 522.053 522.036 522.004 521.937 521.844 521.781 521.751 521.706 521.664 521.619 521.574 521.567 521.534 521.457 521.386 521.356 521.312 521.279 521.229 521.156 521.123 521.037 520.976 520.947 520.888 520.855 520.821 520.753  520.69 520.668 520.621 520.549 520.545  520.49 520.463 520.366 520.298  520.25 520.173 520.121 520.102 520.087 520.048 519.969 519.883 519.859  519.83 519.742 519.716 519.635 519.608 519.506 519.466 519.421 519.407 519.332 519.268 519.254 519.132 519.082 518.989 518.975  518.95 518.849 518.765 518.713  518.63 518.604 518.526 518.489 518.443  518.39 518.349 518.279 518.218 518.178 518.146 518.045  517.96 517.915 517.874 517.768 517.732 517.613 517.585 517.455  517.35 517.343 517.287 517.218 517.117 517.076 517.018 516.881 516.808  516.71 516.637 516.602 516.524 516.456 516.363  516.35 516.244 516.133 516.039 515.944 515.823 515.656 515.525 515.402 515.331 515.229 514.805
 Performance statistics:
 function                                                                                                                                                                                       	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 833333, cols: 450, reductionFactor: 13, colBlockingSize: 12)	 150.056   	 200       	 484.434   	 0         	 4.00067   	 121.088   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 833333, cols: 450)                                                                              	 0.259475  	 1         	 0         	 0         	 11.5618   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 833333, cols: 450, reductionFactor: 13, colBlockingSize: 12)	 144.178   	 200       	 504.184   	 0         	 4.16377   	 121.088   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 833333, cols: 450)                                                                              	 0.260956  	 1         	 0         	 0         	 11.4962   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 150.056   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.259475  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.00144604	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 2.1297e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 144.178   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.260956  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.00151374	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.368e-05 	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
 [1;34m[pthread wrapper] 
-[0m[1;34m[pthread wrapper] MAIN -> 0
-[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[0m[1;34m[pthread wrapper] MAIN -> 16
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->17  [0m[1;34m1->18  [0m[1;34m2->19  [0m[1;34m3->20  [0m[1;34m4->21  [0m[1;34m5->22  [0m[1;34m6->23  [0m[1;34m7->24  [0m[1;34m8->25  [0m[1;34m9->26  [0m[1;34m10->27  [0m[1;34m11->28  [0m[1;34m12->29  [0m[1;34m13->30  [0m[1;34m14->31  [0m[1;34m
 [pthread wrapper] SKIP MASK: 0x0
-[0m[1;34m	threadid 140161368827776 -> hwthread 1 - OK[0m[1;34m
-[0m[1;34m	threadid 140161291642880 -> hwthread 2 - OK[0m[1;34m
-[0m[1;34m	threadid 140161283246208 -> hwthread 3 - OK[0m[1;34m
-[0m[1;34m	threadid 140161274849536 -> hwthread 4 - OK[0m[1;34m
-[0m[1;34m	threadid 140161266452864 -> hwthread 5 - OK[0m[1;34m
-[0m[1;34m	threadid 140161258056192 -> hwthread 6 - OK[0m[1;34m
-[0m[1;34m	threadid 140161249659520 -> hwthread 7 - OK[0m[1;34m
-[0m[1;34m	threadid 140161241262848 -> hwthread 8 - OK[0m[1;34m
-[0m[1;34m	threadid 140160754772864 -> hwthread 9 - OK[0m[1;34m
-[0m[1;34m	threadid 140160746376192 -> hwthread 10 - OK[0m[1;34m
-[0m[1;34m	threadid 140160737979520 -> hwthread 11 - OK[0m[1;34m
-[0m[1;34m	threadid 140160729582848 -> hwthread 12 - OK[0m[1;34m
-[0m[1;34m	threadid 140160721186176 -> hwthread 13 - OK[0m[1;34m
-[0m[1;34m	threadid 140160712789504 -> hwthread 14 - OK[0m[1;34m
-[0m[1;34m	threadid 140160704392832 -> hwthread 15 - OK[0m[1;34m
-[0mPITTS: OpenMP #threads: 16
-[1;34mRoundrobin placement triggered
-	threadid 140160217904896 -> hwthread 0 - OK[0m[1;34m
-[0m[1;34m	threadid 140160209512192 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22813746354048 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22813714888704 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22813591201920 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22813559736576 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22813389875584 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22813358410240 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22813188549248 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22813157083904 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22812987222912 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22812955757568 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22812785896576 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22812754431232 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22812584570240 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22812553104896 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22812383243904 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22813682628352 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22813676037888 -> hwthread 17 - OK[0m[1;34m
 [0mPITTS: MPI #procs: 1
-wtime: 180.258
+PITTS: OpenMP #threads: 16
+PITTS: SIMD implementation: avx512
+wtime: 174.385
 singular values (new):
-512.845   512.7 512.412 512.364 512.113 512.062 511.954 511.863 511.762 511.611  511.57  511.46 511.326 511.154 511.056 511.023 511.003 510.961 510.888 510.848 510.811 510.755 510.651 510.577 510.485 510.434 510.355 510.264 510.142 510.072 510.051 509.971 509.884 509.862 509.775 509.754  509.66 509.572 509.473 509.397 509.354 509.306 509.275 509.223 509.208 509.158 509.074 509.044 508.963 508.904 508.886 508.824 508.749 508.625 508.591  508.58 508.519 508.458 508.406 508.372 508.328  508.24 508.146 508.088 508.031 507.995 507.942 507.931 507.835 507.792 507.726 507.711 507.669 507.606 507.544 507.473 507.395 507.382 507.319 507.263  507.24 507.206 507.136  507.12 507.114 507.055 506.976 506.913 506.869 506.791  506.77 506.719 506.654 506.645 506.622 506.592 506.498 506.482 506.409 506.373 506.353 506.285 506.259 506.175 506.171 506.106 506.088 506.035 505.979 505.919 505.884 505.811 505.785 505.718  505.68 505.552 505.536  505.48 505.434 505.396 505.376  505.33 505.244 505.241 505.177 505.145 505.084 505.052 505.048 504.949 504.937 504.899  504.84  504.79 504.759 504.733   504.7 504.675 504.576 504.545 504.511 504.493 504.434  504.41 504.315 504.275 504.246 504.205 504.191 504.101  504.06 504.002 503.962 503.915 503.892 503.842 503.789 503.741 503.668 503.655 503.623 503.601 503.585  503.54  503.51 503.431  503.36 503.337 503.331 503.275   503.2 503.167 503.137 503.081 503.033 503.017  502.94 502.913 502.879 502.837  502.81 502.783 502.757 502.666 502.619 502.559 502.515 502.477 502.391 502.344  502.33 502.302 502.278 502.217 502.195  502.11 502.069 502.051 502.003 501.983 501.942  501.91 501.827  501.82 501.784 501.758 501.701 501.651 501.601 501.549 501.505 501.462 501.443 501.379 501.365 501.322 501.272  501.24 501.177 501.118 501.099 501.061 501.035 501.006  500.98 500.935 500.891 500.858 500.793 500.738 500.716 500.665 500.624 500.587 500.564 500.481 500.446 500.407 500.381 500.353  500.33  500.29 500.205 500.184 500.141 500.126 500.065 500.025 500.015 500.001 499.946 499.899 499.842 499.839 499.808  499.74 499.699 499.644 499.587 499.576 499.528 499.485 499.404 499.401 499.318 499.295 499.274 499.221 499.193 499.109 499.097 499.053 499.027  498.96 498.909 498.894  498.86  498.85 498.812 498.775 498.755 498.712 498.684  498.64 498.589 498.509 498.465 498.452 498.379 498.369 498.332 498.243 498.198 498.162 498.139 498.099 498.047 497.984  497.96  497.91 497.888 497.808 497.796 497.749 497.687 497.675 497.638 497.619 497.559 497.524 497.475 497.452 497.366 497.349 497.305 497.266 497.241 497.186 497.135 497.109 497.059 496.968 496.918  496.89 496.873 496.848 496.785 496.769 496.701  496.65  496.64 496.602 496.589 496.541 496.474 496.442 496.416 496.372 496.347 496.321 496.298 496.228 496.183 496.099 496.074 496.026 496.004 495.979  495.93 495.866 495.842 495.823 495.794 495.738  495.67 495.663 495.614 495.578 495.548 495.458 495.426  495.41 495.371 495.354 495.264 495.222 495.133 495.111 495.082 495.065 495.002 494.944 494.901 494.869 494.799  494.75 494.727 494.695  494.57 494.498 494.464 494.434 494.404 494.372 494.316 494.263 494.216 494.193 494.147 494.115 494.073 494.043 493.992 493.908 493.865 493.827 493.795 493.761 493.671 493.629  493.56 493.529 493.465 493.424  493.39 493.351 493.323 493.245 493.233 493.175 493.146 493.054 493.007 492.982 492.946 492.877 492.825 492.787 492.749 492.676 492.615 492.552 492.527 492.482 492.461 492.422 492.391 492.289 492.224  492.22 492.169 492.132 492.063 491.998 491.992 491.949 491.917 491.844 491.819 491.784 491.708 491.654 491.585 491.546 491.495 491.428 491.325 491.289 491.268 491.228 491.176 491.079 491.064 491.029 490.932 490.854 490.738 490.712 490.691 490.623 490.557 490.502 490.416 490.352  490.28 490.269 490.138 490.086 490.069 489.961 489.867 489.815 489.747 489.677 489.501 489.489  489.39  489.34 489.229 489.155 489.125 489.107 489.003 488.964  488.86 488.803 488.682 488.554 488.476  488.39  488.32  488.21 488.168 488.021 487.977  487.79 487.729 487.558  487.41 487.342
+512.764 512.536 512.417 512.275 512.016 511.865 511.766 511.659 511.523 511.456 511.386 511.332 511.293 511.221 511.156 511.035 510.988 510.955 510.894 510.791 510.772   510.7  510.62  510.59 510.484 510.425 510.289 510.248 510.147 510.072  510.05 510.044 509.821 509.809 509.731 509.628 509.615 509.562  509.49 509.436 509.372 509.308 509.271 509.228 509.198 509.082 509.028 508.963 508.927 508.825 508.783 508.721 508.702 508.664 508.606 508.552  508.51 508.411 508.365 508.299 508.258 508.241 508.192 508.141 508.071 508.034 508.006 507.943 507.877 507.827 507.781 507.709 507.656 507.597 507.536 507.489 507.426 507.402 507.364 507.328  507.27 507.221 507.192 507.123 507.104 507.047 506.998 506.939 506.904 506.861 506.791 506.715 506.684 506.618 506.566 506.536 506.464 506.442 506.371 506.365 506.316 506.276 506.237 506.188 506.093  506.07 505.967 505.921 505.872 505.852 505.767 505.735 505.701 505.684  505.63 505.573  505.55 505.482 505.458 505.401 505.348  505.32 505.255 505.188  505.15 505.122 505.058 504.985 504.951 504.916 504.888 504.838 504.812 504.754  504.71 504.648 504.609 504.571 504.556 504.516 504.467 504.438 504.417 504.372 504.327 504.256 504.248 504.183  504.13 504.094 504.059 503.976 503.956 503.939 503.894 503.862 503.821 503.801 503.719 503.655 503.644 503.616 503.563 503.498 503.479 503.424 503.365 503.324 503.296 503.238 503.211 503.126 503.071 503.066 503.042 502.996 502.961 502.934 502.929 502.827  502.81 502.788 502.745 502.729  502.65 502.568 502.552 502.489 502.448 502.423 502.331 502.273 502.264  502.23 502.208 502.144  502.09 502.015 502.005 501.969 501.969 501.919 501.913  501.82 501.802 501.734 501.712 501.638 501.617 501.591 501.561 501.455 501.447 501.417 501.368 501.326  501.24 501.231 501.207 501.141 501.121 501.102 501.046  501.03 501.003 500.953 500.885 500.834 500.804  500.74 500.725 500.664 500.641 500.611 500.574  500.55 500.494 500.445 500.388 500.332 500.311 500.294  500.24 500.184 500.159 500.132  500.09 500.036 500.007 499.976  499.94 499.885 499.836 499.826 499.798 499.772 499.713 499.671 499.642 499.596 499.569 499.544 499.478  499.45 499.415 499.346 499.287 499.237 499.211 499.163 499.128 499.074  499.04 499.002 498.989 498.957 498.909  498.88 498.861 498.829  498.72 498.684 498.668 498.635 498.542 498.531 498.477  498.46 498.421 498.384 498.345 498.313 498.284 498.245  498.14  498.13 498.066 498.035 497.992 497.958 497.914 497.892 497.864 497.777 497.718 497.695 497.676 497.609 497.592 497.558 497.544  497.51  497.46 497.407 497.335 497.323 497.251 497.199 497.167 497.127 497.057 497.049 497.034 496.955 496.883 496.862  496.85 496.831 496.781 496.738 496.684 496.679 496.611 496.582 496.525 496.504 496.428 496.412 496.375 496.341 496.288 496.254 496.229 496.163 496.129 496.079 496.025 495.967  495.94 495.896 495.837 495.819 495.797 495.763 495.722 495.655 495.627 495.528 495.488 495.408 495.382 495.312  495.29 495.242 495.204  495.16 495.107 495.037 494.995 494.951 494.944 494.876 494.873 494.798 494.795 494.762 494.721 494.657 494.617 494.571  494.51 494.453 494.409 494.363 494.315 494.263  494.25 494.185 494.166 494.109 494.107 494.045 493.995  493.98 493.909 493.867 493.847 493.787 493.767 493.689 493.653 493.608 493.556 493.508 493.447 493.387 493.356 493.309 493.273 493.214 493.159 493.153 493.067 493.001 492.964  492.92 492.869 492.835 492.811 492.734 492.694 492.651 492.577 492.536 492.468 492.424 492.407 492.385 492.318 492.193 492.156 492.065  492.05 491.987 491.936 491.917 491.803 491.773 491.743 491.674 491.606 491.596 491.578 491.439 491.408 491.343  491.33 491.242 491.223 491.122 491.062 491.018 490.987 490.942 490.877 490.863 490.798 490.682  490.59 490.542 490.465 490.456 490.382  490.32 490.226 490.194 490.127 490.088 490.038 489.922 489.871 489.814  489.74 489.687 489.643 489.557 489.514 489.459 489.394 489.369 489.268 489.127  489.09 489.063  489.03 488.938 488.807 488.706 488.635 488.552 488.477 488.416 488.338 488.198 488.107 487.938 487.896 487.685 487.622 487.455
 Performance statistics:
 function                                                                                                                                                                                       	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 750000, cols: 500, reductionFactor: 12, colBlockingSize: 12)	 180.257   	 200       	 450.745   	 0         	 3.3308    	 135.326   
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 750000, cols: 500)                                                                              	 0.259225  	 1         	 0         	 0         	 11.5729   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double](rows: 750000, cols: 500, reductionFactor: 12, colBlockingSize: 12)	 174.385   	 200       	 465.924   	 0         	 3.44296   	 135.326   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 750000, cols: 500)                                                                              	 0.258942  	 1         	 0         	 0         	 11.5856   	 0         
 Timing statistics:
-function                                                                                                                    	 time [s]  	 #calls    
-<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]	 180.257   	 200       
-<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                    	 0.259225  	 1         
-<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int) [with T = double]          	 0.00203617	 1         
-<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int) [with T = double]                  	 2.2406e-05	 1         
+function                                                                                                                      	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = double]  	 174.385   	 200       
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                      	 0.258942  	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]	 0.00152597	 1         
+<PITTS::Tensor2<double>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = double]              	 2.5143e-05	 1         
 INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
