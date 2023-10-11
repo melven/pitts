@@ -39,8 +39,8 @@ namespace PITTS
 
     using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
     using Stride = Eigen::OuterStride<Eigen::Dynamic>;
-    using Map = Eigen::Map<Matrix, Eigen::Aligned128, Stride>;
-    using ConstMap = Eigen::Map<const Matrix, Eigen::Aligned128, Stride>;
+    using Map = Eigen::Map<Matrix, EigenAligned, Stride>;
+    using ConstMap = Eigen::Map<const Matrix, EigenAligned, Stride>;
 
     const auto r1 = t3c.r1();
     const auto r2 = t3c.r2();

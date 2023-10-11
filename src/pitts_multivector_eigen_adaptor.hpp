@@ -25,7 +25,7 @@ namespace PITTS
   auto ConstEigenMap(const MultiVector<T>& mv)
   {
     using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    return Eigen::Map<const Matrix, Eigen::Aligned128, Eigen::OuterStride<> >(&mv(0,0), mv.rows(), mv.cols(), Eigen::OuterStride<>(mv.colStrideChunks()*Chunk<T>::size));
+    return Eigen::Map<const Matrix, EigenAligned, Eigen::OuterStride<> >(&mv(0,0), mv.rows(), mv.cols(), Eigen::OuterStride<>(mv.colStrideChunks()*Chunk<T>::size));
   }
 
   //! Get a mutable Eigen::Map for a MultiVector
@@ -36,7 +36,7 @@ namespace PITTS
   auto EigenMap(MultiVector<T>& mv)
   {
     using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    return Eigen::Map<Matrix, Eigen::Aligned128, Eigen::OuterStride<> >(&mv(0,0), mv.rows(), mv.cols(), Eigen::OuterStride<>(mv.colStrideChunks()*Chunk<T>::size));
+    return Eigen::Map<Matrix, EigenAligned, Eigen::OuterStride<> >(&mv(0,0), mv.rows(), mv.cols(), Eigen::OuterStride<>(mv.colStrideChunks()*Chunk<T>::size));
   }
 }
 

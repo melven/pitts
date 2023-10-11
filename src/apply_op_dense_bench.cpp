@@ -70,8 +70,8 @@ namespace
         const auto ystride = Eigen::OuterStride<>(&y(0,1) - &y(0,0));
 
         using mat = Eigen::MatrixX<T>;
-        using map = Eigen::Map<mat, Eigen::Aligned128, Eigen::OuterStride<>>;
-        using const_map = Eigen::Map<const mat, Eigen::Aligned128, Eigen::OuterStride<>>;
+        using map = Eigen::Map<mat, EigenAligned, Eigen::OuterStride<>>;
+        using const_map = Eigen::Map<const mat, EigenAligned, Eigen::OuterStride<>>;
 
         const_map mapx(&x(0,i), xn, m, xstride);
         const_map mapA(&A(0,m*iA), yn, m, ystride);

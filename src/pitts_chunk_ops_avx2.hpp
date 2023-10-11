@@ -242,50 +242,85 @@ namespace PITTS
   template<>
   inline void bcast_sum<float>(Chunk<float>& v)
   {
-    static_assert(Chunk<float>::size == 32);
-    __m256 v0l = _mm256_add_ps(_mm256_load_ps(&v[0]), _mm256_load_ps(&v[8]));
-    __m256 v0h = _mm256_add_ps(_mm256_load_ps(&v[16]), _mm256_load_ps(&v[24]));
+    static_assert(Chunk<float>::size == 32 || Chunk<float>::size == 16);
+    if constexpr ( Chunk<float>::size == 32 )
+    {
+      __m256 v0l = _mm256_add_ps(_mm256_load_ps(&v[0]), _mm256_load_ps(&v[8]));
+      __m256 v0h = _mm256_add_ps(_mm256_load_ps(&v[16]), _mm256_load_ps(&v[24]));
 
-    __m256 v1l = _mm256_permute_ps(v0l, 1<<1 | 1<<2 | 1<<3 | 1<<4 );
-    __m256 v1h = _mm256_permute_ps(v0h, 1<<1 | 1<<2 | 1<<3 | 1<<4 );
-    __m256 v2l = _mm256_add_ps(v0l, v1l);
-    __m256 v2h = _mm256_add_ps(v0h, v1h);
+      __m256 v1l = _mm256_permute_ps(v0l, 1<<1 | 1<<2 | 1<<3 | 1<<4 );
+      __m256 v1h = _mm256_permute_ps(v0h, 1<<1 | 1<<2 | 1<<3 | 1<<4 );
+      __m256 v2l = _mm256_add_ps(v0l, v1l);
+      __m256 v2h = _mm256_add_ps(v0h, v1h);
 
-    __m256 v3l = _mm256_permute_ps(v2l, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
-    __m256 v3h = _mm256_permute_ps(v2h, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
-    __m256 v4l = _mm256_add_ps(v2l, v3l);
-    __m256 v4h = _mm256_add_ps(v2h, v3h);
+      __m256 v3l = _mm256_permute_ps(v2l, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
+      __m256 v3h = _mm256_permute_ps(v2h, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
+      __m256 v4l = _mm256_add_ps(v2l, v3l);
+      __m256 v4h = _mm256_add_ps(v2h, v3h);
 
-    __m256 v5 = _mm256_add_ps(v4h, v4l);
+      __m256 v5 = _mm256_add_ps(v4h, v4l);
 
-    __m256 v6 = _mm256_permutevar8x32_ps(v5, _mm256_set_epi32(3,2,1,0,7,6,5,4));
-    __m256 v7 = _mm256_add_ps(v5, v6);
+      __m256 v6 = _mm256_permutevar8x32_ps(v5, _mm256_set_epi32(3,2,1,0,7,6,5,4));
+      __m256 v7 = _mm256_add_ps(v5, v6);
 
-    _mm256_store_ps(&v[0], v7);
-    _mm256_store_ps(&v[8], v7);
-    _mm256_store_ps(&v[16], v7);
-    _mm256_store_ps(&v[24], v7);
+      _mm256_store_ps(&v[0], v7);
+      _mm256_store_ps(&v[8], v7);
+      _mm256_store_ps(&v[16], v7);
+      _mm256_store_ps(&v[24], v7);
+    }
+    else if constexpr ( Chunk<float>::size == 16 )
+    {
+      __m256 v0l = _mm256_add_ps(_mm256_load_ps(&v[0]), _mm256_load_ps(&v[8]));
+
+      __m256 v1l = _mm256_permute_ps(v0l, 1<<1 | 1<<2 | 1<<3 | 1<<4 );
+      __m256 v2l = _mm256_add_ps(v0l, v1l);
+
+      __m256 v3l = _mm256_permute_ps(v2l, 1<<0 | 0<<2 | 3<<4 | 2<<6 );
+      __m256 v4l = _mm256_add_ps(v2l, v3l);
+
+      __m256 v6 = _mm256_permutevar8x32_ps(v4l, _mm256_set_epi32(3,2,1,0,7,6,5,4));
+      __m256 v7 = _mm256_add_ps(v4l, v6);
+
+      _mm256_store_ps(&v[0], v7);
+      _mm256_store_ps(&v[8], v7);
+    }
   }
 
   // specialization for double for dumb compilers
   template<>
   inline void bcast_sum<double>(Chunk<double>& v)
   {
-    static_assert(Chunk<double>::size == 16);
-    __m256d v0l = _mm256_add_pd(_mm256_load_pd(&v[0]), _mm256_load_pd(&v[4]));
-    __m256d v0h = _mm256_add_pd(_mm256_load_pd(&v[8]), _mm256_load_pd(&v[12]));
-    __m256d v0 = _mm256_add_pd(v0l, v0h);
+    static_assert(Chunk<double>::size == 16 || Chunk<double>::size == 8 );
+    if constexpr ( Chunk<double>::size == 16 )
+    {
+      __m256d v0l = _mm256_add_pd(_mm256_load_pd(&v[0]), _mm256_load_pd(&v[4]));
+      __m256d v0h = _mm256_add_pd(_mm256_load_pd(&v[8]), _mm256_load_pd(&v[12]));
+      __m256d v0 = _mm256_add_pd(v0l, v0h);
 
-    __m256d v1 = _mm256_permute_pd(v0, 1<<0 | 0<<1 | 1<<2 | 0<<3 );
-    __m256d v2 = _mm256_add_pd(v0, v1);
+      __m256d v1 = _mm256_permute_pd(v0, 1<<0 | 0<<1 | 1<<2 | 0<<3 );
+      __m256d v2 = _mm256_add_pd(v0, v1);
 
-    __m256d v3 = _mm256_permute4x64_pd(v2, 2<<0 | 3<<2 | 0<<4 | 1<<6);
-    __m256d v4 = _mm256_add_pd(v2, v3);
+      __m256d v3 = _mm256_permute4x64_pd(v2, 2<<0 | 3<<2 | 0<<4 | 1<<6);
+      __m256d v4 = _mm256_add_pd(v2, v3);
 
-    _mm256_store_pd(&v[0], v4);
-    _mm256_store_pd(&v[4], v4);
-    _mm256_store_pd(&v[8], v4);
-    _mm256_store_pd(&v[12], v4);
+      _mm256_store_pd(&v[0], v4);
+      _mm256_store_pd(&v[4], v4);
+      _mm256_store_pd(&v[8], v4);
+      _mm256_store_pd(&v[12], v4);
+    }
+    else if constexpr (Chunk<double>::size == 8 )
+    {
+      __m256d v0 = _mm256_add_pd(_mm256_load_pd(&v[0]), _mm256_load_pd(&v[4]));
+
+      __m256d v1 = _mm256_permute_pd(v0, 1<<0 | 0<<1 | 1<<2 | 0<<3 );
+      __m256d v2 = _mm256_add_pd(v0, v1);
+
+      __m256d v3 = _mm256_permute4x64_pd(v2, 2<<0 | 3<<2 | 0<<4 | 1<<6);
+      __m256d v4 = _mm256_add_pd(v2, v3);
+
+      _mm256_store_pd(&v[0], v4);
+      _mm256_store_pd(&v[4], v4);
+    }
   }
   
   // compilers seem not to generate masked SIMD commands

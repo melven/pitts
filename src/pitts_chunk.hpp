@@ -17,7 +17,11 @@
 namespace PITTS
 {
   //! global alignment (in bytes) to allow SIMD / improve memory accesses
+#ifdef __AVX512F__
   constexpr auto ALIGNMENT = 128;
+#else
+  constexpr auto ALIGNMENT = 64;
+#endif
 
 
   //! helper type for SIMD: a small aligned array of data

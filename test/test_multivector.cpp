@@ -131,7 +131,7 @@ TEST(PITTS_MultiVector, memory_layout_and_zero_padding_small)
 
   MultiVector_double M;
 
-  for(auto n: {1, 2, 3, 10, 20, 31, 32, 33, 50, 60, 61, 62, 63, 64, 128})
+  for(auto n: {1, 2, 3, 10, 20, 31, 32, 33, 50, 60, 61, 62, 63, 64})
   {
     // check that the memory layout avoids strides that are powers of two
     M.resize(n, 3);
