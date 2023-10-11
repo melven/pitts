@@ -140,6 +140,7 @@ namespace PITTS
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
       //! @param ldaResult    offset of columns in pdataResult
+      //! @param twoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
       template<typename T, int NC = 1>
       [[gnu::always_inline]]
@@ -285,10 +286,12 @@ namespace PITTS
       inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol, bool twoTriangularBlocks);
 
 
-
       //! Calculate the upper triangular part R from a QR-decomposition of a small rectangular block where the bottom left triangle is already zero
       //!
       //! Can work in-place or out-of-place.
+      //!
+      //! Implements a parallelization of tree_apply over lastThread-firstThread OMP threads with contiguous thread id's.
+      //! All participating threads [firstThread,lastThread) need to call this function (with the same arguments)!
       //!
       //! This function assumes a very specific memory layout of the data (with a chunk size cs):
       //!
@@ -321,83 +324,13 @@ namespace PITTS
       //! @param ldaResult    offset of columns in pdataResult
       //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+2 for out-of-place calculation and nChunks for in-place calculation
       //! @param colBlockSize tuning parameter for better cache access if m is large, should be a multiple of 3 (because of some internal 3-way unrolling)
+      //! @param twoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
-      /*
-      template<typename T>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15)
-      {
-        const int mChunks = (m-1) / Chunk<T>::size + 1;
-        // we need enough buffer space because we store some additional vectors in it...
-        if( pdataIn == pdataResult )
-        {
-          // in-place
-          assert(resultOffset == nChunks);
-          assert(ldaResult >= mChunks + nChunks + 2);
-        }
-        else
-        {
-          // out-of-place
-          assert(resultOffset >= nChunks + 2);
-          assert(ldaResult >= mChunks + resultOffset);
-          pdataResult = pdataResult + resultOffset - nChunks;
-        }
-
-        // this is an approach for hierarchical blocking of
-        // for(int i = 0; i < m; i++)
-        //   calc i
-        //   for(int j = i+1; j < m; j++)
-        //     apply i to j
-
-        const int bs = colBlockSize;
-
-        const auto tree_apply = [&](const auto& tree_apply, int beginCol, int endCol, int applyBeginCol, int applyEndCol) -> void
-        {
-          int nCol = endCol - beginCol;
-          // could also split by nApplyCol but doesn't seem to be help
-          //int nApplyCol = applyEndCol - applyBeginCol;
-
-          if( nCol < 2*bs )
-          {
-            transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
-          }
-          else
-          {
-            int middle = beginCol + (nCol/2/bs)*bs;
-            tree_apply(tree_apply, beginCol, middle, applyBeginCol, applyEndCol);
-            tree_apply(tree_apply, middle, endCol, applyBeginCol, applyEndCol);
-          }
-        };
-
-        const auto tree_calc = [&](const auto& tree_calc, int beginCol, int endCol) -> void
-        {
-          int nCol = endCol - beginCol;
-          if( nCol < 2*bs )
-          {
-            for(int col = beginCol; col < endCol; col++)
-            {
-              transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol);
-            }
-          }
-          else
-          {
-            int middle = beginCol + (nCol/2/bs)*bs;
-            tree_calc(tree_calc, beginCol, middle);
-            tree_apply(tree_apply, beginCol, middle, middle, endCol);
-            tree_calc(tree_calc, middle, endCol);
-          }
-        };
-
-        tree_calc(tree_calc,0,m);
-      }
-      */
-
-      //! Same as transformBlock, but implementing a parallelization of tree_apply over lastThread-firstThread OMP threads with contiguous thread id's.
-      //! 
-      //! All participating threads [firstThread,lastThread) need to call this function (with the same arguments)!
+      //! @param firstThread    OMP thread id of first thread
+      //! @param lastThread     OMP thread of the last thread + 1
+      //! @param bossLatches    synchronization objects for waiting on the boss thread
+      //! @param workerLatches  synchronization objects for waiting on the worker threads
       //!
-      //! @param firstThread  OMP thread id of first thread
-      //! @param lastThread   OMP thread of the last thread + 1
       template<typename T>
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, bool twoTriangularBlocks, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
       {
