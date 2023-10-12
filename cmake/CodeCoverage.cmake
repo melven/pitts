@@ -27,11 +27,12 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug" )
     function(setup_target_for_coverage _targetname)
       # add coverage report as a post-build-step
       add_custom_command(TARGET ${_targetname} POST_BUILD
+                         COMMAND ${CMAKE_SOURCE_DIR}/cmake/prepare_gcovr.sh
                          COMMAND ${GCOVR_SCRIPT} ${GCOVR_OPTIONS} ${GCOVR_OUTPUT_OPTIONS}
                          COMMENT "Generating code coverage report..."
                          VERBATIM)
     endfunction()
     # add required compile options
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-dir=coverage.%p/")
   endif()
 endif()
