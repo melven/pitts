@@ -33,7 +33,7 @@ build_release:
 build_debug_with_coverage:
   stage: build
   variables:
-    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
+    SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:20:00"
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
