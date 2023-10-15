@@ -1,16 +1,18 @@
-# PITTS - Parallel Iterative Tensor-Train Solvers
+# PITTS
 
-Small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](README.md#References) and [3](README.md#References)).
+PITTS -- Parallel Iterative Tensor-Train Solvers -- is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](README.md#References) and [3](README.md#References)).
+Also provides a numpy-compatible python interface based on pybind11. Currently, algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
 
-Also provides a numpy-compatible python interface based on pybind11.
-Currently, algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
+Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](README.md#Refences), TT-MALS [5](README.md#References), TT-AMEn [6](README.md#References)).
 
-## Getting Started
+## Install
 You can get a copy of the repository from [https://github.com/melven/pitts]:
 
-    > git clone https://github.com/melven/pitts.git
+```sh
+git clone https://github.com/melven/pitts.git
+```
 
-### Prerequisites
+### Dependencies
 * [CMake](https://cmake.org) >= 3.14 (tested with 3.18.1)
 * [GCC](https://gcc.gnu.org) >= 11.1 (or a C++20 compliant compiler)
   * [OpenMP](https://www.openmp.org) (usually included in the compiler)
@@ -24,32 +26,61 @@ You can get a copy of the repository from [https://github.com/melven/pitts]:
 ### Compiling
 Simply configure with CMake and compile, on Linux system usually done by:
 
-    > cd pitts
-    > mkdir build
-    > cd build
-    > cmake .. -DCMAKE_BUILD_TYPE=Release
-    > make
+```sh
+cd pitts
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make
+```
 
 ### Running the tests
-Internally uses [googletest](https://github.com/google/googletest) (with patches for MPI parallelization) for testing C++ code
+Internally uses [googletest](https://github.com/google/googletest) [with patches for MPI parallelization](https://github.com/DLR-SC/googletest_mpi) for testing C++ code
 and python unittest to check the behavior of the python interface.
 
-    > make check
+```sh
+make check
+```
 
 The tests run with different numbers of OpenMP threads and MPI processes.
 They call `mpiexec` to launch multiple processes, respectively the SLURM command `srun` when a SLURM queueing system is found.
+
+## Usage
+Currently, pitts can be used from C++ and python.
+
+### C++ interface
+pitts is intended as header-only library and its data types and algorithms can be directly included:
+
+```c++
+#include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_random.hpp"
+
+// create a random tensor in TT format with dimensions 2^5 and TT ranks [2,4,4,2]
+void someFunction()
+{
+  PITTS::TensorTrain<double> tt(2,5);
+  tt.setTTranks({2,4,4,2});
+  // most algorithms in PITTS are defined as free functions with overloads for different data types,
+  // this calls PITTS::randomize(PITTS::TensorTrain<double>&)
+  randomize(tt);
+}
+```
+
+As pitts heavily uses templates and C++20 features, using pitts from C++ code requires a C++20 compliant compiler (and enabling C++20, of course).
 
 ### Python interface
 For simple tests, add the build directory `pitts/build/src` to the `PYTHONPATH` environment variable.
 You can also install it in a custom directory using the `CMAKE_INSTALL_PREFIX` setting and type `make install`.
 
-To use PITTS in your python code, simply import `pitts_py`
+To use PITTS in your python code, simply import `pitts_py`:
 
-    > import pitts_py
-    > # create a random tensor in TT format with dimensions 2^5 and TT ranks [2,4,4,2]
-    > tt = pitts_py.TensorTrain_double(dimensions=[2,2,2,2,2])
-    > tt.setTTranks([2,4,4,2])
-    > pitts_py.randomize(tt)
+```python
+import pitts_py
+# create a random tensor in TT format with dimensions 2^5 and TT ranks [2,4,4,2]
+tt = pitts_py.TensorTrain_double(dimensions=[2,2,2,2,2])
+tt.setTTranks([2,4,4,2])
+pitts_py.randomize(tt)
+```
 
 ## References
 
@@ -59,3 +90,16 @@ To use PITTS in your python code, simply import `pitts_py`
 
 [3] Grasedyck, L., Kressner, D. and Tobler, C.: "A literature survey of low-rank tensor approximation techniques", GAMM-Mitteilungen, 2013, https://doi.org/10.1002/gamm.201310004
 
+[4] Dolgov, S. V.: "TT-GMRES: solution to a linear system in the structured tensor format", Russian Journal of Numerical Analysis and Mathematical Modelling, 2013, https://doi.org/10.1515/rnam-2013-0009
+
+[5] Holtz, S., Rohwedder, T. and Schneider, R.: "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing, 2012, https://doi.org/10.1137/100818893
+
+[6] Dolgov, S. V. and Savostyanov, D. V.: "Alternating Minimal Energy Methods for Linear Systems in Higher Dimensions" SIAM Journal on Scientific Computing, 2014, http://doi.org/10.1137/140953289
+
+## Contributing
+
+Please feel free to send any question or suggestion to Melven.Roehrig-Zoellner@DLR.de.
+
+## License
+
+[BSD-3 Clause](LICENSE)
