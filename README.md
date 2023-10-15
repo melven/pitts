@@ -14,7 +14,7 @@ Currently provides a fast TT-SVD implementation (algorithm to compress a dense t
 	- [Compiling](#compiling)
 	- [Running the tests](#running-the-tests)
 - [Usage](#usage)
-	- [C++ interface](#c++-interface)
+	- [C++ interface](#c-interface)
 	- [Python interface](#python-interface)
 - [References](#references)
 - [Contributing](#contributing)
