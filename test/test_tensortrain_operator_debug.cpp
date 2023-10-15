@@ -1,3 +1,7 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <vector>
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_operator_debug.hpp"

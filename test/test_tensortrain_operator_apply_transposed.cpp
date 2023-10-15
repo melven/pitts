@@ -1,3 +1,7 @@
+// Copyright (c) 2021 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_operator_apply_transposed.hpp"
 #include "pitts_tensortrain_random.hpp"

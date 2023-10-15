@@ -1,3 +1,7 @@
+// Copyright (c) 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <gtest/gtest.h>
 #include "pitts_tensortrain.hpp"
 #include <type_traits>

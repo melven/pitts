@@ -1,3 +1,8 @@
+# Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 cmake_minimum_required(VERSION 3.18.0)
 
 project(tsqr CXX)

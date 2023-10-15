@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+SPDX-License-Identifier: BSD-3-Clause
+-->
+
 # PITTS
 
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)

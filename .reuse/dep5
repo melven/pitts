@@ -1,0 +1,20 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pitts
+Upstream-Contact: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+Source: https://github.com/melven/pitts
+
+# logging files from benchmarks
+Files: bench/*.out bench/*.log
+Copyright: 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+License: BSD-3-Clause
+
+# batch scripts for benchmarks
+# Listing them here to keep them as short as possible with #SBATCH comments at the top.
+Files: bench/*.sh
+Copyright: 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+License: BSD-3-Clause
+
+# .gitignore files are not very interesting
+Files: *.gitignore
+Copyright: 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+License: BSD-3-Clause
