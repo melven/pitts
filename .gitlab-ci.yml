@@ -145,6 +145,8 @@ reuse_compliance:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 1 -c 1 -t 00:05:00"
   needs: []
   script:
+    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - module load py-pip
     - export PATH=~/.local/bin:$PATH
     - pip install pipx
     - pipx run reuse lint
