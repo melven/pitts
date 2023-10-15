@@ -99,7 +99,7 @@ pitts_py.randomize(tt)
 
 ## References
 
-[1] Roehrig-Zoellner, M., Thies, J. and Basermann, A.: "Performance of low-rank approximations in tensor train format (TT-SVD) for large dense tensors", submitted to SISC, 2021, https://arxiv.org/abs/2102.00104
+[1] Roehrig-Zoellner, M., Thies, J. and Basermann, A.: "Performance of the Low-Rank TT-SVD for Large Dense Tensors on Modern MultiCore CPUs", SIAM Journal on Scientific Computing, 2022, https://doi.org/10.1137/21M1395545
 
 [2] Oseledets, I. V.: "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2011, https://doi.org/10.1137/090752286
 
