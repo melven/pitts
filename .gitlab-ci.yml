@@ -146,9 +146,9 @@ reuse_compliance:
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
-    - module load py-pip
+    - module load py-pip py-packaging py-click
     - export PATH=~/.local/bin:$PATH
-    - pip install pipx
+    - pip install --user pipx
     - pipx run reuse lint
 
 pages:
