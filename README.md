@@ -1,9 +1,24 @@
 # PITTS
 
-PITTS -- Parallel Iterative Tensor-Train Solvers -- is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](README.md#References) and [3](README.md#References)).
-Also provides a numpy-compatible python interface based on pybind11. Currently, algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
-Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](README.md#Refences), TT-MALS [5](README.md#References), TT-AMEn [6](README.md#References)).
+PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](#references) and [3](#references)).
+It also provides a numpy-compatible python interface based on pybind11. Algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
+
+Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](#refences), TT-MALS [5](#references), TT-AMEn [6](#references)).
+
+## Table of Contents
+
+- [Install](#install)
+	- [Dependencies](#dependencies)
+	- [Compiling](#compiling)
+	- [Running the tests](#running-the-tests)
+- [Usage](#usage)
+	- [C++ interface](#c++-interface)
+	- [Python interface](#python-interface)
+- [References](#references)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Install
 You can get a copy of the repository from [https://github.com/melven/pitts]:
