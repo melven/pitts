@@ -78,7 +78,6 @@ build_debug:
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
-    - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc13-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug/"
     - ccache -z
