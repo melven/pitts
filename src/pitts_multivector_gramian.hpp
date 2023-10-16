@@ -1,8 +1,12 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_multivector_gramian.hpp
 * @brief Calculate the Gram matrix (Gramian) of a multivector (X^T X)
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2023-02-24
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
 

@@ -1,8 +1,13 @@
+// Copyright (c) 2022 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Manuel Joey Becklas
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_tensortrain_axpby_normalized.hpp
 * @brief addition for simple tensor train format where one of the tensors is normalized
 * @author Manuel Joey Becklas <Manuel.Becklas@DLR.de>
 * @date 2022-09-06
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
 

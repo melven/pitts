@@ -1,3 +1,7 @@
+// Copyright (c) 2022 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <gtest/gtest.h>
 #include "test_complex_helper.hpp"
 #include "pitts_tensor3_combine.hpp"

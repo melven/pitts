@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 """ Example for a spectral clustering algorithm that uses a low-rank approximation of the data """
 
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']

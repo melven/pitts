@@ -1,8 +1,12 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_tensor2_concat_impl.hpp
 * @brief Concatenize 2 tensors to one larger tensor (combine blocks of matrices)
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2023-05-25
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
 

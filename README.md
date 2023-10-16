@@ -1,5 +1,11 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+SPDX-License-Identifier: BSD-3-Clause
+-->
+
 # PITTS
 
+[![REUSE status](https://api.reuse.software/badge/github.com/melven/pitts)](https://api.reuse.software/info/github.com/melven/pitts)
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
 PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](#references) and [3](#references)).

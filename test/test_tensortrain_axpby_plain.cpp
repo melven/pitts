@@ -1,3 +1,8 @@
+// Copyright (c) 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Manuel Joey Becklas
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <gtest/gtest.h>
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensor2.hpp"

@@ -1,9 +1,13 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_missing_cereal.hpp
  * @brief Workaround for not including cereal everywhere
  * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
  * @date 2023-03-03
- * @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
- *
+  *
  **/
 
 // include guard

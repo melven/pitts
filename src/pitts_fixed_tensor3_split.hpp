@@ -1,8 +1,12 @@
+// Copyright (c) 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_fixed_tensor3_split.hpp
 * @brief split a fixed-dimension rank-3 tensor into two (using a QR decomposition)
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2019-12-29
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
 

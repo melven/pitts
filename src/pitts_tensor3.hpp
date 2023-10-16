@@ -1,8 +1,13 @@
+// Copyright (c) 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+// SPDX-FileContributor: Manuel Joey Becklas
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_tensor3.hpp
 * @brief Single tensor of rank 3 with dynamic dimensions
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2019-10-08
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
 

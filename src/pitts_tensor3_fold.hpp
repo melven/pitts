@@ -1,8 +1,13 @@
+// Copyright (c) 2022 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+// SPDX-FileContributor: Manuel Joey Becklas
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_tensor3_fold.hpp
 * @brief Reshape a 2-dimensional tensor into a 3-dimensional tensor
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2022-06-27
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 **/
 

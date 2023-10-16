@@ -1,3 +1,8 @@
+# Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 # integration build with code coverage in debug mode...
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug" )
   option(CODE_COVERAGE "Enable unit test code coverage" Off)

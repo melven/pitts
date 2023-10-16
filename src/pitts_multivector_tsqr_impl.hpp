@@ -1,8 +1,13 @@
+// Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+// SPDX-FileContributor: Manuel Joey Becklas
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*! @file pitts_multivector_tsqr_impl.hpp
 * @brief calculate the QR-decomposition of a multi-vector
 * @author Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2020-07-13
-* @copyright Deutsches Zentrum fuer Luft- und Raumfahrt e. V. (DLR), German Aerospace Center
 *
 * Based on
 * Demmel et.al.: "Communication-optimal Parallel and Sequential QR and LU Factorizations", SISC 2012, doi 10.1137/080731992

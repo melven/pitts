@@ -1,3 +1,8 @@
+# Copyright (c) 2021 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import pitts_py
 import numpy as np
 from tt_jacobi_davidson import tt_jacobi_davidson

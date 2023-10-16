@@ -1,3 +1,8 @@
+// Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <Teuchos_RCP.hpp>
 #include <Tpetra_Core.hpp>
 #include <Tpetra_MultiVector.hpp>

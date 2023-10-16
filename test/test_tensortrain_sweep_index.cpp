@@ -1,3 +1,7 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <gtest/gtest.h>
 #include "pitts_tensortrain_sweep_index.hpp"
 #include <array>

@@ -1,3 +1,7 @@
+// Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include <gtest/gtest.h>
 #include "pitts_fixed_tensortrain.hpp"
 #include "pitts_tensor2.hpp"

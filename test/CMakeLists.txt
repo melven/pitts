@@ -1,3 +1,7 @@
+# Copyright (c) 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 enable_testing()
 
 # get googletest for C++ unit tests

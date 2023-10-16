@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-#
+
 # Copyright (C) 2020 Deutsches Zentrum fuer Luft- und Raumfahrt e.V. (DLR),
-#                    German Aerospace Center
+# Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
 #
+# SPDX-License-Identifier: BSD-3-Clause
+
 """Tests for the PITTS::TensorTrain python binding"""
 
 __all__ = ['TestTensorTrain']

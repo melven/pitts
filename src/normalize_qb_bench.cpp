@@ -1,3 +1,8 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 #include "omp.h"
 #include "pitts_mkl.hpp"
 #include "pitts_common.hpp"
