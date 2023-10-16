@@ -42,6 +42,7 @@ build_debug_with_coverage:
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
+    - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc12-openmpi-python
     # unload itensor as it has problems compiling this way...
     - module unload -f itensor
@@ -77,6 +78,7 @@ build_debug:
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc13-openmpi-python
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug/"
     - ccache -z
@@ -121,6 +123,7 @@ build_debug_amd_clang:
   needs: []
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/llvm16-mpich
     # module load py-pybind11
     # module load py-numpy
