@@ -11,7 +11,7 @@ SPDX-License-Identifier: BSD-3-Clause
 PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](#references) and [3](#references)).
 It also provides a numpy-compatible python interface based on pybind11. Algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
 
-Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](#refences), TT-MALS [5](#references), TT-AMEn [6](#references)).
+Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](#references), TT-MALS [5](#references), TT-AMEn [6](#references)).
 
 ## Table of Contents
 
