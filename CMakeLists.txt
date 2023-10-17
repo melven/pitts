@@ -6,8 +6,8 @@
 ###
 ### Minimal cmake version
 ###
-cmake_minimum_required(VERSION 3.14.0) # not really needed
-cmake_policy(VERSION 3.14.0...3.26)
+cmake_minimum_required(VERSION 3.18.0) # first to provide LAPACK::LAPACK (before it is not available in modern form)
+cmake_policy(VERSION 3.18.0...3.26)
 
 
 ###
