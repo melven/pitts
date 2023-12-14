@@ -9,14 +9,29 @@
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_parallel.hpp"
 #include "eigen_test_helper.hpp"
+#include <complex>
+#include <limits>
+#include <cmath>
 
-
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace)
+template<typename T>
+class PITTS_MultiVector_tsqr: public ::testing::Test
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  public:
+    using Type = T;
+};
+
+using TestTypes = ::testing::Types<float, double, std::complex<float>, std::complex<double>>;
+TYPED_TEST_CASE(PITTS_MultiVector_tsqr, TestTypes);
+
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace)
+{
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 100;
   constexpr int m = 5;
@@ -46,17 +61,19 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace)
 
   int offset = firstRow*Chunk::size;
   int n_ = n - offset;
-  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
+  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixX<Type>::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).adjoint()) * mapX_ref.block(offset, col, n_, 1);
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace_firstRow_bigger_nChunks)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace_firstRow_bigger_nChunks)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 100;
   constexpr int m = 5;
@@ -86,17 +103,19 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_inplace_firs
 
   int offset = firstRow*Chunk::size;
   int n_ = n - offset;
-  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
+  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixX<Type>::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).adjoint()) * mapX_ref.block(offset, col, n_, 1);
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 100;
   constexpr int m = 5;
@@ -135,17 +154,19 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place
 
   int offset = firstRow*Chunk::size;
   int n_ = n - offset;
-  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
+  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixX<Type>::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).adjoint()) * mapX_ref.block(offset, col, n_, 1);
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place_firstRow_bigger_nChunks)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place_firstRow_bigger_nChunks)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 100;
   constexpr int m = 5;
@@ -177,17 +198,27 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection_out_of_place
 
   int offset = firstRow*Chunk::size;
   int n_ = n - offset;
-  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixXd::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).transpose()) * mapX_ref.block(offset, col, n_, 1);
+  mapX_ref.block(offset, col, n_, 1) = (Eigen::MatrixX<Type>::Identity(n_,n_) - mapV.bottomRows(n_) * mapV.bottomRows(n_).adjoint()) * mapX_ref.block(offset, col, n_, 1);
 
   ASSERT_NEAR(ConstEigenMap(X_ref), ConstEigenMap(X), eps);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
+
+  constexpr auto conj = [](Type x) -> Type
+  {
+    if constexpr (std::is_same_v<Type, RealType>)
+      return x;
+    else
+      return std::conj(x);
+  };
 
   constexpr int n = 100;
   constexpr int m = 5;
@@ -209,10 +240,10 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
   int nChunks = 2;
 
   // calculate vTw
-  double vTw = 0;
+  Type vTw = 0;
   for(int i = firstRow; i <= nChunks+firstRow; i++)
     for(int j = 0; j < Chunk::size; j++)
-      vTw += v.chunk(i,0)[j] * w.chunk(i,0)[j];
+      vTw += conj(v.chunk(i,0)[j]) * w.chunk(i,0)[j];
   Chunk vTw_chunk;
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
@@ -226,11 +257,21 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_inplace)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_place)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_place)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
+
+  constexpr auto conj = [](Type x) -> Type
+  {
+    if constexpr (std::is_same_v<Type, RealType>)
+      return x;
+    else
+      return std::conj(x);
+  };
 
   constexpr int n = 100;
   constexpr int m = 5;
@@ -252,10 +293,10 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_plac
   int nChunks = 2;
 
   // calculate vTw
-  double vTw = 0;
+  Type vTw = 0;
   for(int i = firstRow; i <= nChunks+firstRow; i++)
     for(int j = 0; j < Chunk::size; j++)
-      vTw += v.chunk(i,0)[j] * w.chunk(i,0)[j];
+      vTw += conj(v.chunk(i,0)[j]) * w.chunk(i,0)[j];
   Chunk vTw_chunk;
   for(int i = 0; i < Chunk::size; i++)
     vTw_chunk[i] = vTw;
@@ -278,11 +319,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_applyReflection2_out_of_plac
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 16*Chunk::size - 7;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
@@ -310,7 +353,8 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
     {
       if( i > j )
       {
-        ASSERT_NEAR(0., X(i,j), eps);
+        ASSERT_NEAR(RealType(0), std::real(X(i,j)), eps);
+        ASSERT_NEAR(RealType(0), std::imag(X(i,j)), eps);
       }
     }
   }
@@ -320,11 +364,11 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
   auto mapX_ref = ConstEigenMap(X_ref);
   //std::cout << "X:\n" << mapX << std::endl;
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapX.topRows(m));
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd(mapX.topRows(m));
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd_ref(mapX_ref);
 #else
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd(mapX.topRows(m), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd_ref(mapX_ref, Eigen::ComputeThinV);
 #endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
@@ -333,11 +377,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace_twoTriangularBlocks)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace_twoTriangularBlocks)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int m = 38;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
@@ -367,7 +413,8 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace_twoTr
     {
       if( i > j )
       {
-        ASSERT_NEAR(0., X(i,j), eps);
+        ASSERT_NEAR(RealType(0), std::real(X(i,j)), eps);
+        ASSERT_NEAR(RealType(0), std::imag(X(i,j)), eps);
       }
     }
   }
@@ -377,11 +424,11 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace_twoTr
   auto mapX_ref = ConstEigenMap(X_ref);
   //std::cout << "X:\n" << mapX << std::endl;
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapX.topRows(m));
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd(mapX.topRows(m));
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd_ref(mapX_ref);
 #else
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapX.topRows(m), Eigen::ComputeThinV);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd(mapX.topRows(m), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd_ref(mapX_ref, Eigen::ComputeThinV);
 #endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
@@ -390,11 +437,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace_twoTr
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 16*Chunk::size - 3;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
@@ -431,7 +480,8 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
     {
       if( i > nChunks*Chunk::size + j )
       {
-        EXPECT_NEAR(0., Xresult(2*Chunk::size+i,j), eps);
+        EXPECT_NEAR(RealType(0), std::real(Xresult(2*Chunk::size+i,j)), eps);
+        EXPECT_NEAR(RealType(0), std::imag(Xresult(2*Chunk::size+i,j)), eps);
       }
       // X shouldn't change
       if( i < nChunks*Chunk::size )
@@ -440,7 +490,7 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
       }
       else
       {
-        ASSERT_EQ(77., X(i,j));
+        ASSERT_EQ(Type(77), X(i,j));
       }
     }
   }
@@ -450,11 +500,11 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
   //std::cout << "X:\n" << mapXresult << std::endl;
   auto mapX_ref = ConstEigenMap(X_ref);
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(mapXresult.bottomRows(n-nChunks*Chunk::size));
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(mapX_ref);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd(mapXresult.bottomRows(n-nChunks*Chunk::size));
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd_ref(mapX_ref);
 #else
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(mapX_ref, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd(mapXresult.bottomRows(n-nChunks*Chunk::size), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd_ref(mapX_ref, Eigen::ComputeThinV);
 #endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
@@ -463,11 +513,13 @@ TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_place)
 }
 
 
-TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
+TYPED_TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
 
   MultiVector R1;
   MultiVector R2;
@@ -500,23 +552,23 @@ TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
 
     // create helper type
     MPI_Datatype mpiType;
-    ASSERT_EQ(MPI_SUCCESS, MPI_Type_contiguous(totalSize, MPI_DOUBLE, &mpiType));
+    ASSERT_EQ(MPI_SUCCESS, MPI_Type_contiguous(totalSize, PITTS::internal::parallel::mpiType<Type>(), &mpiType));
     ASSERT_EQ(MPI_SUCCESS, MPI_Type_commit(&mpiType));
     int len = 1;
 
-    PITTS::internal::HouseholderQR::combineTwoBlocks((const double*)(&(buff1[0][0])), &(buff2[0][0]), &len, &mpiType);
+    PITTS::internal::HouseholderQR::combineTwoBlocks((const Type*)(&(buff1[0][0])), &(buff2[0][0]), &len, &mpiType);
 
     // remove helper type
     ASSERT_EQ(MPI_SUCCESS, MPI_Type_free(&mpiType));
 
     // compara singular values with Eigen
-    Eigen::MatrixXd R12(2*m,m);
+    Eigen::MatrixX<Type> R12(2*m,m);
     R12.block(0,0,m,m) = ConstEigenMap(R1);
     R12.block(m,0,m,m) = ConstEigenMap(R2);
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd_ref(R12);
+    Eigen::JacobiSVD<Eigen::MatrixX<Type>> svd_ref(R12);
 
-    Eigen::Map<Eigen::MatrixXd> result(&(buff2[0][0]), mChunks*Chunk::size, m);
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(result);
+    Eigen::Map<Eigen::MatrixX<Type>> result(&(buff2[0][0]), mChunks*Chunk::size, m);
+    Eigen::JacobiSVD<Eigen::MatrixX<Type>> svd(result);
 
     EXPECT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);
   }
@@ -526,10 +578,11 @@ TEST(PITTS_MultiVector_tsqr, internal_combineTwoBlocks)
 namespace
 {
   // helper function for testing block_TSQR with different data dimensions, etc
-  template<typename T = double>
+  template<typename T>
   void test_block_TSQR(int n, int m)
   {
-    constexpr auto eps = 1.e-8;
+    using RealType = decltype(std::real(T()));
+    const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
     using Chunk = PITTS::Chunk<T>;
     using MultiVector = PITTS::MultiVector<T>;
     using Tensor2 = PITTS::Tensor2<T>;
@@ -549,8 +602,8 @@ namespace
     {
       for(int i = j+1; i < m; i++)
       {
-        ASSERT_NEAR(0., std::real(R(i,j)), eps);
-        ASSERT_NEAR(0., std::imag(R(i,j)), eps);
+        ASSERT_NEAR(RealType(0), std::real(R(i,j)), eps);
+        ASSERT_NEAR(RealType(0), std::imag(R(i,j)), eps);
       }
     }
 
@@ -581,90 +634,88 @@ namespace
   }
 }
 
-TEST(PITTS_MultiVector_tsqr, block_TSQR_small_serial)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_small_serial)
 {
+  using Type = TestFixture::Type;
   int nThreads = get_default_num_threads();
 
   omp_set_num_threads(1);
-  test_block_TSQR(50, 10);
+  test_block_TSQR<Type>(50, 10);
   omp_set_num_threads(nThreads);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, DISABLED_complex_block_TSQR_small_serial)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_small_4threads)
 {
-  int nThreads = get_default_num_threads();
-
-  omp_set_num_threads(1);
-  test_block_TSQR<std::complex<double>>(50, 10);
-  omp_set_num_threads(nThreads);
-}
-
-
-TEST(PITTS_MultiVector_tsqr, block_TSQR_small_4threads)
-{
+  using Type = TestFixture::Type;
   int nThreads = get_default_num_threads();
 
   ASSERT_LE(4, omp_get_max_threads());
   omp_set_num_threads(4);
 
-  test_block_TSQR(50, 10);
+  test_block_TSQR<Type>(50, 10);
 
   omp_set_num_threads(nThreads);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, block_TSQR_large_serial)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_large_serial)
 {
+  using Type = TestFixture::Type;
   int nThreads = get_default_num_threads();
 
   omp_set_num_threads(1);
-  test_block_TSQR(200, 30);
+  test_block_TSQR<Type>(200, 30);
   omp_set_num_threads(nThreads);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, block_TSQR_large_varying_sizes_serial)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_large_varying_sizes_serial)
 {
+  using Type = TestFixture::Type;
   int nThreads = get_default_num_threads();
 
   omp_set_num_threads(1);
   for(int m = 1; m < 30; m++)
   {
     std::cout << "Testing #cols = " << m << "\n";
-    test_block_TSQR(250, m);
+    test_block_TSQR<Type>(250, m);
   }
   omp_set_num_threads(nThreads);
 }
 
 
 
-TEST(PITTS_MultiVector_tsqr, block_TSQR_large_parallel)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_large_parallel)
 {
-  test_block_TSQR(200, 30);
+  using Type = TestFixture::Type;
+  test_block_TSQR<Type>(200, 30);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, block_TSQR_manyRows_differentNumbersOfThreads)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_manyRows_differentNumbersOfThreads)
 {
+  using Type = TestFixture::Type;
   int nThreads = get_default_num_threads();
 
   ASSERT_LE(4, omp_get_max_threads());
   for(int iThreads = 1; iThreads < 5; iThreads++)
   {
     omp_set_num_threads(iThreads);
-    test_block_TSQR(1000, 1);
+    test_block_TSQR<Type>(1000, 1);
   }
   omp_set_num_threads(nThreads);
 }
 
 
-TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
+TYPED_TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
 {
-  constexpr auto eps = 1.e-8;
-  using Chunk = PITTS::Chunk<double>;
-  using MultiVector = PITTS::MultiVector<double>;
-  using Tensor2 = PITTS::Tensor2<double>;
+  using Type = TestFixture::Type;
+  using RealType = decltype(std::real(Type()));
+  const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+  using Chunk = PITTS::Chunk<Type>;
+  using MultiVector = PITTS::MultiVector<Type>;
+  using Tensor2 = PITTS::Tensor2<Type>;
 
   const long long nTotal = 500;
   const long long m = 4;
@@ -673,8 +724,8 @@ TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
   const auto& [nFirst,nLast] = PITTS::internal::parallel::distribute(nTotal, {iProc,nProcs});
   const long long n = nLast - nFirst + 1;
 
-  Eigen::MatrixXd Mglobal = Eigen::MatrixXd::Random(nTotal, 4);
-  MPI_Bcast(Mglobal.data(), nTotal*m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  Eigen::MatrixX<Type> Mglobal = Eigen::MatrixX<Type>::Random(nTotal, 4);
+  MPI_Bcast(Mglobal.data(), nTotal*m, PITTS::internal::parallel::mpiType<Type>(), 0, MPI_COMM_WORLD);
 
   MultiVector M(n,m);
   {
@@ -690,17 +741,18 @@ TEST(PITTS_MultiVector_tsqr, block_TSQR_mpiGlobal)
   {
     for(int i = j+1; i < m; i++)
     {
-      ASSERT_NEAR(0., R(i,j), eps);
+      ASSERT_NEAR(RealType(0), std::real(R(i,j)), eps);
+      ASSERT_NEAR(RealType(0), std::imag(R(i,j)), eps);
     }
   }
 
   // check that the singular values and right singular vectors match...
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd(ConstEigenMap(R));
-  Eigen::BDCSVD<Eigen::MatrixXd, Eigen::ComputeThinV> svd_ref(Mglobal);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd(ConstEigenMap(R));
+  Eigen::BDCSVD<Eigen::MatrixX<Type>, Eigen::ComputeThinV> svd_ref(Mglobal);
 #else
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(ConstEigenMap(R), Eigen::ComputeThinV);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd_ref(Mglobal, Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd(ConstEigenMap(R), Eigen::ComputeThinV);
+  Eigen::BDCSVD<Eigen::MatrixX<Type>> svd_ref(Mglobal, Eigen::ComputeThinV);
 #endif
 
   ASSERT_NEAR(svd_ref.singularValues(), svd.singularValues(), eps);

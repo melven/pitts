@@ -99,7 +99,7 @@ namespace PITTS
           // fast case: in-place operation
           Chunk<T> vTx{};
           for(int i = firstRow; i <= nChunks+firstRow; i++)
-            fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+            fmadd(conj(v[i]), pdataResult[i+ldaResult*col], vTx);
           bcast_sum(vTx);
           for(int i = firstRow; i <= nChunks+firstRow; i++)
             fnmadd(vTx, v[i], pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col]);
@@ -109,9 +109,9 @@ namespace PITTS
           // generic case: out-of-place operation with input data from both pdata and pdataResult
           Chunk<T> vTx{};
           for(int i = firstRow; i < nChunks; i++)
-            fmadd(v[i], pdata[i+lda*col], vTx);
+            fmadd(conj(v[i]), pdata[i+lda*col], vTx);
           for(int i = nChunks; i <= nChunks+firstRow; i++)
-            fmadd(v[i], pdataResult[i+ldaResult*col], vTx);
+            fmadd(conj(v[i]), pdataResult[i+ldaResult*col], vTx);
           bcast_sum(vTx);
           for(int i = firstRow; i < nChunks; i++)
             fnmadd(vTx, v[i], pdata[i+lda*col], pdataResult[i+ldaResult*col]);
@@ -166,8 +166,8 @@ namespace PITTS
           {
             for(int j = 0; j < NC; j++)
             {
-              fmadd(w[i], pdataResult[i+ldaResult*(col+j)], wTx[j]);
-              fmadd(v[i], pdataResult[i+ldaResult*(col+j)], vTx[j]);
+              fmadd(conj(w[i]), pdataResult[i+ldaResult*(col+j)], wTx[j]);
+              fmadd(conj(v[i]), pdataResult[i+ldaResult*(col+j)], vTx[j]);
             }
           };
           if( !twoTriangularBlocks )
@@ -226,16 +226,16 @@ namespace PITTS
           {
             for(int j = 0; j < NC; j++)
             {
-              fmadd(w[i], pdata[i+lda*(col+j)], wTx[j]);
-              fmadd(v[i], pdata[i+lda*(col+j)], vTx[j]);
+              fmadd(conj(w[i]), pdata[i+lda*(col+j)], wTx[j]);
+              fmadd(conj(v[i]), pdata[i+lda*(col+j)], vTx[j]);
             }
           }
           for(int i = nChunks; i <= nChunks+firstRow; i++)
           {
             for(int j = 0; j < NC; j++)
             {
-              fmadd(w[i], pdataResult[i+ldaResult*(col+j)], wTx[j]);
-              fmadd(v[i], pdataResult[i+ldaResult*(col+j)], vTx[j]);
+              fmadd(conj(w[i]), pdataResult[i+ldaResult*(col+j)], wTx[j]);
+              fmadd(conj(v[i]), pdataResult[i+ldaResult*(col+j)], vTx[j]);
             }
           }
           for(int j = 0; j < NC; j++)
@@ -457,6 +457,9 @@ namespace PITTS
       [[gnu::always_inline]]
       inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset, int col)
       {
+        using RealType = decltype(std::abs(T(0)));
+        static_assert(RealType(0) != std::numeric_limits<RealType>::min());
+
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
         const Chunk<T>* pdata = nullptr;
@@ -481,21 +484,19 @@ namespace PITTS
         // v = u / ||u||
         T pivot = pdata[firstRow+lda*col][idx];
         Chunk<T> uTu;
-        mul(pivotChunk, pivotChunk, uTu);
+        mul(conj(pivotChunk), pivotChunk, uTu);
         {
           int i = firstRow+1;
           for(; i < nChunks; i++)
-            fmadd(pdata[i+lda*col], pdata[i+lda*col], uTu);
+            fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu);
           for(; i <= nChunks+firstRow; i++)
-            fmadd(pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col], uTu);
+            fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu);
         }
 
-        T uTu_sum = sum(uTu) + std::numeric_limits<T>::min();
+        T uTu_sum = sum(uTu) + std::numeric_limits<RealType>::min();
 
         // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
         // (falls back to I - 2 e1 e1^T in that case)
-        using RealType = decltype(std::abs(T(0)));
-        static_assert(RealType(0) != std::numeric_limits<RealType>::min());
         T alpha = std::sqrt(uTu_sum + std::numeric_limits<RealType>::min());
         if constexpr ( requires(T x){x > 0;} )
           alpha *= (pivot > 0 ? -1 : 1);
@@ -508,7 +509,19 @@ namespace PITTS
         Chunk<T> vtmp[nChunks+1];
         if( col+1 < m )
         {
-          uTu_sum -= pivot*alpha;
+          // real case:
+          //   alpha = +- ||x||
+          //   u = x - alpha*e_1
+          //   ||u||^2 = ||x||^2 - x_1^2 + x_1^2 + (x_1 - alpha)^2 = ||x||^2 - x_1^2 + x_1^2 - 2x_1 alpha + alpha^2 = ||x||^2 - 2x_1 alpha + ||x||^2 = 2(||x||^2 - x_1 alpha)
+          //   => 0.5*||u||^2 = ||x||^2 - x_1*alpha
+          // complex case:
+          //   |alpha| = ||x||
+          //   u = x - alpha*e_1
+          //   ||u||^2 = ||x||^2 - |x_1|^2 + |x_1|^2 - conj(x_1) alpha - conj(alpha) alpha + |alpha|^2 = ||x||^2 + 2*conj(x_1)*alpha + ||x||^2
+          if constexpr ( requires(T x){x > 0;} )
+            uTu_sum -= pivot*alpha;
+          else
+            uTu_sum -= std::conj(pivot)*alpha;
           pivot -= alpha;
           index_bcast(pivotChunk, idx, pivot, pivotChunk);
           T beta = T(1)/std::sqrt(uTu_sum);
@@ -518,7 +531,29 @@ namespace PITTS
             mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
           for(; i <= nChunks+firstRow; i++)
             mul(beta, pdataResult[i+ldaResult*col], vtmp[i-firstRow]);
+#ifndef NDEBUG
+{
+  using RealType = decltype(std::abs(T(0)));
+  const auto eps = 10*std::sqrt(std::numeric_limits<RealType>::epsilon());
+  // check reflection vector
+  applyReflection(nChunks, firstRow, col, vtmp-firstRow, pdata, lda, pdataResult, ldaResult);
+  assert(std::abs(pdataResult[firstRow+ldaResult*col][idx] - alpha) < eps);
+  // check that resulting column is correct:
+  for(int j = idx+1; j < Chunk<T>::size; j++)
+  {
+    assert(std::abs(pdataResult[firstRow+ldaResult*col][j]) < eps);
+  }
+  for(int i = firstRow+1; i < nChunks; i++)
+  {
+    for(int j = 0; j < Chunk<T>::size; j++)
+    {
+      assert(std::abs(pdataResult[i+ldaResult*col][j]) <= eps);
+    }
+  }
+}
+#endif
         }
+
 
         // set (known) current column to (*,*,*,alpha,0,0,...)
         Chunk<T> alphaChunk;
@@ -561,7 +596,7 @@ namespace PITTS
 
             Chunk<T> vTw{};
             for(int i = firstRow; i <= nChunks+firstRow; i++)
-              fmadd(v[i], w[i], vTw);
+              fmadd(conj(v[i]), w[i], vTw);
             bcast_sum(vTw);
             w[nChunks+firstRow+1] = vTw;
           }
