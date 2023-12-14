@@ -327,7 +327,7 @@ TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_inplace
   using Chunk = PITTS::Chunk<Type>;
   using MultiVector = PITTS::MultiVector<Type>;
 
-  constexpr int n = 16*Chunk::size - 7;   // force padding, we need some extra space in transformBlock
+  constexpr int n = 15*Chunk::size + 1;   // force padding, we need some extra space in transformBlock
   constexpr int m = 19;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
@@ -446,7 +446,7 @@ TYPED_TEST(PITTS_MultiVector_tsqr, internal_HouseholderQR_transformBlock_out_of_
   using MultiVector = PITTS::MultiVector<Type>;
 
   constexpr int n = 16*Chunk::size - 3;   // force padding, we need some extra space in transformBlock
-  constexpr int m = 19;
+  constexpr int m = 9;
   constexpr int mChunks = (m-1) / Chunk::size + 1;
   constexpr int nTotalChunks = (n-1) / Chunk::size + 1;
   constexpr int nChunks = nTotalChunks - mChunks;

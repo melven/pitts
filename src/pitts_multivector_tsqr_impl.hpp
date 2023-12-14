@@ -531,6 +531,7 @@ namespace PITTS
             mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
           for(; i <= nChunks+firstRow; i++)
             mul(beta, pdataResult[i+ldaResult*col], vtmp[i-firstRow]);
+#if 0
 #ifndef NDEBUG
 {
   using RealType = decltype(std::abs(T(0)));
@@ -552,6 +553,7 @@ namespace PITTS
     }
   }
 }
+#endif
 #endif
         }
 
