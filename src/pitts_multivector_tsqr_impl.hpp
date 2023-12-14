@@ -535,19 +535,20 @@ namespace PITTS
 {
   using RealType = decltype(std::abs(T(0)));
   const auto eps = 10*std::sqrt(std::numeric_limits<RealType>::epsilon());
+  const auto rel_eps = eps * std::max(std::abs(alpha), RealType(1));
   // check reflection vector
   applyReflection(nChunks, firstRow, col, vtmp-firstRow, pdata, lda, pdataResult, ldaResult);
-  assert(std::abs(pdataResult[firstRow+ldaResult*col][idx] - alpha) < eps);
+  assert(std::abs(pdataResult[firstRow+ldaResult*col][idx] - alpha) < rel_eps);
   // check that resulting column is correct:
   for(int j = idx+1; j < Chunk<T>::size; j++)
   {
-    assert(std::abs(pdataResult[firstRow+ldaResult*col][j]) < eps);
+    assert(std::abs(pdataResult[firstRow+ldaResult*col][j]) < rel_eps);
   }
   for(int i = firstRow+1; i < nChunks; i++)
   {
     for(int j = 0; j < Chunk<T>::size; j++)
     {
-      assert(std::abs(pdataResult[i+ldaResult*col][j]) <= eps);
+      assert(std::abs(pdataResult[i+ldaResult*col][j]) <= rel_eps);
     }
   }
 }
