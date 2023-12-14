@@ -16,3 +16,4 @@ using namespace PITTS;
 template void PITTS::randomize<double>(MultiVector<double>& X);
 template void PITTS::randomize<float>(MultiVector<float>& X);
 template void PITTS::randomize<std::complex<double>>(MultiVector<std::complex<double>>& X);
+template void PITTS::randomize<std::complex<float>>(MultiVector<std::complex<float>>& X);

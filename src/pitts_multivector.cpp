@@ -15,7 +15,10 @@ using namespace PITTS;
 
 template class PITTS::MultiVector<double>;
 template class PITTS::MultiVector<float>;
+template class PITTS::MultiVector<std::complex<double>>;
+template class PITTS::MultiVector<std::complex<float>>;
 
 template void PITTS::copy<double>(const MultiVector<double>& a, MultiVector<double>& b);
 template void PITTS::copy<float>(const MultiVector<float>& a, MultiVector<float>& b);
-
+template void PITTS::copy<std::complex<double>>(const MultiVector<std::complex<double>>& a, MultiVector<std::complex<double>>& b);
+template void PITTS::copy<std::complex<float>>(const MultiVector<std::complex<float>>& a, MultiVector<std::complex<float>>& b);
