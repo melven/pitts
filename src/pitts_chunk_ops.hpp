@@ -57,6 +57,10 @@ namespace PITTS
   template<typename T>
   inline void fnmadd(T a, const Chunk<T>& b, Chunk<T>& c);
 
+  //! complex-conjugate all elements (swap sign of complex-part)
+  template<typename T>
+  inline Chunk<T> conj(const Chunk<T>& a);
+
   //! sum up all elements of a chunk ( return a_1 + ... + a_n )
   template<typename T>
   inline T sum(const Chunk<T>& a);
