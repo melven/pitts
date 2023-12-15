@@ -17,12 +17,19 @@
 #include <stdexcept>
 
 
+#ifdef TYPE
+using Type = TYPE;
+#else
+using Type = double;
+#endif
+
+
 int main(int argc, char* argv[])
 {
   PITTS::initialize(&argc, &argv);
 
-  using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
-  using Chunk = PITTS::Chunk<double>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using Chunk = PITTS::Chunk<Type>;
 
   if( argc != 5 && argc != 6 )
     throw std::invalid_argument("Requires 4 arguments (n m reductionFactor nIter [colBlockingSize] )!");
@@ -43,10 +50,10 @@ int main(int argc, char* argv[])
     n = nLast - nFirst + 1;
   }
 
-  PITTS::MultiVector<double> M(n, m);
+  PITTS::MultiVector<Type> M(n, m);
   randomize(M);
 
-  PITTS::Tensor2<double> R(m,m);
+  PITTS::Tensor2<Type> R(m,m);
 
 double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
