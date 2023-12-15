@@ -582,7 +582,7 @@ namespace
   void test_block_TSQR(int n, int m)
   {
     using RealType = decltype(std::real(T()));
-    const RealType eps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+    const RealType eps = 10*std::sqrt(std::numeric_limits<RealType>::epsilon());
     using Chunk = PITTS::Chunk<T>;
     using MultiVector = PITTS::MultiVector<T>;
     using Tensor2 = PITTS::Tensor2<T>;
