@@ -34,7 +34,8 @@ namespace PITTS
   template<typename T>
   inline void fmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c)
   {
-    fmadd(a, b, c, c);
+    for(short i = 0; i < Chunk<T>::size; i++)
+      c[i] = a[i]*b[i] + c[i];
   }
 
   // scalar+Chunk FMA3 default implementation
@@ -47,19 +48,17 @@ namespace PITTS
 
   // complex-conjugate all elements (swap sign of complex-part)
   template<typename T>
-  inline Chunk<std::complex<T>> conj(const Chunk<std::complex<T>>& a)
-  {
-    Chunk<std::complex<T>> b;
-    for(short i = 0; i < Chunk<std::complex<T>>::size; i++)
-      b[i] = std::conj(a[i]);
-    return b;
-  }
-
-  // complex-conjugate all elements (no-op for real types)
-  template<typename T>
   inline Chunk<T> conj(const Chunk<T>& a)
   {
-    return a;
+    Chunk<T> b;
+    for(short i = 0; i < Chunk<T>::size; i++)
+    {
+      if constexpr ( requires(T x){ {std::conj(x)} -> std::same_as<T>; } )
+        b[i] = std::conj(a[i]);
+      else
+        b[i] = a[i];
+    }
+    return b;
   }
 
 
@@ -91,7 +90,8 @@ namespace PITTS
   template<typename T>
   inline void fnmadd(const Chunk<T>& a, const Chunk<T>& b, Chunk<T>& c)
   {
-    fnmadd(a, b, c, c);
+    for(short i = 0; i < Chunk<T>::size; i++)
+      c[i] = c[i] - a[i]*b[i];
   }
 
   // negative FMA3 default implementation

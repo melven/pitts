@@ -179,6 +179,28 @@ MY_TYPED_TEST(scalar_fmadd)
 }
 
 
+MY_TYPED_TEST(conj)
+{
+  using Type = TestFixture::Type;
+  using Chunk = PITTS::Chunk<Type>;
+
+  Chunk a, b;
+  randomize(a);
+  randomize(b);
+
+  const Chunk a_ref = a;
+
+  b = conj(a);
+  
+  EXPECT_EQ(a_ref, a);
+  for(int i = 0; i < Chunk::size; i++)
+  {
+    EXPECT_EQ(std::real(a[i]), std::real(b[i]));
+    EXPECT_EQ(-std::imag(a[i]), std::imag(b[i]));
+  }
+}
+
+
 MY_TYPED_TEST(scalar_mul)
 {
   using Type = TestFixture::Type;
