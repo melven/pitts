@@ -50,15 +50,17 @@ namespace PITTS
   template<typename T>
   inline Chunk<T> conj(const Chunk<T>& a)
   {
-    Chunk<T> b;
-    for(short i = 0; i < Chunk<T>::size; i++)
+    if constexpr ( requires(T x){ {std::conj(x)} -> std::same_as<T>; } )
     {
-      if constexpr ( requires(T x){ {std::conj(x)} -> std::same_as<T>; } )
+      Chunk<T> b;
+      for(short i = 0; i < Chunk<T>::size; i++)
         b[i] = std::conj(a[i]);
-      else
-        b[i] = a[i];
+      return b;
     }
-    return b;
+    else
+    {
+      return a;
+    }
   }
 
 

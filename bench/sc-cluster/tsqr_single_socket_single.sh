@@ -7,5 +7,5 @@
 #SBATCH --output="%x-%j.out"
 
 for ((i=1; i <= 100; i++)); do
-  srun likwid-pin -c 0-13 ../../build_gcc_new/src/tsqr_double_bench 25000000 $i 0 50
+  srun likwid-pin -c 0-13 ../../build_gcc_new/src/tsqr_single_bench 25000000 $i 0 50
 done
