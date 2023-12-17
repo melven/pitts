@@ -56,9 +56,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 ai = _mm512_load_ps(&a[8*i]);
-      __m512 bi = _mm512_load_ps(&b[8*i]);
-      __m512 ci = _mm512_load_ps(&c[8*i]);
+      __m512 ai = _mm512_load_ps((const float*)&a[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
+      __m512 ci = _mm512_load_ps((const float*)&c[8*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 ai_rr = _mm512_permute_ps(ai, 0<<0 | 0<<2 | 2<<4 | 2<<6);
@@ -66,7 +66,7 @@ namespace PITTS
       __m512 bi_ir = _mm512_permute_ps(bi, 1<<0 | 0<<2 | 3<<4 | 2<<6);
       ci = _mm512_fmaddsub_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_ps(ai_rr, bi, ci);
-      _mm512_store_ps(&d[8*i],ci);
+      _mm512_store_ps((float*)&d[8*i],ci);
     }
   }
 
@@ -76,9 +76,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d ai = _mm512_load_pd(&a[4*i]);
-      __m512d bi = _mm512_load_pd(&b[4*i]);
-      __m512d ci = _mm512_load_pd(&c[4*i]);
+      __m512d ai = _mm512_load_pd((const double*)&a[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
+      __m512d ci = _mm512_load_pd((const double*)&c[4*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d ai_rr = _mm512_permute_pd(ai, 0<<0 | 0<<2 | 0<<4 | 0<<6);
@@ -90,7 +90,7 @@ namespace PITTS
       // ci_r'' <- - ci_r' + ai_r*bi_r = ci_r - ai_i*bi_i + ai_r*bi_r
       // ci_i'' <- + ci_i' + ai_r*bi_i = ci_i + ai_i*bi_r + ai_r*bi_i
       ci = _mm512_fmaddsub_pd(ai_rr, bi, ci);
-      _mm512_store_pd(&d[4*i],ci);
+      _mm512_store_pd((double*)&d[4*i],ci);
     }
   }
 
@@ -129,9 +129,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 ai = _mm512_load_ps(&a[8*i]);
-      __m512 bi = _mm512_load_ps(&b[8*i]);
-      __m512 ci = _mm512_load_ps(&c[8*i]);
+      __m512 ai = _mm512_load_ps((const float*)&a[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
+      __m512 ci = _mm512_load_ps((const float*)&c[8*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 ai_rr = _mm512_permute_ps(ai, 0<<0 | 0<<2 | 2<<4 | 2<<6);
@@ -139,7 +139,7 @@ namespace PITTS
       __m512 bi_ir = _mm512_permute_ps(bi, 1<<0 | 0<<2 | 3<<4 | 2<<6);
       ci = _mm512_fmaddsub_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_ps(ai_rr, bi, ci);
-      _mm512_store_ps(&c[8*i],ci);
+      _mm512_store_ps((float*)&c[8*i],ci);
     }
   }
 
@@ -149,9 +149,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d ai = _mm512_load_pd(&a[4*i]);
-      __m512d bi = _mm512_load_pd(&b[4*i]);
-      __m512d ci = _mm512_load_pd(&c[4*i]);
+      __m512d ai = _mm512_load_pd((const double*)&a[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
+      __m512d ci = _mm512_load_pd((const double*)&c[4*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d ai_rr = _mm512_permute_pd(ai, 0<<0 | 0<<2 | 0<<4 | 0<<6);
@@ -159,7 +159,7 @@ namespace PITTS
       __m512d bi_ir = _mm512_permute_pd(bi, 1<<0 | 1<<2 | 1<<4 | 1<<6);
       ci = _mm512_fmaddsub_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_pd(ai_rr, bi, ci);
-      _mm512_store_pd(&c[4*i],ci);
+      _mm512_store_pd((double*)&c[4*i],ci);
     }
   }
 
@@ -199,14 +199,14 @@ namespace PITTS
     __m512 ai_ii = _mm512_set1_ps(a.imag());
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 bi = _mm512_load_ps(&b[8*i]);
-      __m512 ci = _mm512_load_ps(&c[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
+      __m512 ci = _mm512_load_ps((const float*)&c[8*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 bi_ir = _mm512_permute_ps(bi, 1<<0 | 0<<2 | 3<<4 | 2<<6);
       ci = _mm512_fmaddsub_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_ps(ai_rr, bi, ci);
-      _mm512_store_ps(&c[8*i],ci);
+      _mm512_store_ps((float*)&c[8*i],ci);
     }
   }
 
@@ -218,14 +218,14 @@ namespace PITTS
     __m512d ai_ii = _mm512_set1_pd(a.imag());
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d bi = _mm512_load_pd(&b[4*i]);
-      __m512d ci = _mm512_load_pd(&c[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
+      __m512d ci = _mm512_load_pd((const double*)&c[4*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d bi_ir = _mm512_permute_pd(bi, 1<<0 | 1<<2 | 1<<4 | 1<<6);
       ci = _mm512_fmaddsub_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_pd(ai_rr, bi, ci);
-      _mm512_store_pd(&c[4*i],ci);
+      _mm512_store_pd((double*)&c[4*i],ci);
     }
   }
 
@@ -238,9 +238,9 @@ namespace PITTS
     Chunk<std::complex<float>> b;
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 ai = _mm512_load_ps(&a[8*i]);
+      __m512 ai = _mm512_load_ps((const float*)&a[8*i]);
       __m512 bi = _mm512_xor_ps(ai, sign_mask);
-      _mm512_store_ps(&b[8*i],bi);
+      _mm512_store_ps((float*)&b[8*i],bi);
     }
     return b;
   }
@@ -254,9 +254,9 @@ namespace PITTS
     Chunk<std::complex<double>> b;
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d ai = _mm512_load_pd(&a[4*i]);
+      __m512d ai = _mm512_load_pd((const double*)&a[4*i]);
       __m512d bi = _mm512_xor_pd(ai, sign_mask);
-      _mm512_store_pd(&b[4*i],bi);
+      _mm512_store_pd((double*)&b[4*i],bi);
     }
     return b;
   }
@@ -295,14 +295,14 @@ namespace PITTS
     __m512 ai_ii = _mm512_set1_ps(a.imag());
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 bi = _mm512_load_ps(&b[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
       __m512 ci = _mm512_setzero_ps();
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 bi_ir = _mm512_permute_ps(bi, 1<<0 | 0<<2 | 3<<4 | 2<<6);
       ci = _mm512_fmaddsub_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_ps(ai_rr, bi, ci);
-      _mm512_store_ps(&c[8*i],ci);
+      _mm512_store_ps((float*)&c[8*i],ci);
     }
   }
 
@@ -314,14 +314,14 @@ namespace PITTS
     __m512d ai_ii = _mm512_set1_pd(a.imag());
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d bi = _mm512_load_pd(&b[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
       __m512d ci = _mm512_setzero_pd();
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d bi_ir = _mm512_permute_pd(bi, 1<<0 | 1<<2 | 1<<4 | 1<<6);
       ci = _mm512_fmaddsub_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_pd(ai_rr, bi, ci);
-      _mm512_store_pd(&c[4*i],ci);
+      _mm512_store_pd((double*)&c[4*i],ci);
     }
   }
 
@@ -357,8 +357,8 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 ai = _mm512_load_ps(&a[8*i]);
-      __m512 bi = _mm512_load_ps(&b[8*i]);
+      __m512 ai = _mm512_load_ps((const float*)&a[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
       __m512 ci = _mm512_setzero_ps();
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
@@ -367,7 +367,7 @@ namespace PITTS
       __m512 bi_ir = _mm512_permute_ps(bi, 1<<0 | 0<<2 | 3<<4 | 2<<6);
       ci = _mm512_fmaddsub_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_ps(ai_rr, bi, ci);
-      _mm512_store_ps(&c[8*i],ci);
+      _mm512_store_ps((float*)&c[8*i],ci);
     }
   }
 
@@ -377,8 +377,8 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d ai = _mm512_load_pd(&a[4*i]);
-      __m512d bi = _mm512_load_pd(&b[4*i]);
+      __m512d ai = _mm512_load_pd((const double*)&a[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
       __m512d ci = _mm512_setzero_pd();
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
@@ -387,7 +387,7 @@ namespace PITTS
       __m512d bi_ir = _mm512_permute_pd(bi, 1<<0 | 1<<2 | 1<<4 | 1<<6);
       ci = _mm512_fmaddsub_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmaddsub_pd(ai_rr, bi, ci);
-      _mm512_store_pd(&c[4*i],ci);
+      _mm512_store_pd((double*)&c[4*i],ci);
     }
   }
 
@@ -425,9 +425,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 ai = _mm512_load_ps(&a[8*i]);
-      __m512 bi = _mm512_load_ps(&b[8*i]);
-      __m512 ci = _mm512_load_ps(&c[8*i]);
+      __m512 ai = _mm512_load_ps((const float*)&a[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
+      __m512 ci = _mm512_load_ps((const float*)&c[8*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 ai_rr = _mm512_permute_ps(ai, 0<<0 | 0<<2 | 2<<4 | 2<<6);
@@ -436,7 +436,7 @@ namespace PITTS
       __m512 neg_bi = -bi;
       ci = _mm512_fmsubadd_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmsubadd_ps(ai_rr, neg_bi, ci);
-      _mm512_store_ps(&d[8*i],ci);
+      _mm512_store_ps((float*)&d[8*i],ci);
     }
   }
 
@@ -446,9 +446,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d ai = _mm512_load_pd(&a[4*i]);
-      __m512d bi = _mm512_load_pd(&b[4*i]);
-      __m512d ci = _mm512_load_pd(&c[4*i]);
+      __m512d ai = _mm512_load_pd((const double*)&a[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
+      __m512d ci = _mm512_load_pd((const double*)&c[4*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d ai_rr = _mm512_permute_pd(ai, 0<<0 | 0<<2 | 0<<4 | 0<<6);
@@ -457,7 +457,7 @@ namespace PITTS
       __m512d neg_bi = -bi;
       ci = _mm512_fmsubadd_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmsubadd_pd(ai_rr, neg_bi, ci);
-      _mm512_store_pd(&d[4*i],ci);
+      _mm512_store_pd((double*)&d[4*i],ci);
     }
   }
 
@@ -495,9 +495,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 ai = _mm512_load_ps(&a[8*i]);
-      __m512 bi = _mm512_load_ps(&b[8*i]);
-      __m512 ci = _mm512_load_ps(&c[8*i]);
+      __m512 ai = _mm512_load_ps((const float*)&a[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
+      __m512 ci = _mm512_load_ps((const float*)&c[8*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 ai_rr = _mm512_permute_ps(ai, 0<<0 | 0<<2 | 2<<4 | 2<<6);
@@ -506,7 +506,7 @@ namespace PITTS
       __m512 neg_bi = -bi;
       ci = _mm512_fmsubadd_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmsubadd_ps(ai_rr, neg_bi, ci);
-      _mm512_store_ps(&c[8*i],ci);
+      _mm512_store_ps((float*)&c[8*i],ci);
     }
   }
 
@@ -516,9 +516,9 @@ namespace PITTS
   {
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d ai = _mm512_load_pd(&a[4*i]);
-      __m512d bi = _mm512_load_pd(&b[4*i]);
-      __m512d ci = _mm512_load_pd(&c[4*i]);
+      __m512d ai = _mm512_load_pd((const double*)&a[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
+      __m512d ci = _mm512_load_pd((const double*)&c[4*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d ai_rr = _mm512_permute_pd(ai, 0<<0 | 0<<2 | 0<<4 | 0<<6);
@@ -527,7 +527,7 @@ namespace PITTS
       __m512d neg_bi = -bi;
       ci = _mm512_fmsubadd_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmsubadd_pd(ai_rr, neg_bi, ci);
-      _mm512_store_pd(&c[4*i],ci);
+      _mm512_store_pd((double*)&c[4*i],ci);
     }
   }
 
@@ -567,14 +567,14 @@ namespace PITTS
     __m512 ai_ii = _mm512_set1_ps(a.imag());
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512 bi = _mm512_load_ps(&b[8*i]);
-      __m512 ci = _mm512_load_ps(&c[8*i]);
+      __m512 bi = _mm512_load_ps((const float*)&b[8*i]);
+      __m512 ci = _mm512_load_ps((const float*)&c[8*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512 bi_ir = _mm512_permute_ps(bi, 1<<0 | 0<<2 | 3<<4 | 2<<6);
       ci = _mm512_fmsubadd_ps(ai_ii, bi_ir, ci);
       ci = _mm512_fmsubadd_ps(ai_rr, bi, ci);
-      _mm512_store_ps(&c[8*i],ci);
+      _mm512_store_ps((float*)&c[8*i],ci);
     }
   }
 
@@ -586,14 +586,14 @@ namespace PITTS
     __m512d ai_ii = _mm512_set1_pd(a.imag());
     for(short i = 0; i < ALIGNMENT/64; i++)
     {
-      __m512d bi = _mm512_load_pd(&b[4*i]);
-      __m512d ci = _mm512_load_pd(&c[4*i]);
+      __m512d bi = _mm512_load_pd((const double*)&b[4*i]);
+      __m512d ci = _mm512_load_pd((const double*)&c[4*i]);
       // c_r = c_r + a_r*b_r - a_i*b_i
       // c_i = c_i + a_r*b_i + a_i*b_r
       __m512d bi_ir = _mm512_permute_pd(bi, 1<<0 | 1<<2 | 1<<4 | 1<<6);
       ci = _mm512_fmsubadd_pd(ai_ii, bi_ir, ci);
       ci = _mm512_fmsubadd_pd(ai_rr, bi, ci);
-      _mm512_store_pd(&c[4*i],ci);
+      _mm512_store_pd((double*)&c[4*i],ci);
     }
   }
 
@@ -666,8 +666,8 @@ namespace PITTS
     static_assert(Chunk<std::complex<float>>::size == 16);
     // not sure if this is actually faster that vadd;
     // I assume it pipelines better with other AVX512 ops
-    __m512 vl2 = _mm512_load_ps(&v[0]);
-    __m512 vh2 = _mm512_load_ps(&v[8]);
+    __m512 vl2 = _mm512_load_ps((const float*)&v[0]);
+    __m512 vh2 = _mm512_load_ps((const float*)&v[8]);
 
     __m256 vl30 = _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(vl2), 0));
     __m256 vh30 = _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(vh2), 0));
@@ -694,8 +694,8 @@ namespace PITTS
   {
     static_assert(Chunk<std::complex<double>>::size == 8);
 
-    __m512d v02 = _mm512_load_pd(&v[0]);
-    __m512d v82 = _mm512_load_pd(&v[4]);
+    __m512d v02 = _mm512_load_pd((const double*)&v[0]);
+    __m512d v82 = _mm512_load_pd((const double*)&v[4]);
 
     __m256d v030 = _mm512_extractf64x4_pd(v02, 0);
     __m256d v830 = _mm512_extractf64x4_pd(v82, 0);
@@ -761,7 +761,7 @@ namespace PITTS
   template<>
   inline void bcast_sum<std::complex<float>>(Chunk<std::complex<float>>& v)
   {
-    __m512 v0 = _mm512_add_ps(_mm512_load_ps(&v[0]), _mm512_load_ps(&v[8]));
+    __m512 v0 = _mm512_add_ps(_mm512_load_ps((const float*)&v[0]), _mm512_load_ps((const float*)&v[8]));
 
     __m512 v3 = _mm512_permute_ps(v0, 2<<0 | 3<<2 | 0<<4 | 1<<6 );
     __m512 v4 = _mm512_add_ps(v0, v3);
@@ -772,15 +772,15 @@ namespace PITTS
     __m512 v7 = _mm512_permutexvar_ps(_mm512_set_epi32(7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8), v6);
     __m512 v8 = _mm512_add_ps(v6, v7);
 
-    _mm512_store_ps(&v[0], v8);
-    _mm512_store_ps(&v[8], v8);
+    _mm512_store_ps((float*)&v[0], v8);
+    _mm512_store_ps((float*)&v[8], v8);
   }
 
   // specialization for double for dumb compilers
   template<>
   inline void bcast_sum<std::complex<double>>(Chunk<std::complex<double>>& v)
   {
-    __m512d v2 = _mm512_add_pd(_mm512_load_pd(&v[0]), _mm512_load_pd(&v[4]));
+    __m512d v2 = _mm512_add_pd(_mm512_load_pd((const double*)&v[0]), _mm512_load_pd((const double*)&v[4]));
 
     __m512d v3 = _mm512_permutex_pd(v2, 2 | 3<<2 | 0<<4 | 1<<6);
     __m512d v4 = _mm512_add_pd(v2, v3);
@@ -788,8 +788,8 @@ namespace PITTS
     __m512d v5 = _mm512_permutexvar_pd(_mm512_set_epi64(3,2,1,0,7,6,5,4), v4);
     __m512d v6 = _mm512_add_pd(v4, v5);
 
-    _mm512_store_pd(&v[0], v6);
-    _mm512_store_pd(&v[4], v6);
+    _mm512_store_pd((double*)&v[0], v6);
+    _mm512_store_pd((double*)&v[4], v6);
   }
 
   // compilers seem not to generate masked SIMD commands
@@ -828,7 +828,7 @@ namespace PITTS
     {
       unsigned long three = 3;
       __mmask16 mask = (three<<(2*index))>>(16*i);
-      __m512 xi = _mm512_load_ps(&src[8*i]);
+      __m512 xi = _mm512_load_ps((const float*)&src[8*i]);
       __m512 yi = _mm512_mask_broadcast_f32x2(xi, mask, _mm_set_ps(0,0,value.imag(),value.real()));
       _mm512_store_ps(&result[8*i], yi);
     }
@@ -842,9 +842,9 @@ namespace PITTS
     {
       unsigned long three = 3;
       __mmask8 mask = (three<<(2*index))>>(8*i);
-      __m512d xi = _mm512_load_pd(&src[4*i]);
+      __m512d xi = _mm512_load_pd((const double*)&src[4*i]);
       __m512d yi = _mm512_mask_broadcast_f64x2(xi, mask, _mm_set_pd(value.imag(),value.real()));
-      _mm512_store_pd(&result[4*i], yi);
+      _mm512_store_pd((double*)&result[4*i], yi);
     }
   }
 
@@ -886,7 +886,7 @@ namespace PITTS
       unsigned long all = -1; // set to 0xFF....
       __mmask16 mask = (all<<(2*index))>>(16*i);
       __m512 vi = _mm512_maskz_load_ps(mask, &src[8*i]);
-      _mm512_store_ps(&result[8*i], vi);
+      _mm512_store_ps((float*)&result[8*i], vi);
     }
   }
 
@@ -900,35 +900,7 @@ namespace PITTS
       unsigned long all = -1; // set to 0xFF....
       __mmask8 mask = (all<<(2*index))>>(8*i);
       __m512d vi = _mm512_maskz_load_pd(mask, &src[4*i]);
-      _mm512_store_pd(&result[4*i], vi);
-    }
-  }
-
-  // compilers seem not to generate masked SIMD commands
-  template<>
-  inline void masked_store_after<std::complex<float>>(const Chunk<std::complex<float>>& src, short index, Chunk<std::complex<float>>& result)
-  {
-    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
-    for(short i = 0; i < ALIGNMENT/64; i++)
-    {
-      unsigned long all = -1; // set to 0xFF....
-      __mmask16 mask = (all<<(2*index))>>(16*i);
-      __m512 vi = _mm512_load_ps(&src[8*i]);
-      _mm512_mask_store_ps(&result[8*i], mask, vi);
-    }
-  }
-
-  // compilers seem not to generate masked SIMD commands
-  template<>
-  inline void masked_store_after<std::complex<double>>(const Chunk<std::complex<double>>& src, short index, Chunk<std::complex<double>>& result)
-  {
-    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
-    for(short i = 0; i < ALIGNMENT/64; i++)
-    {
-      unsigned long all = -1; // set to 0xFF....
-      __mmask8 mask = (all<<(2*index))>>(8*i);
-      __m512d vi = _mm512_load_pd(&src[4*i]);
-      _mm512_mask_store_pd(&result[4*i], mask, vi);
+      _mm512_store_pd((double*)&result[4*i], vi);
     }
   }
 
@@ -957,6 +929,34 @@ namespace PITTS
       __mmask8 mask = (all<<index)>>(8*i);
       __m512d vi = _mm512_load_pd(&src[8*i]);
       _mm512_mask_store_pd(&result[8*i], mask, vi);
+    }
+  }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void masked_store_after<std::complex<float>>(const Chunk<std::complex<float>>& src, short index, Chunk<std::complex<float>>& result)
+  {
+    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
+    for(short i = 0; i < ALIGNMENT/64; i++)
+    {
+      unsigned long all = -1; // set to 0xFF....
+      __mmask16 mask = (all<<(2*index))>>(16*i);
+      __m512 vi = _mm512_load_ps((const float*)&src[8*i]);
+      _mm512_mask_store_ps((float*)&result[8*i], mask, vi);
+    }
+  }
+
+  // compilers seem not to generate masked SIMD commands
+  template<>
+  inline void masked_store_after<std::complex<double>>(const Chunk<std::complex<double>>& src, short index, Chunk<std::complex<double>>& result)
+  {
+    // of course, this code relies on the compiler optimization that eliminates all the redundant load/store operations
+    for(short i = 0; i < ALIGNMENT/64; i++)
+    {
+      unsigned long all = -1; // set to 0xFF....
+      __mmask8 mask = (all<<(2*index))>>(8*i);
+      __m512d vi = _mm512_load_pd((const double*)&src[4*i]);
+      _mm512_mask_store_pd((double*)&result[4*i], mask, vi);
     }
   }
 
