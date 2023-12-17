@@ -435,7 +435,7 @@ TEST(PITTS_TensorTrain_solve_mals, symmetric_random_nDim1)
   randomize(TTb);
   randomize(TTx);
 
-  double error = solveMALS(TTOpA, true, MALS_projection::RitzGalerkin, TTb, TTx, 1, eps, 10);
+  double error = solveMALS(TTOpA, true, MALS_projection::RitzGalerkin, TTb, TTx, 2, eps, 10);
   EXPECT_NEAR(0, error, eps);
 
   TensorTrain_double TTAx(TTb.dimensions());
