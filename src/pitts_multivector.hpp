@@ -31,6 +31,9 @@ namespace PITTS
   class MultiVector
   {
   public:
+    //! the data type
+    using Type = T;
+
     //! construct a new multivector with the given dimensions
     //!
     //! As a tensor network, this is:

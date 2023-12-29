@@ -25,7 +25,7 @@ namespace PITTS
   //! @tparam T  underlying data type (double, complex, ...)
   //!
   template<typename T>
-  void randomize(Tensor2<T>& t2);
+  void randomize(Tensor2View<T>& t2);
 
 }
 
