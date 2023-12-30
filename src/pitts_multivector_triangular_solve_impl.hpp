@@ -88,7 +88,7 @@ namespace PITTS
     // store inverse diagonal
     std::vector<T> invDiag(R.r1());
     for(int i = 0; i < R.r1(); i++)
-      invDiag[i] = 1/R(i,i);
+      invDiag[i] = T(1)/R(i,i);
     
     // dimensions
     const long long nTotalChunks = X.rowChunks();

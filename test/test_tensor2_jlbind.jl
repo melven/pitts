@@ -10,6 +10,7 @@
 import PittsJl
 using Test
 
+PittsJl.initialize(true, 12345)
 
 for T = (Float32, Float64, Complex{Float32}, Complex{Float64})
     @testset "Test PittsJl.Tensor2{$(repr(T))}" begin
@@ -30,6 +31,21 @@ for T = (Float32, Float64, Complex{Float32}, Complex{Float64})
             @test size(mv) == (37,3)
         end
 
+        @testset "ArrayInterface" begin
+            A = PittsJl.Tensor2{T}(5,1)
+            A[1,1] = T(2)
+            @test A[1,1] == 2
+            A[5,1] = T(42)
+            @test A[5,1] == 42
+
+            A .= T(1)
+
+            B = PittsJl.Tensor2{T}(1,1)
+            B .= T(2)
+
+            @test A * B ≈ [2, 2, 2, 2, 2]
+        end
+
         @testset "randomize" begin
             mv = PittsJl.Tensor2{T}(13,2)
             PittsJl.randomize!(mv)
@@ -44,5 +60,51 @@ for T = (Float32, Float64, Complex{Float32}, Complex{Float64})
             PittsJl.copy(mv1, mv2)
             @test mv1 == mv2
         end
+
+        @testset "split_normalize_qb" begin
+            using LinearAlgebra: I
+
+            M = PittsJl.Tensor2{T}(13, 5)
+            PittsJl.randomize!(M)
+
+            AB = PittsJl.split_normalize_qb(M, true, T(0), 999, false)
+            A = copy(AB[1])
+            B = copy(AB[2])
+
+            @test A * B ≈ M
+            @test adjoint(A) * A ≈ I
+
+            AB = PittsJl.split_normalize_qb(M, false, T(0), 999, false)
+            A = copy(AB[1])
+            B = copy(AB[2])
+
+            @test A * B ≈ M
+            @test B * adjoint(B) ≈ I
+        end
+
+        @testset "split_normalize_svd" begin
+            using LinearAlgebra: I
+
+            M = PittsJl.Tensor2{T}(13, 5)
+            PittsJl.randomize!(M)
+
+            AB = PittsJl.split_normalize_svd(M, true, T(0), 999, false, false, T(0))
+            A = copy(AB[1])
+            B = copy(AB[2])
+
+            #@test isapprox(A * B, M, atol=0.001, rtol=0.001)
+            @test A * B ≈ M
+            @test adjoint(A) * A ≈ I
+
+            AB = PittsJl.split_normalize_svd(M, false, T(0), 999, false, false, T(0))
+            A = copy(AB[1])
+            B = copy(AB[2])
+
+            #@test isapprox(A * B, M, atol=0.001, rtol=0.001)
+            @test A * B ≈ M
+            @test B * adjoint(B) ≈ I
+        end
     end
 end
+
+PittsJl.finalize(true)

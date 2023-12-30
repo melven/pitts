@@ -31,7 +31,7 @@ namespace PITTS
     std::pair<Tensor2<T>,Tensor2<T>> normalize_qb(const ConstTensor2View<T>& M, bool leftOrthog = true, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false);
     
 
-    //! wrapper for truncated SVD, allows to show timings, directly combines singular values with lefT/right singular vectors
+    //! wrapper for truncated SVD, allows to show timings, directly combines singular values with left/right singular vectors
     template<typename T>
     std::pair<Tensor2<T>,Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false, bool useFrobeniusNorm = false, T* oldFrobeniusNorm = nullptr);
 

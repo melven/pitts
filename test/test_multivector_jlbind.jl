@@ -30,6 +30,21 @@ for T = (Float32, Float64, Complex{Float32}, Complex{Float64})
             @test size(mv) == (37,3)
         end
 
+        @testset "ArrayInterface" begin
+            A = PittsJl.MultiVector{T}(5,1)
+            A[1,1] = T(2)
+            @test A[1,1] == 2
+            A[5,1] = T(42)
+            @test A[5,1] == 42
+
+            A .= T(1)
+
+            B = PittsJl.Tensor2{T}(1,1)
+            B .= T(2)
+
+            @test A * B ≈ [2, 2, 2, 2, 2]
+        end
+
         @testset "randomize" begin
             mv = PittsJl.MultiVector{T}(13,2)
             PittsJl.randomize!(mv)

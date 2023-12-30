@@ -41,7 +41,7 @@ namespace PITTS
       jlcxx::stl::apply_stl<std::complex<float>>(m);
       jlcxx::stl::apply_stl<std::complex<double>>(m);
 
-      m.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("MultiVector", jlcxx::julia_type("AbstractMatrix"))
+      m.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("MultiVector", jlcxx::julia_type("DenseMatrix"))
         .apply<PITTS::MultiVector<float>, PITTS::MultiVector<double>, PITTS::MultiVector<std::complex<float>>, PITTS::MultiVector<std::complex<double>>>([](auto wrapped)
         {
           using MultiVector_type = decltype(wrapped)::type;
@@ -52,10 +52,12 @@ namespace PITTS
           wrapped.module().set_override_module(jl_base_module);
           wrapped.template method("resize!", &MultiVector_type::resize);
           wrapped.template method("size", [](const MultiVector_type& mv){return std::tuple<jlcxx::cxxint_t,jlcxx::cxxint_t>(mv.rows(), mv.cols());});
+          wrapped.template method("strides", [](const MultiVector_type& mv){return std::tuple<jlcxx::cxxint_t,jlcxx::cxxint_t>(1, mv.colStrideChunks()*Chunk<Type>::size);});
           wrapped.template method("getindex", [](const MultiVector_type& mv, jlcxx::cxxint_t i, jlcxx::cxxint_t j) -> Type {return mv(i-1,j-1);});
           wrapped.template method("setindex!", [](MultiVector_type& mv, Type val, jlcxx::cxxint_t i, jlcxx::cxxint_t j){mv(i-1,j-1) = val;});
           wrapped.module().unset_override_module();
 
+          wrapped.template method("data", [](MultiVector_type& mv){return &mv(0,0);});
           wrapped.template method("copy", static_cast<void (*)(const MultiVector_type&, MultiVector_type&)>(&copy));
           wrapped.template method("randomize!", static_cast<void (*)(MultiVector_type&)>(&randomize));
           wrapped.template method("centroids", &centroids<Type>);
