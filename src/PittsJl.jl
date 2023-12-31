@@ -1,4 +1,8 @@
-# Load the module and generate the functions
+# Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 module PittsJl
   using CxxWrap
   @wrapmodule(() -> (return "libpitts_jl"))
