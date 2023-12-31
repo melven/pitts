@@ -24,7 +24,7 @@
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
-  //PITTS::jlbind::define_QubitSimulator(mod);
+  PITTS::jlbind::define_QubitSimulator(mod);
   //PITTS::jlbind::define_TensorTrain(mod);
   //PITTS::jlbind::define_TensorTrainOperator(mod);
   //PITTS::jlbind::define_TensorTrain_solve(mod);
