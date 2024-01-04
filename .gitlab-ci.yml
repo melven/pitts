@@ -16,20 +16,26 @@ build_release:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
-    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
+    - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc13-openmpi-python
     # unload itensor as it has problems compiling this way...
     - module unload -f itensor
     # bug fixed/improved Eigen version
     - module unload -f eigen
-    - MODULEPATH="/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512" module load eigen/eigen-master
+    - module load eigen/eigen-master-2023-11-28
+    # allow to load julia
+    - module unload -f t8code parmetis metis llvm
+    - module load libcxxwrap-julia
+    - module load libwhich
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_release/"
     - ccache -z
     - mkdir build_release && cd build_release
     # use correct (Intel) OpenMP library, not the one from the llvm folder
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On -DOpenMP_gomp_LIBRARY=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/intel-oneapi-mkl-2023.1.0-ys6bcestnth7dudrfc4n4ty6ih2o675r/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-23.2/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/intel-oneapi-mkl-2023.1.0-ys6bcestnth7dudrfc4n4ty6ih2o675r/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On -DOpenMP_gomp_LIBRARY=$(libwhich -p libiomp5.so)
     - cmake --build . -- -j 15
-    - cmake --build . --target check -j 15
+    # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
+    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
@@ -41,25 +47,25 @@ build_debug_with_coverage:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:30:00"
   needs: []
   script:
-    - export MODULEPATH=/scratch/spack-22.2/share/spack/modules/linux-ubuntu20.04-skylake_avx512
+    - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
     - export CTEST_PARALLEL_LEVEL=2
-    - module load PrgEnv/gcc12-openmpi-python
+    - module load PrgEnv/gcc13-openmpi-python
     # unload itensor as it has problems compiling this way...
     - module unload -f itensor
     # prevent some problems with older Eigen
     - module unload -f eigen
-    - module load eigen/eigen-master
-    # prevent some problems with pybind11
-    - module unload -f py-pybind11
-    - module load py-pybind11/py-pybind11-2.9.1
-    # prevent different threading libraries block each other...
-    - export LD_LIBRARY_PATH=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/:$LD_LIBRARY_PATH
+    - module load eigen/eigen-master-2023-11-28
+    # allow to load julia
+    - module unload -f t8code parmetis metis llvm
+    - module load libcxxwrap-julia
+    - module load libwhich
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug_with_coverage/"
     - ccache -z
     - mkdir build_coverage && cd build_coverage
-    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=Off -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_OPTIMIZE_FOR_HOST=False -DOpenMP_gomp_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
+    - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=Off -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_OPTIMIZE_FOR_HOST=False -DOpenMP_gomp_LIBRARY=$(libwhich -p libiomp5.so)
     - cmake --build . -- -j 15
-    - cmake --build . --target check -j 15
+    # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
+    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15
     - ccache -s
   coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
   artifacts:
@@ -77,14 +83,23 @@ build_debug:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
   needs: []
   script:
-    - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
+    - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
+    - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc13-openmpi-python
+    - module unload -f itensor
+    # bug fixed/improved Eigen version
+    # module unload -f eigen
+    # module load eigen/eigen-master-2023-11-28
+    # allow to load julia
+    - module unload -f t8code parmetis metis llvm
+    - module load libcxxwrap-julia
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug/"
     - ccache -z
     - mkdir build_debug && cd build_debug
     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
     - cmake --build . -- -j 15
-    - cmake --build . --target check -j 15
+    # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
+    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15
     - ccache -s
   artifacts:
     reports:
