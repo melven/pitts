@@ -88,8 +88,8 @@ build_debug:
     - module load PrgEnv/gcc13-openmpi-python
     - module unload -f itensor
     # bug fixed/improved Eigen version
-    # module unload -f eigen
-    # module load eigen/eigen-master-2023-11-28
+    - module unload -f eigen
+    - module load eigen/eigen-master-2023-11-28
     # allow to load julia
     - module unload -f t8code parmetis metis llvm
     - module load libcxxwrap-julia
