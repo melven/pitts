@@ -86,6 +86,7 @@ build_debug:
     - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
     - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc13-openmpi-python
+    # unload itensor as it has problems compiling this way...
     - module unload -f itensor
     # bug fixed/improved Eigen version
     - module unload -f eigen
@@ -96,7 +97,7 @@ build_debug:
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug/"
     - ccache -z
     - mkdir build_debug && cd build_debug
-    - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++
+    - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On
     - cmake --build . -- -j 15
     # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
     - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15
