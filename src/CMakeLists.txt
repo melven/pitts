@@ -295,3 +295,33 @@ if(pybind11_FOUND)
 
   install(TARGETS pitts_py LIBRARY DESTINATION lib)
 endif()
+
+# Julia binding
+if(JlCxx_FOUND)
+
+  add_library(pitts_jl SHARED
+    pitts_jlbind.cpp
+    pitts_qubit_simulator_jlbind.hpp
+    pitts_qubit_simulator_jlbind.cpp
+    pitts_tensortrain_jlbind.hpp
+    pitts_tensortrain_jlbind.cpp
+    pitts_tensortrain_operator_jlbind.hpp
+    pitts_tensortrain_operator_jlbind.cpp
+    pitts_tensortrain_solve_jlbind.hpp
+    pitts_tensortrain_solve_jlbind.cpp
+    pitts_common_jlbind.hpp
+    pitts_common_jlbind.cpp
+    pitts_tensor2_jlbind.hpp
+    pitts_tensor2_jlbind.cpp
+    pitts_multivector_jlbind.hpp
+    pitts_multivector_jlbind.cpp
+    )
+
+  if(PITTS_DEVELOP_BUILD)
+    target_link_options(pitts_jl PRIVATE "-fuse-ld=lld")
+  endif()
+
+  target_link_libraries(pitts_jl JlCxx::cxxwrap_julia)
+
+endif()
+

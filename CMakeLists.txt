@@ -119,6 +119,18 @@ else()
   message(STATUS "Did not find pybind11, not building the python interface...")
 endif()
 
+# libcxxwrap-julia for the (optional) julia binding
+find_package(JlCxx)
+if(JlCxx_FOUND)
+  message(STATUS "Found JlCxx (libcxxwrap-julia), building the Julia interface...")
+  # this is overwritten by JlCxx, so set it again!
+  set(CMAKE_CXX_STANDARD_REQUIRED On)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_EXTENSIONS Off)
+else()
+  message(STATUS "Did not find JlCxx (libcxxwrap-julia), not building the Julia interface...")
+endif()
+
 # cereal for for data (de-)serialization
 find_package(cereal REQUIRED NO_MODULE)
 # old cereal versions provide cereal, newer cereal::cereal

@@ -24,7 +24,7 @@ namespace PITTS
 {
   // implement tensor2 random
   template<typename T>
-  void randomize(Tensor2<T>& t2)
+  void randomize(Tensor2View<T>& t2)
   {
     const auto r1 = t2.r1();
     const auto r2 = t2.r2();

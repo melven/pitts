@@ -31,6 +31,9 @@ namespace PITTS
   class ConstTensor2View
   {
   public:
+    //! data type
+    using Type = T;
+
     //! create a tensor2 view
     //!
     //! @warning intended for internal use

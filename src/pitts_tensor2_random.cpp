@@ -13,5 +13,5 @@
 
 using namespace PITTS;
 
-template void PITTS::randomize<double>(Tensor2<double>&);
-template void PITTS::randomize<float>(Tensor2<float>&);
+template void PITTS::randomize<double>(Tensor2View<double>&);
+template void PITTS::randomize<float>(Tensor2View<float>&);

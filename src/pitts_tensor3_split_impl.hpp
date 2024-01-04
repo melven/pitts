@@ -459,7 +459,7 @@ namespace PITTS
       else // rightOrthog
       {
         mv.resize(M.r2(), M.r1());
-        EigenMap(mv) = ConstEigenMap(M).transpose();
+        EigenMap(mv) = ConstEigenMap(M).adjoint();
       }
       Tensor2<T> R;
       normalize_svd_block_TSQR(mv, R);
@@ -542,7 +542,7 @@ namespace PITTS
           // return BQ
 #ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
           EigenMap(result.first).noalias() = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-          EigenMap(result.second).noalias() = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).transpose();
+          EigenMap(result.second).noalias() = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).adjoint();
 #else
           EigenMap(result.first) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
           EigenMap(result.second) = svd.matrixV().leftCols(r).adjoint();

@@ -64,15 +64,17 @@ namespace PITTS
         {
           for(long long i = 0; i < nb; i++)
           {
-            fmadd(X.chunk(c,iB+i), X.chunk(c,iB+i), tmpX[i]);
+            fmadd(conj(X.chunk(c,iB+i)), X.chunk(c,iB+i), tmpX[i]);
             for(long long j = 0; j < m; j++)
-              fmadd(X.chunk(c,iB+i), Y.chunk(c,j), tmpXY[i+j*blockSize]);
+              fmadd(conj(X.chunk(c,iB+i)), Y.chunk(c,j), tmpXY[i+j*blockSize]);
           }
         }
 
         for(long long j = 0; j < m; j++)
           for(long long i = 0; i < nb; i++)
-            D(iB+i,j) = sum(tmpX[i]) - 2 * sum(tmpXY[i+j*blockSize]);
+          {
+            D(iB+i,j) = sum(tmpX[i]) - sum(tmpXY[i+j*blockSize]) - sum(conj(tmpXY[i+j*blockSize]));
+          }
       }
     }
 
@@ -82,7 +84,7 @@ namespace PITTS
       Chunk<T> tmpY = Chunk<T>{};
 
       for(long long c = 0; c < chunks; c++)
-        fmadd(Y.chunk(c,j), Y.chunk(c,j), tmpY);
+        fmadd(conj(Y.chunk(c,j)), Y.chunk(c,j), tmpY);
 
       const auto s = sum(tmpY);
       for(long long i = 0; i < n; i++)
