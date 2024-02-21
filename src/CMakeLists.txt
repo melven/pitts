@@ -149,6 +149,11 @@ target_sources(pitts INTERFACE
   pitts_gmres_impl.hpp
   )
 
+if(NOT PITTS_DEVELOP_BUILD)
+  target_compile_definitions(pitts INTERFACE PITTS_GIT_VERSION=\"${PITTS_GIT_VERSION}\")
+  add_compile_definitions(PITTS_GIT_VERSION=\"${PITTS_GIT_VERSION}\")
+endif()
+
 install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 
 # speed up compile times through external template
@@ -212,6 +217,7 @@ if(PITTS_DEVELOP_BUILD)
   target_link_libraries(pitts_impl PRIVATE pitts)
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
   link_libraries($<TARGET_OBJECTS:pitts_impl>)
+  set_source_files_properties(pitts_common.cpp PROPERTIES COMPILE_DEFINITIONS PITTS_GIT_VERSION=\"${PITTS_GIT_VERSION}\")
 endif()
 
 
