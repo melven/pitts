@@ -27,6 +27,19 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 
 ###
+### Find and print version through git
+###
+find_package(Git)
+mark_as_advanced(CLEAR GIT_EXECUTABLE)
+if(NOT GIT_FOUND)
+  message(WARNING "Could not find git; please specify the full path to the GIT_EXECUTABLE to obtain compile time version string")
+endif()
+include(cmake/GetGitRevisionDescription.cmake)
+git_describe_working_tree(PITTS_GIT_VERSION "--tags")# "--match 'v[0-9].*'")
+message(STATUS "Git version: ${PITTS_GIT_VERSION}")
+
+
+###
 ### Compiler recognition and flags
 ###
 option(PITTS_OPTIMIZE_FOR_HOST "Enable compiler optimization for current CPU architecture. Resulting executables might not run on other computers!" On)

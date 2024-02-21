@@ -64,9 +64,14 @@ namespace PITTS
       if( MPI_Init(argc, argv) != 0 )
         throw std::runtime_error("MPI error");
 
+
     const auto& [iProc, nProcs] = internal::parallel::mpiProcInfo();
     if( iProc == 0 && verbose )
     {
+#ifdef PITTS_GIT_VERSION
+      std::cout << "PITTS: version " << PITTS_GIT_VERSION << "\n";
+#endif
+
       std::cout << "PITTS: MPI #procs: " << nProcs << "\n";
 #pragma omp parallel
       {
