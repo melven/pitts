@@ -46,17 +46,71 @@ namespace PITTS
         );
 
     T tmp[nCols];
-    for(int iCol = 0; iCol < nCols; iCol++)
-      tmp[iCol] = T(0);
-#pragma omp parallel reduction(+:tmp)
+    if( nCols == 1 )
+    {
+      // special case because the OpenMP vector reduction has significant overhead (factor 10)
+      T beta = T(0);
+#pragma omp parallel reduction(+:beta) if(nChunks > 50)
+      {
+        auto [iThread,nThreads] = internal::parallel::ompThreadInfo();
+
+        constexpr auto unroll = 5;
+        const auto nIter = nChunks / unroll;
+
+        const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
+
+        const Chunk<T>* pX = &X.chunk(0, 0);
+        const Chunk<T>* pY = &Y.chunk(0, 0);
+        Chunk<T> tmpChunk[unroll];
+        for(int i = 0; i < unroll; i++)
+          tmpChunk[i] = Chunk<T>{};
+
+        for(long long iter = firstIter; iter <= lastIter; iter++)
+          for(int i = 0; i < unroll; i++)
+            fmadd(pX[iter*unroll+i], pY[iter*unroll+i], tmpChunk[i]);
+
+        if( iThread == nThreads - 1 )
+          for(long long iChunk = nIter*unroll; iChunk < nChunks; iChunk++)
+            fmadd(pX[iChunk], pY[iChunk], tmpChunk[iChunk-nIter*unroll]);
+
+        for(int i = 0; i < unroll; i++)
+          beta += sum(tmpChunk[i]);
+      }
+      tmp[0] = beta;
+    }
+    else
     {
       for(int iCol = 0; iCol < nCols; iCol++)
+        tmp[iCol] = T(0);
+#pragma omp parallel reduction(+:tmp) if(nChunks > 50)
       {
-        Chunk<T> tmpChunk{};
-#pragma omp for schedule(static) nowait
-        for(int iChunk = 0; iChunk < nChunks; iChunk++)
-          fmadd(X.chunk(iChunk,iCol), Y.chunk(iChunk,iCol), tmpChunk);
-        tmp[iCol] = sum(tmpChunk);
+        auto [iThread,nThreads] = internal::parallel::ompThreadInfo();
+
+        constexpr auto unroll = 5;
+        const auto nIter = nChunks / unroll;
+
+        const auto& [firstIter, lastIter] = internal::parallel::distribute(nIter, {iThread, nThreads});
+
+        for(int iCol = 0; iCol < nCols; iCol++)
+        {
+          const Chunk<T>* pX = &X.chunk(0, iCol);
+          const Chunk<T>* pY = &Y.chunk(0, iCol);
+          Chunk<T> tmpChunk[unroll];
+          for(int i = 0; i < unroll; i++)
+            tmpChunk[i] = Chunk<T>{};
+
+          for(long long iter = firstIter; iter <= lastIter; iter++)
+            for(int i = 0; i < unroll; i++)
+              fmadd(pX[iter*unroll+i], pY[iter*unroll+i], tmpChunk[i]);
+
+          if( iThread == nThreads - 1 )
+            for(long long iChunk = nIter*unroll; iChunk < nChunks; iChunk++)
+              fmadd(pX[iChunk], pY[iChunk], tmpChunk[iChunk-nIter*unroll]);
+
+          tmp[iCol] = T{};
+          for(int i = 0; i < unroll; i++)
+            tmp[iCol] += sum(tmpChunk[i]);
+        }
       }
     }
 
