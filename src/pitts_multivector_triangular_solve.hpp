@@ -22,7 +22,7 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! in-place triangular solve with a permuted tall-skinny matrix (multivector) and a small upper triangular matrix (X <- X*R^(-1)*P^T)
+  //! in-place triangular solve with a permuted tall-skinny matrix (multivector) and a small upper triangular matrix (X <- X*P*R^(-1))
   //!
   //! @tparam T               underlying data type (double, complex, ...)
   //!
