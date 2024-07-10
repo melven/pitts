@@ -79,6 +79,28 @@ TEST(PITTS_MultiVector_axpby, axpy_norm2_invalid_args)
   EXPECT_THROW(axpy_norm2(alpha, X, Y), std::invalid_argument);
 }
 
+TEST(PITTS_MultiVector_axpby, axpy_norm2_random_single_col)
+{
+  const auto eps = 1.e-8;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using arr = Eigen::ArrayXd;
+
+  MultiVector_double X(51,1), Y(51,1), Y_ref(51,1);
+  randomize(X);
+  randomize(Y);
+
+  arr alpha = arr::Random(1);
+
+  EigenMap(Y_ref) = ConstEigenMap(Y) + ConstEigenMap(X) * alpha.matrix().asDiagonal();
+
+  const arr nrm = axpy_norm2(alpha, X, Y);
+
+  const arr nrm_ref = (ConstEigenMap(Y_ref).transpose() * ConstEigenMap(Y_ref)).diagonal().array().sqrt();
+
+  ASSERT_NEAR(ConstEigenMap(Y_ref), ConstEigenMap(Y), eps);
+  ASSERT_NEAR(nrm_ref, nrm, eps);
+}
+
 TEST(PITTS_MultiVector_axpby, axpy_norm2_random)
 {
   const auto eps = 1.e-8;
@@ -126,6 +148,29 @@ TEST(PITTS_MultiVector_axpby, axpy_dot_invalid_args)
   Y.resize(50,1);
   
   EXPECT_THROW(axpy_dot(alpha, X, Y, Z), std::invalid_argument);
+}
+
+TEST(PITTS_MultiVector_axpby, axpy_dot_random_single_col)
+{
+  const auto eps = 1.e-8;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using arr = Eigen::ArrayXd;
+
+  MultiVector_double X(51,1), Y(51,1), Y_ref(51,1), Z(51,1);
+  randomize(X);
+  randomize(Y);
+  randomize(Z);
+
+  arr alpha = arr::Random(1);
+
+  EigenMap(Y_ref) = ConstEigenMap(Y) + ConstEigenMap(X) * alpha.matrix().asDiagonal();
+
+  const arr result = axpy_dot(alpha, X, Y, Z);
+
+  const arr result_ref = (ConstEigenMap(Y_ref).transpose() * ConstEigenMap(Z)).diagonal();
+
+  ASSERT_NEAR(ConstEigenMap(Y_ref), ConstEigenMap(Y), eps);
+  ASSERT_NEAR(result_ref, result, eps);
 }
 
 TEST(PITTS_MultiVector_axpby, axpy_dot_random)
