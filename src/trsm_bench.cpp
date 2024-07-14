@@ -34,6 +34,8 @@ int main(int argc, char* argv[])
   PITTS::Tensor2<Type> M(k, k);
   randomize(X_in);
   randomize(M);
+  for(int i = 0; i < k; i++)
+    M(i,i) = 1 + 0.1*M(i,i);
   std::vector<int> colPermutation;
   if( m != k )
   {
@@ -41,11 +43,15 @@ int main(int argc, char* argv[])
     for(int i = 0; i < k; i++)
       colPermutation[i] = m-i-1;
   }
+  copy(X_in, X);
+  triangularSolve(X, M, colPermutation);
+
+  PITTS::performance::clearStatistics();
 
   double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
   {
-    copy(X_in, X);
+    //copy(X_in, X);
     triangularSolve(X, M, colPermutation);
   }
   wtime = (omp_get_wtime() - wtime) / nIter;
