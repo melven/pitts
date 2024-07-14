@@ -35,6 +35,16 @@ namespace PITTS
   template<typename T>
   void transform(const MultiVector<T>& X, const ConstTensor2View<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape = {0, 0});
 
+  //! calculate the matrix-matrix product of a tall-skinny matrix (multivector) with a small matrix (X <- X*M), in-place variant
+  //!
+  //! @tparam T       underlying data type (double, complex, ...)
+  //!
+  //! @param X        input/output multi-vector, dimensions (n, m) on input, dimension (m,k) on output
+  //! @param M        small transformation matrix, dimensions (m, k)
+  //!
+  template<typename T>
+  void transform(MultiVector<T>& X, const ConstTensor2View<T>& M);
+
 }
 
 #ifndef PITTS_DEVELOP_BUILD
