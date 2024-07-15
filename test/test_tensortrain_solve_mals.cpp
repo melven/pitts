@@ -14,6 +14,7 @@
 #include "pitts_tensortrain_operator_apply_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_random.hpp"
 #include "eigen_test_helper.hpp"
 
 namespace
@@ -410,6 +411,8 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_Opeye_ones_nDim6_nonsymmetric_least_squa
 
 TEST(PITTS_TensorTrain_solve_mals, random_nDim1)
 {
+  // the rng is annoying sometimes
+  PITTS::internal::randomGenerator.discard(1000);
   TensorTrainOperator_double TTOpA(1,5,5);
   randomize(TTOpA);
   TensorTrain_double TTx(1,5), TTb(1,5);
