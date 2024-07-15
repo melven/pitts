@@ -82,6 +82,25 @@ namespace PITTS
       }
       std::cout << "PITTS: SIMD implementation: " << SIMD_implementation() << "\n";
       std::cout << "PITTS: Eigen SIMD implementation: " << Eigen::SimdInstructionSetsInUse() << "\n";
+
+      // more information on preprocessor directives used during compilation
+      std::cout << "PITTS: preprocessor definitions:"
+#ifdef PITTS_DEVELOP_BUILD
+                << " PITTS_DEVELOP_BUILD"
+#endif
+#ifdef PITTS_TENSORTRAIN_PLAIN_AXPBY
+                << " PITTS_TENSORTRAIN_PLAIN_AXPBY"
+#endif
+#ifdef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
+                << " PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB"
+#endif
+#ifdef PITTS_TENSORTRAIN_MALS_SLOWCONTRACT
+                << " PITTS_TENSORTRAIN_MALS_SLOWCONTRACT"
+#endif
+#ifdef PITTS_DIRECT_MKL_GEMM
+                << " PITTS_DIRECT_MKL_GEMM"
+#endif
+                << "\n";
     }
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
