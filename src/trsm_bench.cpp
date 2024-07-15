@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "pitts_mkl.hpp"
+#include "pitts_eigen.hpp"
 #include "pitts_parallel.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_common.hpp"
