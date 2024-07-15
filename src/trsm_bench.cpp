@@ -36,7 +36,7 @@ namespace
         );
     
 #ifndef PITTS_DIRECT_MKL_GEMM
-    ConstEigenMap(R).triangularView<Eigen::Upper>().solveInPlace<Eigen::OnTheRight>(X);
+    ConstEigenMap(R).template triangularView<Eigen::Upper>().solveInPlace<Eigen::OnTheRight>(X);
 #else
     cblas_dtrsm(CblasColMajor, CblasRight, CblasUpper, CblasNoTrans, CblasNonUnit, X.rows(), X.cols(), 1., &R(0,0), R.r1(), &X(0,0), X.colStrideChunks()*Chunk<T>::size);
 #endif
