@@ -29,6 +29,7 @@
 #include "pitts_multivector_tsqr.hpp"
 #include "pitts_multivector_triangular_solve.hpp"
 #include "pitts_timer.hpp"
+#include "pitts_machine_info.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -124,7 +125,8 @@ namespace PITTS
          {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
         );
       
-      const long long cacheSize_L3 = 50000000;
+      const MachineInfo mi = getMachineInfo();
+      bool use_streaming_stores = n*m*sizeof(T) > 3*mi.cacheSize_L3_total;
       
       mv.resize(n, m);
       const int padding = 1 + (n-1) % Chunk<T>::size;
@@ -143,7 +145,7 @@ namespace PITTS
             for(int k = padding; k < Chunk<T>::size; k++)
               tmp[k] = T(0);
           }
-          if( n*m*sizeof(T) > cacheSize_L3 )
+          if( use_streaming_stores )
             streaming_store(tmp, mv.chunk(iChunk,j));
           else
             mv.chunk(iChunk,j) = tmp;
@@ -163,8 +165,10 @@ namespace PITTS
          {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
         );
 
-      const long long cacheSize_L3 = 50000000;
       unsigned long long n_ = n, m_ = m;
+
+      const MachineInfo mi = getMachineInfo();
+      bool use_streaming_stores = n*m*sizeof(T) > 3*mi.cacheSize_L3_total;
       
       t2.resize(n, m);
       const unsigned long long nChunks = (n*m-1) / Chunk<T>::size + 1;
@@ -188,7 +192,7 @@ namespace PITTS
           }
         }
 
-        if( n*m*sizeof(T) > cacheSize_L3 )
+        if( use_streaming_stores )
           streaming_store(tmp, t2data[iChunk]);
         else
           t2data[iChunk] = tmp;
@@ -208,7 +212,8 @@ namespace PITTS
          {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
         );
       
-      const long long cacheSize_L3 = 50000000;
+      const MachineInfo mi = getMachineInfo();
+      bool use_streaming_stores = n*m*sizeof(T) > 3*mi.cacheSize_L3_total;
       
       mv.resize(n, m);
       const int padding = 1 + (n-1) % Chunk<T>::size;
@@ -230,7 +235,7 @@ namespace PITTS
             for(int k = padding; k < Chunk<T>::size; k++)
               tmp[k] = T(0);
           }
-          if( n*m*sizeof(T) > cacheSize_L3 )
+          if( use_streaming_stores )
             streaming_store(tmp, mv.chunk(iChunk,j));
           else
             mv.chunk(iChunk,j) = tmp;
@@ -250,7 +255,6 @@ namespace PITTS
          {(n*m)*kernel_info::Load<T>() + (n*m)*kernel_info::Store<T>()}} // data transfers
         );
 
-      const long long cacheSize_L3 = 50000000;
       unsigned long long n_ = n, m_ = m;
       
       t2.resize(n, m);

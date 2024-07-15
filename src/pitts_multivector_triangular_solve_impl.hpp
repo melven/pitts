@@ -21,6 +21,7 @@
 #include "pitts_multivector_triangular_solve.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_machine_info.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -56,13 +57,16 @@ namespace PITTS
       }
     }
 
+    const MachineInfo mi = getMachineInfo();
+    bool use_streaming_stores = X.rows()*R.r2()*sizeof(T) > 3*mi.cacheSize_L3_total;
+
     // perform streaming store for column i if it is not read
     const std::vector<bool> streamingStore = [&]()
     {
       if( colsPermutation.empty() )
         return std::vector<bool>(X.cols(), false);
       
-      std::vector<bool> tmp(X.cols(), true);
+      std::vector<bool> tmp(X.cols(), use_streaming_stores);
       for(const int idx: colsPermutation)
         tmp[idx] = false;
       return tmp;
