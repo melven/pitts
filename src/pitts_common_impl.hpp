@@ -20,6 +20,8 @@
 #include "pitts_common.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_eigen.hpp"
+#include "pitts_machine_info.hpp"
 
 //#ifndef EIGEN_USE_LAPACKE
 //#include <immintrin.h>
@@ -64,6 +66,8 @@ namespace PITTS
       if( MPI_Init(argc, argv) != 0 )
         throw std::runtime_error("MPI error");
 
+    // initialize the machine information like cache sizes...
+    MachineInfo mi = getMachineInfo(true);
 
     const auto& [iProc, nProcs] = internal::parallel::mpiProcInfo();
     if( iProc == 0 && verbose )
@@ -80,6 +84,28 @@ namespace PITTS
           std::cout << "PITTS: OpenMP #threads: " << nThreads << "\n";
       }
       std::cout << "PITTS: SIMD implementation: " << SIMD_implementation() << "\n";
+      std::cout << "PITTS: Eigen SIMD implementation: " << Eigen::SimdInstructionSetsInUse() << "\n";
+
+      std::cout << "PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (" << mi.cacheSize_L1_perCore << ", " << mi.cacheSize_L2_perCore << ", " << mi.cacheSize_L3_total << ")\n";
+
+      // more information on preprocessor directives used during compilation
+      std::cout << "PITTS: preprocessor definitions:"
+#ifdef PITTS_DEVELOP_BUILD
+                << " PITTS_DEVELOP_BUILD"
+#endif
+#ifdef PITTS_TENSORTRAIN_PLAIN_AXPBY
+                << " PITTS_TENSORTRAIN_PLAIN_AXPBY"
+#endif
+#ifdef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
+                << " PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB"
+#endif
+#ifdef PITTS_TENSORTRAIN_MALS_SLOWCONTRACT
+                << " PITTS_TENSORTRAIN_MALS_SLOWCONTRACT"
+#endif
+#ifdef PITTS_DIRECT_MKL_GEMM
+                << " PITTS_DIRECT_MKL_GEMM"
+#endif
+                << "\n";
     }
 
 #ifdef PITTS_USE_LIKWID_MARKER_API

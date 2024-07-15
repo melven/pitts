@@ -88,7 +88,7 @@ namespace PITTS
     inline auto createScopedTimer(internal::FixedArgumentInfo arguments, kernel_info::KernelInfo kernel, double callsPerFunction = 1, internal::ScopeInfo scope = internal::ScopeInfo::current())
     {
       const internal::ScopeWithArgumentInfo scopeArgs{scope, arguments, callsPerFunction};
-      const auto [iter, didInsert] = globalPerformanceStatisticsMap.insert({scopeArgs, {internal::TimingStatistics(), kernel}});
+      const auto [iter, didInsert] = globalPerformanceStatisticsMap.try_emplace(scopeArgs, internal::TimingStatistics(), kernel);
 #ifndef PITTS_USE_LIKWID_MARKER_API
       return internal::ScopedTimer(iter->second.timings);
 #else
@@ -113,6 +113,18 @@ namespace PITTS
     //! helper function to clear statistics
     inline void clearStatistics()
     {
+#ifdef PITTS_USE_LIKWID_MARKER_API
+      for(auto& it: globalPerformanceStatisticsMap)
+      {
+        char shortenedName[91];
+        std::strncpy(shortenedName, it.first.scope.function_name(), 90);
+        shortenedName[90] = '\0';
+#pragma omp parallel
+        {
+          LIKWID_MARKER_RESET(shortenedName);
+        }
+      }
+#endif
       globalPerformanceStatisticsMap.clear();
       timing::clearStatistics();
     }
