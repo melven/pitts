@@ -281,3 +281,150 @@ INSTANTIATE_TEST_CASE_P(LargeReshape, PITTS_MultiVector_transform_param, testing
     std::make_tuple(150, 2, 3, 30, 15)),
     &outputParams );
 
+
+// tests for in-place variant of transform
+TEST(PITTS_MultiVector_transform, inplace_invalid_args)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(50,3);
+  Tensor2_double M(1,1);
+
+  EXPECT_THROW(transform(X, M), std::invalid_argument);
+
+  M.resize(3,2);
+
+  EXPECT_NO_THROW(transform(X, M));
+
+  ASSERT_EQ(2, X.cols());
+}
+
+TEST(PITTS_MultiVector_transform, inplace_single_col)
+{
+  const auto eps = 1.e-8;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(50,1), X_in(50,1);
+  Tensor2_double M(1,1);
+
+  randomize(X);
+  copy(X, X_in);
+  randomize(M);
+
+  transform(X, M);
+
+  const Eigen::MatrixXd X_ref = ConstEigenMap(X_in) * ConstEigenMap(M);
+  ASSERT_NEAR(X_ref, ConstEigenMap(X), eps);
+}
+
+TEST(PITTS_MultiVector_transform, inplace_multi_col)
+{
+  const auto eps = 1.e-8;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(50,3), X_in(50,3);
+  Tensor2_double M(3,2);
+
+  randomize(X);
+  copy(X, X_in);
+  randomize(M);
+
+  transform(X, M);
+
+  const Eigen::MatrixXd X_ref = ConstEigenMap(X_in) * ConstEigenMap(M);
+  ASSERT_NEAR(X_ref, ConstEigenMap(X), eps);
+}
+
+TEST(PITTS_MultiVector_transform, inplace_large)
+{
+  const auto eps = 1.e-8;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(117,4), X_in(117,4);
+  Tensor2_double M(4,4);
+
+  randomize(X);
+  copy(X, X_in);
+  randomize(M);
+
+  transform(X, M);
+
+  const Eigen::MatrixXd X_ref = ConstEigenMap(X_in) * ConstEigenMap(M);
+  ASSERT_NEAR(X_ref, ConstEigenMap(X), eps);
+}
+
+// anonymous namespace
+namespace
+{
+  // helper function to check with random data of given size
+  void checkInplaceWithRandomData(long long n, long long m, long long k)
+  {
+    const auto eps = 1.e-8;
+
+    PITTS::MultiVector<double> X(n,m), X_in(n,m);
+    prepareOutputWithRubbish(X, n*m, 1);
+    X.resize(n, m);
+    randomize(X);
+    copy(X, X_in);
+
+    PITTS::Tensor2<double> M(m,k);
+    randomize(M);
+
+    transform(X, M);
+
+    using mat = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    const mat X_ref = ConstEigenMap(X_in) * ConstEigenMap(M);
+    EXPECT_NEAR(X_ref, ConstEigenMap(X), eps);
+
+    // check padding
+    for(long long j = 0; j < X.cols(); j++)
+      for(long long i = X.rows(); i < X.rowChunks()*PITTS::Chunk<double>::size; i++)
+      {
+        EXPECT_EQ(0., X(i,j));
+      }
+  }
+
+  // output test parameters
+  std::string inplaceOutputParams(const testing::TestParamInfo<std::tuple<int,int,int>>& info)
+  {
+    std::string name;
+    name += std::to_string(std::get<0>(info.param));
+    name += "_" + std::to_string(std::get<1>(info.param));
+    name += "_" + std::to_string(std::get<2>(info.param));
+    return name;
+  }
+}
+
+class PITTS_MultiVector_transform_inplace_param : public testing::TestWithParam<std::tuple<int,int,int>> {};
+
+TEST_P(PITTS_MultiVector_transform_inplace_param, check_result_and_padding)
+{
+  const auto& [n, m, k] = GetParam();
+
+  checkInplaceWithRandomData(n, m, k);
+}
+
+INSTANTIATE_TEST_CASE_P(SmallNoReshape, PITTS_MultiVector_transform_inplace_param, testing::Values(
+    std::make_tuple(1, 1, 1),
+    std::make_tuple(1, 5, 1),
+    std::make_tuple(5, 1, 1),
+    std::make_tuple(5, 3, 1),
+    std::make_tuple(5, 7, 4),
+    std::make_tuple(7, 3, 2),
+    std::make_tuple(3, 5, 5)),
+    &inplaceOutputParams );
+
+INSTANTIATE_TEST_CASE_P(LargeNoReshape, PITTS_MultiVector_transform_inplace_param, testing::Values(
+    std::make_tuple(32, 32, 32),
+    std::make_tuple(64, 7, 6),
+    std::make_tuple(71, 3, 2),
+    std::make_tuple(5, 120, 113),
+    std::make_tuple(50, 50, 3),
+    std::make_tuple(99, 2, 1),
+    std::make_tuple(150, 2, 2)),
+    &inplaceOutputParams );
+

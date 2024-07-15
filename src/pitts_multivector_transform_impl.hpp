@@ -245,6 +245,86 @@ namespace PITTS
 
   }
 
+
+  // implement multivector transform (in-place version)
+  template<typename T>
+  void transform(MultiVector<T>& X, const ConstTensor2View<T>& M)
+  {
+    // check dimensions
+    if( X.cols() != M.r1() )
+      throw std::invalid_argument("MultiVector::transform: dimension mismatch!");
+
+    if( M.r2() > M.r1() )
+      throw std::invalid_argument("MultiVector::transform: only supports case M.r1() >= M.r2() !");
+
+    // gather performance data
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"Xrows", "Xcols", "Xcols_"},{X.rows(),X.cols(),M.r2()}}, // arguments
+        {{(double(X.rows())*M.r1()*M.r2())*kernel_info::FMA<T>()}, // flops
+         {(double(X.rows())*(M.r1()-M.r2()) + M.r1()*M.r2())*kernel_info::Load<T>() + (double(X.rows())*M.r2())*kernel_info::Update<T>()}} // data transfers
+        );
+
+
+    // dimensions
+    const long long nTotalChunks = X.rowChunks();
+    const long long ldX = X.colStrideChunks();
+    const int m = M.r1();
+    const int m_ = M.r2();
+
+    // TODO: blocking for larger m
+    // for small m, problem is memory-bound => optimize for simple code, small overhead, n.t.-store where applicable
+    // for large m, problem is compute-bound, but only if we handle enough rows at once!
+
+#pragma omp parallel
+    {
+      std::unique_ptr<Chunk<T>[]> buff(new Chunk<T>[m]);
+
+#pragma omp for schedule(static)
+      for(long long iChunk = 0; iChunk < nTotalChunks; iChunk++)
+      {
+        // offset in input vector
+        Chunk<T>* pX = &X.chunk(iChunk, 0);
+
+        int j = 0;
+        for(; j+4 <= m_; j+=4)
+        {
+          Chunk<T> tmp00{};
+          Chunk<T> tmp10{};
+          Chunk<T> tmp20{};
+          Chunk<T> tmp30{};
+
+          for(int k = 0; k < m; k++)
+          {
+            fmadd(M(k,j+0), pX[k*ldX], tmp00);
+            fmadd(M(k,j+1), pX[k*ldX], tmp10);
+            fmadd(M(k,j+2), pX[k*ldX], tmp20);
+            fmadd(M(k,j+3), pX[k*ldX], tmp30);
+          }
+          buff[j+0] = tmp00;
+          buff[j+1] = tmp10;
+          buff[j+2] = tmp20;
+          buff[j+3] = tmp30;
+        }
+
+        for(; j < m_; j++)
+        {
+          Chunk<T> tmp00{};
+
+          for(int k = 0; k < m; k++)
+            fmadd(M(k,j+0), pX[k*ldX], tmp00);
+
+          buff[j+0] = tmp00;
+        }
+        // copy buff back to X
+        for(int j = 0; j < m; j++)
+            pX[j*ldX] = buff[j];
+      }
+    }
+
+    // shrink to correct size
+    X.resize(X.rows(), m_, false, true);
+  }
+
 }
 
 
