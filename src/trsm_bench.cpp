@@ -82,16 +82,24 @@ int main(int argc, char* argv[])
     trsm(X, M);
   }
 
+  double copy_wtime = omp_get_wtime();
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    copy(X_in, X);
+  }
+  copy_wtime = (omp_get_wtime() - copy_wtime) / nIter;
+  std::cout << "pitts copy wtime: " << copy_wtime << std::endl;
+
   PITTS::performance::clearStatistics();
 
   double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
   {
-    //copy(X_in, X);
+    copy(X_in, X);
     triangularSolve(X, M, colPermutation);
   }
   wtime = (omp_get_wtime() - wtime) / nIter;
-  std::cout << "pitts triangularSolve wtime: " << wtime << std::endl;
+  std::cout << "pitts triangularSolve wtime (without copy): " << wtime-copy_wtime << std::endl;
 
 
   if( m == k )
@@ -99,11 +107,11 @@ int main(int argc, char* argv[])
     wtime = omp_get_wtime();
     for(int iter = 0; iter < nIter; iter++)
     {
-      //copy(X_in, X);
+      copy(X_in, X);
       trsm(X, M);
     }
     wtime = (omp_get_wtime() - wtime) / nIter;
-    std::cout << "trsm wtime: " << wtime << std::endl;
+    std::cout << "trsm wtime (without copy): " << wtime-copy_wtime << std::endl;
   }
 
 

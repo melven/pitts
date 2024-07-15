@@ -47,24 +47,20 @@ int main(int argc, char* argv[])
 
   PITTS::performance::clearStatistics();
 
-  double wtime = omp_get_wtime();
-  for(int iter = 0; iter < nIter; iter++)
-  {
-    //copy(X_in, X);
-    transform(X, M);
-  }
-  wtime = (omp_get_wtime() - wtime) / nIter;
-  std::cout << "wtime: " << wtime << std::endl;
-
-  /*
   double wtime_copy = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
     copy(X_in, X);
   wtime_copy = (omp_get_wtime() - wtime_copy) / nIter;
   std::cout << "wtime_copy: " << wtime_copy << std::endl;
 
-  std::cout << "wtime without copy: " << wtime - wtime_copy << std::endl;
-  */
+  double wtime = omp_get_wtime();
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    copy(X_in, X);
+    transform(X, M);
+  }
+  wtime = (omp_get_wtime() - wtime) / nIter;
+  std::cout << "wtime (without copy): " << wtime-wtime_copy << std::endl;
 
   PITTS::finalize();
 
