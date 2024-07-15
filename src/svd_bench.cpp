@@ -63,11 +63,14 @@ namespace
     const auto mapM = ConstEigenMap(M);
 
 #ifndef PITTS_DIRECT_MKL_GEMM
+
 #if EIGEN_VERSION_AT_LEAST(3,4,90)
     w.svd.compute(mapM);
 #else
     w.svd.compute(mapM, Eigen::ComputeThinV | Eigen::ComputeThinU);
 #endif
+
+    assert(!std::isnan(w.svd.singularValues()(0)));
 #else
     LAPACKE_dgesdd(LAPACK_COL_MAJOR, 'S', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.S(0,0), &w.U(0,0), w.U.r1(), &w.Vt(0,0), w.Vt.r1());
 
@@ -75,8 +78,6 @@ namespace
     //std::cout << "singular values: " << ConstEigenMap(w.S).transpose() << "\n";
     //std::cout << "error: " << (ConstEigenMap(w.U) * ConstEigenMap(w.S).asDiagonal() * ConstEigenMap(w.Vt) - ConstEigenMap(M)).norm() << "\n";
 #endif
-
-    assert(!std::isnan(svd.singularValues()(0)));
   }
 }
 
