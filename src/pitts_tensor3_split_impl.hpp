@@ -81,10 +81,11 @@ namespace PITTS
         }
       }
 
-      // 6.67 N^3 flops reported by LAPACK, round it to 7
+      constexpr auto pow3 = [](double x){return x*x*x;};
+
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"n", "m"},{n, m}}, // arguments
-        {{(7*n*m*std::min(n,m))/2*kernel_info::FMA<T>()}, // flops
+        {{(4.*n*m*std::min(n,m)+2*pow3(std::min(n,m))/3)*kernel_info::FMA<T>()}, // flops
          {(n*m)*kernel_info::Load<T>() + ((n+m+1)*std::min(n,m))*kernel_info::Store<T>()}} // data transfers
         );
 
