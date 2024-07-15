@@ -20,6 +20,7 @@
 #include "pitts_common.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_eigen.hpp"
 
 //#ifndef EIGEN_USE_LAPACKE
 //#include <immintrin.h>
@@ -80,6 +81,7 @@ namespace PITTS
           std::cout << "PITTS: OpenMP #threads: " << nThreads << "\n";
       }
       std::cout << "PITTS: SIMD implementation: " << SIMD_implementation() << "\n";
+      std::cout << "PITTS: Eigen SIMD implementation: " << Eigen::SimdInstructionSetsInUse() << "\n";
     }
 
 #ifdef PITTS_USE_LIKWID_MARKER_API
