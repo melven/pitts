@@ -19,6 +19,7 @@
 #include "pitts_multivector_reshape.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_machine_info.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -49,6 +50,9 @@ namespace PITTS
     // check if we can do the fast aligned variant (depends on the reshape dimensions)
     bool fast = (X.rows() % Chunk<T>::size == 0 && rows % Chunk<T>::size == 0);
 
+    const MachineInfo mi = getMachineInfo();
+    bool use_streaming_stores = rows*cols*sizeof(T) > 3*mi.cacheSize_L3_total;
+
     // gather performance data
     const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
         {{"Xrows", "Xcols", "Yrows", "Ycols", "fast"},{X.rows(),X.cols(),rows,cols,(long long)fast}}, // arguments
@@ -70,7 +74,10 @@ namespace PITTS
           const auto xChunk = flatIdx % X.rowChunks();
           const auto xj = flatIdx / X.rowChunks();
 
-          streaming_store(X.chunk(xChunk,xj), Y.chunk(yChunk,yj));
+          if( use_streaming_stores )
+            streaming_store(X.chunk(xChunk,xj), Y.chunk(yChunk,yj));
+          else
+            Y.chunk(yChunk,yj) = X.chunk(xChunk,xj);
         }
       }
       return;
@@ -96,7 +103,10 @@ namespace PITTS
         Chunk<T> tmp;
         unaligned_load(&X(xi,xj), tmp);
 
-        streaming_store(tmp, Y.chunk(yChunk,yj));
+        if( use_streaming_stores )
+          streaming_store(tmp, Y.chunk(yChunk,yj));
+        else
+          Y.chunk(yChunk,yj) = tmp;
       }
     }
 

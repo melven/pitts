@@ -18,6 +18,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
+#include "pitts_machine_info.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -38,13 +39,28 @@ namespace PITTS
 
     b.resize(rows, cols);
 
+    const MachineInfo mi = getMachineInfo();
+    bool use_streaming_stores = rows*cols*sizeof(T) > 3*mi.cacheSize_L3_total;
+      
 #pragma omp parallel
     {
-      for(long long j = 0; j < cols; j++)
+      if( use_streaming_stores )
       {
+        for(long long j = 0; j < cols; j++)
+        {
 #pragma omp for schedule(static) nowait
-        for(long long iChunk = 0; iChunk < rowChunks; iChunk++)
-          streaming_store(a.chunk(iChunk,j), b.chunk(iChunk,j));
+          for(long long iChunk = 0; iChunk < rowChunks; iChunk++)
+            streaming_store(a.chunk(iChunk,j), b.chunk(iChunk,j));
+        }
+      }
+      else
+      {
+        for(long long j = 0; j < cols; j++)
+        {
+#pragma omp for schedule(static) nowait
+          for(long long iChunk = 0; iChunk < rowChunks; iChunk++)
+            b.chunk(iChunk,j) = a.chunk(iChunk,j);
+        }
       }
     }
   }

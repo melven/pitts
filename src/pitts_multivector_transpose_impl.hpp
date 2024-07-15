@@ -23,6 +23,7 @@
 #include "pitts_parallel.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_machine_info.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -45,6 +46,9 @@ namespace PITTS
         {{X.rows()*X.cols()*kernel_info::NoOp<T>()}, // flops
          {X.rows()*X.cols()*kernel_info::Load<T>() + reshape[0]*reshape[1]*kernel_info::Store<T>()}} // data transfers
         );
+
+    const MachineInfo mi = getMachineInfo();
+    bool use_streaming_stores = reshape[0]*reshape[1]*sizeof(T) > 3*mi.cacheSize_L3_total;
 
     Y.resize(reshape[0], reshape[1]);
     // difficult to do a nice OpenMP variant as we have two pairs of running indices and easily get idiv-bound when calculating indices in the innermost loop
@@ -83,7 +87,12 @@ namespace PITTS
             }
           }
           for(long long jy = 0; jy < Y.cols(); jy++)
-            streaming_store(buff[jy], Y.chunk(iChunk,jy));
+          {
+            if( use_streaming_stores )
+              streaming_store(buff[jy], Y.chunk(iChunk,jy));
+            else
+              Y.chunk(iChunk,jy) = buff[jy];
+          }
         }
       }
     }
@@ -117,7 +126,10 @@ namespace PITTS
                 jx = 0;
               }
             }
-            streaming_store(buff, Y.chunk(iChunk,jy));
+            if( use_streaming_stores )
+              streaming_store(buff, Y.chunk(iChunk,jy));
+            else
+              Y.chunk(iChunk,jy) = buff;
           }
 
           // handle the last chunk
@@ -137,7 +149,10 @@ namespace PITTS
               }
             }
 
-            streaming_store(buff, Y.chunk(iChunk,jy));
+            if( use_streaming_stores )
+              streaming_store(buff, Y.chunk(iChunk,jy));
+            else
+              Y.chunk(iChunk,jy) = buff;
           }
         }
       }

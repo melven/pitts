@@ -31,6 +31,7 @@
 #include "pitts_parallel.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
+#include "pitts_machine_info.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -820,16 +821,18 @@ namespace PITTS
 
     // calculate performance tuning parameters
     {
+      const MachineInfo mi = getMachineInfo();
+
       // L1 cache size per core (in chunks)
-      constexpr int cacheSize_L1 = 32*1024 / (Chunk<T>::size * sizeof(T));
+      const int cacheSize_L1 = (mi.cacheSize_L1_perCore > 0 ? mi.cacheSize_L1_perCore : 32*1024) / (Chunk<T>::size * sizeof(T));
       // L2 cache size per core (in chunks)
-      constexpr int cacheSize_L2 = 1*1024*1024 / (Chunk<T>::size * sizeof(T));
+      const int cacheSize_L2 = (mi.cacheSize_L2_perCore > 0 ? mi.cacheSize_L2_perCore : 1*1024*1024) / (Chunk<T>::size * sizeof(T));
 
       // automatically choose suitable reduction factor
       if( reductionFactor == 0 )
       {
         // max. reductionFactor (for small number of columns, ensure applyReflection2<T,3> fits into L1)
-        constexpr int maxReductionFactor = int(0.74 * cacheSize_L1 / (3+2));
+        const int maxReductionFactor = int(0.74 * cacheSize_L1 / (3+2));
 
         // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
         reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
