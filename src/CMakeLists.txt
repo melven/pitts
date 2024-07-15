@@ -21,6 +21,8 @@ target_sources(pitts INTERFACE
   pitts_performance_impl.hpp
   pitts_common.hpp
   pitts_common_impl.hpp
+  pitts_machine_info.hpp
+  pitts_machine_info_impl.hpp
   pitts_parallel.hpp
   pitts_parallel_impl.hpp
   pitts_eigen.hpp
@@ -160,6 +162,7 @@ install(TARGETS pitts PUBLIC_HEADER DESTINATION include)
 if(PITTS_DEVELOP_BUILD)
   add_library(pitts_impl OBJECT
     pitts_common.cpp
+    pitts_machine_info.cpp
     pitts_parallel.cpp
     pitts_timer.cpp
     pitts_performance.cpp
