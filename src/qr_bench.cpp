@@ -32,7 +32,7 @@ namespace
   };
 
 
-  //! small wrapper around SVD, avoid reallocating svd data each time...
+  //! small wrapper around QR, avoid reallocating svd data each time...
   void calculate_qr(const PITTS::Tensor2<Type>& M, Work& w)
   {
     using namespace PITTS;
@@ -87,6 +87,78 @@ namespace
     //std::cout << "Error: " << (ConstEigenMap(w.tmpA) * ConstEigenMap(w.R).template triangularView<Eigen::Upper>() - ConstEigenMap(M) * w.jpvt.asPermutation()).norm() << "\n";
 #endif
   }
+
+  using EigenUnpivotedQR = Eigen::HouseholderQR<EigenMatrix>;
+
+  struct WorkUnpivoted
+  {
+    EigenUnpivotedQR qr;
+    PITTS::Tensor2<Type> tmpA, Q, R, T;
+    int nb;
+  };
+
+  //! small wrapper around QR, avoid reallocating svd data each time...
+  void calculate_unpivoted_qr(const PITTS::Tensor2<Type>& M, WorkUnpivoted& w)
+  {
+    using namespace PITTS;
+
+    const auto n = M.r1();
+    const auto m = M.r2();
+
+    if( m > n )
+      throw std::invalid_argument("Only supports n >= m!");
+
+    w.tmpA.resize(n,m);
+
+#ifdef PITTS_DIRECT_MKL_GEMM
+    copy(M, w.tmpA);
+
+    w.R.resize(m,m);
+    w.Q.resize(n,m);
+
+    EigenMap(w.R).setZero();
+
+    const auto mi = PITTS::getMachineInfo();
+    w.nb = 16 * std::max<int>(1, int(0.7 * mi.cacheSize_L2_perCore / sizeof(Type) / 16 / m));
+    w.nb = std::min<int>(w.nb, m);
+    w.T.resize(w.nb, m);
+#endif
+
+    using namespace PITTS;
+
+    const auto timer = PITTS::performance::createScopedTimer<Tensor2<Type>>(
+      {{"n", "m"},{n, m}}, // arguments
+      {{(2.*n*m*m-2.*m*m*m/3)*kernel_info::FMA<Type>()}, // flops
+       {(2.*n*m)*kernel_info::Update<Type>() + (2.*0.5*m*m)*kernel_info::Load<Type>() + (2.*0.5*m*m)*kernel_info::Store<Type>()}} // data transfers
+      );
+
+    const auto mapM = ConstEigenMap(M);
+
+#ifndef PITTS_DIRECT_MKL_GEMM
+
+    w.qr.compute(mapM);
+
+    EigenMap(w.tmpA).noalias() = w.qr.householderQ() * EigenMatrix::Identity(n, m);
+
+#else
+    // try to use blocked variant
+    LAPACKE_dgeqrt(LAPACK_COL_MAJOR, n, m, w.nb, &w.tmpA(0,0), w.tmpA.r1(), &w.T(0,0), w.T.r1());
+
+    //EigenMap(w.R).template triangularView<Eigen::Upper>().noalias() = ConstEigenMap(w.tmpA).template triangularView<Eigen::Upper>();
+    LAPACKE_dlacpy(LAPACK_COL_MAJOR, 'U', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.R(0,0), w.R.r1());
+
+#pragma omp parallel for schedule(static)
+    for(int i = 0; i < n; i++)
+      for(int j = 0; j < m; j++)
+        w.Q(i,j) = double(i == j);
+
+    LAPACKE_dgemqrt(LAPACK_COL_MAJOR, 'L', 'N', n, m, m, w.nb, &w.tmpA(0,0), w.tmpA.r1(), &w.T(0,0), w.T.r1(), &w.Q(0,0), w.Q.r1());
+
+    //std::cout << "error: " << (ConstEigenMap(M) - ConstEigenMap(w.Q) * ConstEigenMap(w.R)).norm() << "\n";
+    //std::cout << "R:\n" << ConstEigenMap(w.R) << "\n";
+    //std::cout << "Q^T Q:\n" << ConstEigenMap(w.Q).transpose() * ConstEigenMap(w.Q) << "\n";
+#endif
+  }
 }
 
 
@@ -111,6 +183,10 @@ int main(int argc, char* argv[])
   Work w;
   calculate_qr(M, w);
 
+  WorkUnpivoted w2;
+  calculate_unpivoted_qr(M, w2);
+  std::cout << "unpivoted block size: " << w2.nb << "\n";
+
   PITTS::performance::clearStatistics();
 
   double wtime = omp_get_wtime();
@@ -120,6 +196,14 @@ int main(int argc, char* argv[])
   }
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "QR wtime: " << wtime << std::endl;
+
+  wtime = omp_get_wtime();
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    calculate_unpivoted_qr(M, w2);
+  }
+  wtime = (omp_get_wtime() - wtime) / nIter;
+  std::cout << "unpivoted QR wtime: " << wtime << std::endl;
 
   PITTS::finalize();
 
