@@ -1,68 +1,127 @@
-// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+// Copyright (c) 2020 German Aerospace Center (DLR), Institute for Software Technology, Germany
 // SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
-// SPDX-FileContributor: Manuel Joey Becklas
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "pitts_mkl.hpp"
 #include "pitts_common.hpp"
+#include "pitts_mkl.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_random.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
-#include "pitts_tensor3_split.hpp"
+#include "pitts_performance.hpp"
+#include <iostream>
+#include <charconv>
+#include <stdexcept>
+#include <cassert>
 
-static const char* help_message = "\nOnly allowed parameters are f, h, l, ?: \n"
-    "f      - take QR of full-rank matrix\n"
-    "h      - take QR of high-rank matrix\n"
-    "l      - take QR of low-rank matrix\n"
-    "?      - display this help message and exit\n";
+// pitts_tensor3_split_impl.hpp internal::normalize_svd_only
+
+namespace
+{
+  using Type = double;
+  using EigenMatrix = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using EigenQR = Eigen::ColPivHouseholderQR<EigenMatrix>;
+
+  struct Work
+  {
+    EigenQR qr;
+    PITTS::Tensor2<Type> tmpA, R, tau;
+    Eigen::VectorX<int> jpvt;
+  };
+
+
+  //! small wrapper around SVD, avoid reallocating svd data each time...
+  void calculate_qr(const PITTS::Tensor2<Type>& M, Work& w)
+  {
+    using namespace PITTS;
+
+    const auto n = M.r1();
+    const auto m = M.r2();
+
+    if( m > n )
+      throw std::invalid_argument("Only supports n >= m!");
+
+    w.tmpA.resize(n,m);
+
+#ifdef PITTS_DIRECT_MKL_GEMM
+    copy(M, w.tmpA);
+
+    w.jpvt.resize(m);
+    w.tau.resize(m,1);
+    w.R.resize(m,m);
+
+    w.jpvt.setZero();
+    EigenMap(w.tau).setZero();
+    EigenMap(w.R).setZero();
+#endif
+
+    using namespace PITTS;
+
+    const auto timer = PITTS::performance::createScopedTimer<Tensor2<Type>>(
+      {{"n", "m"},{n, m}}, // arguments
+      {{(2.*n*m*m-2.*m*m*m/3)*kernel_info::FMA<Type>()}, // flops
+       {(2.*n*m)*kernel_info::Update<Type>() + (2.*0.5*m*m)*kernel_info::Load<Type>() + (2.*0.5*m*m)*kernel_info::Store<Type>()}} // data transfers
+      );
+
+    const auto mapM = ConstEigenMap(M);
+
+#ifndef PITTS_DIRECT_MKL_GEMM
+
+    w.qr.compute(mapM);
+
+    EigenMap(w.tmpA).noalias() = w.qr.householderQ() * EigenMatrix::Identity(n, m);
+
+#else
+    // unfortunately, there is no LAPACKE_dlatsqr yet, only the raw variant with work arrays in Fortran...
+    LAPACKE_dgeqp3(LAPACK_COL_MAJOR, n, m, &w.tmpA(0,0), w.tmpA.r1(), w.jpvt.data(), &w.tau(0,0));
+
+    //EigenMap(w.R).template triangularView<Eigen::Upper>().noalias() = ConstEigenMap(w.tmpA).template triangularView<Eigen::Upper>();
+    LAPACKE_dlacpy(LAPACK_COL_MAJOR, 'U', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.R(0,0), w.R.r1());
+
+    LAPACKE_dorgqr(LAPACK_COL_MAJOR, n, m, m, &w.tmpA(0,0), w.tmpA.r1(), &w.tau(0,0));
+
+    //for(int i = 0; i < m; i++)
+    //  w.jpvt(i) -= 1;
+    //std::cout << "Error: " << (ConstEigenMap(w.tmpA) * ConstEigenMap(w.R).template triangularView<Eigen::Upper>() - ConstEigenMap(M) * w.jpvt.asPermutation()).norm() << "\n";
+#endif
+  }
+}
 
 
 int main(int argc, char* argv[])
 {
-    PITTS::initialize(&argc, &argv);
+  PITTS::initialize(&argc, &argv);
 
-    std::vector<std::size_t> rows = {16,70,264,1032,2056,4104}, cols = {16,70,264,1032,2056,4104};
-    float rank_multiplier = 0.75;
-    std::size_t rnk;
+  if( argc != 4 )
+    throw std::invalid_argument("Requires 4 arguments (n m nIter)!");
 
-    switch (argc)
-    {
-    case 1:
-        break;
-    case 2:
-        if      (argv[1][0] == 'f')
-            rank_multiplier = 1.0;
-        else if (argv[1][0] == 'h')
-            rank_multiplier = 0.66;
-        else if (argv[1][0] == 'l')
-            rank_multiplier = 0.33;
-        else if (argv[1][0] == '?')
-        {
-            std::cout << help_message;
-            return 1;
-        }
-        break;
-    default:
-        throw std::invalid_argument(help_message);
-    }
-    
-    for (std::size_t row : rows)
-    {
-        for (std::size_t col : cols)
-        {
-            rnk = std::min(row, col) * rank_multiplier;
-            PITTS::Tensor2<double> A(row, col), B(row, rnk), C(rnk, col);
-            randomize(B);
-            randomize(C);
-            EigenMap(A) = ConstEigenMap(B) * ConstEigenMap(C);
+  long long n = 0, m = 0, nIter = 0;
+  std::from_chars(argv[1], argv[2], n);
+  std::from_chars(argv[2], argv[3], m);
+  std::from_chars(argv[3], argv[4], nIter);
 
-            for (int i = 0; i < 10; i++)
-            {
-                auto [Q,R] = PITTS::internal::normalize_qb(A, true, 0.0, row+col);
-            }
-        }
-    }
-    
-    PITTS::finalize();
+  using Type = double;
+  PITTS::Tensor2<Type> M(n,m);
+  randomize(M);
+  for(int i = 0; i < std::min(n,m); i++)
+    M(i,i) = 5 + 0.1*M(i,i);
+
+  Work w;
+  calculate_qr(M, w);
+
+  PITTS::performance::clearStatistics();
+
+  double wtime = omp_get_wtime();
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    calculate_qr(M, w);
+  }
+  wtime = (omp_get_wtime() - wtime) / nIter;
+  std::cout << "QR wtime: " << wtime << std::endl;
+
+  PITTS::finalize();
+
+  return 0;
 }
