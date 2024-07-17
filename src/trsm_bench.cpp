@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   std::from_chars(argv[4], argv[5], nIter);
 
   using Type = double;
-  PITTS::MultiVector<Type> X_in(n, m), X(n, m);
+  PITTS::MultiVector<Type> X_in(n, m), X(n, m), X2(n, m);
   PITTS::Tensor2<Type> M(k, k);
   randomize(X_in);
   randomize(M);
@@ -78,20 +78,28 @@ int main(int argc, char* argv[])
   triangularSolve(X, M, colPermutation);
   if( m == k )
   {
-    copy(X_in, X);
-    trsm(X, M);
+    copy(X_in, X2);
+    trsm(X2, M);
   }
+
+  double copy_wtime = omp_get_wtime();
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    copy(X_in, X);
+  }
+  copy_wtime = (omp_get_wtime() - copy_wtime) / nIter;
+  std::cout << "pitts copy wtime: " << copy_wtime << std::endl;
 
   PITTS::performance::clearStatistics();
 
   double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
   {
-    //copy(X_in, X);
+    copy(X_in, X);
     triangularSolve(X, M, colPermutation);
   }
   wtime = (omp_get_wtime() - wtime) / nIter;
-  std::cout << "pitts triangularSolve wtime: " << wtime << std::endl;
+  std::cout << "pitts triangularSolve wtime (without copy): " << wtime-copy_wtime << std::endl;
 
 
   if( m == k )
@@ -99,11 +107,11 @@ int main(int argc, char* argv[])
     wtime = omp_get_wtime();
     for(int iter = 0; iter < nIter; iter++)
     {
-      //copy(X_in, X);
-      trsm(X, M);
+      copy(X_in, X2);
+      trsm(X2, M);
     }
     wtime = (omp_get_wtime() - wtime) / nIter;
-    std::cout << "trsm wtime: " << wtime << std::endl;
+    std::cout << "trsm wtime (without copy): " << wtime-copy_wtime << std::endl;
   }
 
 
