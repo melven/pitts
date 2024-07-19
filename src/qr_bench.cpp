@@ -166,6 +166,7 @@ namespace
   }
 
 
+#ifdef PITTS_DIRECT_MKL_GEMM
   struct WorkUnpivotedGenericLAPACK
   {
     PITTS::Tensor2<Type> R;
@@ -265,6 +266,7 @@ namespace
     //std::cout << "R:\n" << ConstEigenMap(w.R) << "\n";
     //std::cout << "Q^T Q:\n" << ConstEigenMap(w.Q).transpose() * ConstEigenMap(w.Q) << "\n";
   }
+#endif
 
 }
 
@@ -294,8 +296,10 @@ int main(int argc, char* argv[])
   calculate_unpivoted_qr(M, w2);
   //std::cout << "unpivoted block size: " << w2.nb << "\n";
 
+#ifdef PITTS_DIRECT_MKL_GEMM
   WorkUnpivotedGenericLAPACK w3;
   calculate_unpivoted_generic_lapack_qr(M, w3);
+#endif
 
   PITTS::performance::clearStatistics();
 
@@ -315,6 +319,7 @@ int main(int argc, char* argv[])
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "unpivoted QR wtime: " << wtime << std::endl;
 
+#ifdef PITTS_DIRECT_MKL_GEMM
   wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
   {
@@ -322,6 +327,7 @@ int main(int argc, char* argv[])
   }
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "generic (e.g. TSQR) unpivoted QR wtime: " << wtime << std::endl;
+#endif
 
 
   PITTS::finalize();
