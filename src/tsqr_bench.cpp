@@ -54,6 +54,9 @@ int main(int argc, char* argv[])
   randomize(M);
 
   PITTS::Tensor2<Type> R(m,m);
+  block_TSQR(M, R, reductionFactor, true, colBlockingSize);
+
+  PITTS::performance::clearStatistics();
 
 double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)
