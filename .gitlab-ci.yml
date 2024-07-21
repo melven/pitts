@@ -3,6 +3,11 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+default:
+  id_tokens:
+    SITE_ID_TOKEN:
+      aud: https://gitlab.dlr.de
+
 before_script:
   - export OMP_NUM_THREADS=5
   - ulimit -s unlimited

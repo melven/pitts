@@ -282,7 +282,7 @@ namespace PITTS
       }
 
       // forward declaration
-      template<typename T>
+      template<typename T, bool BranchLess = true>
       [[gnu::always_inline]]
       inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col);
 
@@ -320,6 +320,7 @@ namespace PITTS
       //           in front of (out-of-place: pdataResult != pdataIn), respectively behind (in-place: pdataResult == pdataIn) the current block.
       //!
       //! @tparam T           underlying data type
+      //! @tparam BranchLess  set to true to use branch-less implementation, false for more accurate implementation for small numbers
       //!
       //! @param nChunks      number of new rows in pdataIn divided by the Chunk size
       //! @param m            number of columns
@@ -337,7 +338,7 @@ namespace PITTS
       //! @param bossLatches    synchronization objects for waiting on the boss thread
       //! @param workerLatches  synchronization objects for waiting on the worker threads
       //!
-      template<typename T>
+      template<typename T, bool BranchLess = true>
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, bool twoTriangularBlocks, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
@@ -407,7 +408,7 @@ namespace PITTS
             {
               for(int col = beginCol; col < endCol; col++)
               {
-                transformBlock_calc(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
+                transformBlock_calc<T, BranchLess>(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
                 transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol, twoTriangularBlocks);
               }
             }
@@ -454,12 +455,12 @@ namespace PITTS
       }
 
       //! internal helper function for transformBlock
-      template<typename T>
+      template<typename T, bool BranchLess>
       [[gnu::always_inline]]
       inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset, int col)
       {
         using RealType = decltype(std::abs(T(0)));
-        static_assert(RealType(0) != std::numeric_limits<RealType>::min());
+        static_assert((!BranchLess) || RealType(0) != std::numeric_limits<RealType>::min());
 
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -484,6 +485,9 @@ namespace PITTS
         // u = x - alpha e_1 with alpha = +- ||x||
         // v = u / ||u||
         T pivot = pdata[firstRow+lda*col][idx];
+
+        // original unrolled code:
+        /*
         Chunk<T> uTu;
         mul(conj(pivotChunk), pivotChunk, uTu);
         {
@@ -493,45 +497,98 @@ namespace PITTS
           for(; i <= nChunks+firstRow; i++)
             fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu);
         }
+        T uTu_sum = sum(uTu);
+        */
 
-        T uTu_sum = sum(uTu) + std::numeric_limits<RealType>::min();
+        constexpr int unroll = 2;
+        Chunk<T> uTu[unroll];
+        mul(conj(pivotChunk), pivotChunk, uTu[unroll-1]);
+        for(int i = 0; i+1 < unroll; i++)
+          uTu[i] = Chunk<T>{};
+        {
+          int i = firstRow+1;
+          for(; i+unroll <= nChunks; i+=unroll)
+          {
+            for(int ii = 0; ii < unroll; ii++)
+              fmadd(conj(pdata[i+ii+lda*col]), pdata[i+ii+lda*col], uTu[ii]);
+          }
+          for(int ii = 0; i < nChunks; i++, ii++)
+            fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu[ii]);
 
-        // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
-        // (falls back to I - 2 e1 e1^T in that case)
-        T alpha = std::sqrt(uTu_sum + std::numeric_limits<RealType>::min());
-        if constexpr ( requires(T x){x > 0;} )
-          alpha *= (pivot > 0 ? -1 : 1);
-        else
-          alpha *= (pivot == T(0) ? T(-1) : -pivot / std::abs(pivot));
+          for(; i+unroll <= nChunks+firstRow+1; i+=unroll)
+          {
+            for(int ii = 0; ii < unroll; ii++)
+              fmadd(conj(pdataResult[i+ii+ldaResult*col]), pdataResult[i+ii+ldaResult*col], uTu[ii]);
+          }
+          for(int ii = 0; i <= nChunks+firstRow; i++,ii++)
+            fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu[ii]);
+        }
 
+        T uTu_sum = sum(uTu[0]);
+        for(int ii = 1; ii < unroll; ii++)
+          uTu_sum += sum(uTu[ii]);
+
+
+        T alpha;
+        if constexpr ( BranchLess )
+        {
+          uTu_sum += std::numeric_limits<RealType>::min();
+
+          // add another minVal, s.t. the Householder reflection is correctly set up even for zero columns
+          // (falls back to I - 2 e1 e1^T in that case)
+          alpha = std::sqrt(uTu_sum + std::numeric_limits<RealType>::min());
+          if constexpr ( requires(T x){x > 0;} )
+            alpha *= (pivot > 0 ? -1 : 1);
+          else
+            alpha *= (pivot == T(0) ? T(-1) : -pivot / std::abs(pivot));
+        }
+        else // !BranchLess
+        {
+          alpha = std::sqrt(uTu_sum);
+          if( uTu_sum != T(0) )
+          {
+            if constexpr ( requires(T x){x > 0;} )
+              alpha *= (pivot > 0 ? -1 : 1);
+            else
+              alpha *= (pivot == T(0) ? T(-1) : -pivot / std::abs(pivot));
+          }
+        }
 
 
         // calculate reflection vector
         Chunk<T> vtmp[nChunks+1];
         if( col+1 < m )
         {
-          // real case:
-          //   alpha = +- ||x||
-          //   u = x - alpha*e_1
-          //   ||u||^2 = ||x||^2 - x_1^2 + x_1^2 + (x_1 - alpha)^2 = ||x||^2 - x_1^2 + x_1^2 - 2x_1 alpha + alpha^2 = ||x||^2 - 2x_1 alpha + ||x||^2 = 2(||x||^2 - x_1 alpha)
-          //   => 0.5*||u||^2 = ||x||^2 - x_1*alpha
-          // complex case:
-          //   |alpha| = ||x||
-          //   u = x - alpha*e_1
-          //   ||u||^2 = ||x||^2 - |x_1|^2 + |x_1|^2 - conj(x_1) alpha - conj(alpha) alpha + |alpha|^2 = ||x||^2 + 2*conj(x_1)*alpha + ||x||^2
-          if constexpr ( requires(T x){x > 0;} )
-            uTu_sum -= pivot*alpha;
-          else
-            uTu_sum -= std::conj(pivot)*alpha;
-          pivot -= alpha;
-          index_bcast(pivotChunk, idx, pivot, pivotChunk);
-          T beta = T(1)/std::sqrt(uTu_sum);
-          mul(beta, pivotChunk, vtmp[0]);
-          int i = firstRow+1;
-          for(; i < nChunks; i++)
-            mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
-          for(; i <= nChunks+firstRow; i++)
-            mul(beta, pdataResult[i+ldaResult*col], vtmp[i-firstRow]);
+          if( uTu_sum == T(0) && (!BranchLess) )
+          {
+            for(int i = 0; i < nChunks+1; i++)
+              vtmp[i] = Chunk<T>{};
+          }
+          else // BranchLess || uTu_sum != 0
+          {
+            // real case:
+            //   alpha = +- ||x||
+            //   u = x - alpha*e_1
+            //   ||u||^2 = ||x||^2 - x_1^2 + x_1^2 + (x_1 - alpha)^2 = ||x||^2 - x_1^2 + x_1^2 - 2x_1 alpha + alpha^2 = ||x||^2 - 2x_1 alpha + ||x||^2 = 2(||x||^2 - x_1 alpha)
+            //   => 0.5*||u||^2 = ||x||^2 - x_1*alpha
+            // complex case:
+            //   |alpha| = ||x||
+            //   u = x - alpha*e_1
+            //   ||u||^2 = ||x||^2 - |x_1|^2 + |x_1|^2 - conj(x_1) alpha - conj(alpha) alpha + |alpha|^2 = ||x||^2 + 2*conj(x_1)*alpha + ||x||^2
+            if constexpr ( requires(T x){x > 0;} )
+              uTu_sum -= pivot*alpha;
+            else
+              uTu_sum -= std::conj(pivot)*alpha;
+            pivot -= alpha;
+            index_bcast(pivotChunk, idx, pivot, pivotChunk);
+            T beta = T(1)/std::sqrt(uTu_sum);
+            mul(beta, pivotChunk, vtmp[0]);
+            int i = firstRow+1;
+            for(; i < nChunks; i++)
+              mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
+            for(; i <= nChunks+firstRow; i++)
+              mul(beta, pdataResult[i+ldaResult*col], vtmp[i-firstRow]);
+          }
 #if 0
 #ifndef NDEBUG
 {
@@ -778,7 +835,7 @@ namespace PITTS
               unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
         }
 
-        transformBlock(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, true);
+        transformBlock<T, true>(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, true);
 
         // copy back to inoutvec
         if( inoutvecChunked )
@@ -872,6 +929,14 @@ namespace PITTS
       return;
     }
 
+    int iProc = 0, nProcs = 1;
+    if( mpiGlobal )
+    {
+      std::tie(iProc,nProcs) = internal::parallel::mpiProcInfo();
+      if( nProcs == 1 )
+        mpiGlobal = false;
+    }
+
     // reduce #threads if there is not enough work to do...
     //int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
@@ -915,7 +980,7 @@ namespace PITTS
         for(long long iter = firstIter; iter <= lastIter; iter++)
         {
           const int nRemainingChunks = nTotalChunks-iter*nChunks;
-          internal::HouseholderQR::transformBlock(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, false, colBlockingSize);
+          internal::HouseholderQR::transformBlock<T, true>(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, false, colBlockingSize);
         }
       }
 
@@ -952,7 +1017,7 @@ namespace PITTS
           {
             const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
             const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
-            internal::HouseholderQR::transformBlock(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, true, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
+            internal::HouseholderQR::transformBlock<T, true>(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, true, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
           }
 
           // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
@@ -967,71 +1032,77 @@ namespace PITTS
         pThread0Buff = std::move(plocalBuff);
 
       // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
+      if( !mpiGlobal )
+      {
+        // not handled through MPI
+        if( iThread == 0 )
+        {
+          // copy result to R
+          R.resize(m,m);
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < m; i++)
+              R(i,j) = pThread0Buff[ localBuffOffset + i/Chunk<T>::size + ldaBuff*j ][ i%Chunk<T>::size ];
+        }
+      }
+      else
+      {
+        // only needed for MPI, otherwise we are already finished
 #pragma omp barrier
+      }
     }
 
     if( mpiGlobal )
     {
-      const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
-      if( nProcs > 1 )
-      {
-        // compress result
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < mChunks; i++)
-            presultBuff[i+mChunks*j] = pThread0Buff[localBuffOffset + i+ldaBuff*j];
+      // compress result
+      for(int j = 0; j < m; j++)
+        for(int i = 0; i < mChunks; i++)
+          presultBuff[i+mChunks*j] = pThread0Buff[localBuffOffset + i+ldaBuff*j];
 
 //#define MPI_TIMINGS
 #ifdef MPI_TIMINGS
-        double wtime = omp_get_wtime();
+      double wtime = omp_get_wtime();
 #endif
-        // define a dedicated datatype as MPI reduction operations are defined element-wise
-        MPI_Datatype tsqrType;
-        if( MPI_Type_contiguous(mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), &tsqrType) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Type_contiguous");
+      // define a dedicated datatype as MPI reduction operations are defined element-wise
+      MPI_Datatype tsqrType;
+      if( MPI_Type_contiguous(mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), &tsqrType) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Type_contiguous");
 
-        if( MPI_Type_commit(&tsqrType) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Type_commit");
+      if( MPI_Type_commit(&tsqrType) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Type_commit");
 
-        // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
-        MPI_Op tsqrOp;
-        if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 1, &tsqrOp) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Op_create");
+      // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
+      MPI_Op tsqrOp;
+      if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 1, &tsqrOp) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Op_create");
 
-        // actual MPI reduction, reusing buffers
-        std::swap(pThread0Buff, presultBuff);
-        if( MPI_Allreduce(pThread0Buff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Allreduce");
+      // actual MPI reduction, reusing buffers
+      std::swap(pThread0Buff, presultBuff);
+      if( MPI_Allreduce(pThread0Buff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Allreduce");
 
-        // unregister MPI reduction operation
-        if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Op_free");
+      // unregister MPI reduction operation
+      if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Op_free");
 
-        // free dedicated MPI type
-        if( MPI_Type_free(&tsqrType) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Type_free");
+      // free dedicated MPI type
+      if( MPI_Type_free(&tsqrType) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Type_free");
 
 #ifdef MPI_TIMINGS
-        wtime = omp_get_wtime() - wtime;
-        if( iProc == 0 )
-          std::cout << "TSQR MPI wtime: " << wtime << "\n";
+      wtime = omp_get_wtime() - wtime;
+      if( iProc == 0 )
+        std::cout << "TSQR MPI wtime: " << wtime << "\n";
 #endif
 
-        // copy result to R
-        R.resize(m,m);
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < m; i++)
-            R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
+      // copy result to R
+      R.resize(m,m);
+      for(int j = 0; j < m; j++)
+        for(int i = 0; i < m; i++)
+          R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
 
-        return;
-      }
+      return;
     }
 
-    // not handled through MPI
-    // copy result to R
-    R.resize(m,m);
-    for(int j = 0; j < m; j++)
-      for(int i = 0; i < m; i++)
-        R(i,j) = pThread0Buff[ localBuffOffset + i/Chunk<T>::size + ldaBuff*j ][ i%Chunk<T>::size ];
   }
 }
 
