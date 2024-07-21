@@ -929,6 +929,10 @@ namespace PITTS
       return;
     }
 
+    const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
+    if( nProcs == 1 )
+      mpiGlobal = false;
+
     // reduce #threads if there is not enough work to do...
     //int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
 
@@ -1024,71 +1028,77 @@ namespace PITTS
         pThread0Buff = std::move(plocalBuff);
 
       // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
+      if( !mpiGlobal )
+      {
+        // not handled through MPI
+        if( iThread == 0 )
+        {
+          // copy result to R
+          R.resize(m,m);
+          for(int j = 0; j < m; j++)
+            for(int i = 0; i < m; i++)
+              R(i,j) = pThread0Buff[ localBuffOffset + i/Chunk<T>::size + ldaBuff*j ][ i%Chunk<T>::size ];
+        }
+      }
+      else
+      {
+        // only needed for MPI, otherwise we are already finished
 #pragma omp barrier
+      }
     }
 
     if( mpiGlobal )
     {
-      const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
-      if( nProcs > 1 )
-      {
-        // compress result
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < mChunks; i++)
-            presultBuff[i+mChunks*j] = pThread0Buff[localBuffOffset + i+ldaBuff*j];
+      // compress result
+      for(int j = 0; j < m; j++)
+        for(int i = 0; i < mChunks; i++)
+          presultBuff[i+mChunks*j] = pThread0Buff[localBuffOffset + i+ldaBuff*j];
 
 //#define MPI_TIMINGS
 #ifdef MPI_TIMINGS
-        double wtime = omp_get_wtime();
+      double wtime = omp_get_wtime();
 #endif
-        // define a dedicated datatype as MPI reduction operations are defined element-wise
-        MPI_Datatype tsqrType;
-        if( MPI_Type_contiguous(mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), &tsqrType) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Type_contiguous");
+      // define a dedicated datatype as MPI reduction operations are defined element-wise
+      MPI_Datatype tsqrType;
+      if( MPI_Type_contiguous(mChunks*Chunk<T>::size*m, internal::parallel::mpiType<T>(), &tsqrType) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Type_contiguous");
 
-        if( MPI_Type_commit(&tsqrType) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Type_commit");
+      if( MPI_Type_commit(&tsqrType) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Type_commit");
 
-        // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
-        MPI_Op tsqrOp;
-        if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 1, &tsqrOp) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Op_create");
+      // register MPI reduction operation, currently commutative - not sure if good for reproducibility...
+      MPI_Op tsqrOp;
+      if( MPI_Op_create(&internal::HouseholderQR::combineTwoBlocks_mpiOp<T>, 1, &tsqrOp) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Op_create");
 
-        // actual MPI reduction, reusing buffers
-        std::swap(pThread0Buff, presultBuff);
-        if( MPI_Allreduce(pThread0Buff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Allreduce");
+      // actual MPI reduction, reusing buffers
+      std::swap(pThread0Buff, presultBuff);
+      if( MPI_Allreduce(pThread0Buff.get(), presultBuff.get(), 1, tsqrType, tsqrOp, MPI_COMM_WORLD) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Allreduce");
 
-        // unregister MPI reduction operation
-        if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Op_free");
+      // unregister MPI reduction operation
+      if( MPI_Op_free(&tsqrOp) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Op_free");
 
-        // free dedicated MPI type
-        if( MPI_Type_free(&tsqrType) != MPI_SUCCESS )
-          throw std::runtime_error("Failure returned from MPI_Type_free");
+      // free dedicated MPI type
+      if( MPI_Type_free(&tsqrType) != MPI_SUCCESS )
+        throw std::runtime_error("Failure returned from MPI_Type_free");
 
 #ifdef MPI_TIMINGS
-        wtime = omp_get_wtime() - wtime;
-        if( iProc == 0 )
-          std::cout << "TSQR MPI wtime: " << wtime << "\n";
+      wtime = omp_get_wtime() - wtime;
+      if( iProc == 0 )
+        std::cout << "TSQR MPI wtime: " << wtime << "\n";
 #endif
 
-        // copy result to R
-        R.resize(m,m);
-        for(int j = 0; j < m; j++)
-          for(int i = 0; i < m; i++)
-            R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
+      // copy result to R
+      R.resize(m,m);
+      for(int j = 0; j < m; j++)
+        for(int i = 0; i < m; i++)
+          R(i,j) = presultBuff[ i/Chunk<T>::size + mChunks*j ][ i%Chunk<T>::size ];
 
-        return;
-      }
+      return;
     }
 
-    // not handled through MPI
-    // copy result to R
-    R.resize(m,m);
-    for(int j = 0; j < m; j++)
-      for(int i = 0; i < m; i++)
-        R(i,j) = pThread0Buff[ localBuffOffset + i/Chunk<T>::size + ldaBuff*j ][ i%Chunk<T>::size ];
   }
 }
 
