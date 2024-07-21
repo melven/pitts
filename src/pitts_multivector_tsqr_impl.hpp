@@ -929,9 +929,13 @@ namespace PITTS
       return;
     }
 
-    const auto& [iProc,nProcs] = internal::parallel::mpiProcInfo();
-    if( nProcs == 1 )
-      mpiGlobal = false;
+    int iProc = 0, nProcs = 1;
+    if( mpiGlobal )
+    {
+      std::tie(iProc,nProcs) = internal::parallel::mpiProcInfo();
+      if( nProcs == 1 )
+        mpiGlobal = false;
+    }
 
     // reduce #threads if there is not enough work to do...
     //int nDesiredThreads = std::min<long long>((nIter-1)/2+1, nMaxThreads);
