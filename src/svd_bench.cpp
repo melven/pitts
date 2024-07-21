@@ -32,6 +32,8 @@ namespace
   {
     EigenSVD svd;
     PITTS::Tensor2<Type> tmpA, S, U, Vt;
+    std::vector<double> work;
+    std::vector<int> iwork;
   };
 
 
@@ -40,14 +42,28 @@ namespace
   {
     using namespace PITTS;
 
-    const auto n = M.r1();
-    const auto m = M.r2();
+    const int n = M.r1();
+    const int m = M.r2();
 
 #ifdef PITTS_DIRECT_MKL_GEMM
     copy(M, w.tmpA);
     w.S.resize(std::min(n,m),1);
     w.U.resize(n, std::min(n,m));
     w.Vt.resize(std::min(n,m), m);
+
+    // work-size query
+    int lwork = -1;
+    char jobz = 'S';
+    int lda = w.tmpA.r1();
+    int ldu = w.U.r1();
+    int ldvt = w.Vt.r1();
+    if( w.work.size() == 0 )
+      w.work.resize(1);
+    w.iwork.resize(8*std::min(n,m));
+    int info;
+    dgesdd(&jobz, &n, &m, &w.tmpA(0,0), &lda, &w.S(0,0), &w.U(0,0), &ldu, &w.Vt(0,0), &ldvt, &w.work[0], &lwork, &w.iwork[0], &info);
+    lwork = 1 + w.work[0];
+    w.work.resize(lwork);
 #endif
 
 
@@ -72,7 +88,9 @@ namespace
 
     assert(!std::isnan(w.svd.singularValues()(0)));
 #else
-    LAPACKE_dgesdd(LAPACK_COL_MAJOR, 'S', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.S(0,0), &w.U(0,0), w.U.r1(), &w.Vt(0,0), w.Vt.r1());
+    //LAPACKE_dgesdd(LAPACK_COL_MAJOR, 'S', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.S(0,0), &w.U(0,0), w.U.r1(), &w.Vt(0,0), w.Vt.r1());
+    //LAPACKE_dgesvd(LAPACK_COL_MAJOR, 'S', 'S', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.S(0,0), &w.U(0,0), w.U.r1(), &w.Vt(0,0), w.Vt.r1(), &w.work[0]);
+    dgesdd(&jobz, &n, &m, &w.tmpA(0,0), &lda, &w.S(0,0), &w.U(0,0), &ldu, &w.Vt(0,0), &ldvt, &w.work[0], &lwork, &w.iwork[0], &info);
 
     // check result
     //std::cout << "singular values: " << ConstEigenMap(w.S).transpose() << "\n";
