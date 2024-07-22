@@ -256,6 +256,7 @@ add_executable(tt_from_dense_twosided_bench tt_from_dense_twosided_bench.cpp)
 add_executable(tt_from_dense_thickbounds_bench tt_from_dense_thickbounds_bench.cpp)
 add_executable(tt_from_dense_thickbounds_single_bench tt_from_dense_thickbounds_single_bench.cpp)
 add_executable(tt_from_dense_twosided_thickbounds_bench tt_from_dense_twosided_thickbounds_bench.cpp)
+add_executable(tsqr_transform_block_calc_bench tsqr_transform_block_calc_bench.cpp)
 
 # typed test executables
 add_executable(tsqr_double_bench tsqr_bench.cpp)

@@ -282,7 +282,7 @@ namespace PITTS
       }
 
       // forward declaration
-      template<typename T, bool BranchLess = true>
+      template<typename T, bool BranchLess = false>
       [[gnu::always_inline]]
       inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col);
 
@@ -338,7 +338,7 @@ namespace PITTS
       //! @param bossLatches    synchronization objects for waiting on the boss thread
       //! @param workerLatches  synchronization objects for waiting on the worker threads
       //!
-      template<typename T, bool BranchLess = true>
+      template<typename T, bool BranchLess = false>
       void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, bool twoTriangularBlocks, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
@@ -486,48 +486,51 @@ namespace PITTS
         // v = u / ||u||
         T pivot = pdata[firstRow+lda*col][idx];
 
-        // original unrolled code:
-        /*
-        Chunk<T> uTu;
-        mul(conj(pivotChunk), pivotChunk, uTu);
+        T uTu_sum;
+        if( nChunks < 10 )
         {
-          int i = firstRow+1;
-          for(; i < nChunks; i++)
-            fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu);
-          for(; i <= nChunks+firstRow; i++)
-            fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu);
+          // original unrolled code:
+          Chunk<T> uTu;
+          mul(conj(pivotChunk), pivotChunk, uTu);
+          {
+            int i = firstRow+1;
+            for(; i < nChunks; i++)
+              fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu);
+            for(; i <= nChunks+firstRow; i++)
+              fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu);
+          }
+          uTu_sum = sum(uTu);
         }
-        T uTu_sum = sum(uTu);
-        */
-
-        constexpr int unroll = 2;
-        Chunk<T> uTu[unroll];
-        mul(conj(pivotChunk), pivotChunk, uTu[unroll-1]);
-        for(int i = 0; i+1 < unroll; i++)
-          uTu[i] = Chunk<T>{};
+        else
         {
-          int i = firstRow+1;
-          for(; i+unroll <= nChunks; i+=unroll)
+          constexpr int unroll = 2;
+          Chunk<T> uTu[unroll];
+          mul(conj(pivotChunk), pivotChunk, uTu[unroll-1]);
+          for(int i = 0; i+1 < unroll; i++)
+            uTu[i] = Chunk<T>{};
           {
-            for(int ii = 0; ii < unroll; ii++)
-              fmadd(conj(pdata[i+ii+lda*col]), pdata[i+ii+lda*col], uTu[ii]);
-          }
-          for(int ii = 0; i < nChunks; i++, ii++)
-            fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu[ii]);
+            int i = firstRow+1;
+            for(; i+unroll <= nChunks; i+=unroll)
+            {
+              for(int ii = 0; ii < unroll; ii++)
+                fmadd(conj(pdata[i+ii+lda*col]), pdata[i+ii+lda*col], uTu[ii]);
+            }
+            for(int ii = 0; i < nChunks; i++, ii++)
+              fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu[ii]);
 
-          for(; i+unroll <= nChunks+firstRow+1; i+=unroll)
-          {
-            for(int ii = 0; ii < unroll; ii++)
-              fmadd(conj(pdataResult[i+ii+ldaResult*col]), pdataResult[i+ii+ldaResult*col], uTu[ii]);
+            for(; i+unroll <= nChunks+firstRow+1; i+=unroll)
+            {
+              for(int ii = 0; ii < unroll; ii++)
+                fmadd(conj(pdataResult[i+ii+ldaResult*col]), pdataResult[i+ii+ldaResult*col], uTu[ii]);
+            }
+            for(int ii = 0; i <= nChunks+firstRow; i++,ii++)
+              fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu[ii]);
           }
-          for(int ii = 0; i <= nChunks+firstRow; i++,ii++)
-            fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu[ii]);
+
+          uTu_sum = sum(uTu[0]);
+          for(int ii = 1; ii < unroll; ii++)
+            uTu_sum += sum(uTu[ii]);
         }
-
-        T uTu_sum = sum(uTu[0]);
-        for(int ii = 1; ii < unroll; ii++)
-          uTu_sum += sum(uTu[ii]);
-
 
         T alpha;
         if constexpr ( BranchLess )
@@ -545,7 +548,7 @@ namespace PITTS
         else // !BranchLess
         {
           alpha = std::sqrt(uTu_sum);
-          if( uTu_sum != T(0) )
+          if( std::real(uTu_sum) >= std::numeric_limits<RealType>::min() )
           {
             if constexpr ( requires(T x){x > 0;} )
               alpha *= (pivot > 0 ? -1 : 1);
@@ -559,7 +562,7 @@ namespace PITTS
         Chunk<T> vtmp[nChunks+1];
         if( col+1 < m )
         {
-          if( uTu_sum == T(0) && (!BranchLess) )
+          if( std::real(uTu_sum) < std::numeric_limits<RealType>::min() && (!BranchLess) )
           {
             for(int i = 0; i < nChunks+1; i++)
               vtmp[i] = Chunk<T>{};
@@ -835,7 +838,7 @@ namespace PITTS
               unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
         }
 
-        transformBlock<T, true>(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, true);
+        transformBlock<T, false>(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, true);
 
         // copy back to inoutvec
         if( inoutvecChunked )
@@ -980,7 +983,7 @@ namespace PITTS
         for(long long iter = firstIter; iter <= lastIter; iter++)
         {
           const int nRemainingChunks = nTotalChunks-iter*nChunks;
-          internal::HouseholderQR::transformBlock<T, true>(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, false, colBlockingSize);
+          internal::HouseholderQR::transformBlock<T, false>(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, false, colBlockingSize);
         }
       }
 
@@ -1017,7 +1020,7 @@ namespace PITTS
           {
             const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
             const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
-            internal::HouseholderQR::transformBlock<T, true>(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, true, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
+            internal::HouseholderQR::transformBlock<T, false>(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, true, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
           }
 
           // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
