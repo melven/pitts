@@ -40,7 +40,7 @@ namespace PITTS
             &solveMALS<T>,
             py::arg("TTOpA"), py::arg("symmetric"), py::arg("projection"), py::arg("TTb"), py::arg("TTx"), py::arg("nSweeps"),
             py::arg("residualTolerance")=std::numeric_limits<T>::epsilon(), py::arg("maxRank")=std::numeric_limits<int>::max(),
-            py::arg("nMALS")=2, py::arg("nOverlap")=1, py::arg("nAMEnEnrichment")=0, py::arg("simplifiedAMEn")=true,
+            py::arg("nMALS")=2, py::arg("nOverlap")=1, py::arg("nAMEnEnrichment")=0, py::arg("simplifiedAMEn")=true, py::arg("AMEn_ALS_residualRank")=0,
             py::arg("useTTgmres")=false, py::arg("gmresMaxIter") = 25, py::arg("gmresRelTol") = 1.e-4, py::arg("estimatedConditionTTgmres") = 10,
             "Solve a linear system using the MALS (or ALS) algorithm\n\nApproximate TTx with TTOpA * TTx = TTb");
         

@@ -60,6 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--projection', type=str, help='desired MALS projection', choices=['RitzGalerkin', 'PetrovGalerkin', 'NormalEquations'], default='RitzGalerkin')
     parser.add_argument('--nAMEnEnrichment', type=int, help='additional rank for enriching the basis with directions from the residual (AMEn method)', default=0)
     parser.add_argument('--nonsimplifiedAMEn', action='store_true', help='Use standard (non-simplified) AMEn variant')
+    parser.add_argument('--AMEn_ALS_residualRank', type=int, default=0, help='Use AMEn+ALS for residual approximation with the given fixed rank.')
     # inner GMRES setup
     parser.add_argument('--useTTgmres', action='store_true', help='Use TT-GMRES as inner solve (instead of "standard" GMRES)')
     parser.add_argument('--maxRank', type=int, default=150, help='max. TT rank')
@@ -222,7 +223,7 @@ if __name__ == '__main__':
             TTOp, symmetric, projection, b, x,
             nSweeps=args.nSweeps, residualTolerance=args.eps, maxRank=args.maxRank, nMALS=args.nMALS, nOverlap=args.nOverlap,
             useTTgmres=args.useTTgmres, gmresMaxIter=args.gmresMaxIter, gmresRelTol=args.gmresRelTol, nAMEnEnrichment=args.nAMEnEnrichment,
-            simplifiedAMEn=not args.nonsimplifiedAMEn, estimatedConditionTTgmres = kappa_est)
+            simplifiedAMEn=not args.nonsimplifiedAMEn, AMEn_ALS_residualRank=args.AMEn_ALS_residualRank, estimatedConditionTTgmres = kappa_est)
 
 
     if pylikwid is not None:
