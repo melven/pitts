@@ -31,6 +31,7 @@
 #include "pitts_tensortrain_operator_apply_op.hpp"
 #include "pitts_tensortrain_operator_apply_transposed_op.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_axpby_normalized.hpp"
 #include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
