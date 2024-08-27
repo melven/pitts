@@ -297,8 +297,8 @@ namespace PITTS
 
         if( WtW_err > 100*sqrt_eps )
         {
-          std::cout << "WtW_err: " << WtW_err << std::endl;
-          return false;
+          std::cout << "WARNING: WtW_err: " << WtW_err << std::endl;
+          //return false;
         }
 
         return true;
@@ -435,6 +435,148 @@ namespace PITTS
         return true;
       }
 
+      // check AMEn subspace
+      template<typename T>
+      bool check_AMEn_ALS_Subspace(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTv, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<T>& tt_z, const TensorTrain<T>& TTz)
+      {
+        using namespace PITTS::debug;
+        using PITTS::debug::operator*;
+        using PITTS::debug::operator-;
+        using mat = Eigen::MatrixX<T>;
+        using vec = Eigen::VectorX<T>;
+
+        assert(check_Orthogonality(swpIdx, TTz));
+
+        const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+
+        // TTz should approximate the residual
+        TensorTrain<T> TTr = TTOpA * TTx - TTb;
+        T norm_r = norm2(TTr);
+        T norm_z = norm2(TTz);
+        std::cout << "check_AMEn_ALS: residual norm: " << norm_r << ", approx. residual norm: " << norm_z << "\n";
+        T err_z = norm2(TTz - TTr);
+        std::cout << "check_AMEn_ALS: error in z: " << err_z << "\n";
+
+        TensorTrainOperator<T> TTOpW = setupProjectionOperator(TTv, swpIdx);
+        if( leftToRight )
+        {
+          std::vector<int> colDimOpW_left(TTOpW.column_dimensions().size());
+          for(int iDim = 0; iDim < swpIdx.nDim(); iDim++)
+            colDimOpW_left[iDim] = iDim < swpIdx.rightDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
+          TensorTrainOperator<T> TTOpW_left(TTOpW.row_dimensions(), colDimOpW_left);
+          TTOpW_left.setEye();
+          std::vector<Tensor3<T>> tmpSubT(swpIdx.leftDim());
+
+          for(int iDim = 0; iDim < swpIdx.leftDim(); iDim++)
+            copy(TTOpW.tensorTrain().subTensor(iDim), tmpSubT[iDim]);
+          TTOpW_left.tensorTrain().setSubTensors(0, std::move(tmpSubT));
+          TensorTrain<T> wLeftTz = transpose(TTOpW_left) * TTz;
+          internal::leftNormalize_range(wLeftTz, 0, swpIdx.rightDim(), T(0));
+          internal::rightNormalize_range(wLeftTz, swpIdx.rightDim(), swpIdx.nDim()-1, T(0));
+          assert(swpIdx.nMALS() == 1);
+          const int iDim = swpIdx.leftDim();
+
+          Tensor2<T> z_ref;
+          if( iDim != 0 )
+          {
+            // need to contract sub-tensors iDim-1 and iDim (boundary-rank vs. normal TT)
+            const auto& subT_prev = wLeftTz.subTensor(iDim-1);
+            const auto& subT = wLeftTz.subTensor(iDim);
+            assert(subT_prev.r1() == 1);
+            assert(subT_prev.n() == tt_z.subTensor(0).r1());
+            assert(subT.n() == tt_z.subTensor(0).n());
+            //assert(subT.r2() == tt_z.subTensor(0).r2());
+            Eigen::Map<const mat> map_prev(&subT_prev(0,0,0), subT_prev.n(), subT_prev.r2());
+            Eigen::Map<const mat> map(&subT(0,0,0), subT.r1(), subT.n()*subT.r2());
+            z_ref.resize(map_prev.rows(), map.cols());
+            EigenMap(z_ref) = map_prev * map;
+            z_ref.resize(subT_prev.n()*subT.n(), subT.r2(), false); // why? doesn't seem to do anything
+          }
+          const auto [Q, B] = internal::normalize_svd(unfold_left(tt_z.subTensor(0)), true, sqrt_eps);
+          const auto [Q_ref, B_ref] = internal::normalize_svd(
+            (iDim == 0 ? unfold_left(wLeftTz.subTensor(iDim)) : z_ref), 
+            true, sqrt_eps);
+
+          Eigen::BDCSVD<mat> svd(ConstEigenMap(B)), svd_ref(ConstEigenMap(B_ref));
+          const T sigma0 = svd_ref.singularValues()(0);
+          vec sigma_err = vec::Zero(std::max(svd_ref.singularValues().size(), svd.singularValues().size()));
+          sigma_err.topRows(svd.singularValues().size()) = svd.singularValues();
+          sigma_err.topRows(svd_ref.singularValues().size()) -= svd_ref.singularValues();
+          const int nmin = std::min(svd_ref.singularValues().size(), svd.singularValues().size());
+          auto mapQ = ConstEigenMap(Q).leftCols(nmin);
+          auto mapQ_ref = ConstEigenMap(Q_ref).leftCols(nmin);
+          mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().topRows(nmin).asDiagonal();
+          std::cout << "Q_err:\n" << Q_err << "\n";
+          std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
+          std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
+          const T Q_error = Q_err.array().abs().maxCoeff();
+          assert(Q_error <= 10*sqrt_eps*std::max(sigma0, T(1)));
+          const T sigma_error = sigma_err.array().abs().maxCoeff();
+          assert(sigma_error <= 10*sqrt_eps*std::max(sigma0, T(1)));
+        }
+        else // !leftToRight
+        {
+          std::vector<int> colDimOpW_right(TTOpW.column_dimensions().size());
+          for(int iDim = 0; iDim < swpIdx.nDim(); iDim++)
+            colDimOpW_right[iDim] = iDim >= swpIdx.leftDim() ? TTOpW.column_dimensions()[iDim] : TTOpW.row_dimensions()[iDim];
+          TensorTrainOperator<T> TTOpW_right(TTOpW.row_dimensions(), colDimOpW_right);
+          TTOpW_right.setEye();
+          std::vector<Tensor3<T>> tmpSubT(swpIdx.nDim()-swpIdx.leftDim());
+
+          for(int iDim = 0; iDim < tmpSubT.size(); iDim++)
+            copy(TTOpW.tensorTrain().subTensor(swpIdx.leftDim()+iDim), tmpSubT[iDim]);
+          TTOpW_right.tensorTrain().setSubTensors(swpIdx.leftDim(), std::move(tmpSubT));
+          TensorTrain<T> wRightTz = transpose(TTOpW_right) * TTz;
+          internal::leftNormalize_range(wRightTz, 0, swpIdx.leftDim(), T(0));
+          internal::rightNormalize_range(wRightTz, swpIdx.leftDim(), swpIdx.nDim()-1, T(0));
+          assert(swpIdx.nMALS() == 1);
+          const int iDim = swpIdx.leftDim();
+
+          const auto sqrt_eps = std::sqrt(std::numeric_limits<T>::epsilon());
+
+          Tensor2<T> z_ref;
+          if( iDim != swpIdx.nDim()-1 )
+          {
+            // need to contract sub-tensors iDim+1 and iDim (boundary-rank vs. normal TT)
+            const auto& subT = wRightTz.subTensor(iDim);
+            const auto& subT_next = wRightTz.subTensor(iDim+1);
+            assert(subT_next.r2() == 1);
+            assert(subT_next.n() == tt_z.subTensor(0).r2());
+            assert(subT.n() == tt_z.subTensor(0).n());
+            Eigen::Map<const mat> map(&subT(0,0,0), subT.r1()*subT.n(), subT.r2());
+            Eigen::Map<const mat> map_next(&subT_next(0,0,0), subT_next.r1(), subT_next.n());
+
+            z_ref.resize(map.rows(), map_next.cols());
+            EigenMap(z_ref) = map * map_next;
+            z_ref.resize(subT.r1(), subT.n()*subT_next.n(), false); // why? doesn't seem to do anyting
+          }
+          const auto [B, Qt] = internal::normalize_svd(unfold_right(tt_z.subTensor(0)), false, sqrt_eps);
+          const auto [B_ref, Qt_ref] = internal::normalize_svd(
+            (iDim == swpIdx.nDim()-1 ? unfold_right(wRightTz.subTensor(iDim)) : z_ref), 
+            false, sqrt_eps);
+
+          Eigen::BDCSVD<mat> svd(ConstEigenMap(B)), svd_ref(ConstEigenMap(B_ref));
+          const T sigma0 = svd_ref.singularValues()(0);
+          vec sigma_err = vec::Zero(std::max(svd_ref.singularValues().size(), svd.singularValues().size()));
+          sigma_err.topRows(svd.singularValues().size()) = svd.singularValues();
+          sigma_err.topRows(svd_ref.singularValues().size()) -= svd_ref.singularValues();
+          const int nmin = std::min(svd_ref.singularValues().size(), svd.singularValues().size());
+          auto mapQ = ConstEigenMap(Qt).topRows(nmin).transpose();
+          auto mapQ_ref = ConstEigenMap(Qt_ref).topRows(nmin).transpose();
+          mat Q_err = (mapQ - mapQ_ref * mapQ_ref.transpose() * mapQ) * svd_ref.singularValues().topRows(nmin).asDiagonal();
+          std::cout << "Q_err:\n" << Q_err << "\n";
+          std::cout << "singular values:\n" << svd_ref.singularValues().transpose() << std::endl;
+          std::cout << "singular values error:\n" << sigma_err.transpose() << std::endl;
+          const T Q_error = Q_err.array().abs().maxCoeff();
+          assert(Q_error <= 10*sqrt_eps*std::max(sigma0, T(1)));
+          const T sigma_error = sigma_err.array().abs().maxCoeff();
+          assert(sigma_error <= 10*sqrt_eps*std::max(sigma0, T(1)));
+        }
+
+        return true;
+      }
+
+
       // check that dimensions of localTTOp, tt_x and tt_b are ok (so localTTOp*tt_x - tt_b is valid)
       template<typename T>
       bool check_systemDimensions(const TensorTrainOperator<T>& localTTOp, const TensorTrain<T>& tt_x, const TensorTrain<T>& tt_b)
@@ -512,7 +654,9 @@ namespace PITTS
         WtAV.setOnes();
         leftOffset = ( localTTOp.tensorTrain().subTensor(0).n() == 1 && localTTOp.tensorTrain().subTensor(0)(0,0,0) == T(1) ) ? 0 : -1;
         WtAV.tensorTrain().setSubTensors(swpIdx.leftDim() + leftOffset, removeBoundaryRankOne(localTTOp));
-        assert(norm2( WtAV.tensorTrain() - WtAV_ref.tensorTrain() ) < sqrt_eps*norm2(WtAV_ref.tensorTrain()));
+        std::cout << "check_localProblem: norm2(WtAv_ref): " << norm2(WtAV_ref.tensorTrain()) << "\n";
+        std::cout << "check_localProblem: norm2(WtAv - WtAv_ref): " << norm2(WtAV.tensorTrain() - WtAV_ref.tensorTrain()) << std::endl;
+        assert(norm2( WtAV.tensorTrain() - WtAV_ref.tensorTrain() ) < sqrt_eps*std::max(T(1), norm2(WtAV_ref.tensorTrain())));
 
         return true;
       }

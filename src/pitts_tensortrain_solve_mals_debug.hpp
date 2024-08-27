@@ -72,6 +72,10 @@ namespace PITTS
       template<typename T>
       bool check_AMEnSubspace(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTv, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<T>& tt_z);
 
+      //! check AMEn subspace with ALS approximation of the residual
+      template<typename T>
+      bool check_AMEn_ALS_Subspace(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTv, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, SweepIndex swpIdx, bool leftToRight, const TensorTrain<T>& tt_z, const TensorTrain<T>& TTz);
+
       //! check that the local problem is correct
       template<typename T>
       bool check_localProblem(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx, const TensorTrain<T>& TTb, const TensorTrain<T>& TTw,

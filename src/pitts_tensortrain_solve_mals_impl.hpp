@@ -159,6 +159,9 @@ namespace PITTS
     // for AMEn+ALS, we also need previous parts of z^T b
     SweepData zTb = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTz, TTb), dot_loop_from_right<T>(TTz, TTb));
 
+    // for AMEn+ALS, we also need previous parts of V^T z
+    SweepData vTz = defineSweepData<Tensor2<T>>(nDim, dot_loop_from_left<T>(TTv, TTz), dot_loop_from_right<T>(TTv, TTz));
+
     // store sub-tensor for enriching the subspace (AMEn)
     TensorTrain<T> tt_z(0,0);
 
@@ -287,9 +290,12 @@ namespace PITTS
         apply(localTTOp, tt_x, tt_z);
         axpby(T(1), tt_b, T(-1), tt_z, T(0));
       }
+
       // update residual approximation with AMEn+ALS
       if( nAMEnEnrichment > 0 && AMEn_ALS )
       {
+        internal::ensureLeftOrtho_range(TTz, 0, swpIdx.leftDim());
+        internal::ensureRightOrtho_range(TTz, swpIdx.rightDim(), nDim - 1);
         zTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
         zTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
@@ -301,11 +307,12 @@ namespace PITTS
 
         tt_z = TensorTrain<T>(z_tt_b.dimensions());
         apply(z_localTTOp, tt_x, tt_z);
-        axpby(T(1), z_tt_b, T(-1), tt_z, T(0));
+        tt_z.editSubTensor(0, [&](Tensor3<T>& t3_z){internal::t3_axpy<T>(T(-1), z_tt_b.subTensor(0), t3_z);});
       }
 
       TTx.setSubTensors(swpIdx.leftDim(), std::move(tt_x));
 
+/*
       // invalidate everything that might depend on TTx (not really needed because orthogonal in the wrong direction in the next step -- but more clear)
       Ax.invalidate(swpIdx.leftDim(), nMALS);
       vTAx.invalidate(swpIdx.leftDim(), nMALS);
@@ -315,6 +322,7 @@ namespace PITTS
         Ax_ortho.invalidate(swpIdx.leftDim(), nMALS);
         Ax_b_ortho.invalidate(swpIdx.leftDim(), nMALS);
       }
+*/
     };
 
     // AMEn idea: enrich subspace with some directions of the global residual (AMEn method)
@@ -328,8 +336,9 @@ namespace PITTS
       
       // only intended for nMALS == 1
       assert(swpIdx.leftDim() == swpIdx.rightDim());
+      const int iDim = swpIdx.leftDim();
 
-      if( !simplifiedAMEn && !AMEn_ALS )
+      if( (!simplifiedAMEn) && (!AMEn_ALS) )
       {
         // ensure indices are set correctly
         internal::ensureLeftOrtho_range(TTx, 0, swpIdx.leftDim());
@@ -340,7 +349,6 @@ namespace PITTS
         vTAx.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
         vTb.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
 
-        const int iDim = swpIdx.leftDim();
         Tensor3<T> tmpAx, tmpb, t3;
         internal::apply_contract(TTOpA, iDim, TTOpA.tensorTrain().subTensor(iDim), TTx.subTensor(iDim), tmpAx);
         std::vector<Tensor3<T>> subT(1);
@@ -415,16 +423,42 @@ namespace PITTS
 
       if( AMEn_ALS )
       {
-        TensorTrain<T> tt_z_copy(tt_z);
-        TTz.setSubTensors(swpIdx.leftDim(), std::move(tt_z_copy));
+        TTz.setSubTensors(swpIdx.leftDim(), std::move(tt_z));
         zTAx.invalidate(swpIdx.leftDim(), nMALS);
         zTb.invalidate(swpIdx.leftDim(), nMALS);
+        vTz.invalidate(swpIdx.leftDim(), nMALS);
+
+        vTz.update(swpIdx.leftDim()-1, swpIdx.rightDim()+1);
+
+        std::vector<Tensor3<T>> subT(1);
+
+        if( leftToRight )
+        {
+          if( iDim == 0 )
+            copy(TTz.subTensor(iDim), subT[0]);
+          else
+          {
+            // contraction: vTz(*,:) * TTz(*,:,:)
+            internal::reverse_dot_contract1<T>(*vTz.left(), TTz.subTensor(iDim), subT[0]);
+          }
+        }
+        else // !leftToRight
+        {
+          if( iDim == nDim-1 )
+            copy(TTz.subTensor(iDim), subT[0]);
+          else
+          {
+            // contraction: TTz(:,:,*) * vTz(:,*)
+            internal::dot_contract1<T>(TTz.subTensor(iDim), *vTz.right(), subT[0]);
+          }
+        }
+        tt_z = TensorTrain<T>(std::move(subT));
       }
       
       if( !simplifiedAMEn )
       {
         if( AMEn_ALS )
-          assert(check_AMEnSubspace(TTOpA, TTz, TTx, TTb, swpIdx, leftToRight, tt_z));
+          assert(check_AMEn_ALS_Subspace(TTOpA, TTv, TTx, TTb, swpIdx, leftToRight, tt_z, TTz));
         else
           assert(check_AMEnSubspace(TTOpA, TTv, TTx, TTb, swpIdx, leftToRight, tt_z));
       }
@@ -440,6 +474,8 @@ namespace PITTS
         Ax_b_ortho.invalidate(swpIdx.rightDim()+1);
         vTAx.invalidate(swpIdx.rightDim()+1);
         vTb.invalidate(swpIdx.rightDim()+1);
+        if( AMEn_ALS )
+          vTz.invalidate(swpIdx.rightDim()+1);
 
         const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.rightDim());
         const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.rightDim()+1);
@@ -484,6 +520,8 @@ namespace PITTS
         Ax_b_ortho.invalidate(swpIdx.leftDim()-1);
         vTAx.invalidate(swpIdx.leftDim()-1);
         vTb.invalidate(swpIdx.leftDim()-1);
+        if( AMEn_ALS )
+          vTz.invalidate(swpIdx.leftDim()-1);
 
         const Tensor3<T>& subT0 = TTx.subTensor(swpIdx.leftDim()-1);
         const Tensor3<T>& subT1 = TTx.subTensor(swpIdx.leftDim());

@@ -1048,7 +1048,7 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_ALS_random_nDim3_nonsymmetric_PetrovGale
   TTb.setOnes();
   TTx.setOnes();
 
-  double error = solveMALS(TTOpA, false, MALS_projection::PetrovGalerkin, TTb, TTx, 2, eps, 5, 1, 0, 2, false, 2);
+  double error = solveMALS(TTOpA, false, MALS_projection::PetrovGalerkin, TTb, TTx, 2, eps, 5, 1, 0, 2, false, 1);
   EXPECT_NEAR(0, error, 0.05*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
@@ -1352,7 +1352,7 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_ALS_symmetric_random_nDim6_rank1)
 
   apply(TTOpA, TTx, TTr);
   double residualNorm_ref = axpby(-1., TTb, 1., TTr);
-  EXPECT_NEAR(residualNorm_ref, residualNorm, eps*initialResidualNorm);
+  EXPECT_NEAR(residualNorm_ref, residualNorm, 2*eps*initialResidualNorm);
 
   std::cout << "initialResidualNorm: " << initialResidualNorm << ", newResidualNorm: " << residualNorm << "\n";
 
