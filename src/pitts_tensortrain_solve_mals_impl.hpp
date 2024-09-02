@@ -500,7 +500,13 @@ namespace PITTS
         int maxEnrichmentRank = nAMEnEnrichment;
         maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT0.r1()*subT0.n()-subT0.r2());
         maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT1.r2()*subT1.n()-subT1.r1());
-        const auto [Q, B] = internal::normalize_qb(unfold_left(subTr), true, T(0), maxEnrichmentRank, true);
+        const auto [Q, B] = [&]()
+        {
+          if( maxEnrichmentRank < subTr.r2() && maxEnrichmentRank < subTr.r1()*subTr.n() )
+            return internal::normalize_svd(unfold_left(subTr), true, T(0), maxEnrichmentRank, true);
+          
+          return internal::normalize_qb(unfold_left(subTr), true, T(0), maxEnrichmentRank, true);
+        }();
         std::cout << " Enhancing subspace (left-to-right) for sub-tensor " << swpIdx.rightDim() << " for optimizing sub-tensor " << swpIdx.rightDim()+1 << ": increasing rank from " << subT0.r2() << " to " << subT0.r2()+Q.r2() << "\n";
 
         std::vector<Tensor3<T>> newSubT(2);
@@ -546,8 +552,14 @@ namespace PITTS
         int maxEnrichmentRank = nAMEnEnrichment;
         maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT0.r1()*subT0.n()-subT0.r2());
         maxEnrichmentRank = std::min<int>(maxEnrichmentRank, subT1.r2()*subT1.n()-subT1.r1());
-        const auto [B, Qt] = internal::normalize_qb(unfold_right(subTr), false, T(0), maxEnrichmentRank, true);
-        //std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT1.r1() << " to " << subT1.r1()+Qt.r1() << "\n";
+        const auto [B, Qt] = [&]()
+        {
+          if( maxEnrichmentRank < subTr.r1() && maxEnrichmentRank < subTr.n()*subTr.r2() )
+            return internal::normalize_svd(unfold_right(subTr), false, T(0), maxEnrichmentRank, true);
+          
+          return internal::normalize_qb(unfold_right(subTr), false, T(0), maxEnrichmentRank, true);
+        }();
+        std::cout << " Enhancing subspace (right-to-left) for sub-tensor " << swpIdx.leftDim() << " for optimizing sub-tensor " << swpIdx.leftDim()-1 << ": increasing rank from " << subT1.r1() << " to " << subT1.r1()+Qt.r1() << "\n";
 
         std::vector<Tensor3<T>> newSubT(2);
         newSubT[0].resize(subT0.r1(), subT0.n(), subT0.r2()+Qt.r1());
