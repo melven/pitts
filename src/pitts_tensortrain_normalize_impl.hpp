@@ -29,6 +29,9 @@
 #include "pitts_timer.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_performance.hpp"
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -36,6 +39,18 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+#ifdef PITTS_DIRECT_MKL_GEMM
+    inline void cblas_gemm_mapper4(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const double alpha, const double * A, const CBLAS_INDEX lda, const double * B, const CBLAS_INDEX ldb, const double beta, double * C, const CBLAS_INDEX ldc)
+    {
+      cblas_dgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    inline void cblas_gemm_mapper4(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const float alpha, const float * A, const CBLAS_INDEX lda, const float * B, const CBLAS_INDEX ldb, const float beta, float * C, const CBLAS_INDEX ldc)
+    {
+      cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+#endif
+
     //! contract Tensor2 and Tensor3 : A(:,*) * B(*,:,:)
     template<typename T>
     void normalize_contract1(const Tensor2<T>& A, const Tensor3<T>& B, Tensor3<T>& C)
@@ -53,7 +68,15 @@ namespace PITTS
         );
 
       C.resize(r1_, n, r2);
-      EigenMap(unfold_right(C)).noalias() = ConstEigenMap(A) * ConstEigenMap(unfold_right(B));
+      auto mapA = ConstEigenMap(A);
+      auto mapB = ConstEigenMap(unfold_right(B));
+      auto mapC = EigenMap(unfold_right(C));
+
+#ifndef PITTS_DIRECT_MKL_GEMM
+      mapC.noalias() = mapA * mapB;
+#else
+      cblas_gemm_mapper4(CblasColMajor, CblasNoTrans, CblasNoTrans, mapC.rows(), mapC.cols(), mapA.cols(), T(1), mapA.data(), mapA.colStride(), mapB.data(), mapB.colStride(), T(0), mapC.data(), mapC.colStride());
+#endif
     }
 
     //! contract Tensor3 and Tensor2 : A(:,:,*) * B(*,:)
@@ -76,8 +99,15 @@ namespace PITTS
         );
 
       C.resize(r1, n, r2);
+      auto mapA = ConstEigenMap(unfold_left(A));
+      auto mapB = ConstEigenMap(B);
+      auto mapC = EigenMap(unfold_left(C));
 
-      EigenMap(unfold_left(C)).noalias() = ConstEigenMap(unfold_left(A)) * ConstEigenMap(B);
+#ifndef PITTS_DIRECT_MKL_GEMM
+      mapC.noalias() = mapA * mapB;
+#else
+      cblas_gemm_mapper4(CblasColMajor, CblasNoTrans, CblasNoTrans, mapC.rows(), mapC.cols(), mapA.cols(), T(1), mapA.data(), mapA.colStride(), mapB.data(), mapB.colStride(), T(0), mapC.data(), mapC.colStride());
+#endif
     }
 
     //! scale operation for a Tensor3
