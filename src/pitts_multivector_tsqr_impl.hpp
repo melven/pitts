@@ -886,7 +886,12 @@ namespace PITTS
       // L1 cache size per core (in chunks)
       const int cacheSize_L1 = (mi.cacheSize_L1_perCore > 0 ? mi.cacheSize_L1_perCore : 32*1024) / (Chunk<T>::size * sizeof(T));
       // L2 cache size per core (in chunks)
-      const int cacheSize_L2 = (mi.cacheSize_L2_perCore > 0 ? mi.cacheSize_L2_perCore : 1*1024*1024) / (Chunk<T>::size * sizeof(T));
+      int cacheSize_L2 = (mi.cacheSize_L2_perCore > 0 ? mi.cacheSize_L2_perCore : 1*1024*1024) / (Chunk<T>::size * sizeof(T));
+#ifndef __AVX512F__
+      // AMD system: 512kB L2 cache but fast L3 cache -> also use some L3
+      if( mi.cacheSize_L2_perCore == 524288 )
+        cacheSize_L2 *= 1.5;
+#endif
 
       // automatically choose suitable reduction factor
       if( reductionFactor == 0 )

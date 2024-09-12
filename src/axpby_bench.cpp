@@ -54,10 +54,19 @@ int main(int argc, char* argv[])
 
   copy(TTy, TTz);
 
+  // first calls to MKL are often slower...
+  for(int iter = 0; iter < 2; iter++)
+  {
+    copy(TTz, TTy);
+    axpby(0.01, TTx, 0.9, TTy, Type(0), std::max(rX, rY));
+  }
+
+  PITTS::performance::clearStatistics();
+
   for(int iter = 0; iter < nIter; iter++)
   {
     copy(TTz, TTy);
-    axpby(0.01, TTx, 0.9, TTy);
+    axpby(0.01, TTx, 0.9, TTy, Type(0), std::max(rX, rY));
   }
 
   PITTS::finalize();
