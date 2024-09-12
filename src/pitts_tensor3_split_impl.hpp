@@ -567,9 +567,11 @@ namespace PITTS
 #  else
             cblas_gemm_mapper5(CblasColMajor, CblasNoTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapMV.data(), mapMV.colStride(), mapB.data(), mapB.colStride(), T(0), mapQ.data(), mapQ.colStride());
 #  endif
+            mapB.noalias() = svdVal.asDiagonal() * svdV.transpose();
           }
           else
           {
+            mapQ.noalias() = mapMV * mapB.transpose();
             mapB.noalias() = svdVal.asDiagonal() * svdV.adjoint();
           }
 #else /* PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB */ 
