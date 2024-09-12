@@ -30,6 +30,9 @@
 #include "pitts_multivector_triangular_solve.hpp"
 #include "pitts_timer.hpp"
 #include "pitts_machine_info.hpp"
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -37,6 +40,17 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+#ifdef PITTS_DIRECT_MKL_GEMM
+    inline void cblas_gemm_mapper5(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const double alpha, const double * A, const CBLAS_INDEX lda, const double * B, const CBLAS_INDEX ldb, const double beta, double * C, const CBLAS_INDEX ldc)
+    {
+      cblas_dgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    inline void cblas_gemm_mapper5(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const float alpha, const float * A, const CBLAS_INDEX lda, const float * B, const CBLAS_INDEX ldb, const float beta, float * C, const CBLAS_INDEX ldc)
+    {
+      cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+#endif
 
     //! small wrapper around QR only with data size
     template<typename T>
@@ -459,12 +473,15 @@ namespace PITTS
       if( leftOrthog )
       {
         mv.resize(M.r1(), M.r2());
-        EigenMap(mv) = ConstEigenMap(M);
+        EigenMap(mv).noalias() = ConstEigenMap(M);
       }
       else // rightOrthog
       {
         mv.resize(M.r2(), M.r1());
-        EigenMap(mv) = ConstEigenMap(M).adjoint();
+        if constexpr ( requires(T x){x > 0;} )
+          EigenMap(mv).noalias() = ConstEigenMap(M).transpose();
+        else
+          EigenMap(mv).noalias() = ConstEigenMap(M).adjoint();
       }
       Tensor2<T> R;
       normalize_svd_block_TSQR(mv, R);
@@ -535,9 +552,24 @@ namespace PITTS
         {
           // return QB
 #ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
-          EigenMap(result.first).noalias() = ConstEigenMap(mv) * (svd.matrixV().leftCols(r) * svd.singularValues().head(r).array().inverse().matrix().asDiagonal());
-          EigenMap(result.second).noalias() = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
-#else
+          auto mapQ = EigenMap(result.first);
+          auto mapB = EigenMap(result.second);
+          auto mapMV = ConstEigenMap(mv);
+          auto svdV = svd.matrixV().leftCols(r);
+          auto svdVal = svd.singularValues().head(r);
+
+          // use B for temporary storage (svdV * svdVal^(-1)).transpose()
+          mapB.noalias() = svdVal.array().inverse().matrix().asDiagonal() * svdV.transpose();
+#  ifndef PITTS_DIRECT_MKL_GEMM
+          mapQ.noalias() = mapMV * mapB.transpose();
+#  else
+          cblas_gemm_mapper5(CblasColMajor, CblasNoTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapMV.data(), mapMV.colStride(), mapB.data(), mapB.colStride(), T(0), mapQ.data(), mapQ.colStride());
+#  endif
+          if constexpr ( requires(T x){x > 0;} )
+            mapB.noalias() = svdVal.asDiagonal() * svdV.transpose();
+          else
+            mapB.noalias() = svdVal.asDiagonal() * svdV.adjoint();
+#else /* PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB */ 
           EigenMap(result.first) = svd.matrixU().leftCols(r);
           EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
 #endif
@@ -546,9 +578,25 @@ namespace PITTS
         {
           // return BQ
 #ifndef PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB
-          EigenMap(result.first).noalias() = svd.matrixV().leftCols(r) * svd.singularValues().head(r).asDiagonal();
-          EigenMap(result.second).noalias() = (svd.singularValues().head(r).array().inverse().matrix().asDiagonal() * svd.matrixV().leftCols(r).adjoint()) * ConstEigenMap(mv).adjoint();
-#else
+          auto mapB = EigenMap(result.first);
+          auto mapQ = EigenMap(result.second);
+          auto mapMV = ConstEigenMap(mv);
+          auto svdV = svd.matrixV().leftCols(r);
+          auto svdVal = svd.singularValues().head(r);
+
+          // use B for temporary storage (svdVal^(-1) * svdV.transpose()).transpose()
+          mapB.noalias() = svdV * svdVal.array().inverse().matrix().asDiagonal();
+#  ifndef PITTS_DIRECT_MKL_GEMM
+          if constexpr ( requires(T x){x > 0;} )
+            mapQ.noalias() = mapB.transpose() * mapMV.transpose();
+          else
+            mapQ.noalias() = mapB.adjoint() * mapMV.adjoint();
+#  else
+          cblas_gemm_mapper5(CblasColMajor, CblasTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapB.data(), mapB.colStride(), mapMV.data(), mapMV.colStride(), T(0), mapQ.data(), mapQ.colStride());
+#  endif
+
+          mapB.noalias() = svdV * svdVal.asDiagonal();
+#else /* PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB */ 
           EigenMap(result.first) = svd.matrixU().leftCols(r) * svd.singularValues().head(r).asDiagonal();
           EigenMap(result.second) = svd.matrixV().leftCols(r).adjoint();
 #endif
