@@ -262,7 +262,8 @@ namespace PITTS
         if (firstSweep && residualNorm / nrm_TTb > 0.5)
           tt_x.setZero();
         
-        absTol = gmresRelTol * residualTolerance * nrm_TTb;
+        const T nrm_tt_b = norm2(tt_b);
+        absTol = localResidualTolerance * nrm_tt_b;
         relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
         // solveGMRES (TT-GMRES) uses the bigger one of the absolute and the relative tolerance (times norm(rhs)) for truncating the solution
         // This is too inaccurate close to the solution with the adaptive tolerance...
