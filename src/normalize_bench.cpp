@@ -17,14 +17,18 @@ int main(int argc, char* argv[])
   PITTS::initialize(&argc, &argv);
 
   using Type = double;
-  PITTS::TensorTrain<Type> TT1(10,100);
-  const int r = 20;
-  TT1.setTTranks({r,r,r,r,r,r,r,r,r});
+  PITTS::TensorTrain<Type> TT1(10,50);
+  const int r = 750;
+  TT1.setTTranks({50,r,r,r,r,r,r,r,50});
   randomize(TT1);
+  rightNormalize(TT1, Type(0));
   Type tmp = 0;
-  for(int iter = 0; iter < 1000; iter++)
+
+  PITTS::performance::clearStatistics();
+
+  for(int iter = 0; iter < 10; iter++)
   {
-    tmp += normalize(TT1);
+    tmp += leftNormalize(TT1);
   }
   std::cout << "random: " << tmp << std::endl;
 
