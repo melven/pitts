@@ -560,15 +560,18 @@ namespace PITTS
 
           // use B for temporary storage (svdV * svdVal^(-1)).transpose()
           mapB.noalias() = svdVal.array().inverse().matrix().asDiagonal() * svdV.transpose();
-#  ifndef PITTS_DIRECT_MKL_GEMM
-          mapQ.noalias() = mapMV * mapB.transpose();
-#  else
-          cblas_gemm_mapper5(CblasColMajor, CblasNoTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapMV.data(), mapMV.colStride(), mapB.data(), mapB.colStride(), T(0), mapQ.data(), mapQ.colStride());
-#  endif
           if constexpr ( requires(T x){x > 0;} )
-            mapB.noalias() = svdVal.asDiagonal() * svdV.transpose();
+          {
+#  ifndef PITTS_DIRECT_MKL_GEMM
+            mapQ.noalias() = mapMV * mapB.transpose();
+#  else
+            cblas_gemm_mapper5(CblasColMajor, CblasNoTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapMV.data(), mapMV.colStride(), mapB.data(), mapB.colStride(), T(0), mapQ.data(), mapQ.colStride());
+#  endif
+          }
           else
+          {
             mapB.noalias() = svdVal.asDiagonal() * svdV.adjoint();
+          }
 #else /* PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB */ 
           EigenMap(result.first) = svd.matrixU().leftCols(r);
           EigenMap(result.second) = svd.singularValues().head(r).asDiagonal() * svd.matrixV().leftCols(r).adjoint();
@@ -586,14 +589,18 @@ namespace PITTS
 
           // use B for temporary storage (svdVal^(-1) * svdV.transpose()).transpose()
           mapB.noalias() = svdV * svdVal.array().inverse().matrix().asDiagonal();
-#  ifndef PITTS_DIRECT_MKL_GEMM
           if constexpr ( requires(T x){x > 0;} )
+          {
+#  ifndef PITTS_DIRECT_MKL_GEMM
             mapQ.noalias() = mapB.transpose() * mapMV.transpose();
-          else
-            mapQ.noalias() = mapB.adjoint() * mapMV.adjoint();
 #  else
-          cblas_gemm_mapper5(CblasColMajor, CblasTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapB.data(), mapB.colStride(), mapMV.data(), mapMV.colStride(), T(0), mapQ.data(), mapQ.colStride());
+            cblas_gemm_mapper5(CblasColMajor, CblasTrans, CblasTrans, mapQ.rows(), mapQ.cols(), mapMV.cols(), T(1), mapB.data(), mapB.colStride(), mapMV.data(), mapMV.colStride(), T(0), mapQ.data(), mapQ.colStride());
 #  endif
+          }
+          else
+          {
+            mapQ.noalias() = mapB.adjoint() * mapMV.adjoint();
+          }
 
           mapB.noalias() = svdV * svdVal.asDiagonal();
 #else /* PITTS_TENSORTRAIN_NORMALIZE_PLAIN_QB */ 
