@@ -9,9 +9,14 @@ SPDX-License-Identifier: BSD-3-Clause
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg)](https://github.com/RichardLitt/standard-readme)
 
 PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](#references) and [3](#references)).
-It also provides a numpy-compatible python interface based on pybind11. Algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
+Algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
 
 Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](#references), TT-MALS [5](#references), TT-AMEn [6](#references)).
+
+Bindings to other languages / libraries:
+* Python: complete functionality using pybind11 with numpy-compatible interface
+* ITensor (C++): conversion to/from MPS and MPO
+* Julia (JlCxx): basic data types and TSQR algorithm
 
 ## Table of Contents
 
@@ -35,14 +40,15 @@ git clone https://github.com/melven/pitts.git
 
 ### Dependencies
 * [CMake](https://cmake.org) >= 3.18 (tested with 3.18.1)
-* [GCC](https://gcc.gnu.org) >= 11.1 (or a C++20 compliant compiler)
+* [GCC](https://gcc.gnu.org) >= 11.1 (or a C++20 compliant compiler, tested with GCC 12 and 13 and with [LLVM](https://llvm.org) 16)
   * [OpenMP](https://www.openmp.org) (usually included in the compiler)
-* [MPI](https://www.mpi-forum.org) (tested with [OpenMPI](https://open-mpi.org) 4.0)
-* [LAPACK](http://www.netlib.org/lapack) (tested with [Intel MKL](https://software.intel.com/en-us/intel-mkl) 2020)
-* [Eigen](https://eigen.tuxfamily.org) >= 3.3.9 (3.3.8 has a C++20 bug!)
-* [cereal](https://uscilab.github.io/cereal) (tested with 1.3.0)
-* [pybind11](https://github.com/pybind/pybind11) (tested with 2.5.0)
-* [Python](https://www.python.org) >= 3.6 (tested with 3.8.3)
+* [MPI](https://www.mpi-forum.org) (tested with [OpenMPI](https://open-mpi.org) 4.1 and [MPICH](https://www.mpich.org) 4.1)
+* [LAPACK](http://www.netlib.org/lapack) (tested with [Intel MKL](https://software.intel.com/en-us/intel-mkl) 2022.1 and 2023.2)
+* [Eigen](https://eigen.tuxfamily.org) >= 3.3.9 (3.3.8 has a C++20 bug, tested with 3.4.0 and master branch from 2023-10 (faster))
+* [cereal](https://uscilab.github.io/cereal) (tested with 1.3.2)
+* [Python](https://www.python.org) >= 3.6 (tested with 3.9 and 3.10)
+* [pybind11](https://github.com/pybind/pybind11) (optional, tested with 2.9.1. and 2.10.1)
+* [JlCxx](https://github.com/JuliaInterop/libcxxwrap-julia) (optional, tested with 0.11.2)
 
 ### Compiling
 Simply configure with CMake and compile, on Linux system usually done by:
