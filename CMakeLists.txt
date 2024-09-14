@@ -156,6 +156,7 @@ endif()
 # likwid for performance measurements and system information
 find_package(LIKWID)
 if(LIKWID_FOUND)
+  message(STATUS "Using likwid to detect cache sizes: ${LIKWID_LIBRARY}")
   include_directories(${LIKWID_INCLUDE_DIRS})
   link_libraries(${LIKWID_LIBRARIES})
   add_definitions(-DPITTS_HAVE_LIKWID)
