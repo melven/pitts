@@ -155,15 +155,20 @@ endif()
 
 # likwid for performance measurements and system information
 find_package(LIKWID)
+if(LIKWID_FOUND)
+  message(STATUS "Using likwid to detect CPU cache sizes.")
+  include_directories(${LIKWID_INCLUDE_DIRS})
+  link_libraries(${LIKWID_LIBRARIES})
+  add_definitions(-DPITTS_HAVE_LIKWID)
+else()
+  message(WARNING "likwid was not found - using hardcoded values for CPU cache sizes.")
+endif()
 option(PITTS_USE_LIKWID_MARKER_API "Uses the likwid-perfctr marker api for performance measurements." False)
 if(PITTS_USE_LIKWID_MARKER_API)
   if(NOT LIKWID_FOUND)
     message(FATAL_ERROR "Option PITTS_USE_LIKWID_MARKER_API set but likwid was not found!")
   endif()
   add_definitions(-DPITTS_USE_LIKWID_MARKER_API -DLIKWID_PERFMON)
-  include_directories(${LIKWID_INCLUDE_DIRS})
-  link_libraries(${LIKWID_LIBRARIES})
-  add_definitions(-DPITTS_HAVE_LIKWID)
 endif()
 
 
