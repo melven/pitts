@@ -1,4 +1,4 @@
-# Copyright (c) 2021 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# Copyright (c) 2024 German Aerospace Center (DLR), Institute for Software Technology, Germany
 # SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -12,7 +12,7 @@ authors:
 - family-names: "Becklas"
   given-names: "Manuel Joey"
 title: "PITTS - Parallel Iterative Tensor-Train Solvers"
-version: 0.9.5
-date-released: 2023-10-16
+version: 0.9.6
+date-released: 2024-09-14
 doi: "10.5281/zenodo.5534530"
 url: "https://github.com/melven/pitts"
