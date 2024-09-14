@@ -45,10 +45,11 @@ git clone https://github.com/melven/pitts.git
 * [MPI](https://www.mpi-forum.org) (tested with [OpenMPI](https://open-mpi.org) 4.1 and [MPICH](https://www.mpich.org) 4.1)
 * [LAPACK](http://www.netlib.org/lapack) (tested with [Intel MKL](https://software.intel.com/en-us/intel-mkl) 2022.1 and 2023.2)
 * [Eigen](https://eigen.tuxfamily.org) >= 3.3.9 (3.3.8 has a C++20 bug, tested with 3.4.0 and master branch from 2023-10 (faster))
-* [cereal](https://uscilab.github.io/cereal) (tested with 1.3.2)
+* [cereal](https://uscilab.github.io/cereal) (tested with 1.3)
 * [Python](https://www.python.org) >= 3.6 (tested with 3.9 and 3.10)
-* [pybind11](https://github.com/pybind/pybind11) (optional, tested with 2.9.1. and 2.10.1)
-* [JlCxx](https://github.com/JuliaInterop/libcxxwrap-julia) (optional, tested with 0.11.2)
+* [pybind11](https://github.com/pybind/pybind11) (optional, tested with 2.9 and 2.10)
+* [JlCxx](https://github.com/JuliaInterop/libcxxwrap-julia) (optional, tested with 0.11)
+* [likwid](https://hpc.fau.de/research/tools/likwid) (optional, tested with 5.2)
 
 Supplied version numbers ("tested with") are used in CI builds.
 
