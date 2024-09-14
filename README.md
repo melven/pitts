@@ -39,7 +39,7 @@ git clone https://github.com/melven/pitts.git
 ```
 
 ### Dependencies
-* [CMake](https://cmake.org) >= 3.18 (tested with 3.18.1)
+* [CMake](https://cmake.org) >= 3.18 (tested with 3.23, 3.26 and 3.28)
 * [GCC](https://gcc.gnu.org) >= 11.1 (or a C++20 compliant compiler, tested with GCC 12 and 13 and with [LLVM](https://llvm.org) 16)
   * [OpenMP](https://www.openmp.org) (usually included in the compiler)
 * [MPI](https://www.mpi-forum.org) (tested with [OpenMPI](https://open-mpi.org) 4.1 and [MPICH](https://www.mpich.org) 4.1)
@@ -49,6 +49,8 @@ git clone https://github.com/melven/pitts.git
 * [Python](https://www.python.org) >= 3.6 (tested with 3.9 and 3.10)
 * [pybind11](https://github.com/pybind/pybind11) (optional, tested with 2.9.1. and 2.10.1)
 * [JlCxx](https://github.com/JuliaInterop/libcxxwrap-julia) (optional, tested with 0.11.2)
+
+Supplied version numbers ("tested with") are used in CI builds.
 
 ### Compiling
 Simply configure with CMake and compile, on Linux system usually done by:
