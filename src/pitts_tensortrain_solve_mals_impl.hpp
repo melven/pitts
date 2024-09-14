@@ -112,7 +112,7 @@ namespace PITTS
     // trying to avoid costly residual calculations if possible, currently only for simplified AMEn
     const bool AMEn_ALS = AMEn_ALS_residualRank > 0 && (!simplifiedAMEn);
     const bool onlyLocalResidual = (simplifiedAMEn || AMEn_ALS) && nMALS == 1 && projection == MALS_projection::RitzGalerkin;
-    const T localResidualTolerance = residualTolerance / (2*std::sqrt(T(nDim-1)));
+    const T localResidualTolerance = residualTolerance / (2*std::sqrt(std::max<T>(nDim-1, 1)));
 
     const T nrm_TTb = onlyLocalResidual ? T(-1) : norm2(TTb);
 
@@ -262,7 +262,8 @@ namespace PITTS
         if (firstSweep && residualNorm / nrm_TTb > 0.5)
           tt_x.setZero();
         
-        absTol = gmresRelTol * residualTolerance * nrm_TTb;
+        const T nrm_tt_b = norm2(tt_b);
+        absTol = localResidualTolerance * nrm_tt_b;
         relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
         // solveGMRES (TT-GMRES) uses the bigger one of the absolute and the relative tolerance (times norm(rhs)) for truncating the solution
         // This is too inaccurate close to the solution with the adaptive tolerance...
