@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "pitts_common.hpp"
+#include "pitts_machine_info.hpp"
 #include "pitts_mkl.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
