@@ -120,12 +120,16 @@ namespace PITTS
       tmpR.resize(X.cols(), rank);
       EigenMap(tmpR) = svd.matrixV().leftCols(rank);
 
-      const auto nextDim = dimensions[iDim-1];
+      // no need to do a reshape in the last iteration, done below anyway
+      const auto nextDim = iDim > 1 ? dimensions[iDim-1] : 1;
       transform(X, tmpR, work, {X.rows()/nextDim, rank*nextDim});
       std::swap(X, work);
     }
     // last sub-tensor is now in X
-    fold_right(X, dimensions[0], subTensors[0]);
+    if( nDim == 1 )
+      fold_right(X, dimensions[0], subTensors[0]);
+    else
+      fold_left(X, dimensions[0], subTensors[0]);
 
     TensorTrain<T> result(dimensions);
     result.setSubTensors(0, std::move(subTensors));
