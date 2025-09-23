@@ -1,3 +1,9 @@
+# Copyright (c) 2025 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+
 # avoid some stupid recompilation!
 #using Pkg
 #Pkg.activate("./julia_startup_package/Startup")
