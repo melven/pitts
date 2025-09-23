@@ -93,6 +93,8 @@ build_debug:
     - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
     - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/gcc13-openmpi-python
+    # we also need ninja
+    - module load ninja
     # unload itensor as it has problems compiling this way...
     - module unload -f itensor
     # bug fixed/improved Eigen version
@@ -122,6 +124,7 @@ build_clang:
   script:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
     - module load PrgEnv/llvm16-mpich
+    - module load ninja
     - module load py-pybind11
     - module load py-numpy
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_clang/"
@@ -148,6 +151,7 @@ build_debug_amd_clang:
     - export MODULEPATH=/scratch/spack-23.2/share/spack/modules/linux-ubuntu20.04-x86_64_v3
     - export CTEST_PARALLEL_LEVEL=2
     - module load PrgEnv/llvm16-mpich
+    - module load ninja
     # module load py-pybind11
     # module load py-numpy
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_amd_clang/"
