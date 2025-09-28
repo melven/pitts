@@ -21,10 +21,32 @@
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_machine_info.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! namespace for helper functionality
+  namespace internal
+  {
+#ifdef PITTS_DIRECT_MKL_GEMM
+    inline void cblas_gemm_mapper6(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const double alpha, const double * A, const CBLAS_INDEX lda, const double * B, const CBLAS_INDEX ldb, const double beta, double * C, const CBLAS_INDEX ldc)
+    {
+      cblas_dgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    inline void cblas_gemm_mapper6(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const float alpha, const float * A, const CBLAS_INDEX lda, const float * B, const CBLAS_INDEX ldb, const float beta, float * C, const CBLAS_INDEX ldc)
+    {
+      cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+#endif
+  }
+
+
   // implement multivector transform
   template<typename T>
   void transform(const MultiVector<T>& X, const ConstTensor2View<T>& M, MultiVector<T>& Y, std::array<long long,2> reshape)
@@ -40,8 +62,19 @@ namespace PITTS
       throw std::invalid_argument("MultiVector::transform: invalid reshape dimensions!");
 
     // check if we can do the fast aligned variant (depends on the reshape dimensions)
-    bool fast = X.rows() == reshape[0] ||
+    int fast = X.rows() == reshape[0] ||
                 (X.rows() % Chunk<T>::size == 0 && reshape[0] % Chunk<T>::size == 0);
+    // fast = 0: slow, cannot reorder in chunks
+    // fast = 1: tall-skinny case, fast reordering in chunks possible
+    // fast = 3: non tall-skinny case, compute-bound, delegate blocks of rows to GEMM
+#ifdef NDEBUG
+    constexpr int delegateToGemmLimit = 200;
+#else
+    // for testing with smaller input
+    constexpr int delegateToGemmLimit = 20;
+#endif
+    if( fast && M.r1() >= delegateToGemmLimit && M.r2() >= delegateToGemmLimit )
+      fast = 3;
 
     const MachineInfo mi = getMachineInfo();
     bool use_streaming_stores = X.rows()*M.r2()*sizeof(T) > 3*mi.cacheSize_L3_total;
@@ -57,6 +90,46 @@ namespace PITTS
     // special case without reshaping OR where both X and Y have #rows divisible by the chunk size
     if( fast )
     {
+      if( fast == 3 )
+      {
+        const auto& mMap = ConstEigenMap(M);
+
+#pragma omp parallel
+        {
+          std::unique_ptr<Chunk<T>[]> plocalBuff(new Chunk<T>[M.r2()]);
+          Eigen::Map<Eigen::MatrixX<T>> buffMap(&plocalBuff[0][0], Chunk<T>::size, M.r2());
+
+#pragma omp for schedule(static)
+          for(long long xChunk = 0; xChunk < X.rowChunks(); xChunk++)
+          {
+            long long yChunk = xChunk % Y.rowChunks();
+            long long yj = xChunk / Y.rowChunks();
+
+            Eigen::Map<const Eigen::MatrixX<T>, EigenAligned, Eigen::OuterStride<>> xMap(&X.chunk(xChunk,0)[0], Chunk<T>::size, X.cols(), Eigen::OuterStride<>(X.colStrideChunks()*Chunk<T>::size));
+#ifndef PITTS_DIRECT_MKL_GEMM
+            
+            buffMap.noalias() = xMap * mMap;
+#else
+            internal::cblas_gemm_mapper6(CblasColMajor, CblasNoTrans, CblasNoTrans, buffMap.rows(), buffMap.cols(), xMap.cols(), T(1), xMap.data(), xMap.colStride(), mMap.data(), mMap.colStride(), T(0), buffMap.data(), buffMap.colStride());
+#endif
+
+            for(long long mj = 0; mj < M.r2(); mj++)
+            {
+              if( use_streaming_stores )
+                streaming_store(plocalBuff[mj], Y.chunk(yChunk, yj));
+              else
+                Y.chunk(yChunk, yj) = plocalBuff[mj];
+              yChunk += X.rowChunks();
+              while( yChunk >= Y.rowChunks() )
+              {
+                yj++;
+                yChunk -= Y.rowChunks();
+              }
+            }
+          }
+        }
+        return;
+      }
 #pragma omp parallel for schedule(static)
       for(long long xChunk = 0; xChunk < X.rowChunks(); xChunk++)
       {
