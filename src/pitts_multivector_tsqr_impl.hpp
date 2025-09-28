@@ -90,10 +90,30 @@ namespace PITTS
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
       //! @param ldaResult    offset of columns in pdataResult
       //!
-      template<typename T>
+      template<typename T, bool TwoTriangularFactors = false>
       [[gnu::always_inline]]
       inline void applyReflection(int nChunks, int firstRow, int col, const Chunk<T>* v, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
+        if constexpr( TwoTriangularFactors )
+        {
+          if( firstRow < nChunks )
+          {
+            // generic case: out-of-place operation with input data from both pdata and pdataResult
+            Chunk<T> vTx;
+            mul(conj(v[firstRow]), pdata[firstRow+lda*col], vTx);
+            for(int i = nChunks; i <= nChunks+firstRow; i++)
+              fmadd(conj(v[i]), pdataResult[i+ldaResult*col], vTx);
+            bcast_sum(vTx);
+            fnmadd(vTx, v[firstRow], pdata[firstRow+lda*col], pdataResult[firstRow+ldaResult*col]);
+            if( pdata != pdataResult )
+              for(int i = firstRow+1; i < nChunks; i++)
+                pdataResult[i+ldaResult*col] = pdata[i+lda*col];
+            for(int i = nChunks; i <= nChunks+firstRow; i++)
+              fnmadd(vTx, v[i], pdataResult[i+ldaResult*col], pdataResult[i+ldaResult*col]);
+            return;
+          }
+        }
+
 //std::cout << "apply " << col << "\n";
         if( pdata == pdataResult || firstRow >= nChunks )
         {
@@ -135,6 +155,7 @@ namespace PITTS
       //!
       //! @tparam T           underlying data type
       //! @tparam NC          column unroll factor
+      //! @tparam TwoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
       //! @param nChunks      number of non-zero rows in v (divided by the Chunk size)
       //! @param firstRow     index of the chunk that contains the current pivot element (0 <= firstRow)
@@ -146,11 +167,10 @@ namespace PITTS
       //! @param lda          offset of columns in pdata
       //! @param pdataResult  dense, column-major output array with dimension ldaResult*#columns, the upper firstRow-1 chunks of rows are not touched
       //! @param ldaResult    offset of columns in pdataResult
-      //! @param twoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
-      template<typename T, int NC = 1>
+      template<typename T, int NC = 1, bool TwoTriangularFactors = false>
       [[gnu::always_inline]]
-      inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult, bool twoTriangularBlocks)
+      inline void applyReflection2(int nChunks, int firstRow, int col, const Chunk<T>* w, const Chunk<T>* v, const Chunk<T> &vTw, const Chunk<T>* pdata, long long lda, Chunk<T>* pdataResult, int ldaResult)
       {
 //for(int j = 0; j < NC; j++)
 //  std::cout << "apply " << col+j << "\n";
@@ -171,7 +191,7 @@ namespace PITTS
               fmadd(conj(v[i]), pdataResult[i+ldaResult*(col+j)], vTx[j]);
             }
           };
-          if( !twoTriangularBlocks )
+          if constexpr (!TwoTriangularFactors)
           {
             for(int i = firstRow; i <= nChunks+firstRow; i++)
               dot_step(i);
@@ -208,7 +228,7 @@ namespace PITTS
             for(int j = 0; j < NC; j++)
               pdataResult[i+ldaResult*(col+j)] = tmp[j];
           };
-          if( !twoTriangularBlocks )
+          if constexpr (!TwoTriangularFactors)
           {
             for(int i = firstRow; i <= nChunks+firstRow; i++)
               axpy_step(i);
@@ -282,14 +302,14 @@ namespace PITTS
       }
 
       // forward declaration
-      template<typename T, bool BranchLess = false>
+      template<typename T, bool BranchLess = false, bool TwoTriangularFactors = false>
       [[gnu::always_inline]]
       inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int col);
 
       // forward declaration
-      template<typename T>
+      template<typename T, bool TwoTriangularFactors = false>
       [[gnu::always_inline]]
-      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol, bool twoTriangularBlocks);
+      inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int beginCol, int endCol, int applyBeginCol, int applyEndCol);
 
 
       //! Calculate the upper triangular part R from a QR-decomposition of a small rectangular block where the bottom left triangle is already zero
@@ -321,6 +341,7 @@ namespace PITTS
       //!
       //! @tparam T           underlying data type
       //! @tparam BranchLess  set to true to use branch-less implementation, false for more accurate implementation for small numbers
+      //! @tparam TwoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
       //! @param nChunks      number of new rows in pdataIn divided by the Chunk size
       //! @param m            number of columns
@@ -331,15 +352,14 @@ namespace PITTS
       //! @param ldaResult    offset of columns in pdataResult
       //! @param resultOffset row chunk offset of the triangular part on input in pdataResult, expected to be >= nChunks+2 for out-of-place calculation and nChunks for in-place calculation
       //! @param colBlockSize tuning parameter for better cache access if m is large, should be a multiple of 3 (because of some internal 3-way unrolling)
-      //! @param twoTriangularBlocks used to skip some calculations with zeros when both blocks are triangular (final reduction)
       //!
       //! @param firstThread    OMP thread id of first thread
       //! @param lastThread     OMP thread of the last thread + 1
       //! @param bossLatches    synchronization objects for waiting on the boss thread
       //! @param workerLatches  synchronization objects for waiting on the worker threads
       //!
-      template<typename T, bool BranchLess = false>
-      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, bool twoTriangularBlocks, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
+      template<typename T, bool BranchLess = false, bool TwoTriangularFactors = false>
+      void transformBlock(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, int resultOffset, int colBlockSize = 15, int firstThread = 0, int lastThread = 0, LatchArray3* bossLatches = nullptr, LatchArray3* workerLatches = nullptr)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
         // we need enough buffer space because we store some additional vectors in it...
@@ -374,7 +394,7 @@ namespace PITTS
           {
             if (firstThread == lastThread)
             {
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol, twoTriangularBlocks);
+              transformBlock_apply<T, TwoTriangularFactors>(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, applyBeginCol, applyEndCol);
             }
             else
             {
@@ -385,7 +405,7 @@ namespace PITTS
               localApplyBeginCol += applyBeginCol;
               localApplyEndCol += applyBeginCol + 1;
 
-              transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, localApplyBeginCol, localApplyEndCol, twoTriangularBlocks);
+              transformBlock_apply<T, TwoTriangularFactors>(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, beginCol, endCol, localApplyBeginCol, localApplyEndCol);
             }
           }
           else
@@ -408,8 +428,8 @@ namespace PITTS
             {
               for(int col = beginCol; col < endCol; col++)
               {
-                transformBlock_calc<T, BranchLess>(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
-                transformBlock_apply(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol, twoTriangularBlocks);
+                transformBlock_calc<T, BranchLess, TwoTriangularFactors>(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col);
+                transformBlock_apply<T, TwoTriangularFactors>(nChunks, m, pdataIn, ldaIn, pdataResult, ldaResult, resultOffset, col, col+1, col+1, endCol);
               }
             }
           }
@@ -455,7 +475,7 @@ namespace PITTS
       }
 
       //! internal helper function for transformBlock
-      template<typename T, bool BranchLess>
+      template<typename T, bool BranchLess, bool TwoTriangularFactors>
       [[gnu::always_inline]]
       inline void transformBlock_calc(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn, Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset, int col)
       {
@@ -495,7 +515,8 @@ namespace PITTS
           {
             int i = firstRow+1;
             for(; i < nChunks; i++)
-              fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu);
+              if constexpr ( !TwoTriangularFactors )
+                fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu);
             for(; i <= nChunks+firstRow; i++)
               fmadd(conj(pdataResult[i+ldaResult*col]), pdataResult[i+ldaResult*col], uTu);
           }
@@ -512,11 +533,13 @@ namespace PITTS
             int i = firstRow+1;
             for(; i+unroll <= nChunks; i+=unroll)
             {
-              for(int ii = 0; ii < unroll; ii++)
-                fmadd(conj(pdata[i+ii+lda*col]), pdata[i+ii+lda*col], uTu[ii]);
+              if constexpr ( !TwoTriangularFactors )
+                for(int ii = 0; ii < unroll; ii++)
+                  fmadd(conj(pdata[i+ii+lda*col]), pdata[i+ii+lda*col], uTu[ii]);
             }
             for(int ii = 0; i < nChunks; i++, ii++)
-              fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu[ii]);
+              if constexpr ( !TwoTriangularFactors )
+                fmadd(conj(pdata[i+lda*col]), pdata[i+lda*col], uTu[ii]);
 
             for(; i+unroll <= nChunks+firstRow+1; i+=unroll)
             {
@@ -588,7 +611,10 @@ namespace PITTS
             mul(beta, pivotChunk, vtmp[0]);
             int i = firstRow+1;
             for(; i < nChunks; i++)
-              mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
+            {
+              //if constexpr ( !TwoTriangularFactors )
+                mul(beta, pdata[i+lda*col], vtmp[i-firstRow]);
+            }
             for(; i <= nChunks+firstRow; i++)
               mul(beta, pdataResult[i+ldaResult*col], vtmp[i-firstRow]);
           }
@@ -668,11 +694,11 @@ namespace PITTS
       }
 
       //! internal helper function for transformBlock
-      template<typename T>
+      template<typename T, bool TwoTriangularFactors>
       [[gnu::always_inline]]
       inline void transformBlock_apply(int nChunks, int m, const Chunk<T>* pdataIn, long long ldaIn,
                                 Chunk<T>* pdataResult, int ldaResult, [[maybe_unused]] int resultOffset,
-                                int beginCol, int endCol, int applyBeginCol, int applyEndCol, bool twoTriangularBlocks)
+                                int beginCol, int endCol, int applyBeginCol, int applyEndCol)
       {
         const int mChunks = (m-1) / Chunk<T>::size + 1;
 
@@ -710,7 +736,7 @@ namespace PITTS
             {
               const Chunk<T>* w = v - ldaResult;
               const Chunk<T> vTw = w[nChunks+firstRow+1];
-              applyReflection2<T,3>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult, twoTriangularBlocks);
+              applyReflection2<T,3,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             }
           }
         }
@@ -733,9 +759,9 @@ namespace PITTS
             const Chunk<T>* w = v - ldaResult;
             const Chunk<T> vTw = w[nChunks+firstRow+1];
             if( j+1 < applyEndCol )
-              applyReflection2<T,2>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult, twoTriangularBlocks);
+              applyReflection2<T,2,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             else if( j < applyEndCol )
-              applyReflection2<T,1>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult, twoTriangularBlocks);
+              applyReflection2<T,1,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
           }
         }
 
@@ -758,7 +784,7 @@ namespace PITTS
           if( col % 2 == 0 && col+1 >= applyBeginCol && col+1 < applyEndCol )
           {
             //std::cout << "col " << col << "\n";
-            applyReflection(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
+            applyReflection<T,TwoTriangularFactors>(nChunks, firstRow, col+1, v, pdata, lda, pdataResult, ldaResult);
           }
         }
       }
@@ -808,52 +834,84 @@ namespace PITTS
         if( std::bit_cast<std::uintptr_t>(inoutvec) % ALIGNMENT == 0 )
           inoutvecChunked = (Chunk<T>*) inoutvec;
 
-        // copy to buffer
-        if( invecChunked )
-        {
-          // aligned variant
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              buff[i+j*ldaBuff] = invecChunked[i+j*mChunks];
-        }
-        else
-        {
-          // unaligned variant
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*ldaBuff]);
-        }
-        if( inoutvecChunked )
-        {
-          // aligned variant
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              buff[mChunks+i+j*ldaBuff] = inoutvecChunked[i+j*mChunks];
-        }
-        else
-        {
-          // unaligned variant
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
-        }
 
-        transformBlock<T, false>(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, true);
 
-        // copy back to inoutvec
-        if( inoutvecChunked )
+        // we can parallelize inside one MPI process...
+        internal::LatchArray3 bossLatches, workerLatches;
+#ifdef NDEBUG
+        constexpr int parallelizationLimit = 300;
+#else
+        constexpr int parallelizationLimit = 10;
+#endif
+#pragma omp parallel if(m >= parallelizationLimit)
         {
-          // aligned variant
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              inoutvecChunked[i+j*mChunks] = buff[i+j*ldaBuff];
-        }
-        else
-        {
-          // unaligned variant
-          for(int j = 0; j < m; j++)
-            for(int i = 0; i < mChunks; i++)
-              unaligned_store(buff[i+j*ldaBuff], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+          // copy to buffer
+          if( invecChunked )
+          {
+            // aligned variant
+#pragma omp for schedule(static) nowait
+            for(int j = 0; j < m; j++)
+              for(int i = 0; i < mChunks; i++)
+                buff[i+j*ldaBuff] = invecChunked[i+j*mChunks];
+          }
+          else
+          {
+            // unaligned variant
+#pragma omp for schedule(static) nowait
+            for(int j = 0; j < m; j++)
+              for(int i = 0; i < mChunks; i++)
+                unaligned_load(invec+(i+j*mChunks)*Chunk<T>::size, buff[i+j*ldaBuff]);
+          }
+          if( inoutvecChunked )
+          {
+            // aligned variant
+#pragma omp for schedule(static) nowait
+            for(int j = 0; j < m; j++)
+              for(int i = 0; i < mChunks; i++)
+                buff[mChunks+i+j*ldaBuff] = inoutvecChunked[i+j*mChunks];
+          }
+          else
+          {
+            // unaligned variant
+#pragma omp for schedule(static) nowait
+            for(int j = 0; j < m; j++)
+              for(int i = 0; i < mChunks; i++)
+                unaligned_load(inoutvec+(i+j*mChunks)*Chunk<T>::size, buff[mChunks+i+j*ldaBuff]);
+          }
+
+          auto [iThread,nThreads] = internal::parallel::ompThreadInfo();
+          if( iThread == 0 )
+          {
+            resetLatch(bossLatches[0], 1);
+            resetLatch(bossLatches[1], 1);
+            resetLatch(bossLatches[2], 1);
+            resetLatch(workerLatches[0], nThreads - 1);
+            resetLatch(workerLatches[1], nThreads - 1);
+            resetLatch(workerLatches[2], nThreads - 1);
+          }
+#pragma omp barrier
+
+
+          transformBlock<T, false, true>(mChunks, m, &buff[0], ldaBuff, &buff[0], ldaBuff, mChunks, 12, 0, nThreads, &bossLatches, &workerLatches);
+
+#pragma omp barrier
+          // copy back to inoutvec
+          if( inoutvecChunked )
+          {
+            // aligned variant
+#pragma omp for schedule(static)
+            for(int j = 0; j < m; j++)
+              for(int i = 0; i < mChunks; i++)
+                inoutvecChunked[i+j*mChunks] = buff[i+j*ldaBuff];
+          }
+          else
+          {
+            // unaligned variant
+#pragma omp for schedule(static)
+            for(int j = 0; j < m; j++)
+              for(int i = 0; i < mChunks; i++)
+                unaligned_store(buff[i+j*ldaBuff], inoutvec+(i+j*mChunks)*Chunk<T>::size);
+          }
         }
       }
 
@@ -988,14 +1046,13 @@ namespace PITTS
         for(long long iter = firstIter; iter <= lastIter; iter++)
         {
           const int nRemainingChunks = nTotalChunks-iter*nChunks;
-          internal::HouseholderQR::transformBlock<T, false>(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, false, colBlockingSize);
+          internal::HouseholderQR::transformBlock<T, false, false>(std::min(nChunks, nRemainingChunks), m, &M.chunk(nChunks*iter,0), lda, &plocalBuff[0], ldaBuff, localBuffOffset, colBlockingSize);
         }
       }
 
       // tree reduction over threads
-      bool wasBossThread = false; // keep track of last iteration's boss threads
       int cnt = 1;
-      for(int nextThread = 1; nextThread < nThreads; nextThread*=2, cnt++)
+      for(int nextThread = 1; nextThread < nThreads; nextThread*=2, cnt^=1)
       {
         int bossThread, lastThread; // first (including) and last (excluding) threads in the team
         if (iThread < nThreads)
@@ -1010,12 +1067,12 @@ namespace PITTS
           // create this iteration's local latches (before global barrier to ensure all threads in team have the same view of them)
           if (iThread == bossThread)
           {
-            resetLatch(localBossLatches[cnt%2][bossThread][0], 1);
-            resetLatch(localBossLatches[cnt%2][bossThread][1], 1);
-            resetLatch(localBossLatches[cnt%2][bossThread][2], 1);
-            resetLatch(localWorkerLatches[cnt%2][bossThread][0], lastThread-bossThread - 1);
-            resetLatch(localWorkerLatches[cnt%2][bossThread][1], lastThread-bossThread - 1);
-            resetLatch(localWorkerLatches[cnt%2][bossThread][2], lastThread-bossThread - 1);
+            resetLatch(localBossLatches[cnt][bossThread][0], 1);
+            resetLatch(localBossLatches[cnt][bossThread][1], 1);
+            resetLatch(localBossLatches[cnt][bossThread][2], 1);
+            resetLatch(localWorkerLatches[cnt][bossThread][0], lastThread-bossThread - 1);
+            resetLatch(localWorkerLatches[cnt][bossThread][1], lastThread-bossThread - 1);
+            resetLatch(localWorkerLatches[cnt][bossThread][2], lastThread-bossThread - 1);
           }
         }
 #pragma omp barrier
@@ -1025,21 +1082,14 @@ namespace PITTS
           {
             const auto bossLocalBuff = &plocalBuff_allThreads[falseSharingStride*bossThread][0];
             const auto otherLocalBuff = &plocalBuff_allThreads[falseSharingStride*(bossThread+nextThread)][localBuffOffset];
-            internal::HouseholderQR::transformBlock<T, false>(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, true, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt%2][bossThread], &localWorkerLatches[cnt%2][bossThread]);
+            internal::HouseholderQR::transformBlock<T, false, true>(mChunks, m, otherLocalBuff, ldaBuff, bossLocalBuff, ldaBuff, localBuffOffset, colBlockingSize, bossThread, lastThread, &localBossLatches[cnt][bossThread], &localWorkerLatches[cnt][bossThread]);
           }
-
-          // destruct previous iteration's local barriers (we wait for one iteration to ensure that there is a global barrier inbetween last use and destruction of the barrier)
-          // the very last iteration's local barriers are destructed after the loop and after another global barrier
-          // remark: explicit destruction only needed if the destructor has side effects
-          // remember this iterations boss threads (in order to correctly destruct barriers in next iteration)
-          wasBossThread = (iThread == bossThread);
         }
       }
 
       if( iThread == 0 )
         pThread0Buff = std::move(plocalBuff);
 
-      // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
       if( !mpiGlobal )
       {
         // not handled through MPI
@@ -1052,11 +1102,8 @@ namespace PITTS
               R(i,j) = pThread0Buff[ localBuffOffset + i/Chunk<T>::size + ldaBuff*j ][ i%Chunk<T>::size ];
         }
       }
-      else
-      {
-        // only needed for MPI, otherwise we are already finished
+      // wait for other threads so the otherLocalBuff pointers and local barriers are valid until all threads have finished
 #pragma omp barrier
-      }
     }
 
     if( mpiGlobal )
