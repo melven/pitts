@@ -43,6 +43,16 @@ namespace PITTS
     {
       cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
     }
+
+    inline void cblas_gemm_mapper6(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const std::complex<double> alpha, const std::complex<double> * A, const CBLAS_INDEX lda, const std::complex<double> * B, const CBLAS_INDEX ldb, const std::complex<double> beta, std::complex<double> * C, const CBLAS_INDEX ldc)
+    {
+      cblas_zgemm(layout, TransA, TransB, M, N, K, (const MKL_Complex16*)&alpha, (const MKL_Complex16*)A, lda, (const MKL_Complex16*)B, ldb, (const MKL_Complex16*)&beta, (MKL_Complex16*)C, ldc);
+    }
+
+    inline void cblas_gemm_mapper6(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA, CBLAS_TRANSPOSE TransB, const CBLAS_INDEX M, const CBLAS_INDEX N, const CBLAS_INDEX K, const std::complex<float> alpha, const std::complex<float> * A, const CBLAS_INDEX lda, const std::complex<float> * B, const CBLAS_INDEX ldb, const std::complex<float> beta, std::complex<float> * C, const CBLAS_INDEX ldc)
+    {
+      cblas_cgemm(layout, TransA, TransB, M, N, K, (const MKL_Complex8*)&alpha, (const MKL_Complex8*)A, lda, (const MKL_Complex8*)B, ldb, (const MKL_Complex8*)&beta, (MKL_Complex8*)C, ldc);
+    }
 #endif
   }
 
