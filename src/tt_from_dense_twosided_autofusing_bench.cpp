@@ -82,7 +82,13 @@ int main(int argc, char* argv[])
   std::from_chars(argv[4], argv[5], nIter);
   double computationalIntensity = 12.;
   if( argc >= 6 )
+  {
+#ifdef __clang__
+    throw std::invalid_argument("std::from_chars with double not supported by clang++!");
+#else
     std::from_chars(argv[5], argv[6], computationalIntensity);
+#endif
+  }
 
   // compress shape, s.t. we optimize the reduction factor
   std::vector<int> shapeLeft = fuseDims(std::vector<int>(d/2, n), max_r, computationalIntensity);
