@@ -8,10 +8,10 @@ SPDX-License-Identifier: BSD-3-Clause
 [![REUSE status](https://api.reuse.software/badge/github.com/melven/pitts)](https://api.reuse.software/info/github.com/melven/pitts)
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg)](https://github.com/RichardLitt/standard-readme)
 
-PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [2](#references) and [3](#references)).
+PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [3](#references) and [4](#references)).
 Algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
 
-Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format), and methods for solving linear systems (symmetric and non-symmetric) in tensor-train format (TT-GMRES [4](#references), TT-MALS [5](#references), TT-AMEn [6](#references)).
+Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format, see [1](#references)), and methods for solving linear systems (symmetric and non-symmetric, see [2](#references)) in tensor-train format (TT-GMRES [5](#references), TT-MALS [6](#references), TT-AMEn [7](#references)).
 
 Bindings to other languages / libraries:
 * Python: complete functionality using pybind11 with numpy-compatible interface
@@ -116,15 +116,17 @@ pitts_py.randomize(tt)
 
 [1] Roehrig-Zoellner, M., Thies, J. and Basermann, A.: "Performance of the Low-Rank TT-SVD for Large Dense Tensors on Modern MultiCore CPUs", SIAM Journal on Scientific Computing, 2022, https://doi.org/10.1137/21M1395545
 
-[2] Oseledets, I. V.: "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2011, https://doi.org/10.1137/090752286
+[2] Roehrig-Zoellner, M., Becklas, M., Thies, J. and Basermann A.: "Performance of linear solvers in tensor-train format on current multicore architectures", The International Journal of High Performance Computing Applications (IJHPCA), 2025, https://doi.org/10.1177/10943420251317994
 
-[3] Grasedyck, L., Kressner, D. and Tobler, C.: "A literature survey of low-rank tensor approximation techniques", GAMM-Mitteilungen, 2013, https://doi.org/10.1002/gamm.201310004
+[3] Oseledets, I. V.: "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2011, https://doi.org/10.1137/090752286
 
-[4] Dolgov, S. V.: "TT-GMRES: solution to a linear system in the structured tensor format", Russian Journal of Numerical Analysis and Mathematical Modelling, 2013, https://doi.org/10.1515/rnam-2013-0009
+[4] Grasedyck, L., Kressner, D. and Tobler, C.: "A literature survey of low-rank tensor approximation techniques", GAMM-Mitteilungen, 2013, https://doi.org/10.1002/gamm.201310004
 
-[5] Holtz, S., Rohwedder, T. and Schneider, R.: "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing, 2012, https://doi.org/10.1137/100818893
+[5] Dolgov, S. V.: "TT-GMRES: solution to a linear system in the structured tensor format", Russian Journal of Numerical Analysis and Mathematical Modelling, 2013, https://doi.org/10.1515/rnam-2013-0009
 
-[6] Dolgov, S. V. and Savostyanov, D. V.: "Alternating Minimal Energy Methods for Linear Systems in Higher Dimensions" SIAM Journal on Scientific Computing, 2014, http://doi.org/10.1137/140953289
+[6] Holtz, S., Rohwedder, T. and Schneider, R.: "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing, 2012, https://doi.org/10.1137/100818893
+
+[7] Dolgov, S. V. and Savostyanov, D. V.: "Alternating Minimal Energy Methods for Linear Systems in Higher Dimensions" SIAM Journal on Scientific Computing, 2014, http://doi.org/10.1137/140953289
 
 ## Contributing
 
