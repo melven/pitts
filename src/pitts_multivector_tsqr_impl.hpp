@@ -716,7 +716,7 @@ namespace PITTS
 
         // reverse ordering (write avoiding)
         int j = applyBeginCol;
-        for(; j+2 < applyEndCol; j+=3)
+        for(; j+3 < applyEndCol; j+=4)
         {
           for(int col = beginCol; col < endCol; col++)
           {
@@ -736,7 +736,7 @@ namespace PITTS
             {
               const Chunk<T>* w = v - ldaResult;
               const Chunk<T> vTw = w[nChunks+firstRow+1];
-              applyReflection2<T,3,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+              applyReflection2<T,4,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             }
           }
         }
@@ -758,7 +758,9 @@ namespace PITTS
           {
             const Chunk<T>* w = v - ldaResult;
             const Chunk<T> vTw = w[nChunks+firstRow+1];
-            if( j+1 < applyEndCol )
+            if( j+2 < applyEndCol )
+              applyReflection2<T,3,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
+            else if( j+1 < applyEndCol )
               applyReflection2<T,2,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
             else if( j < applyEndCol )
               applyReflection2<T,1,TwoTriangularFactors>(nChunks, firstRow, j, w, v, vTw, pdata, lda, pdataResult, ldaResult);
@@ -954,8 +956,8 @@ namespace PITTS
       // automatically choose suitable reduction factor
       if( reductionFactor == 0 )
       {
-        // max. reductionFactor (for small number of columns, ensure applyReflection2<T,3> fits into L1)
-        const int maxReductionFactor = int(0.74 * cacheSize_L1 / (3+2));
+        // max. reductionFactor (for small number of columns, ensure applyReflection2<T,4> fits into L1)
+        const int maxReductionFactor = int(0.74 * cacheSize_L1 / (4+2));
 
         // choose the reduction factor such that 2 blocks of (reductionFactor x M.cols()) fit into the L2 cache
         reductionFactor = std::min(maxReductionFactor, int(0.74 * cacheSize_L2 / M.cols()) );
@@ -966,9 +968,9 @@ namespace PITTS
       // automaticall choose suitable colBlockingSize
       if( colBlockingSize == 0 )
       {
-        // not sure how to choose this best, should be a multiple of 3 (3-way unrolling with applyReflection2<T,3>)
-        // 15 seems to work fine...
-        colBlockingSize = 12;
+        // not sure how to choose this best, should be a multiple of 4 (4-way unrolling with applyReflection2<T,4>)
+        // 16 seems to work fine...
+        colBlockingSize = 16;
       }
     }
 
