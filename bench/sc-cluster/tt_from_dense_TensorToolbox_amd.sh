@@ -8,6 +8,7 @@
 #SBATCH --mem=200G
 #SBATCH --output="%x-%j.out"
 
+# source load_modules_pitts_spack-25.2.sh
 # module unload python
 # export PATH=/scratch/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-10.2.0/miniconda2-4.7.12.1-tpknunsk2wg7pinqtras5szuc4ryrdqu/bin/:$PATH
 # eval "$(conda shell.bash hook)"

@@ -8,6 +8,9 @@
 #SBATCH --mem=200G
 #SBATCH --output="%x-%j.out"
 
+# source load_modules_pitts_spack-25.2.sh
+# module purge
+# unset LD_LIBRARY_PATH
 # module load spack-user
 # module load miniforge3
 # eval "$(conda shell.bash hook)"

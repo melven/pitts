@@ -15,3 +15,112 @@ Number of threads: 256
 rand wtime:   5.655752 seconds (119.87 k allocations: 8.006 GiB, 0.42% gc time, 1.45% compilation time)
 calculate TT-SVD of rank 32
 tt-svd wtime: 847.278073 seconds (477.43 M allocations: 454.922 GiB, 4.17% gc time, 33.37% compilation time)
+tt-svd wtime: 570.675639 seconds (17.02 k allocations: 432.012 GiB, 6.20% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.489524 seconds (119.87 k allocations: 8.006 GiB, 0.47% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 33
+tt-svd wtime: 865.059609 seconds (477.43 M allocations: 457.172 GiB, 4.25% gc time, 32.91% compilation time)
+tt-svd wtime: 592.683295 seconds (17.02 k allocations: 434.262 GiB, 6.16% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.468705 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 34
+tt-svd wtime: 847.957221 seconds (477.43 M allocations: 459.423 GiB, 4.20% gc time, 33.34% compilation time)
+tt-svd wtime: 570.798005 seconds (17.02 k allocations: 436.512 GiB, 6.11% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.464860 seconds (119.87 k allocations: 8.006 GiB, 0.43% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 35
+tt-svd wtime: 874.124306 seconds (477.43 M allocations: 461.673 GiB, 4.16% gc time, 32.42% compilation time)
+tt-svd wtime: 599.034931 seconds (17.02 k allocations: 438.762 GiB, 5.94% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.460738 seconds (119.87 k allocations: 8.006 GiB, 0.42% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 36
+tt-svd wtime: 868.109504 seconds (477.43 M allocations: 463.923 GiB, 4.12% gc time, 32.64% compilation time)
+tt-svd wtime: 590.041072 seconds (17.02 k allocations: 441.013 GiB, 6.23% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.582305 seconds (119.87 k allocations: 8.006 GiB, 0.40% gc time, 1.44% compilation time)
+calculate TT-SVD of rank 37
+tt-svd wtime: 893.845384 seconds (477.43 M allocations: 466.173 GiB, 4.02% gc time, 31.71% compilation time)
+tt-svd wtime: 618.046850 seconds (17.02 k allocations: 443.263 GiB, 5.97% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.619052 seconds (119.87 k allocations: 8.006 GiB, 0.41% gc time, 1.42% compilation time)
+calculate TT-SVD of rank 38
+tt-svd wtime: 874.857168 seconds (477.43 M allocations: 468.423 GiB, 4.08% gc time, 32.31% compilation time)
+tt-svd wtime: 595.609428 seconds (17.02 k allocations: 445.513 GiB, 6.21% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.479320 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 39
+tt-svd wtime: 907.497904 seconds (477.43 M allocations: 470.674 GiB, 3.99% gc time, 31.25% compilation time)
+tt-svd wtime: 630.425689 seconds (17.02 k allocations: 447.763 GiB, 5.94% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.595428 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.45% compilation time)
+calculate TT-SVD of rank 40
+tt-svd wtime: 893.507416 seconds (477.43 M allocations: 472.924 GiB, 4.10% gc time, 31.74% compilation time)
+tt-svd wtime: 614.660733 seconds (17.02 k allocations: 450.014 GiB, 6.07% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.551194 seconds (119.87 k allocations: 8.006 GiB, 0.43% gc time, 1.44% compilation time)
+calculate TT-SVD of rank 41
+tt-svd wtime: 922.505435 seconds (477.43 M allocations: 475.174 GiB, 4.11% gc time, 30.79% compilation time)
+tt-svd wtime: 647.199103 seconds (17.02 k allocations: 452.264 GiB, 5.79% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.568742 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.45% compilation time)
+calculate TT-SVD of rank 42
+tt-svd wtime: 905.374890 seconds (477.43 M allocations: 477.425 GiB, 4.13% gc time, 31.38% compilation time)
+tt-svd wtime: 628.524853 seconds (17.02 k allocations: 454.514 GiB, 5.94% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.467970 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 43
+tt-svd wtime: 938.491007 seconds (477.43 M allocations: 479.675 GiB, 3.98% gc time, 30.09% compilation time)
+tt-svd wtime: 664.574452 seconds (17.02 k allocations: 456.765 GiB, 5.77% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.494592 seconds (119.87 k allocations: 8.006 GiB, 0.42% gc time, 1.46% compilation time)
+calculate TT-SVD of rank 44
+tt-svd wtime: 925.274146 seconds (477.43 M allocations: 481.925 GiB, 4.04% gc time, 30.72% compilation time)
+tt-svd wtime: 647.088572 seconds (17.02 k allocations: 459.015 GiB, 5.74% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.468252 seconds (119.87 k allocations: 8.006 GiB, 0.43% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 45
+tt-svd wtime: 957.192996 seconds (477.43 M allocations: 484.176 GiB, 3.88% gc time, 29.60% compilation time)
+tt-svd wtime: 681.367661 seconds (17.02 k allocations: 461.265 GiB, 5.67% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.454963 seconds (119.87 k allocations: 8.006 GiB, 0.43% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 46
+tt-svd wtime: 931.953732 seconds (477.43 M allocations: 486.426 GiB, 4.03% gc time, 30.39% compilation time)
+tt-svd wtime: 655.306948 seconds (17.02 k allocations: 463.515 GiB, 5.86% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.475187 seconds (119.87 k allocations: 8.006 GiB, 0.43% gc time, 1.46% compilation time)
+calculate TT-SVD of rank 47
+tt-svd wtime: 971.993697 seconds (477.43 M allocations: 488.676 GiB, 3.88% gc time, 29.09% compilation time)
+tt-svd wtime: 698.675054 seconds (17.02 k allocations: 465.766 GiB, 5.57% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.462449 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 48
+tt-svd wtime: 958.468319 seconds (477.43 M allocations: 490.926 GiB, 4.05% gc time, 29.60% compilation time)
+tt-svd wtime: 683.343921 seconds (17.02 k allocations: 468.016 GiB, 5.67% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.450659 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 49
+tt-svd wtime: 988.083956 seconds (477.43 M allocations: 493.177 GiB, 3.80% gc time, 28.67% compilation time)
+tt-svd wtime: 713.347895 seconds (17.02 k allocations: 470.266 GiB, 5.43% gc time)
+Generating random tensor of size 2^30
+Number of threads: 256
+rand wtime:   5.452036 seconds (119.87 k allocations: 8.006 GiB, 0.45% gc time, 1.47% compilation time)
+calculate TT-SVD of rank 50
+tt-svd wtime: 965.451787 seconds (477.43 M allocations: 495.427 GiB, 4.01% gc time, 29.48% compilation time)
+tt-svd wtime: 686.417186 seconds (17.02 k allocations: 472.517 GiB, 5.71% gc time)

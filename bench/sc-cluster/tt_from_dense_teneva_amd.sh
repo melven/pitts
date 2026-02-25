@@ -8,6 +8,7 @@
 #SBATCH --mem=200G
 #SBATCH --output="%x-%j.out"
 
+# source load_modules_pitts_spack-25.2.sh
 # module load spack-user
 # module load py-opt-einsum
 export PYTHONPATH=~/teneva:$PYTHONPATH

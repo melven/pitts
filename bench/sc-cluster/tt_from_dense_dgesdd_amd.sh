@@ -8,6 +8,8 @@
 #SBATCH --mem=200G
 #SBATCH --output="%x-%j.out"
 
+# source load_modules_pitts_spack-25.2.sh
+
 for ((i=1; i <= 50; i++)); do
   srun taskset -c 0-127 likwid-pin -c 0-63 python ../tt_from_dense_dgesdd.py 2 30 $i 1
 done
