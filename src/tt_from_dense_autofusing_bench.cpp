@@ -85,7 +85,13 @@ int main(int argc, char* argv[])
     std::from_chars(argv[5], argv[6], localDims);
   double computationalIntensity = 12.;
   if( argc >= 7 )
+  {
+#ifdef __clang__
+    throw std::invalid_argument("std::from_chars with double not supported by clang++!");
+#else
     std::from_chars(argv[6], argv[7], computationalIntensity);
+#endif
+  }
 
   const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
 
