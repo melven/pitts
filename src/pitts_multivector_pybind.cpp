@@ -26,6 +26,7 @@
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_transpose.hpp"
 #include "pitts_multivector_pybind.hpp"
+#include "pitts_ttn_local_gradient_contraction.hpp"
 #include "pitts_scope_info.hpp"
 
 namespace py = pybind11;
@@ -59,6 +60,31 @@ namespace PITTS
         constexpr auto scope = internal::ScopeInfo::current<T>();
 
         return "PITTS::MultiVector" + std::string(scope.type_name()) + "(" + std::to_string(mv.rows()) + ", " + std::to_string(mv.cols()) + ")";
+      }
+
+      //! helper function that wraps ttn_local_gradient_contract
+      template<typename T>
+      py::array_t<T> wrap_ttn_local_gradient_contract(py::array_t<T> optTensor, const MultiVector<T>& envLeft, const MultiVector<T>& envRight, const MultiVector<T>& envTop, bool mpiParallel)
+      {
+        if( optTensor.ndim() != 3 )
+          throw std::invalid_argument("array must have 3 dimensions");
+
+        Tensor3<T> optTensor_t3(optTensor.shape(0), optTensor.shape(1), optTensor.shape(2));
+        for(long long i2 = 0; i2 < optTensor_t3.r2(); i2++)
+          for(long long j = 0; j < optTensor_t3.n(); j++)
+            for(long long i1 = 0; i1 < optTensor_t3.r1(); i1++)
+              optTensor_t3(i1,j,i2) = *optTensor.data(i1,j,i2);
+
+        Tensor3<T> gradOptTensor_t3(optTensor.shape(0), optTensor.shape(1), optTensor.shape(2));
+        PITTS::ttn_local_gradient_contract(optTensor_t3, envLeft, envRight, envTop, gradOptTensor_t3, mpiParallel);
+
+        py::array_t<T> result({gradOptTensor_t3.r1(), gradOptTensor_t3.n(), gradOptTensor_t3.r2()});
+        for(long long i2 = 0; i2 < gradOptTensor_t3.r2(); i2++)
+          for(long long j = 0; j < gradOptTensor_t3.n(); j++)
+            for(long long i1 = 0; i1 < gradOptTensor_t3.r1(); i1++)
+              *result.mutable_data(i1,j,i2) = gradOptTensor_t3(i1,j,i2);
+
+        return result;
       }
 
       //! provide all MultiVector<T> related classes and functions
@@ -119,6 +145,11 @@ namespace PITTS
             py::overload_cast< const MultiVector<T>&, MultiVector<T>&, std::array<long long,2>, bool >(&PITTS::transpose<T>),
             py::arg("X"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0}, py::arg("reverse")=false,
             "Reshape and transpose a tall-skinny matrix");
+
+        m.def("ttn_local_gradient_contraction",
+            py::overload_cast<py::array_t<T>, const MultiVector<T>&, const MultiVector<T>&,  const MultiVector<T>&, bool>(&wrap_ttn_local_gradient_contract<T>),
+            py::arg("optTensor"), py::arg("envLeft"), py::arg("envRight"), py::arg("envTop"), py::arg("mpiParallel")=false,
+            "Tree tensor network (TTN) local gradient contraction");
       }
     }
 
