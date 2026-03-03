@@ -40,7 +40,7 @@ namespace PITTS
 }
 
 #ifndef PITTS_DEVELOP_BUILD
-#include "pitts_ttn_local_gradien_contraction_impl.hpp"
+#include "pitts_ttn_local_gradient_contraction_impl.hpp"
 #endif
 
 #endif // PITTS_TTN_LOCAL_GRADIENT_CONTRACTION_HPP
