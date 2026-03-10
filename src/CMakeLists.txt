@@ -149,6 +149,8 @@ target_sources(pitts INTERFACE
   pitts_multivector_gramian_impl.hpp
   pitts_gmres.hpp
   pitts_gmres_impl.hpp
+  pitts_ttn_local_gradient_contraction.hpp
+  pitts_ttn_local_gradient_contraction_impl.hpp
   )
 
 if(NOT PITTS_DEVELOP_BUILD)
@@ -216,6 +218,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_solve_mals.cpp
     pitts_tensortrain_solve_mals_helper.cpp
     pitts_tensortrain_solve_mals_debug.cpp
+    pitts_ttn_local_gradient_contraction.cpp
   )
   target_link_libraries(pitts_impl PRIVATE pitts)
   set_target_properties(pitts_impl PROPERTIES POSITION_INDEPENDENT_CODE On)
@@ -265,6 +268,7 @@ add_executable(tsqr_double_bench tsqr_bench.cpp)
 add_executable(tsqr_single_bench tsqr_bench.cpp)
 add_executable(tsqr_complex_double_bench tsqr_bench.cpp)
 add_executable(tsqr_complex_single_bench tsqr_bench.cpp)
+add_executable(ttn_local_gradient_bench ttn_local_gradient_bench.cpp)
 target_compile_definitions(tsqr_double_bench PUBLIC "-DTYPE=double")
 target_compile_definitions(tsqr_single_bench PUBLIC "-DTYPE=float")
 target_compile_definitions(tsqr_complex_double_bench PUBLIC "-DTYPE=std::complex<double>")
