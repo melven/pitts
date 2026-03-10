@@ -1,0 +1,1150 @@
+('random', 'wtime:', 5.658756971359253)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 131120127534912 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 131120119138240 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 131120110741568 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 131120102344896 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 131120093948224 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 131120085551552 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 131120077154880 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 131120068758208 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 131120060361536 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 131119513070528 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 131119504673856 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 131119496277184 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 131119487880512 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 131119479483840 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 131119471087168 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 3.864237070083618)
+('tt_from_dense', 'wtime:', 3.6919760704040527)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.300723075866699)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 128612885849920 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 128612877453248 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 128612795672640 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 128612787275968 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 128612778879296 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 128612770482624 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 128612762085952 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 128612753689280 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 128612745292608 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 128612191693760 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 128612183297088 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 128612174900416 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 128612166503744 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 128612158107072 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 128612149710400 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 5.343096971511841)
+('tt_from_dense', 'wtime:', 5.1659770011901855)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.685877799987793)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 124394116474688 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 124394108078016 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 124394099681344 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 124394091284672 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 124394082888000 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 124394074491328 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 124393728502336 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 124393720105664 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 124393711708992 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 124393703312320 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 124393694915648 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 124393686518976 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 124393678122304 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 124393124523456 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 124393116126784 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 6.690706014633179)
+('tt_from_dense', 'wtime:', 6.5137951374053955)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.402989149093628)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 130975587624768 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 130975579228096 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 130975497447488 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 130975489050816 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 130975480654144 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 130975472257472 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 130975463860800 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 130975455464128 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 130975447067456 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 130974893468608 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 130974885071936 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 130974876675264 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 130974868278592 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 130974859881920 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 130974851485248 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.023954153060913)
+('tt_from_dense', 'wtime:', 7.885677814483643)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.403904914855957)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 132329311823680 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 132329303427008 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 132329295030336 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 132329083234496 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 132329074837824 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 132329066441152 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 132329058044480 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 132329049647808 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 132329041251136 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 132329032854464 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 132328546364480 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 132328537967808 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 132328529571136 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 132328521174464 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 132328512777792 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 7.412723779678345)
+('tt_from_dense', 'wtime:', 7.242767095565796)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.612210988998413)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 138304458581824 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 138304450185152 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 138304441788480 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 138304433391808 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 138304424995136 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 138304416598464 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 138304408201792 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 138304399805120 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 138303919614784 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 138303911218112 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 138303902821440 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 138303894424768 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 138303886028096 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 138303877631424 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 138303869234752 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 7.68829083442688)
+('tt_from_dense', 'wtime:', 7.528450012207031)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.933511972427368)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 126272902522688 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 126272894126016 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 126272885729344 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 126272877332672 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 126272868936000 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 126272860539328 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 126272508258880 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 126272499862208 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 126272491465536 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 126272483068864 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 126272474672192 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 126272466275520 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 126272457878848 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 126271904280000 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 126271895883328 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 7.947343111038208)
+('tt_from_dense', 'wtime:', 7.794433832168579)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.399507999420166)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 134838860375872 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 134838851979200 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 134838843582528 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 134838835185856 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 134838619203904 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 134838610807232 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 134838602410560 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 134838594013888 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 134838585617216 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 134838577220544 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 134838568823872 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 134838015225024 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 134838006828352 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 134837998431680 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 134837990035008 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.258413076400757)
+('tt_from_dense', 'wtime:', 8.122888088226318)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.633547067642212)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 138233302214464 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 138233293817792 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 138233285421120 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 138233277024448 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 138233268627776 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 138232918436288 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 138232910039616 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 138232901642944 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 138232893246272 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 138232884849600 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 138232876452928 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 138232868056256 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 138232381566272 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 138232373169600 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 138232364772928 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.67056679725647)
+('tt_from_dense', 'wtime:', 8.491175174713135)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.729948997497559)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 130166600755008 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 130166592358336 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 130166583961664 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 130166365874368 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 130166357477696 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 130166349081024 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 130166340684352 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 130166332287680 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 130166323891008 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 130166315494336 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 130165829004352 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 130165820607680 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 130165812211008 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 130165803814336 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 130165795417664 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.806871891021729)
+('tt_from_dense', 'wtime:', 8.642131090164185)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.434054851531982)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 124294428354368 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 124294419957696 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 124294340274240 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 124294331877568 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 124294323480896 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 124294315084224 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 124294306687552 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 124294298290880 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 124294289894208 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 124293736295360 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 124293727898688 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 124293719502016 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 124293711105344 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 124293702708672 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 124293694312000 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.874391078948975)
+('tt_from_dense', 'wtime:', 8.763028860092163)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.358776092529297)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 138981861746496 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 138981853349824 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 138981844953152 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 138981836556480 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 138981828159808 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 138981819763136 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 138981811366464 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 138981802969792 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 138981316488000 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 138981308091328 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 138981299694656 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 138981291297984 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 138981282901312 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 138981274504640 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 138981266107968 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.01557207107544)
+('tt_from_dense', 'wtime:', 8.872299194335938)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.4467949867248535)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 136866680530752 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 136866672134080 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 136866663737408 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 136866447747264 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 136866439350592 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 136866430953920 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 136866422557248 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 136866414160576 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 136866405763904 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 136866397367232 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 136865910877248 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 136865902480576 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 136865894083904 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 136865885687232 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 136865877290560 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.22120714187622)
+('tt_from_dense', 'wtime:', 9.051560878753662)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.787539005279541)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 136660543072064 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 136660534675392 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 136660526278720 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 136660517882048 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 136660509485376 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 136660501088704 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 136660155099712 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 136660146703040 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 136660138306368 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 136660129909696 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 136660121513024 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 136660113116352 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 136660104719680 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 136659551120832 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 136659542724160 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.471531867980957)
+('tt_from_dense', 'wtime:', 9.32340407371521)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.706935882568359)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 135662114170688 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 135662105774016 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 135662097377344 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 135662088980672 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 135662080584000 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 135662072187328 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 135662063790656 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 135662055393984 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 135661575203648 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 135661566806976 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 135661558410304 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 135661550013632 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 135661541616960 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 135661533220288 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 135661524823616 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.640314102172852)
+('tt_from_dense', 'wtime:', 9.466583013534546)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.388628005981445)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 134104397899584 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 134104314013632 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 134104305616960 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 134104297220288 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 134104288823616 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 134104280426944 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 134104272030272 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 134104263633600 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 134103777143616 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 134103768746944 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 134103760350272 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 134103751953600 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 134103743556928 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 134103735160256 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 134103726763584 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.229291915893555)
+('tt_from_dense', 'wtime:', 8.081663131713867)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.5557379722595215)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 125301937923904 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 125301929527232 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 125301845649472 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 125301837252800 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 125301828856128 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 125301820459456 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 125301812062784 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 125301803666112 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 125301795269440 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 125301241670592 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 125301233273920 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 125301224877248 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 125301216480576 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 125301208083904 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 125301199687232 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.333714962005615)
+('tt_from_dense', 'wtime:', 8.16562819480896)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.643389940261841)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 124877254158144 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 124877245761472 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 124877237364800 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 124877228968128 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 124877220571456 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 124877212174784 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 124877203778112 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 124877195381440 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 124876710996800 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 124876702600128 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 124876694203456 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 124876685806784 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 124876677410112 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 124876669013440 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 124876660616768 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.356302976608276)
+('tt_from_dense', 'wtime:', 8.223489999771118)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.512290954589844)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 138847675475776 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 138847667079104 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 138847658682432 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 138847650285760 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 138847434303808 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 138847425907136 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 138847417510464 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 138847409113792 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 138847400717120 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 138847392320448 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 138847383923776 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 138846830324928 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 138846821928256 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 138846813531584 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 138846805134912 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.374096870422363)
+('tt_from_dense', 'wtime:', 8.203589916229248)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.401839017868042)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 125615074174784 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 125615065778112 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 125615057381440 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 125614841391296 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 125614832994624 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 125614824597952 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 125614816201280 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 125614807804608 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 125614799407936 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 125614791011264 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 125614304521280 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 125614296124608 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 125614287727936 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 125614279331264 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 125614270934592 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.42036509513855)
+('tt_from_dense', 'wtime:', 8.264665126800537)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.684899091720581)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 135483069818688 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 135483061422016 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 135483053025344 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 135483044628672 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 135483036232000 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 135483027835328 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 135483019438656 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 135483011041984 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 135482528754496 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 135482520357824 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 135482511961152 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 135482503564480 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 135482495167808 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 135482486771136 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 135482478374464 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.475037097930908)
+('tt_from_dense', 'wtime:', 8.317178964614868)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.613154888153076)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 125768097064768 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 125768088668096 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 125768080271424 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 125768071874752 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 125768063478080 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 125767715383744 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 125767706987072 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 125767698590400 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 125767690193728 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 125767681797056 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 125767673400384 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 125767665003712 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 125767178513728 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 125767170117056 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 125767161720384 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.535570859909058)
+('tt_from_dense', 'wtime:', 8.390716075897217)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.456251859664917)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 129814258247488 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 129814178555840 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 129814170159168 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 129814161762496 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 129814153365824 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 129814144969152 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 129814136572480 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 129814128175808 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 129813641685824 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 129813633289152 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 129813624892480 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 129813616495808 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 129813608099136 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 129813599702464 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 129813591305792 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.546197891235352)
+('tt_from_dense', 'wtime:', 8.402206897735596)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.493510961532593)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 128875625441088 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 128875617044416 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 128875608647744 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 128875392657600 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 128875384260928 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 128875375864256 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 128875367467584 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 128875359070912 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 128875350674240 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 128875342277568 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 128874855787584 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 128874847390912 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 128874838994240 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 128874830597568 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 128874822200896 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.59122109413147)
+('tt_from_dense', 'wtime:', 8.423902034759521)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.510245084762573)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 127736773338944 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 127736689452992 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 127736681056320 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 127736672659648 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 127736664262976 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 127736655866304 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 127736647469632 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 127736639072960 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 127736152582976 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 127736144186304 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 127736135789632 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 127736127392960 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 127736118996288 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 127736110599616 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 127736102202944 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.67099404335022)
+('tt_from_dense', 'wtime:', 8.50781512260437)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.452086925506592)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 127698009581376 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 127698001184704 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 127697992788032 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 127697984391360 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 127697766312256 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 127697757915584 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 127697749518912 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 127697741122240 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 127697732725568 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 127697724328896 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 127697715932224 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 127697162333376 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 127697153936704 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 127697145540032 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 127697137143360 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.71366810798645)
+('tt_from_dense', 'wtime:', 8.576869010925293)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.547662973403931)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140668492048192 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140668483651520 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140668475254848 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140668466858176 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140668458461504 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140668450064832 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140668097784384 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140668089387712 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140668080991040 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140668072594368 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140668064197696 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140668055801024 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140668047404352 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 140667493805504 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 140667485408832 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.76128101348877)
+('tt_from_dense', 'wtime:', 8.632037878036499)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.607781887054443)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 127031543064384 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 127031534667712 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 127031526271040 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 127031308183744 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 127031299787072 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 127031291390400 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 127031282993728 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 127031274597056 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 127031266200384 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 127031257803712 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 127030771313728 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 127030762917056 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 127030754520384 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 127030746123712 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 127030737727040 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.798983097076416)
+('tt_from_dense', 'wtime:', 8.658278942108154)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.490407943725586)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 135592996235072 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 135592987838400 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 135592979441728 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 135592971045056 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 135592962648384 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 135592954251712 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 135592945855040 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 135592937458368 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 135592453073728 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 135592444677056 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 135592436280384 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 135592427883712 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 135592419487040 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 135592411090368 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 135592402693696 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.916855812072754)
+('tt_from_dense', 'wtime:', 8.718572854995728)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.468414068222046)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 131968851240768 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 131968842844096 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 131968834447424 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 131968826050752 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 131968817654080 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 131968809257408 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 131968800860736 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 131968792464064 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 131968305982272 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 131968297585600 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 131968289188928 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 131968280792256 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 131968272395584 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 131968263998912 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 131968255602240 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.981453895568848)
+('tt_from_dense', 'wtime:', 8.826629877090454)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.428682088851929)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 135332351698752 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 135332272007104 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 135332263610432 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 135332255213760 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 135332246817088 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 135332238420416 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 135332230023744 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 135332221627072 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 135331735137088 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 135331726740416 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 135331718343744 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 135331709947072 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 135331701550400 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 135331693153728 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 135331684757056 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 8.973022937774658)
+('tt_from_dense', 'wtime:', 8.839007139205933)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.442333936691284)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 133376619046720 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 133376610650048 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 133376602253376 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 133376384166080 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 133376375769408 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 133376367372736 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 133376358976064 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 133376350579392 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 133376342182720 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 133376333786048 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 133375847296064 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 133375838899392 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 133375830502720 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 133375822106048 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 133375813709376 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.098418951034546)
+('tt_from_dense', 'wtime:', 8.94871187210083)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.4738898277282715)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 138687432091456 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 138687423694784 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 138687415298112 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 138687406901440 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 138687398504768 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 138687390108096 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 138687044119104 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 138687035722432 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 138687027325760 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 138687018929088 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 138687010532416 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 138687002135744 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 138686993739072 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 138686440140224 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 138686431743552 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.102894067764282)
+('tt_from_dense', 'wtime:', 8.91872501373291)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.430695056915283)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 136719345116992 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 136719336720320 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 136719328323648 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 136719319926976 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 136719311530304 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 136719303133632 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 136719294736960 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 136718808246976 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 136718799850304 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 136718791453632 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 136718783056960 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 136718774660288 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 136718766263616 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 136718757866944 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 136718271376960 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.162667036056519)
+('tt_from_dense', 'wtime:', 8.988152980804443)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.4392969608306885)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 139691819001664 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 139691810604992 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 139691730921536 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 139691722524864 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 139691714128192 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 139691705731520 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 139691697334848 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 139691688938176 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 139691680541504 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 139691126942656 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 139691118545984 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 139691110149312 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 139691101752640 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 139691093355968 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 139691084959296 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.124611854553223)
+('tt_from_dense', 'wtime:', 8.949451923370361)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.8218560218811035)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 131593284872000 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 131593276475328 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 131593268078656 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 131593259681984 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 131593251285312 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 131592898996672 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 131592890600000 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 131592882203328 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 131592873806656 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 131592865409984 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 131592857013312 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 131592848616640 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 131592362126656 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 131592353729984 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 131592345333312 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.212902069091797)
+('tt_from_dense', 'wtime:', 9.008342027664185)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.561481952667236)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 128703809972032 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 128703728183232 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 128703719786560 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 128703711389888 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 128703702993216 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 128703694596544 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 128703686199872 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 128703677803200 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 128703191313216 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 128703182916544 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 128703174519872 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 128703166123200 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 128703157726528 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 128703149329856 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 128703140933184 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.22168517112732)
+('tt_from_dense', 'wtime:', 9.120897054672241)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.504875183105469)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 137687147210560 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 137687138813888 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 137687054936128 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 137687046539456 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 137687038142784 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 137687029746112 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 137687021349440 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 137687012952768 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 137687004556096 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 137686450957248 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 137686442560576 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 137686434163904 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 137686425767232 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 137686417370560 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 137686408973888 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.248183012008667)
+('tt_from_dense', 'wtime:', 9.079344034194946)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.560739994049072)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 129286797256512 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 129286788859840 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 129286780463168 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 129286568667328 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 129286560270656 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 129286551873984 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 129286543477312 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 129286535080640 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 129286526683968 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 129286518287296 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 129286031797312 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 129286023400640 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 129286015003968 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 129286006607296 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 129285998210624 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.280344009399414)
+('tt_from_dense', 'wtime:', 9.138175964355469)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.551016092300415)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 136604588959552 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 136604580562880 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 136604572166208 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 136604563769536 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 136604555372864 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 136604546976192 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 136604538579520 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 136604052089536 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 136604043692864 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 136604035296192 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 136604026899520 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 136604018502848 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 136604010106176 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 136604001709504 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 136603515219520 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.304478168487549)
+('tt_from_dense', 'wtime:', 9.174098014831543)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.509864091873169)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 134623191361344 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 134623182964672 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 134623174568000 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 134623166171328 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 134623157774656 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 134623149377984 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 134622797097536 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 134622788700864 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 134622780304192 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 134622771907520 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 134622763510848 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 134622755114176 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 134622746717504 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 134622193118656 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 134622184721984 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.394706010818481)
+('tt_from_dense', 'wtime:', 9.209702968597412)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.406967878341675)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 138217034606400 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 138217026209728 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 138216946526272 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 138216938129600 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 138216929732928 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 138216921336256 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 138216912939584 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 138216904542912 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 138216896146240 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 138216342547392 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 138216334150720 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 138216325754048 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 138216317357376 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 138216308960704 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 138216300564032 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.44694995880127)
+('tt_from_dense', 'wtime:', 9.306206941604614)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.494986057281494)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 137355073677120 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 137355065280448 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 137355056883776 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 137355048487104 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 137355040090432 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 137355031693760 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 137355023297088 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 137355014900416 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 137354530515776 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 137354522119104 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 137354513722432 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 137354505325760 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 137354496929088 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 137354488532416 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 137354480135744 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.409984827041626)
+('tt_from_dense', 'wtime:', 9.351103067398071)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.505957841873169)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 136850490517312 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 136850408728512 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 136850400331840 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 136850391935168 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 136850383538496 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 136850375141824 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 136850366745152 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 136850358348480 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 136849871858496 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 136849863461824 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 136849855065152 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 136849846668480 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 136849838271808 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 136849829875136 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 136849821478464 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.453243017196655)
+('tt_from_dense', 'wtime:', 9.298971176147461)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.45080304145813)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 126017653958464 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 126017645561792 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 126017561684032 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 126017553287360 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 126017544890688 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 126017536494016 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 126017528097344 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 126017519700672 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 126017511304000 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 126016957705152 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 126016949308480 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 126016940911808 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 126016932515136 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 126016924118464 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 126016915721792 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.463494062423706)
+('tt_from_dense', 'wtime:', 9.330238103866577)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.439811944961548)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 128393186109248 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 128393177712576 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 128393169315904 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 128393160919232 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 128392947034432 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 128392938637760 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 128392930241088 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 128392921844416 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 128392913447744 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 128392905051072 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 128392896654400 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 128392343055552 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 128392334658880 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 128392326262208 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 128392317865536 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.57262396812439)
+('tt_from_dense', 'wtime:', 9.46207594871521)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.416162967681885)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 140513969694528 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 140513961297856 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 140513881614400 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 140513873217728 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 140513864821056 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 140513856424384 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 140513848027712 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 140513839631040 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 140513831234368 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 140513277635520 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 140513269238848 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 140513260842176 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 140513252445504 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 140513244048832 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 140513235652160 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.5959951877594)
+('tt_from_dense', 'wtime:', 9.495159149169922)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.600919961929321)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 129164564752192 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 129164556355520 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 129164547958848 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 129164539562176 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 129164531165504 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 129164522768832 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 129164514372160 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 129164027882176 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 129164019485504 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 129164011088832 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 129164002692160 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 129163994295488 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 129163985898816 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 129163977502144 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 129163491012160 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.59081506729126)
+('tt_from_dense', 'wtime:', 9.465433120727539)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.337792158126831)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 132926366803776 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 132926285014976 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 132926276618304 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 132926268221632 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 132926259824960 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 132926251428288 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 132926243031616 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 132926234634944 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 132925748144960 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 132925739748288 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 132925731351616 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 132925722954944 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 132925714558272 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 132925706161600 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 132925697764928 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.683351039886475)
+('tt_from_dense', 'wtime:', 9.51673698425293)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset
+('random', 'wtime:', 5.920047044754028)
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 135923419309888 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 135923410913216 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 135923402516544 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 135923394119872 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 135923385723200 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 135923377326528 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 135923031337536 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 135923022940864 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 135923014544192 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 135923006147520 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 135922997750848 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 135922989354176 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 135922980957504 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 135922427358656 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 135922418961984 -> hwthread 15 - OK[0m[1;34m
+[0m('tt_from_dense', 'wtime:', 9.354724884033203)
+('tt_from_dense', 'wtime:', 9.198335886001587)
+INFO: You are running LIKWID in a cpuset with 16 CPUs. Taking given IDs as logical ID in cpuset

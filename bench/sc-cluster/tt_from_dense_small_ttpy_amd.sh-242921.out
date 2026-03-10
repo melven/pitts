@@ -1,0 +1,65 @@
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+srun: error: be-amd01: task 0: Exited with exit code 132
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+[2025-09-21T23:18:35.611] error: *** STEP 242921.31 ON be-amd01 CANCELLED AT 2025-09-21T23:18:35 DUE to SIGNAL Terminated ***
+[2025-09-21T23:18:35.613] error: *** JOB 242921 ON be-amd01 CANCELLED AT 2025-09-21T23:18:35 DUE to SIGNAL Terminated ***
