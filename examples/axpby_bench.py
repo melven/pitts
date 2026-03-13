@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2026 German Aerospace Center (DLR), Institute for Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import pitts_py
 import numpy as np
 
