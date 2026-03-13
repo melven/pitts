@@ -7,6 +7,7 @@ import functools
 import timeit
 import argparse
 import numpy as np
+#import opt_einsum as oe
 
 
 def timer(func):
@@ -24,6 +25,7 @@ def timer(func):
 def tt_op_apply_numpy(A1, A2, A3, X, Y, nIter=1):
     for i in range(nIter):
         np.einsum('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, out=Y, optimize=True)
+        oe.contract('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, out=Y, optimize=True)
 
 
 @timer
