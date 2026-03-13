@@ -20,7 +20,13 @@
 #endif
 
 //! workaround for using Intel MKL on non-Intel CPUs
-extern "C" int mkl_serv_intel_cpu_true() {return true;}
+extern "C"
+{
+  int mkl_serv_intel_cpu_true() {return true;}
 
+  typedef int (*fakeintel_fptr)(void);
+
+  fakeintel_fptr mkl_serv_get_cpu_true() {return &mkl_serv_intel_cpu_true;}
+}
 
 #endif // PITTS_MKL_HPP
