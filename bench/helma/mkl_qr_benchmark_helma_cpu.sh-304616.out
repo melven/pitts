@@ -1,0 +1,684 @@
+### Starting TaskPrologue of job 304616 on h35-02 at Fri Mar 13 13:34:07 CET 2026
+Running on cores 0-383 with governor performance
+No GPU known
+### Finished TaskPrologue
+
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0702599
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 65536000, m: 1)	 0.648069  	 10        	 4.045     	 0         	 32.36     	 0.125     
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.648069  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0388068
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 32768000, m: 2)	 0.340101  	 10        	 15.4156   	 0         	 61.6626   	 0.25      
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.340101  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0253759
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 16384000, m: 4)	 0.205722  	 10        	 50.9706   	 0         	 101.941   	 0.5       
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.205722  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0259612
+Performance statistics:
+function                                                                                                                                                         	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 8192000, m: 8)	 0.203235  	 10        	 103.189   	 0         	 103.189   	 0.999999  
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.203235  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0244758
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 5461000, m: 12)	 0.193108  	 10        	 162.89    	 0         	 108.593   	 1.5       
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.193108  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0247734
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 4096000, m: 16)	 0.193248  	 10        	 217.043   	 0         	 108.522   	 1.99999   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.193248  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0184537
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 2048000, m: 32)	 0.120171  	 10        	 698.05    	 0         	 174.515   	 3.99995   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.120171  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0222353
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 1536000, m: 48)	 0.15563   	 10        	 909.569   	 0         	 151.599   	 5.99984   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.15563   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0206133
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 1024000, m: 64)	 0.150069  	 10        	 1117.95   	 0         	 139.751   	 7.99958   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.150069  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0280149
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 512000, m: 128)	 0.196473  	 10        	 1707.7    	 0         	 106.754   	 15.9967   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.196473  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.0630129
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 256000, m: 256)	 0.503196  	 10        	 1333.21   	 0         	 41.6975   	 31.9733   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.503196  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.17121
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 128000, m: 512)	 1.56942   	 10        	 854.065   	 0         	 13.3893   	 63.7871   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.56942   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.411934
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 64000, m: 1024)	 3.97749   	 10        	 671.287   	 0         	 5.31473   	 126.307   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 3.97749   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.708676
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 655360000, m: 1)	 6.28081   	 10        	 4.17373   	 0         	 33.3898   	 0.125     
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 6.28081   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.408358
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 327680000, m: 2)	 3.27292   	 10        	 16.0189   	 0         	 64.0758   	 0.25      
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 3.27292   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.259525
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 163840000, m: 4)	 1.77025   	 10        	 59.2332   	 0         	 118.466   	 0.5       
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.77025   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.267568
+Performance statistics:
+function                                                                                                                                                          	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 81920000, m: 8)	 1.8489    	 10        	 113.427   	 0         	 113.427   	 1         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.8489    	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.253244
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 54610000, m: 12)	 1.70333   	 10        	 184.67    	 0         	 123.113   	 1.5       
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.70333   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.253784
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 40960000, m: 16)	 1.70925   	 10        	 245.389   	 0         	 122.694   	 2         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.70925   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.169966
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 20480000, m: 32)	 0.872852  	 10        	 961.057   	 0         	 240.264   	 3.99999   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 0.872852  	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.202707
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 15360000, m: 48)	 1.09188   	 10        	 1296.45   	 0         	 216.076   	 5.99998   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.09188   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.199405
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 10240000, m: 64)	 1.15758   	 10        	 1449.33   	 0         	 181.167   	 7.99996   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.15758   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.235211
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 5120000, m: 128)	 1.52025   	 10        	 2207.14   	 0         	 137.949   	 15.9997   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.52025   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 0.376514
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 2560000, m: 256)	 2.89571   	 10        	 2317.45   	 0         	 72.4264   	 31.9973   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 2.89571   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 1.54465
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 1280000, m: 512)	 14.4826   	 10        	 926.628   	 0         	 14.4834   	 63.9787   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 14.4826   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 2.25786
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 640000, m: 1024)	 21.4255   	 10        	 1252.21   	 0         	 9.79592   	 127.829   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 21.4255   	 10        
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 6.8506
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 6553600000, m: 1)	 12.0756   	 2         	 4.3417    	 0         	 34.7336   	 0.125     
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 12.0756   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 3.91818
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 3276800000, m: 2)	 6.19628   	 2         	 16.9227   	 0         	 67.6907   	 0.25      
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 6.19628   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 2.45574
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 1638400000, m: 4)	 3.26675   	 2         	 64.1968   	 0         	 128.394   	 0.5       
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 3.26675   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 2.41527
+Performance statistics:
+function                                                                                                                                                           	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 819200000, m: 8)	 3.19019   	 2         	 131.475   	 0         	 131.475   	 1         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 3.19019   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 2.36636
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 546100000, m: 12)	 3.10671   	 2         	 202.5     	 0         	 135       	 1.5       
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 3.10671   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 2.39247
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 409600000, m: 16)	 3.15844   	 2         	 265.594   	 0         	 132.797   	 2         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 3.15844   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 1.59125
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 204800000, m: 32)	 1.54688   	 2         	 1084.58   	 0         	 271.146   	 4         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.54688   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 1.87462
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 153600000, m: 48)	 1.91574   	 2         	 1477.84   	 0         	 246.307   	 6         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 1.91574   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 1.83212
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 102400000, m: 64)	 2.03428   	 2         	 1649.45   	 0         	 206.181   	 8         
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 2.03428   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 2.21768
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 51200000, m: 128)	 2.80222   	 2         	 2394.84   	 0         	 149.678   	 16        
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 2.80222   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 3.62045
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 25600000, m: 256)	 5.60393   	 2         	 2395.05   	 0         	 74.8461   	 31.9997   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 5.60393   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 15.5093
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 12800000, m: 512)	 29.3753   	 2         	 913.802   	 0         	 14.2786   	 63.9979   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 29.3753   	 2         
+MPI startup(): Error: Could not open /usr/lib64/libpmi.so
+Problems reading symbols for shepherd thread detection: No such device
+PITTS: version v0.9.7-11-g58bc68d-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 384
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (49152, 1048576, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+mkl_get_max_threads: 384
+generic (e.g. TSQR) unpivoted QR wtime: 25.3966
+Performance statistics:
+function                                                                                                                                                            	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)(n: 6400000, m: 1024)	 49.1454   	 2         	 1092.36   	 0         	 8.53516   	 127.983   
+Timing statistics:
+function                                                                                                                                       	 time [s]  	 #calls    
+<PITTS::Tensor2<double>> :: void {anonymous}::calculate_unpivoted_generic_lapack_qr(const PITTS::Tensor2<double>&, WorkUnpivotedGenericLAPACK&)	 49.1454   	 2         
+=== JOB_STATISTICS ===
+=== current date     : Fri Mar 13 13:53:03 CET 2026
+= Job-ID             : 304616 on helma
+= Job-Name           : mkl_qr_benchmark_helma_cpu.sh
+= Job-Command        : /home/hpc/ihpc/ihpc059h/pitts/bench/helma/mkl_qr_benchmark_helma_cpu.sh
+= Initial workdir    : /home/hpc/ihpc/ihpc059h/pitts/bench/helma
+= Queue/Partition    : cpu
+= Slurm account      : ihpc with QOS=normal
+= Requested resources: cpu=384,mem=748800M,node=1,billing=384 for 05:00:00
+= Elapsed runtime    : 00:18:57
+= Total RAM usage    : 104.2 GiB of assigned 731 GiB (14.3%)
+= Node list          : h35-02
+= Subm/Elig/Start/End: 2026-03-13T13:34:06 / 2026-03-13T13:34:06 / 2026-03-13T13:34:06 / 2026-03-13T13:53:03
+======================
+=== Quota statistics: unavailable. sorry.
+======================
