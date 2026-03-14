@@ -29,7 +29,7 @@ namespace
   {
     EigenQR qr;
     PITTS::Tensor2<Type> tmpA, R, tau;
-    Eigen::VectorX<int> jpvt;
+    Eigen::VectorX<long long> jpvt;
   };
 
 
@@ -38,8 +38,8 @@ namespace
   {
     using namespace PITTS;
 
-    const auto n = M.r1();
-    const auto m = M.r2();
+    const int64_t n = M.r1();
+    const int64_t m = M.r2();
 
     if( m > n )
       throw std::invalid_argument("Only supports n >= m!");
@@ -72,12 +72,15 @@ namespace
 
     w.qr.compute(mapM);
 
+#if 0
     EigenMap(w.tmpA).noalias() = w.qr.householderQ() * EigenMatrix::Identity(n, m);
+#endif
 
 #else
     // unfortunately, there is no LAPACKE_dlatsqr yet, only the raw variant with work arrays in Fortran...
-    LAPACKE_dgeqp3(LAPACK_COL_MAJOR, n, m, &w.tmpA(0,0), w.tmpA.r1(), w.jpvt.data(), &w.tau(0,0));
+    LAPACKE_dgeqp3_64(LAPACK_COL_MAJOR, n, m, &w.tmpA(0,0), w.tmpA.r1(), w.jpvt.data(), &w.tau(0,0));
 
+#if 0
     //EigenMap(w.R).template triangularView<Eigen::Upper>().noalias() = ConstEigenMap(w.tmpA).template triangularView<Eigen::Upper>();
     LAPACKE_dlacpy(LAPACK_COL_MAJOR, 'U', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.R(0,0), w.R.r1());
 
@@ -86,6 +89,7 @@ namespace
     //for(int i = 0; i < m; i++)
     //  w.jpvt(i) -= 1;
     //std::cout << "Error: " << (ConstEigenMap(w.tmpA) * ConstEigenMap(w.R).template triangularView<Eigen::Upper>() - ConstEigenMap(M) * w.jpvt.asPermutation()).norm() << "\n";
+#endif
 #endif
   }
 
@@ -103,8 +107,8 @@ namespace
   {
     using namespace PITTS;
 
-    const auto n = M.r1();
-    const auto m = M.r2();
+    const long long n = M.r1();
+    const long long m = M.r2();
 
     if( m > n )
       throw std::invalid_argument("Only supports n >= m!");
@@ -140,14 +144,17 @@ namespace
 
     w.qr.compute(mapM);
 
+#if 0
     EigenMap(w.tmpA).noalias() = w.qr.householderQ() * EigenMatrix::Identity(n, m);
+#endif
 
 #else
     // try to use blocked variant
     //LAPACKE_dgeqrt(LAPACK_COL_MAJOR, n, m, w.nb, &w.tmpA(0,0), w.tmpA.r1(), &w.T(0,0), w.T.r1());
     //LAPACKE_dgeqr2(LAPACK_COL_MAJOR, n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.tau(0,0));
-    LAPACKE_dgeqrf(LAPACK_COL_MAJOR, n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.tau(0,0));
+    LAPACKE_dgeqrf_64(LAPACK_COL_MAJOR, n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.tau(0,0));
 
+#if 0
     //EigenMap(w.R).template triangularView<Eigen::Upper>().noalias() = ConstEigenMap(w.tmpA).template triangularView<Eigen::Upper>();
     LAPACKE_dlacpy(LAPACK_COL_MAJOR, 'U', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.R(0,0), w.R.r1());
 
@@ -163,6 +170,7 @@ namespace
     //std::cout << "error: " << (ConstEigenMap(M) - ConstEigenMap(w.Q) * ConstEigenMap(w.R)).norm() << "\n";
     //std::cout << "R:\n" << ConstEigenMap(w.R) << "\n";
     //std::cout << "Q^T Q:\n" << ConstEigenMap(w.Q).transpose() * ConstEigenMap(w.Q) << "\n";
+#endif
 #endif
   }
 
@@ -181,22 +189,22 @@ namespace
   {
     using namespace PITTS;
 
-    const int n = M.r1();
-    const int m = M.r2();
+    const long long n = M.r1();
+    const long long m = M.r2();
 
     if( m > n )
       throw std::invalid_argument("Only supports n >= m!");
 
     w.tmpA.resize(n,m);
-    int lda = w.tmpA.colStrideChunks()*PITTS::Chunk<Type>::size;
+    long long lda = w.tmpA.colStrideChunks()*PITTS::Chunk<Type>::size;
 
     //copy(M, w.tmpA);
 #pragma omp parallel
     {
-      for(int j = 0; j < m; j++)
+      for(long long j = 0; j < m; j++)
       {
 #pragma omp for schedule(static) nowait
-        for(int i = 0; i < n; i++)
+        for(long long i = 0; i < n; i++)
           w.tmpA(i,j) = M(i,j);
       }
     }
@@ -209,12 +217,12 @@ namespace
     //EigenMap(w.Q).setZero();
 
     // work-size query
-    int tsize = -1;
-    int lwork = -1;
-    int info = 0;
+    long long tsize = -1;
+    long long lwork = -1;
+    long long info = 0;
     double optT = 0;
     double optWork = 0;
-    dgeqr(&n, &m, &w.tmpA(0,0), &lda, &optT, &tsize, &optWork, &lwork, &info);
+    dgeqr_64(&n, &m, &w.tmpA(0,0), &lda, &optT, &tsize, &optWork, &lwork, &info);
     //std::cout << "info: " << info << ", optT: " << optT << ", optWork: " << optWork << "\n";
     w.t.resize(optT+1);
     w.work.resize(optWork+1);
@@ -233,39 +241,41 @@ namespace
     const auto mapM = ConstEigenMap(M);
 
     // try to use blocked variant
-    dgeqr(&n, &m, &w.tmpA(0,0), &lda, &w.t[0], &tsize, &w.work[0], &lwork, &info);
+    dgeqr_64(&n, &m, &w.tmpA(0,0), &lda, &w.t[0], &tsize, &w.work[0], &lwork, &info);
 
+#if 0
     //EigenMap(w.R).template triangularView<Eigen::Upper>() = ConstEigenMap(w.tmpA).template triangularView<Eigen::Upper>();
 //    LAPACKE_dlacpy(LAPACK_COL_MAJOR, 'U', n, m, &w.tmpA(0,0), w.tmpA.r1(), &w.R(0,0), w.R.r1());
 
-    for(int j = 0; j < m; j++)
-      for(int i = 0; i <= j; i++)
+    for(long long j = 0; j < m; j++)
+      for(long long i = 0; i <= j; i++)
         w.R(i,j) = w.tmpA(i,j);
 
     const auto nChunks = w.Q.rowChunks();
 
 #pragma omp parallel
     {
-      for(int j = 0; j < m; j++)
+      for(long long j = 0; j < m; j++)
       {
 #pragma omp for schedule(static) nowait
-        for(int i = 0; i < nChunks; i++)
+        for(long long i = 0; i < nChunks; i++)
           w.Q.chunk(i,j) = PITTS::Chunk<Type>{};
       }
     }
 
 
-    for(int i = 0; i < m; i++)
+    for(long long i = 0; i < m; i++)
       w.Q(i,i) = 1;
 
     char side = 'L';
     char trans = 'N';
-    int ldc = w.Q.colStrideChunks()*PITTS::Chunk<Type>::size;
-    dgemqr(&side, &trans, &n, &m, &m, &w.tmpA(0,0), &lda, &w.t[0], &tsize, &w.Q(0,0), &ldc, &w.work[0], &lwork, &info);
+    long long ldc = w.Q.colStrideChunks()*PITTS::Chunk<Type>::size;
+    dgemqr_64(&side, &trans, &n, &m, &m, &w.tmpA(0,0), &lda, &w.t[0], &tsize, &w.Q(0,0), &ldc, &w.work[0], &lwork, &info);
 
     //std::cout << "error: " << (ConstEigenMap(M) - ConstEigenMap(w.Q) * ConstEigenMap(w.R)).norm() << "\n";
     //std::cout << "R:\n" << ConstEigenMap(w.R) << "\n";
     //std::cout << "Q^T Q:\n" << ConstEigenMap(w.Q).transpose() * ConstEigenMap(w.Q) << "\n";
+#endif
   }
 #endif
 

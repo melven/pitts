@@ -10,6 +10,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_tsqr.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_eigen.hpp"
@@ -68,11 +69,30 @@ wtime = omp_get_wtime() - wtime;
   if( iProc == 0 )
     std::cout << "wtime: " << wtime << "\n";
 
+
+
+  // compare to gramian calculation
+  PITTS::Tensor2<Type> MtM(m,m);
+  EigenMap(MtM).noalias() = ConstEigenMap(M).transpose() * ConstEigenMap(M);
+
+wtime = omp_get_wtime();
+  for(int iter = 0; iter < nIter; iter++)
+  {
+    EigenMap(MtM).noalias() = ConstEigenMap(M).transpose() * ConstEigenMap(M);
+  }
+wtime = omp_get_wtime() - wtime;
+  if( iProc == 0 )
+    std::cout << "Gramian M^TM wtime (not SYRK!): " << wtime << "\n";
+
   if( iProc == 0 )
   {
-    Eigen::BDCSVD<mat> svd(ConstEigenMap(R));
+    Eigen::JacobiSVD<mat> svd(ConstEigenMap(R));
     //std::cout << "Result:\n" << M << "\n";
     std::cout << "singular values (new):\n" << svd.singularValues().transpose() << "\n";
+
+    Eigen::SelfAdjointEigenSolver<mat> eig(ConstEigenMap(MtM));
+    //std::cout << "Gramian eigenvalues: " << eig.eigenvalues().array().reverse().sqrt().transpose() << "\n";
+    std::cout << "Difference to sqrt(Gramian eigenvalues): " << (svd.singularValues().array() - eig.eigenvalues().array().reverse().sqrt()).transpose() << "\n";
   }
 
   PITTS::finalize();
