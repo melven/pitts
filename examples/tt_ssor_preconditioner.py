@@ -29,7 +29,7 @@ class SSOR_preconditioner:
         nDims = len(dims)
         # diagonal part
         self.D = TTop_diag(TTop)
-        self.D_nrm = pitts_py.normalize(self.D)
+        self.D_nrm = pitts_py.normalize(self.D, 0, 1)
 
         # lower part
         self.L = TTop_lowerTriangle(TTop)
