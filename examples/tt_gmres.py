@@ -53,7 +53,7 @@ def tt_gmres(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, symmetric=False
     curr_beta = beta
     V = [b]
     m = maxIter
-    H = np.mat(np.zeros((m + 1, m), order='F'))
+    H = np.zeros((m + 1, m), order='F')
 
     if verbose:
         print(0, 1, 1, np.max(b.getTTranks()), np.max(b.getTTranks()), 0)
