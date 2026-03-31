@@ -34,7 +34,7 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps)
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
         if preconOp is not None:
             nrm_z = nrm_x * preconOp.apply(x, z, eps, 9999)
             x = z
@@ -76,7 +76,7 @@ def tt_gmres_rightprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pr
         if adaptiveTolerance:
             delta = eps / (curr_beta / beta) / (1.2 * m)
         else:
-            delta = eps
+            delta = eps / m
         w = pitts_py.TensorTrain_double(b.dimensions())
 
         if preconOp is not None:

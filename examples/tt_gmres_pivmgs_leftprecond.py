@@ -34,7 +34,7 @@ def tt_gmres_leftprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pre
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps)
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
         return x, nrm_x
 
     def residual_error(x, nrm_x):
@@ -88,7 +88,7 @@ def tt_gmres_leftprecond(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, pre
         if adaptiveTolerance:
             delta = eps / (curr_beta / beta) / (1.2 * m)
         else:
-            delta = eps
+            delta = eps / m
         w = pitts_py.TensorTrain_double(b.dimensions())
 
         if preconOp is not None:

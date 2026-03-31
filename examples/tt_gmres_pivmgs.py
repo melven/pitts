@@ -32,7 +32,7 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
         x.setZero()
         nrm_x = 0
         for i in range(len(y)):
-            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps)
+            nrm_x = pitts_py.axpby(y[i], V[i], nrm_x, x, eps / len(V))
         return x, nrm_x
 
     def residual_error(x, nrm_x):
@@ -63,7 +63,7 @@ def tt_gmres_pivmgs(AOp, b, nrm_b, eps=1.e-6, maxIter=20, verbose=True, adaptive
         if adaptiveTolerance:
             delta = eps / (curr_beta / beta) / (1.2 * m)
         else:
-            delta = eps
+            delta = eps / m
         w = pitts_py.TensorTrain_double(b.dimensions())
         w_nrm = AOp(V[j], w, delta, maxRank=9999) # maxRank=(j+2)*rank_b)
         
