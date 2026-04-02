@@ -10,8 +10,8 @@
 __all__ = ['TestTTNlocalGradientContraction']
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2026-02-03'
-import numpy as np
 import pitts_py
+import numpy as np
 from math import sqrt
 import unittest
 
