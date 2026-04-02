@@ -1,3 +1,8 @@
+# Copyright (c) 2026 German Aerospace Center (DLR), Institute of Software Technology, Germany
+# SPDX-FileContributor: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import numpy as np
 import opt_einsum as oe
 import functools
