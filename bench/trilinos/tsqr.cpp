@@ -6,12 +6,11 @@
 #include <Teuchos_RCP.hpp>
 #include <Tpetra_Core.hpp>
 #include <Tpetra_MultiVector.hpp>
-#include <Tpetra_TsqrAdaptor.hpp>
+#include "Tpetra_TsqrAdaptor.hpp"
 #include <charconv>
 #include <iostream>
 #include <exception>
 #include <omp.h>
-
 
 
 void run_tsqr(long long n, long long m, int nIter, bool verbose)
@@ -26,7 +25,7 @@ void run_tsqr(long long n, long long m, int nIter, bool verbose)
 
 
   double wtime = omp_get_wtime();
-  MultiVector X_in(map, m), X(map, m), Q(map, m);
+  MultiVector X_in(map, m), X(map, m);
   wtime = omp_get_wtime() - wtime;
   if( verbose )
     std::cout << "wtime alloc: " << wtime << "\n";
@@ -48,6 +47,10 @@ void run_tsqr(long long n, long long m, int nIter, bool verbose)
 
   DenseMat R(m, m);
 
+  // once to initialize everything
+  X.assign(X_in);
+  tsqr.factor(X, R);
+
   double wtime_copy = 0, wtime_tsqr = 0;
   for(int i = 0; i < nIter; i++)
   {
@@ -56,14 +59,14 @@ void run_tsqr(long long n, long long m, int nIter, bool verbose)
     wtime_copy += omp_get_wtime() - wtime;
 
     wtime = omp_get_wtime();
-    tsqr.factorExplicit(X, Q, R);
+    tsqr.factor(X, R);
     wtime_tsqr += omp_get_wtime() - wtime;
   }
 
   if( verbose )
   {
-    std::cout << "wtime copy: " << wtime_copy << "\n";
-    std::cout << "wtime tsqr: " << wtime_tsqr << "\n";
+    std::cout << "wtime copy: " << wtime_copy/nIter << "\n";
+    std::cout << "wtime tsqr: " << wtime_tsqr/nIter << "\n";
   }
 }
 
