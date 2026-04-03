@@ -49,13 +49,6 @@ void ttn_sum_over_outer_product(const MultiVector<T>& envLeft, const MultiVector
   const auto b_top = envTop.cols();
   const auto n_samples = nSampleChunks * Chunk<T>::size;
 
-  const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
-      {{"b_left", "b_right", "b_top", "n_samples"},{b_left, b_right, b_top, n_samples}}, // arguments
-      {{(b_left*b_top*n_samples)*kernel_info::Mult<T>() + (n_samples*b_left*b_right*b_top)*kernel_info::FMA<T>()}, // flops - roughly estimated
-       {n_samples*(b_left+b_right+b_top)*kernel_info::Load<T>() + (b_left+b_right+b_top)*kernel_info::Store<T>()}} // data transfers
-      );
-
-
   // calculate performance tuning parameters
   int nChunks;
   {
@@ -64,8 +57,14 @@ void ttn_sum_over_outer_product(const MultiVector<T>& envLeft, const MultiVector
     int cacheSize_L2 = (mi.cacheSize_L2_perCore > 0 ? mi.cacheSize_L2_perCore : 1*1024*1024) / (Chunk<T>::size * sizeof(T));
 
     nChunks = std::max<int>(2, 0.75*cacheSize_L2 / (b_left + b_right + b_top + b_left*b_top));
-    std::cout << "nChunks: " << nChunks << "\n";
   }
+
+  const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+      {{"b_left", "b_right", "b_top", "n_samples", "nChunks"},{b_left, b_right, b_top, n_samples, nChunks}}, // arguments
+      {{(b_left*b_top*n_samples)*kernel_info::Mult<T>() + (n_samples*b_left*b_right*b_top)*kernel_info::FMA<T>()}, // flops - roughly estimated
+       {n_samples*(b_left+b_right+b_top)*kernel_info::Load<T>() + (b_left+b_right+b_top)*kernel_info::Store<T>()}} // data transfers
+      );
+
 
 
   result.setConstant(0);
