@@ -81,6 +81,7 @@ namespace PITTS
 
     // (estimated) number of truncations (without the final truncation in the end)
     const int nTruncations = 1 + (nV - firstV) * std::min(2, nIter);
+    //const T nTruncations = 0.5; // naive inaccurate version
 
     T alpha = normalize(w, rankTolerance / nTruncations / T(2), maxRank);
 

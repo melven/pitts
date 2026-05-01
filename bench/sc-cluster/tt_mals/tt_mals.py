@@ -132,6 +132,7 @@ if __name__ == '__main__':
     print('# TTOp dims/ranks:')
     print(TTOp)
     kappa_est /= kappa_w
+    #kappa_est=1/args.gmresMaxIter
     print('# estimated condition number', kappa_est)
 
     if args.toQttOp:
