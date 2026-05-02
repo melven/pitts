@@ -469,6 +469,9 @@ namespace PITTS
       {
 
         internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim()+1);
+        // one could also truncate with some tolerance to make AMEn less susceptible to a too big enrichmentRank...
+        //internal::ensureLeftOrtho_range(TTx, 0, swpIdx.rightDim());
+        //internal::leftNormalize_range(TTx, swpIdx.rightDim(), swpIdx.rightDim()+1, localResidualTolerance*std::sqrt(gmresRelTol), maxRank);
 
         // these are not valid any more
         Ax.invalidate(swpIdx.rightDim()+1);
@@ -521,6 +524,9 @@ namespace PITTS
       else // right-to-left
       {
         internal::ensureRightOrtho_range(TTx, swpIdx.leftDim()-1, nDim-1);
+        // one could also truncate with some tolerance to make AMEn less susceptible to a too big enrichmentRank...
+        //internal::ensureRightOrtho_range(TTx, swpIdx.leftDim(), nDim-1);
+        //internal::rightNormalize_range(TTx, swpIdx.leftDim()-1, swpIdx.leftDim(), localResidualTolerance*std::sqrt(gmresRelTol), maxRank);
 
         // these are not valid any more
         Ax.invalidate(swpIdx.leftDim()-1);
