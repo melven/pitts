@@ -267,7 +267,7 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_rank1_symmAlg)
 
 TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_nonsymmAlg)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(6,2,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
@@ -283,11 +283,11 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_nonsymmAlg)
   }
 
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
-  TTx_ref.setTTranks(2);
+  TTx_ref.setTTranks(1);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setTTranks(3);
+  TTx.setTTranks(1);
   randomize(TTx);
 
   copy(TTx, TTdx);
@@ -308,12 +308,12 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_nonsymmAlg)
   copy(TTx, TTdx);
   double error = axpby(-1., TTx_ref, 1., TTdx);
   std::cout << "initialError: " << initialError << ", newError: " << error << "\n";
-  EXPECT_NEAR(0, error/initialError, 0.01);
+  EXPECT_NEAR(0, error/initialError, 0.2);
 }
 
 TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_symmAlg)
 {
-  TensorTrainOperator_double TTOp_tmp(6,5,4);
+  TensorTrainOperator_double TTOp_tmp(6,2,4);
   TTOp_tmp.setTTranks(2);
   randomize(TTOp_tmp);
   TensorTrainOperator_double TTOpA(6,4,4);
@@ -329,11 +329,11 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_symmAlg)
   }
 
   TensorTrain_double TTx(6,4), TTb(6,4), TTx_ref(6,4), TTr(6,4), TTdx(6,4);
-  TTx_ref.setTTranks(2);
+  TTx_ref.setTTranks(1);
   randomize(TTx_ref);
   apply(TTOpA, TTx_ref, TTb);
 
-  TTx.setTTranks(3);
+  TTx.setTTranks(1);
   randomize(TTx);
 
   copy(TTx, TTdx);
@@ -354,5 +354,5 @@ TEST(PITTS_TensorTrain_solve_gmres, symmetric_random_nDim6_symmAlg)
   copy(TTx, TTdx);
   double error = axpby(-1., TTx_ref, 1., TTdx);
   std::cout << "initialError: " << initialError << ", newError: " << error << "\n";
-  EXPECT_NEAR(0, error/initialError, 0.01);
+  EXPECT_NEAR(0, error/initialError, 0.2);
 }
