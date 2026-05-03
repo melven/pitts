@@ -182,7 +182,11 @@ namespace PITTS
     // calculate error
     T max_localResidualNorm = T(0);
     T residualNorm = nrm_TTb;
-    if( !onlyLocalResidual )
+    if( onlyLocalResidual )
+    {
+        std::cout << "Starting AMEn sweep with only local residual estimation... initial ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
+    }
+    else
     {
       const T norm_Ax = Ax_ortho.data().front().second(0,0);
       auto mapB = ConstEigenMap(Ax_b_ortho.data().front().second);
