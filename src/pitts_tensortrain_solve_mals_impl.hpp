@@ -180,7 +180,8 @@ namespace PITTS
     }
 
     // calculate error
-    T max_localResidualNorm = T(0);
+    T old_max_localResidualNorm = T(0);
+    T max_localResidualNorm = T(1);
     T residualNorm = nrm_TTb;
     if( onlyLocalResidual )
     {
@@ -258,7 +259,7 @@ namespace PITTS
         
         const T nrm_tt_b = norm2(tt_b);
         absTol = localResidualTolerance * nrm_tt_b;
-        relTol = gmresRelTol;
+        relTol = std::max(gmresRelTol, residualTolerance / old_max_localResidualNorm);
       }
       else
       {
@@ -587,6 +588,7 @@ namespace PITTS
     for(int iSweep = 0; iSweep < nSweeps; iSweep++)
     {
       // sweep left to right
+      old_max_localResidualNorm = max_localResidualNorm;
       max_localResidualNorm = T(0);
       for(auto swpIdx = lastSwpIdx.first(); swpIdx; swpIdx = swpIdx.next())
       {
@@ -618,7 +620,7 @@ namespace PITTS
       if( onlyLocalResidual )
       {
         std::cout << "Sweep " << iSweep+0.5 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-        if( max_localResidualNorm < residualTolerance )
+        if( max_localResidualNorm < residualTolerance ) // should be < localResidualTolerance but this is usually too strict?
           break;
       }
       else // !onlyLocalResidual
@@ -645,6 +647,7 @@ namespace PITTS
 
 
       // sweep right to left
+      old_max_localResidualNorm = max_localResidualNorm;
       max_localResidualNorm = T(0);
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
@@ -676,7 +679,7 @@ namespace PITTS
       if( onlyLocalResidual )
       {
         std::cout << "Sweep " << iSweep+1 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-        if( max_localResidualNorm < residualTolerance )
+        if( max_localResidualNorm < residualTolerance ) // should be < localResidualTolerance but this is usually too strict?
           break;
       }
       else // !onlyLocalResidual
