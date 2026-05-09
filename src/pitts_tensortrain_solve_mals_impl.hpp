@@ -68,15 +68,18 @@ namespace PITTS
     {
       if( symmetric )
         std::cout << "TensorTrain solveMALS: Warning - using NormalEquations variant for a symmetric operator!\n";
+
+      // calculate quantities for normal equations problem
       TensorTrain<T> TTAtb(TTOpA.column_dimensions());
       TensorTrainOperator<T> TTOpAtA(TTOpA.column_dimensions(), TTOpA.column_dimensions());
       applyT(TTOpA, TTb, TTAtb);
       applyT(TTOpA, TTOpA, TTOpAtA);
 
-      // ensure that we obtain a residual tolerance relative to TTb not TTAtb
-      residualTolerance *= norm2(TTb) / norm2(TTAtb);
+      // square the TT-gmres operator condition estimate
+      estimatedConditionTTgmres = estimatedConditionTTgmres*estimatedConditionTTgmres;
 
-      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap, nAMEnEnrichment, simplifiedAMEn, AMEn_ALS_residualRank, useTTgmres, gmresMaxIter, gmresRelTol);
+      return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap,
+                       nAMEnEnrichment, simplifiedAMEn, AMEn_ALS_residualRank, useTTgmres, gmresMaxIter, gmresRelTol, estimatedConditionTTgmres);
     }
 
     if( symmetric && projection == MALS_projection::PetrovGalerkin )
@@ -259,7 +262,7 @@ namespace PITTS
         
         const T nrm_tt_b = norm2(tt_b);
         absTol = localResidualTolerance * nrm_tt_b;
-        relTol = std::max(gmresRelTol, residualTolerance / old_max_localResidualNorm);
+        relTol = std::max(gmresRelTol, residualTolerance / old_max_localResidualNorm / T(1.3)); // 1.3 to solve slightly better than necessary
       }
       else
       {
@@ -269,7 +272,7 @@ namespace PITTS
         
         const T nrm_tt_b = norm2(tt_b);
         absTol = localResidualTolerance * nrm_tt_b;
-        relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm);
+        relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm / T(1.3)); // 1.3 to solve slightly better than necessary
         // solveGMRES (TT-GMRES) uses the bigger one of the absolute and the relative tolerance (times norm(rhs)) for truncating the solution
         // This is too inaccurate close to the solution with the adaptive tolerance...
         if( useTTgmres )
