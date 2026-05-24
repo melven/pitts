@@ -78,6 +78,9 @@ namespace PITTS
       // square the TT-gmres operator condition estimate
       estimatedConditionTTgmres = estimatedConditionTTgmres*estimatedConditionTTgmres;
 
+      // ensure that we obtain a residual tolerance relative to TTb not TTAtb
+      residualTolerance *= norm2(TTb) / norm2(TTAtb);
+
       return solveMALS(TTOpAtA, true, MALS_projection::RitzGalerkin, TTAtb, TTx, nSweeps, residualTolerance, maxRank, nMALS, nOverlap,
                        nAMEnEnrichment, simplifiedAMEn, AMEn_ALS_residualRank, useTTgmres, gmresMaxIter, gmresRelTol, estimatedConditionTTgmres);
     }
@@ -185,6 +188,7 @@ namespace PITTS
     // calculate error
     T old_max_localResidualNorm = T(0);
     T max_localResidualNorm = T(1);
+    bool all_localResidualsInAbsTol = true;
     T residualNorm = nrm_TTb;
     if( onlyLocalResidual )
     {
@@ -253,15 +257,15 @@ namespace PITTS
       assert(check_systemDimensions(localTTOp, tt_x, tt_b));
       assert(check_localProblem(TTOpA, TTx, TTb, TTw, projection == MALS_projection::RitzGalerkin, swpIdx, localTTOp, tt_x, tt_b));
 
-      T absTol, relTol;
+      const T nrm_tt_b = norm2(tt_b);
+      const T absTol = localResidualTolerance * nrm_tt_b;
+      T relTol;
       if( onlyLocalResidual )
       {
         // first Sweep: let GMRES start from zero
         if( firstSweep )
           tt_x.setZero();
         
-        const T nrm_tt_b = norm2(tt_b);
-        absTol = localResidualTolerance * nrm_tt_b;
         relTol = std::max(gmresRelTol, residualTolerance / old_max_localResidualNorm / T(1.3)); // 1.3 to solve slightly better than necessary
       }
       else
@@ -270,8 +274,6 @@ namespace PITTS
         if (firstSweep && residualNorm / nrm_TTb > 0.5)
           tt_x.setZero();
         
-        const T nrm_tt_b = norm2(tt_b);
-        absTol = localResidualTolerance * nrm_tt_b;
         relTol = std::max(gmresRelTol, residualTolerance * nrm_TTb / residualNorm / T(1.3)); // 1.3 to solve slightly better than necessary
         // solveGMRES (TT-GMRES) uses the bigger one of the absolute and the relative tolerance (times norm(rhs)) for truncating the solution
         // This is too inaccurate close to the solution with the adaptive tolerance...
@@ -292,6 +294,7 @@ namespace PITTS
 
         // max local residual *before* the iteration
         max_localResidualNorm = std::max(max_localResidualNorm, localAbsRes / localRelRes);
+        all_localResidualsInAbsTol = all_localResidualsInAbsTol && localAbsRes / localRelRes < absTol;
       }
       
       if( nAMEnEnrichment > 0 && simplifiedAMEn )
@@ -593,6 +596,7 @@ namespace PITTS
       // sweep left to right
       old_max_localResidualNorm = max_localResidualNorm;
       max_localResidualNorm = T(0);
+      all_localResidualsInAbsTol = true;
       for(auto swpIdx = lastSwpIdx.first(); swpIdx; swpIdx = swpIdx.next())
       {
         // skip iteration if this is the same as in the last right-to-left sweep
@@ -623,7 +627,7 @@ namespace PITTS
       if( onlyLocalResidual )
       {
         std::cout << "Sweep " << iSweep+0.5 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-        if( max_localResidualNorm < residualTolerance ) // should be < localResidualTolerance but this is usually too strict?
+        if( max_localResidualNorm < residualTolerance || all_localResidualsInAbsTol ) // should be < localResidualTolerance but this is usually too strict?
           break;
       }
       else // !onlyLocalResidual
@@ -652,6 +656,7 @@ namespace PITTS
       // sweep right to left
       old_max_localResidualNorm = max_localResidualNorm;
       max_localResidualNorm = T(0);
+      all_localResidualsInAbsTol = true;
       for(auto swpIdx = lastSwpIdx.last(); swpIdx; swpIdx = swpIdx.previous())
       {
         // skip iteration if this is the same as in the last left-to-right sweep
@@ -682,7 +687,7 @@ namespace PITTS
       if( onlyLocalResidual )
       {
         std::cout << "Sweep " << iSweep+1 << " max local residual norm: " << max_localResidualNorm << " (rel), ranks: " << internal::to_string(TTx.getTTranks()) << "\n";
-        if( max_localResidualNorm < residualTolerance ) // should be < localResidualTolerance but this is usually too strict?
+        if( max_localResidualNorm < residualTolerance || all_localResidualsInAbsTol ) // should be < localResidualTolerance but this is usually too strict?
           break;
       }
       else // !onlyLocalResidual
