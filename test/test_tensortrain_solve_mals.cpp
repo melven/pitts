@@ -914,14 +914,14 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_ALS_random_nDim6_nonsymmetric_RitzGalerk
   TensorTrainOperator_double TTOpI(6,4,4);
   TTOpI.setEye();
   const double Inrm = normalize(TTOpI);
-  axpby(Inrm, TTOpI, Inrm/100, TTOpA);
+  axpby(Inrm, TTOpI, Inrm/1000, TTOpA);
   
 
   TensorTrain_double TTx(6,4), TTb(6,4);
   TTb.setOnes();
   TTx.setOnes();
 
-  double error = solveMALS(TTOpA, false, MALS_projection::RitzGalerkin, TTb, TTx, 3, eps, 5, 1, 0, 1, false, 2);
+  double error = solveMALS(TTOpA, false, MALS_projection::RitzGalerkin, TTb, TTx, 10, eps, 5, 1, 0, 1, false, 2);
   EXPECT_NEAR(0, error, 0.05*norm2(TTb));
 
   TensorTrain_double TTAx(TTb.dimensions());
