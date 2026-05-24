@@ -214,7 +214,7 @@ namespace PITTS
             // std::cout << "  leftSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
             // if( svd.rank() > 1 )
             //   std::cout << "  distinct singular values: " << (svd.singularValues().head(svd.rank()-1) - svd.singularValues().tail(svd.rank()-1)).minCoeff() << "\n";
-            EigenMap(Q) = svd.matrixV() * svd.matrixU().transpose();
+            EigenMap(Q).noalias() = svd.matrixV() * svd.matrixU().transpose();
             std::vector<Tensor3<T>> newSubT(2);
             internal::normalize_contract1(Q, subT, newSubT[1]);
             internal::dot_contract1(TTw.subTensor(swpIdx.leftDim()-1), Q, newSubT[0]);
@@ -253,7 +253,7 @@ namespace PITTS
             // std::cout << "  rightSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
             // if( svd.rank() > 1 )
             //   std::cout << "  distinct singular values: " << (svd.singularValues().head(svd.rank()-1) - svd.singularValues().tail(svd.rank()-1)).minCoeff() << "\n";
-            EigenMap(Q) = svd.matrixV() * svd.matrixU().transpose();
+            EigenMap(Q).noalias() = svd.matrixV() * svd.matrixU().transpose();
             std::vector<Tensor3<T>> newSubT(2);
             internal::normalize_contract2(subT, Q, newSubT[0]);
             internal::reverse_dot_contract1(Q, TTw.subTensor(rightDim+1), newSubT[1]);
