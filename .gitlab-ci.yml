@@ -49,6 +49,7 @@ build_release:
       junit: build_release/test/pitts_tests*.xml
     paths:
       - build_release/test.log
+    when: always
 
 build_debug_with_coverage:
   stage: build
@@ -86,6 +87,7 @@ build_debug_with_coverage:
     paths:
       - build_coverage/test/coverage*.html
       - build_coverage/test.log
+    when: always
 
 build_debug:
   stage: build
@@ -118,6 +120,7 @@ build_debug:
       junit: build_debug/test/pitts_tests*.xml
     paths:
       - build_debug/test.log
+    when: always
 
 build_clang:
   stage: build
@@ -145,6 +148,7 @@ build_clang:
       junit: build_clang/test/pitts_tests*.xml
     paths:
       - build_clang/test.log
+    when: always
 
 build_debug_amd_clang:
   stage: build
@@ -173,6 +177,7 @@ build_debug_amd_clang:
       junit: build_debug_clang_amd/test/pitts_tests*.xml
     paths:
       - build_debug_clang_amd/test.log
+    when: always
 
 reuse_compliance:
   stage: build
