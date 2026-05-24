@@ -4,7 +4,7 @@ Upstream-Contact: Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 Source: https://github.com/melven/pitts
 
 # logging files from benchmarks
-Files: bench/*.out bench/*.log
+Files: bench/*.out bench/*.log bench/*.out.dat
 Copyright: 2019 German Aerospace Center (DLR), Institute for Software Technology, Germany
 License: BSD-3-Clause
 

@@ -172,6 +172,8 @@ namespace PITTS
 
         const int nDim = subTensors.size();
         TensorTrain<T> TTw(std::move(subTensors), ortho);
+//TensorTrain<T> TTw_ref(TTw.dimensions());
+//copy(TTw, TTw_ref);
         // make left- and right-orthogonal
         if( swpIdx.leftDim()-1 >= 0 )
         {
@@ -212,7 +214,7 @@ namespace PITTS
             // std::cout << "  leftSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
             // if( svd.rank() > 1 )
             //   std::cout << "  distinct singular values: " << (svd.singularValues().head(svd.rank()-1) - svd.singularValues().tail(svd.rank()-1)).minCoeff() << "\n";
-            EigenMap(Q) = svd.matrixV() * svd.matrixU().transpose();
+            EigenMap(Q).noalias() = svd.matrixV() * svd.matrixU().transpose();
             std::vector<Tensor3<T>> newSubT(2);
             internal::normalize_contract1(Q, subT, newSubT[1]);
             internal::dot_contract1(TTw.subTensor(swpIdx.leftDim()-1), Q, newSubT[0]);
@@ -251,7 +253,7 @@ namespace PITTS
             // std::cout << "  rightSymmetrize: " << svd.rank() << " nonzero sing. val. of " << svd.rows() << "\n";
             // if( svd.rank() > 1 )
             //   std::cout << "  distinct singular values: " << (svd.singularValues().head(svd.rank()-1) - svd.singularValues().tail(svd.rank()-1)).minCoeff() << "\n";
-            EigenMap(Q) = svd.matrixV() * svd.matrixU().transpose();
+            EigenMap(Q).noalias() = svd.matrixV() * svd.matrixU().transpose();
             std::vector<Tensor3<T>> newSubT(2);
             internal::normalize_contract2(subT, Q, newSubT[0]);
             internal::reverse_dot_contract1(Q, TTw.subTensor(rightDim+1), newSubT[1]);
@@ -263,6 +265,10 @@ namespace PITTS
           }
         }
 
+// check error in TTw
+//T TTw_nrm = norm2(TTw_ref);
+//T TTw_err = axpby(T(-1), TTw, T(1), TTw_ref, T(0));
+//std::cout << "  Petrov-Galerkin approx. error: " << TTw_err << " (abs), " << TTw_err / TTw_nrm << " (rel)\n";
         // return TTw;
         // store in same format as TTx would be (for testing, we could return TTw here!)
         subTensors = std::vector<Tensor3<T>>(swpIdx.nDim());

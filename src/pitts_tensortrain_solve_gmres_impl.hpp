@@ -22,6 +22,7 @@
 #include "pitts_tensortrain_solve_gmres.hpp"
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_axpby.hpp"
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
 #include "pitts_tensortrain_gram_schmidt.hpp"
@@ -153,8 +154,23 @@ namespace PITTS
       for(int j = m-2; j >= 0; j--)
         nrm_delta_x = axpby(T(-y(j)), V[j], nrm_delta_x, TTdelta_x, rankTol_x / m / T(2.0), maxRank);
 
-      // it would be nice to adjust this tolerance here for adding the deltaX to X - but all my variants just made it worse when called from MALS
-      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTol_x, maxRank);
+
+      // The tolerance for adding TTdelta_x to TTx is a bit tricky...
+      //
+      // The tolerance is relative to the result (TTx+TTdelta_x) but we want it relative to the update (TTdelta_x).
+      // So estimate the result norm: ||X + dX||^2 = ||X||^2 + 2<X,dX> + ||dX||^2
+      //
+      // This fixes convergence problems with TT-MALS close to the solution.
+      // It's probably only required as we don't provide a good estimate for the condition of the operator (e.g., it's just set to 1 for the projected problem!)
+      //
+      const T old_nrm_x = norm2(TTx);
+      const T xTdeltaX = dot(TTx, TTdelta_x);
+      const T new_nrm_x = std::sqrt(std::abs(old_nrm_x*old_nrm_x + 2*xTdeltaX + nrm_delta_x*nrm_delta_x));
+
+      const T rankTol_deltaX = std::min(rankTol_x, residualTolerance * std::min(T(1), nrm_delta_x / new_nrm_x ));
+      //std::cout << "xTdeltaX: " << xTdeltaX << ", nrm_delta_x: " << nrm_delta_x << ", old_nrm_x: " << old_nrm_x << ", new_nrm_x: " << new_nrm_x << ", nrm_delta_x/new_nrm_x: " << nrm_delta_x/new_nrm_x << ", new_nrm_x/old_nrm_x: " << new_nrm_x/old_nrm_x << ", rankTol_deltaX: " << rankTol_deltaX << ", rankTol_x: " << rankTol_x << std::endl;
+      const T nrm_x = axpby(nrm_delta_x, TTdelta_x, T(1), TTx, rankTol_deltaX/2, maxRank);
+
       TTx.editSubTensor(0, [nrm_x](Tensor3<T>& subT){internal::t3_scale(nrm_x, subT);});
     }
 

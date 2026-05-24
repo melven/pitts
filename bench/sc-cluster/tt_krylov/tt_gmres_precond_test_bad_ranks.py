@@ -80,11 +80,13 @@ if __name__ == '__main__':
         pitts_py.axpby(args.C/np.sqrt(args.d), TTOpConvection, 1, TTOp)
 
     # also do a TT-rank1 precond. first
+    TTOp_leftPrecond = TTOp
     if args.variant == 'right_precond':
         ttr1Op = TT_Rank1_preconditioner(TTOp, twosided=True)
         newTTOp = pitts_py.TensorTrainOperator_double(dims, dims)
-        pitts_py.apply(TTOp, ttr1Op.TTOpR, newTTOp)
-        pitts_py.apply(ttr1Op.TTOpL, newTTOp, TTOp)
+        pitts_py.apply(ttr1Op.TTOpL, TTOp, newTTOp)
+        pitts_py.apply(newTTOp, ttr1Op.TTOpR, TTOp)
+        TTOp_leftPrecond = newTTOp
 
     if args.preconditioner == 'none':
         preconOp = None
@@ -114,7 +116,7 @@ if __name__ == '__main__':
         x.setOnes()
 
     if args.rhs_type in ('lhs_random', 'lhs_ones'):
-        pitts_py.apply(TTOp, x, b)
+        pitts_py.apply(TTOp_leftPrecond, x, b)
         nrm_b = pitts_py.normalize(b)
 
     def AOp(x, y, rankTolerance, maxRank):
