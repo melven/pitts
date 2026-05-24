@@ -42,11 +42,13 @@ build_release:
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On -DOpenMP_gomp_LIBRARY=$(libwhich -p libiomp5.so)
     - cmake --build . -- -j 15
     # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
-    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15
+    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15 &> test.log
     - ccache -s
   artifacts:
     reports:
       junit: build_release/test/pitts_tests*.xml
+    paths:
+      - build_release/test.log
 
 build_debug_with_coverage:
   stage: build
@@ -72,7 +74,7 @@ build_debug_with_coverage:
     - mkdir build_coverage && cd build_coverage
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=Off -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_OPTIMIZE_FOR_HOST=False -DOpenMP_gomp_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
     - cmake --build . -- -j 15
-    - cmake --build . --target check -j 15
+    - cmake --build . --target check -j 15 &> test.log
     - ccache -s
   coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
   artifacts:
@@ -83,6 +85,7 @@ build_debug_with_coverage:
         path: build_coverage/test/coverage.xml
     paths:
       - build_coverage/test/coverage*.html
+      - build_coverage/test.log
 
 build_debug:
   stage: build
@@ -108,11 +111,13 @@ build_debug:
     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DOpenMP_gomp_LIBRARY=$(libwhich -p libiomp5.so)
     - cmake --build . -- -j 15
     # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
-    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15
+    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15 &> test.log
     - ccache -s
   artifacts:
     reports:
       junit: build_debug/test/pitts_tests*.xml
+    paths:
+      - build_debug/test.log
 
 build_clang:
   stage: build
@@ -133,11 +138,13 @@ build_clang:
     - export CXX="clang++ -stdlib=libc++"
     - cmake -G Ninja .. -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_DEVELOP_BUILD=On
     - cmake --build . -- -j 15
-    - cmake --build . --target check -j 15
+    - cmake --build . --target check -j 15 &> test.log
     - ccache -s
   artifacts:
     reports:
       junit: build_clang/test/pitts_tests*.xml
+    paths:
+      - build_clang/test.log
 
 build_debug_amd_clang:
   stage: build
@@ -159,11 +166,13 @@ build_debug_amd_clang:
     - export CXX="clang++ -stdlib=libc++"
     - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPITTS_DEVELOP_BUILD=On
     - cmake --build . -- -j 15
-    - cmake --build . --target check -j 15
+    - cmake --build . --target check -j 15 &> test.log
     - ccache -s
   artifacts:
     reports:
       junit: build_debug_clang_amd/test/pitts_tests*.xml
+    paths:
+      - build_debug_clang_amd/test.log
 
 reuse_compliance:
   stage: build
