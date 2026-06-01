@@ -157,7 +157,7 @@ TEST(PITTS_Tensor3_fold, fold_move_multivector)
   Tensor3_double t3 = fold(std::move(mv), 3, 5, 7);
   ASSERT_EQ(0, mv.rows());
   ASSERT_EQ(0, mv.cols());
-  ASSERT_EQ(0, &mv(0,0));
+  // ASSERT_EQ(0, &mv(0,0)); // this is not allowed and catched by GCC 15 in Debug mode
   ASSERT_EQ(3, t3.r1());
   ASSERT_EQ(5, t3.n());
   ASSERT_EQ(7, t3.r2());

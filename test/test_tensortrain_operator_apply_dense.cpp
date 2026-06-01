@@ -187,7 +187,7 @@ TEST(PITTS_TensorTrainOperator_apply_dense, TTOpHelper_apply_addRemovePadding)
 {
   const std::vector dims = {2, 128, 3};
   const auto N = 2*128*3;
-  const auto nlast = dims[3];
+  const auto nlast = dims.back();
   TensorTrainOperator_double TTOp(dims, dims);
   TTOp.setTTranks({2,3});
   randomize(TTOp);
