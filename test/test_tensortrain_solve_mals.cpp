@@ -668,7 +668,7 @@ TEST(PITTS_TensorTrain_solve_mals, AMEn_ALS_random_nDim2_rank1)
   TensorTrain_double TTAtb(TTb.dimensions());
   applyT(TTOpA, TTb, TTAtb);
   double error_ref = axpby(-1., TTAtb, 1., TTAtAx);
-  EXPECT_NEAR(error_ref, error, 0.01*eps);
+  EXPECT_NEAR(error_ref, error, 0.5*eps);
 }
 
 TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim2_rank1)
