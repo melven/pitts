@@ -13,19 +13,20 @@ for f in $*; do
 
   fgrep '# Arguments' $f | sed 's/.*(n=//' | sed 's/, d=/ /' | sed "s/, I=.*rhs_type='/ /" | sed "s/', rhs_random_rank=/ /" | sed 's/, lhs_type.*//' | sed 's/rhs_ones.*/ones/' | sed 's/rhs_random //' >> t0_
 
-  fgrep 'Runtime (RDTSC)' $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT *|[ 0-9.]*|[ 0-9.]*|[ 0-9.]*//' | awk '{print $6}' >> t1
-  fgrep "  DP [MFLOP" $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $5}' >> t2
-  fgrep unhalted $f | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $6}' >> t3
-  gmresIterText=$(fgrep 'apply(const TTOpApplyDenseHelper' $f)
+  tmp=$(fgrep 'Region T PITTS::solveMALS(' $f -A 33)
+  echo "$tmp" | grep 'Runtime (RDTSC)' | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT *|[ 0-9.]*|[ 0-9.]*|[ 0-9.]*//' | awk '{print $6}' >> t1
+  echo "$tmp" | grep '  DP \[MFLOP' | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $5}' >> t2
+  echo "$tmp" | grep unhalted | grep -v '|.*|.*|.*|.*|.*|.*|' | sed 's/STAT//' | awk '{print $6}' >> t3
+  gmresIterText=$(fgrep 'apply(const TTOpApplyDenseHelper' $f | grep -v 'Region')
   if [ "$?" != "0" ]; then
-    gmresIterText=$(fgrep 'apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&)' $f)
+    gmresIterText=$(fgrep 'apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&)' $f | grep -v 'Region' | grep -v 'Skipping')
   fi
   if [ "$?" != "0" ]; then
-    gmresIterText=$(fgrep 'apply(const TensorTrainOperator' $f)
+    gmresIterText=$(fgrep 'apply(const TensorTrainOperator' $f | grep -v 'Region' | grep -v 'Skipping')
   fi
   echo "$gmresIterText" | sed 's/.*double] *//' | awk '{print $2}' >> t4_
 
-  fgrep 'GMRES(' $f | sed 's/.*double.*] *//' | awk '{print $2}' >> t5
+  fgrep 'GMRES(' $f | grep -v 'Region' | sed 's/.*double.*] *//' | awk '{print $2}' >> t5
 
   #n="$n $(cat t1 | wc -l)"
 done
