@@ -354,8 +354,10 @@ TEST(PITTS_TensorTrain_fromDense_classical, boundaryRank_nDim1_random)
   const int rd = 2;
   MultiVector_double M(r0*5*rd,1);
   randomize(M);
+  const double* beginM = &M(0,0);
+  const double* endM = beginM+M.rows();
 
-  TensorTrain_double TT = PITTS::fromDense_classical(&M(0,0), &M(0,0)+M.rows(), shape, 0., -1, r0, rd);
+  TensorTrain_double TT = PITTS::fromDense_classical(beginM, endM, shape, 0., -1, r0, rd);
 
   ASSERT_EQ(shape, TT.dimensions());
   const auto& subT = TT.subTensor(0);
@@ -382,8 +384,10 @@ TEST(PITTS_TensorTrain_fromDense_classical, boundaryRank_nDim2_random)
   const int rd = 2;
   MultiVector_double M(r0*3*5*rd,1);
   randomize(M);
+  const double* beginM = &M(0,0);
+  const double* endM = beginM+M.rows();
 
-  TensorTrain_double TT = PITTS::fromDense_classical(&M(0,0), &M(0,0)+M.rows(), shape, 0., -1, r0, rd);
+  TensorTrain_double TT = PITTS::fromDense_classical(beginM, endM, shape, 0., -1, r0, rd);
 
   ASSERT_EQ(shape, TT.dimensions());
   const int nDim = TT.dimensions().size();
