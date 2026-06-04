@@ -25,3 +25,12 @@ template void PITTS::internal::reverse_dot_contract2<float>(const Tensor3<float>
 template double PITTS::internal::t3_dot<double>(const Tensor3<double>& A, const Tensor3<double>& B);
 template float PITTS::internal::t3_dot<float>(const Tensor3<float>& A, const Tensor3<float>& B);
 
+template void PITTS::internal::dot_contract1<double>(const Tensor3<double>& A, const Tensor2<double>& B, Tensor3<double>& C);
+template void PITTS::internal::dot_contract1<float>(const Tensor3<float>& A, const Tensor2<float>& B, Tensor3<float>& C);
+
+template void PITTS::internal::dot_contract1t<double>(const Tensor3<double>& A, const Tensor2<double>& B, Tensor3<double>& C);
+template void PITTS::internal::dot_contract1t<float>(const Tensor3<float>& A, const Tensor2<float>& B, Tensor3<float>& C);
+
+template void PITTS::internal::dot_contract2<double>(const Tensor3<double>& A, const Tensor3<double>& B, Tensor2<double>& C);
+template void PITTS::internal::dot_contract2<float>(const Tensor3<float>& A, const Tensor3<float>& B, Tensor2<float>& C);
+

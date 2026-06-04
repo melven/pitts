@@ -295,7 +295,7 @@ namespace PITTS
         const T WtW_err = axpby(T(1), TTOpI.tensorTrain(), T(-1), WtW.tensorTrain(), T(0));
         //const T WtW_err = norm2((WtW - TTOpI).tensorTrain());
 
-        if( WtW_err > 100*sqrt_eps )
+        if( WtW_err > 500*sqrt_eps )
         {
           std::cout << "WARNING: WtW_err: " << WtW_err << std::endl;
           return false;

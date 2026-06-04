@@ -29,20 +29,9 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! calculate tensor-train decomposition of a tensor stored in fully dense format (slow classical TT-SVD)
-  //!
-  //! @tparam Iter      contiguous input iterator to access the dense data
-  //! @tparam T         underlying data type (double, complex, ...)
-  //!
-  //! @param first          input iterator that points to the first index, e.g. std::begin(someContainer)
-  //! @param last           input iterator that points behind the last index, e.g. std::end(someContainer)
-  //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
-  //! @param rankTolerance  approximation accuracy, used to reduce the TTranks of the resulting tensor train
-  //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
-  //! @return               resulting tensor train
-  //!
+  // calculate tensor-train decomposition of a tensor stored in fully dense format (slow classical TT-SVD)
   template<class Iter, typename T>
-  TensorTrain<T> fromDense_classical(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance , int maxRank)
+  TensorTrain<T> fromDense_classical(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance , int maxRank, int r0, int rd)
   {
     // timer
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
@@ -59,13 +48,13 @@ namespace PITTS
       return TensorTrain<T>{dimensions};
     }
 
-    const auto totalSize = std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
+    const auto totalSize = r0 * rd * std::accumulate(begin(dimensions), end(dimensions), (std::ptrdiff_t)1, std::multiplies<std::ptrdiff_t>());
     if( totalSize != last - first )
       throw std::out_of_range("Mismatching dimensions in TensorTrain<T>::fromDense");
 
     std::vector<Tensor3<T>> subTensors(dimensions.size());
     using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    EigenMatrix tmp = Eigen::Map<const EigenMatrix>(&(*first), 1, totalSize);
+    EigenMatrix tmp = Eigen::Map<const EigenMatrix>(&(*first), r0, totalSize/r0);
     using RealType = decltype(std::abs(T(1)));
 
     const int nDim = dimensions.size();

@@ -36,3 +36,10 @@ template float PITTS::rightNormalize<float>(TensorTrain<float>& TT, float rankTo
 
 template void PITTS::internal::t3_scale<double>(double, PITTS::Tensor3<double>&);
 template void PITTS::internal::t3_scale<float>(float, PITTS::Tensor3<float>&);
+
+template void PITTS::internal::normalize_contract1<double>(const Tensor2<double>& A, const Tensor3<double>& B, Tensor3<double>& C);
+template void PITTS::internal::normalize_contract1<float>(const Tensor2<float>& A, const Tensor3<float>& B, Tensor3<float>& C);
+
+template void PITTS::internal::normalize_contract2<double>(const Tensor3<double>& A, const Tensor2<double>& B, Tensor3<double>& C);
+template void PITTS::internal::normalize_contract2<float>(const Tensor3<float>& A, const Tensor2<float>& B, Tensor3<float>& C);
+

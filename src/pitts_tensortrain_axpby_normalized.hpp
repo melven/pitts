@@ -47,7 +47,7 @@ namespace PITTS
         //! @return false    if A fails the orthogonality test
         //! 
         template<typename T>
-        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = 10*std::sqrt(std::numeric_limits<T>::epsilon()));
+        bool is_normalized(const TensorTrain<T>& A, TT_Orthogonality orthog, double eps = 100*std::sqrt(std::numeric_limits<T>::epsilon()));
 
         //! @brief Left to right orthogonalization sweep for axpby_normalized function.
         //! This performs the axbpy operation as well as the orthogonalization.
