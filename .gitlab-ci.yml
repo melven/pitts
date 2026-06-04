@@ -76,6 +76,7 @@ build_debug_with_coverage:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=On -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_DEVELOP_BUILD=Off -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_OPTIMIZE_FOR_HOST=False -DOpenMP_gomp_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so -DBLAS_iomp5_LIBRARY=/scratch/spack-22.2/opt/spack/linux-ubuntu20.04-skylake_avx512/gcc-9.4.0/intel-oneapi-mkl-2022.1.0-isuca7qbzn5vcccpr7ioxmcns5ahb6b7/compiler/2022.1.0/linux/compiler/lib/intel64_lin/libiomp5.so
     - cmake --build . -- -j 15
     - cmake --build . --target check -j 15 &> test.log
+    - tail -n 15 test.log
     - ccache -s
   coverage: '/^\s*lines:\s*\d+.\d+\% \(\d+ out of \d+\)$/'
   artifacts:
