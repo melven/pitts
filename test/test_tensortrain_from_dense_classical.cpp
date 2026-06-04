@@ -6,6 +6,8 @@
 #include "pitts_tensortrain_from_dense_classical.hpp"
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_norm.hpp"
+#include "pitts_multivector.hpp"
+#include "pitts_multivector_random.hpp"
 
 TEST(PITTS_TensorTrain_fromDense_classical, scalar)
 {
@@ -340,3 +342,54 @@ TEST(PITTS_TensorTrain_fromDense_classical, matrix_2d_4x5_maxRank)
   }
 
 }
+
+TEST(PITTS_TensorTrain_fromDense_classical, boundaryRank_nDim1_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  constexpr auto eps = 1.e-10;
+
+  const int r0 = 3;
+  std::vector<int> shape = {5};
+  const int rd = 2;
+  MultiVector_double M(r0*5*rd,1);
+  randomize(M);
+
+  TensorTrain_double TT = PITTS::fromDense_classical(&M(0,0), &M(0,0)+M.rows(), shape, 0., -1, r0, rd);
+
+  ASSERT_EQ(shape, TT.dimensions());
+  const auto& subT = TT.subTensor(0);
+  ASSERT_EQ(r0, subT.r1());
+  ASSERT_EQ(rd, subT.r2());
+
+  for(int i = 0; i < subT.r1(); i++)
+    for(int j = 0; j < subT.n(); j++)
+      for(int k = 0; k < subT.r2(); k++)
+      {
+        EXPECT_NEAR(M(i+j*r0+k*5*r0), subT(i,j,k), eps);
+      }
+}
+
+TEST(PITTS_TensorTrain_fromDense_classical, boundaryRank_nDim2_random)
+{
+  using TensorTrain_double = PITTS::TensorTrain<double>;
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor3_double = PITTS::Tensor3<double>;
+  constexpr auto eps = 1.e-10;
+
+  const int r0 = 3;
+  std::vector<int> shape = {3,5};
+  const int rd = 2;
+  MultiVector_double M(r0*3*5*rd,1);
+  randomize(M);
+
+  TensorTrain_double TT = PITTS::fromDense_classical(&M(0,0), &M(0,0)+M.rows(), shape, 0., -1, r0, rd);
+
+  ASSERT_EQ(shape, TT.dimensions());
+  const int nDim = TT.dimensions().size();
+  const auto& subT_l = TT.subTensor(0);
+  const auto& subT_r = TT.subTensor(nDim-1);
+  ASSERT_EQ(r0, subT_l.r1());
+  ASSERT_EQ(rd, subT_r.r2());
+}
+

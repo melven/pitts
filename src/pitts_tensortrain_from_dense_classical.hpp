@@ -33,10 +33,12 @@ namespace PITTS
   //! @param dimensions     tensor dimensions, input is interpreted in Fortran storage order (first index changes the fastest)
   //! @param rankTolerance  approximation accuracy (error in the Frobenius norm), used to reduce the TTranks of the resulting tensor train
   //! @param maxRank        maximal TTrank (bond dimension), unbounded by default
+  //! @param r0             first rank dimension of the first sub-tensor, handled like a zeroth dimension
+  //! @param rd             last rank dimension of the last sub-tensors, handled like a (d+1)th dimension
   //! @return               resulting tensor train
   //!
   template<class Iter, typename T = std::iterator_traits<Iter>::value_type>
-  TensorTrain<T> fromDense_classical(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1);
+  TensorTrain<T> fromDense_classical(const Iter first, const Iter last, const std::vector<int>& dimensions, T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon()), int maxRank = -1, int r0 = 1, int rd = 1);
 
 }
 
