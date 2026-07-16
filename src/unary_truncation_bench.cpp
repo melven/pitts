@@ -96,12 +96,12 @@ int main(int argc, char* argv[])
     const auto mapX = ConstEigenMap(X);
     auto mapB = EigenMap(B);
 
-    //transform(X, Q, B);
-#ifndef PITTS_DIRECT_MKL_GEMM
-    mapB.noalias() = mapX * V;
-#else
-    cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasNoTrans, mapB.rows(), mapB.cols(), mapX.cols(), Type(1), mapX.data(), mapX.colStride(), V.data(), V.colStride(), Type(0), mapB.data(), mapB.colStride());
-#endif
+    transform(X, Q, B);
+//#ifndef PITTS_DIRECT_MKL_GEMM
+//    mapB.noalias() = mapX * V;
+//#else
+//    cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasNoTrans, mapB.rows(), mapB.cols(), mapX.cols(), Type(1), mapX.data(), mapX.colStride(), V.data(), V.colStride(), Type(0), mapB.data(), mapB.colStride());
+//#endif
   };
 
 
@@ -121,32 +121,38 @@ int main(int argc, char* argv[])
 
 
   //---------- run TSQR variant ----------
-  run_TSQR();
-  run_TSQR();
-
-  PITTS::performance::clearStatistics();
-
-  double wtime = omp_get_wtime();
-  for(int iter = 0; iter < nIterTSQR; iter++)
+  if( nIterTSQR > 0 )
+  {
     run_TSQR();
-  wtime = (omp_get_wtime() - wtime) / nIterTSQR;
-  std::cout << "wtime TSQR variant: " << wtime << std::endl;
+    run_TSQR();
 
-  //copy(B, B_ref);
-  //copy(Q, Q_ref);
+    PITTS::performance::clearStatistics();
+
+    double wtime = omp_get_wtime();
+    for(int iter = 0; iter < nIterTSQR; iter++)
+      run_TSQR();
+    wtime = (omp_get_wtime() - wtime) / nIterTSQR;
+    std::cout << "wtime TSQR variant: " << wtime << std::endl;
+
+    //copy(B, B_ref);
+    //copy(Q, Q_ref);
+  }
 
   //---------- run SVD variant ----------
-  run_SVD();
-  run_SVD();
-
-  wtime = omp_get_wtime();
-  for(int iter = 0; iter < nIterSVD; iter++)
+  if( nIterSVD > 0 )
+  {
     run_SVD();
-  wtime = (omp_get_wtime() - wtime) / nIterSVD;
-  std::cout << "wtime SVD variant: " << wtime << std::endl;
+    run_SVD();
 
-  // sign in B, Q is not unique...
-  //std::cout << " difference in BQ^T: " << (ConstEigenMap(B) * ConstEigenMap(Q).transpose() - ConstEigenMap(B_ref)*ConstEigenMap(Q_ref).transpose()).array().abs().maxCoeff() << "\n";
+    double wtime = omp_get_wtime();
+    for(int iter = 0; iter < nIterSVD; iter++)
+      run_SVD();
+    wtime = (omp_get_wtime() - wtime) / nIterSVD;
+    std::cout << "wtime SVD variant: " << wtime << std::endl;
+
+    // sign in B, Q is not unique...
+    //std::cout << " difference in BQ^T: " << (ConstEigenMap(B) * ConstEigenMap(Q).transpose() - ConstEigenMap(B_ref)*ConstEigenMap(Q_ref).transpose()).array().abs().maxCoeff() << "\n";
+  }
 
   PITTS::finalize(true);
 
