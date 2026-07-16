@@ -14,6 +14,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_eigen.hpp"
+#include "pitts_performance.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <charconv>
