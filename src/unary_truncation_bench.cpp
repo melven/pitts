@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     svd.compute(mapX, Eigen::ComputeThinV | Eigen::ComputeThinU);
 #endif
 
-    EigenMap(Q) = svd.matrixV().leftCols(m_);
+    EigenMap(Q).noalias() = svd.matrixV().leftCols(m_);
     EigenMap(B).noalias() = svd.matrixU().leftCols(m_) * svd.singularValues().asDiagonal();
   };
 

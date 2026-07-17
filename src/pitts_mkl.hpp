@@ -17,6 +17,7 @@
 // includes
 #ifdef PITTS_DIRECT_MKL_GEMM
 #include <mkl_cblas.h>
+#include <mkl_lapacke.h>
 #endif
 
 //! workaround for using Intel MKL on non-Intel CPUs
