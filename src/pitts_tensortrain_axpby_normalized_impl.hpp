@@ -53,6 +53,17 @@ namespace PITTS
         {
         cblas_sgemm(layout, TransA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
         }
+
+
+        inline void cblas_syrk_mapper1(CBLAS_LAYOUT layout, CBLAS_UPLO uplo, CBLAS_TRANSPOSE trans, const CBLAS_INDEX n, const CBLAS_INDEX k, const double alpha, const double * A, const CBLAS_INDEX lda, const double beta, double * C, const CBLAS_INDEX ldc)
+        {
+        cblas_dsyrk(layout, uplo, trans, n, k, alpha, A, lda, beta, C, ldc);
+        }
+
+        inline void cblas_syrk_mapper1(CBLAS_LAYOUT layout, CBLAS_UPLO uplo, CBLAS_TRANSPOSE trans, const CBLAS_INDEX n, const CBLAS_INDEX k, const float alpha, const float * A, const CBLAS_INDEX lda, const float beta, float * C, const CBLAS_INDEX ldc)
+        {
+        cblas_ssyrk(layout, uplo, trans, n, k, alpha, A, lda, beta, C, ldc);
+        }
 #endif
         //! contraction (normal GEMM) for axpby_leftOrthogonalized: Mmt <- Mx^adj * Mytu
         template<typename T>
@@ -79,6 +90,29 @@ namespace PITTS
 #endif
         }
 
+        //! contraction (symmetric result -> SYRK) for axpby_leftOrthogonalized: xTx <- Mx^adj * Mx
+        template<typename T>
+        void axpby_ortho_contract1l_symm(const ConstTensor2View<T>& Mx, Tensor2<T>& Mmt)
+        {
+            const auto n = Mx.r2();
+            const auto k = Mx.r1();
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"n", "k"}, {n, k}},                                     // arguments
+                {{n*(n+1)/2*k*kernel_info::FMA<T>()},                                     // flops
+                 {(n*k)*kernel_info::Load<T>() + n*n*kernel_info::Store<T>()}} // data
+            );
+
+            Mmt.resize(n, n);
+
+            auto mapMx = ConstEigenMap(Mx);
+            auto mapMmt = EigenMap(Mmt);
+#ifndef PITTS_DIRECT_MKL_GEMM
+            mapMmt.noalias() = mapMx.adjoint() * mapMx;
+#else
+            cblas_syrk_mapper1(CblasColMajor, CblasLower, CblasTrans, mapMmt.rows(), mapMx.rows(), T(1), mapMx.data(), mapMx.colStride(), T(0), mapMmt.data(), mapMmt.colStride());
+#endif
+        }
+
         //! contraction (normal GEMM) for axpby_leftOrthogonalized: Mmt <- Mytl * Mx^adj
         template<typename T>
         void axpby_ortho_contract1r(const ConstTensor2View<T>& Mytl, const ConstTensor2View<T>& Mx, Tensor2<T>& Mmt)
@@ -101,6 +135,29 @@ namespace PITTS
             mapMmt.noalias() = mapMytl * mapMx.adjoint();
 #else
             cblas_gemm_mapper2(CblasColMajor, CblasNoTrans, CblasTrans, mapMmt.rows(), mapMmt.cols(), mapMytl.cols(), T(1), mapMytl.data(), mapMytl.colStride(), mapMx.data(), mapMx.colStride(), T(0), mapMmt.data(), mapMmt.colStride());
+#endif
+        }
+
+        //! contraction (symmetric result -> SYRK) for axpby_leftOrthogonalized: Mmt <- Mx * Mx^adj
+        template<typename T>
+        void axpby_ortho_contract1r_symm(const ConstTensor2View<T>& Mx, Tensor2<T>& Mmt)
+        {
+            const auto n = Mx.r1();
+            const auto k = Mx.r2();
+            const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+                {{"n", "k"}, {n, k}},                                     // arguments
+                {{n*(n+1)/2*k*kernel_info::FMA<T>()},                                     // flops
+                 {(n*k)*kernel_info::Load<T>() + n*n*kernel_info::Store<T>()}} // data
+            );
+
+            Mmt.resize(n, n);
+
+            auto mapMx = ConstEigenMap(Mx);
+            auto mapMmt = EigenMap(Mmt);
+#ifndef PITTS_DIRECT_MKL_GEMM
+            mapMmt.noalias() = mapMx * mapMx.adjoint();
+#else
+            cblas_syrk_mapper1(CblasColMajor, CblasLower, CblasNoTrans, mapMmt.rows(), mapMx.cols(), T(1), mapMx.data(), mapMx.colStride(), T(0), mapMmt.data(), mapMmt.colStride());
 #endif
         }
 
@@ -516,7 +573,7 @@ namespace PITTS
 
 #ifdef PITTS_TENSORTRAIN_AXPBY_REORTHOGONALIZE
                 // Mx is only orthogonalized inaccurately, so try to fix orthogonalization using QQ^T = Mx (Mx^T Mx)^(-1) Mx^T
-                axpby_ortho_contract1l<T>(Mx, Mx, xTx);
+                axpby_ortho_contract1l_symm<T>(Mx, xTx);
                 // use a Cholesky decomposition of xTx (almost identity) to multiply with (V^TV)^(-1)
                 llt.compute(EigenMap(xTx));
                 llt.solveInPlace(EigenMap(Mmt));
@@ -621,7 +678,7 @@ namespace PITTS
                 
 #ifdef PITTS_TENSORTRAIN_AXPBY_REORTHOGONALIZE
                 // Mx is only orthogonalized inaccurately, so try to fix orthogonalization using QQ^T = Mx (Mx^T Mx)^(-1) Mx^T
-                axpby_ortho_contract1r<T>(Mx, Mx, xTx);
+                axpby_ortho_contract1r_symm<T>(Mx, xTx);
                 // use a Cholesky decomposition of xTx (almost identity) to multiply with (V^TV)^(-1)
                 llt.compute(EigenMap(xTx));
                 llt.solveInPlace(EigenMap(Mmt).transpose());
