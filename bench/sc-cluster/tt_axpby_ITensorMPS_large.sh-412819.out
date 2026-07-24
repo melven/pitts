@@ -1,0 +1,429 @@
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 1
+rand X wtime:   8.513670 seconds (26.41 M allocations: 2.676 GiB, 12.34% gc time, 71.79% compilation time)
+rand Y wtime:   0.192546 seconds (1.17 M allocations: 58.987 MiB, 99.74% compilation time)
+right-orthogonalize X wtime:   0.927355 seconds (4.72 M allocations: 231.392 MiB, 29.22% gc time, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000011 seconds
+direct addition wtime:   8.703029 seconds (15.01 M allocations: 2.179 GiB, 9.00% gc time, 86.39% compilation time)
+truncation wtime:  12.238796 seconds (15.24 M allocations: 6.502 GiB, 23.45% gc time, 47.83% compilation time)
+direct addition wtime:   0.833584 seconds (1.62 k allocations: 1.465 GiB, 40.99% gc time)
+truncation wtime:   5.696702 seconds (3.46 k allocations: 5.778 GiB, 36.53% gc time)
+direct addition wtime:   1.049584 seconds (1.62 k allocations: 1.465 GiB, 54.29% gc time)
+truncation wtime:   5.447730 seconds (3.46 k allocations: 5.778 GiB, 33.46% gc time)
+direct addition wtime:   0.866247 seconds (1.62 k allocations: 1.465 GiB, 45.57% gc time)
+truncation wtime:   5.373631 seconds (3.46 k allocations: 5.778 GiB, 33.71% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 50
+rand X wtime:   8.597533 seconds (26.41 M allocations: 2.676 GiB, 13.29% gc time, 72.01% compilation time)
+rand Y wtime:   2.356576 seconds (955 allocations: 1.418 GiB, 34.37% gc time, 0.19% compilation time)
+right-orthogonalize X wtime:   0.671179 seconds (4.72 M allocations: 231.350 MiB, 7.03% gc time, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  10.792563 seconds (15.01 M allocations: 6.325 GiB, 14.46% gc time, 69.12% compilation time)
+truncation wtime:  20.490287 seconds (15.24 M allocations: 16.717 GiB, 20.88% gc time, 28.69% compilation time)
+direct addition wtime:   3.054374 seconds (1.63 k allocations: 5.612 GiB, 41.20% gc time)
+truncation wtime:  14.040300 seconds (3.46 k allocations: 15.993 GiB, 26.02% gc time)
+direct addition wtime:   3.168775 seconds (1.63 k allocations: 5.612 GiB, 43.06% gc time)
+truncation wtime:  13.770404 seconds (3.46 k allocations: 15.993 GiB, 23.99% gc time)
+direct addition wtime:   3.052577 seconds (1.63 k allocations: 5.612 GiB, 41.20% gc time)
+truncation wtime:  13.730412 seconds (3.46 k allocations: 15.993 GiB, 24.31% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 100
+rand X wtime:   8.625921 seconds (26.41 M allocations: 2.676 GiB, 12.72% gc time, 71.78% compilation time)
+rand Y wtime:   8.171606 seconds (1.55 k allocations: 5.630 GiB, 23.23% gc time, 0.05% compilation time)
+right-orthogonalize X wtime:   0.631111 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  13.914285 seconds (15.01 M allocations: 13.323 GiB, 16.66% gc time, 54.87% compilation time)
+truncation wtime:  41.988029 seconds (15.24 M allocations: 41.065 GiB, 16.87% gc time, 13.88% compilation time)
+direct addition wtime:   5.702323 seconds (1.63 k allocations: 12.609 GiB, 28.80% gc time)
+truncation wtime:  35.662529 seconds (3.46 k allocations: 40.341 GiB, 18.67% gc time)
+direct addition wtime:   5.653314 seconds (1.63 k allocations: 12.609 GiB, 29.14% gc time)
+truncation wtime:  35.335974 seconds (3.46 k allocations: 40.341 GiB, 18.60% gc time)
+direct addition wtime:   5.654048 seconds (1.63 k allocations: 12.609 GiB, 29.50% gc time)
+truncation wtime:  35.490371 seconds (3.46 k allocations: 40.341 GiB, 18.76% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 150
+rand X wtime:   8.556548 seconds (26.41 M allocations: 2.676 GiB, 12.21% gc time, 71.90% compilation time)
+rand Y wtime:  15.815290 seconds (2.15 k allocations: 12.635 GiB, 13.33% gc time, 0.03% compilation time)
+right-orthogonalize X wtime:   0.625050 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  17.536209 seconds (15.01 M allocations: 23.115 GiB, 16.40% gc time, 43.31% compilation time)
+truncation wtime:  70.535131 seconds (15.24 M allocations: 76.591 GiB, 13.46% gc time, 8.27% compilation time)
+direct addition wtime:   9.773650 seconds (1.63 k allocations: 22.402 GiB, 27.29% gc time)
+truncation wtime:  64.278767 seconds (3.46 k allocations: 75.867 GiB, 14.69% gc time)
+direct addition wtime:   9.769447 seconds (1.63 k allocations: 22.402 GiB, 27.31% gc time)
+truncation wtime:  64.474862 seconds (3.46 k allocations: 75.867 GiB, 14.77% gc time)
+direct addition wtime:   9.764439 seconds (1.63 k allocations: 22.402 GiB, 27.36% gc time)
+truncation wtime:  64.598421 seconds (3.46 k allocations: 75.867 GiB, 14.74% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 200
+rand X wtime:   8.485978 seconds (26.41 M allocations: 2.676 GiB, 12.25% gc time, 70.82% compilation time)
+rand Y wtime:  27.231196 seconds (2.75 k allocations: 22.435 GiB, 10.65% gc time, 0.02% compilation time)
+right-orthogonalize X wtime:   0.656905 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  21.953027 seconds (15.01 M allocations: 35.702 GiB, 15.48% gc time, 34.49% compilation time)
+truncation wtime: 112.014403 seconds (15.24 M allocations: 123.294 GiB, 12.09% gc time, 5.18% compilation time)
+direct addition wtime:  14.301366 seconds (1.63 k allocations: 34.988 GiB, 21.93% gc time)
+truncation wtime: 106.205761 seconds (3.46 k allocations: 122.571 GiB, 12.57% gc time)
+direct addition wtime:  14.259284 seconds (1.63 k allocations: 34.988 GiB, 21.47% gc time)
+truncation wtime: 105.966132 seconds (3.46 k allocations: 122.571 GiB, 12.50% gc time)
+direct addition wtime:  14.278434 seconds (1.63 k allocations: 34.988 GiB, 21.61% gc time)
+truncation wtime: 105.980029 seconds (3.46 k allocations: 122.571 GiB, 12.48% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 250
+rand X wtime:   8.578980 seconds (26.41 M allocations: 2.675 GiB, 12.26% gc time, 72.39% compilation time)
+rand Y wtime:  41.627758 seconds (3.35 k allocations: 35.030 GiB, 8.39% gc time, 0.01% compilation time)
+right-orthogonalize X wtime:   0.654482 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  27.960724 seconds (15.01 M allocations: 51.083 GiB, 15.89% gc time, 27.62% compilation time)
+truncation wtime: 156.632959 seconds (15.24 M allocations: 181.176 GiB, 10.53% gc time, 3.76% compilation time)
+direct addition wtime:  20.098423 seconds (1.63 k allocations: 50.370 GiB, 19.89% gc time)
+truncation wtime: 151.584823 seconds (3.47 k allocations: 180.452 GiB, 11.50% gc time)
+direct addition wtime:  20.069163 seconds (1.63 k allocations: 50.370 GiB, 20.16% gc time)
+truncation wtime: 152.380239 seconds (3.47 k allocations: 180.452 GiB, 11.45% gc time)
+direct addition wtime:  19.989215 seconds (1.63 k allocations: 50.370 GiB, 19.98% gc time)
+truncation wtime: 151.211758 seconds (3.47 k allocations: 180.452 GiB, 11.47% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 300
+rand X wtime:   8.528112 seconds (26.41 M allocations: 2.676 GiB, 12.71% gc time, 72.05% compilation time)
+rand Y wtime:  58.972080 seconds (3.96 k allocations: 50.418 GiB, 6.98% gc time, 0.01% compilation time)
+right-orthogonalize X wtime:   0.638780 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  34.489934 seconds (15.01 M allocations: 69.259 GiB, 15.31% gc time, 22.05% compilation time)
+truncation wtime: 219.018743 seconds (15.24 M allocations: 250.236 GiB, 9.66% gc time, 2.68% compilation time)
+direct addition wtime:  26.764685 seconds (1.63 k allocations: 68.545 GiB, 18.53% gc time)
+truncation wtime: 217.398269 seconds (3.47 k allocations: 249.512 GiB, 10.27% gc time)
+direct addition wtime:  27.151458 seconds (1.63 k allocations: 68.545 GiB, 18.34% gc time)
+truncation wtime: 218.171962 seconds (3.47 k allocations: 249.512 GiB, 10.25% gc time)
+direct addition wtime:  27.192741 seconds (1.63 k allocations: 68.545 GiB, 18.89% gc time)
+truncation wtime: 218.010865 seconds (3.47 k allocations: 249.512 GiB, 10.36% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 350
+rand X wtime:   8.517121 seconds (26.41 M allocations: 2.676 GiB, 12.22% gc time, 72.01% compilation time)
+rand Y wtime:  82.738779 seconds (4.55 k allocations: 68.600 GiB, 6.08% gc time, 0.01% compilation time)
+right-orthogonalize X wtime:   0.648982 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  42.532767 seconds (15.01 M allocations: 90.229 GiB, 15.05% gc time, 17.88% compilation time)
+truncation wtime: 289.784030 seconds (15.24 M allocations: 330.474 GiB, 9.15% gc time, 2.04% compilation time)
+direct addition wtime:  35.581412 seconds (1.63 k allocations: 89.516 GiB, 17.33% gc time)
+truncation wtime: 286.293417 seconds (3.47 k allocations: 329.750 GiB, 9.41% gc time)
+direct addition wtime:  35.119481 seconds (1.63 k allocations: 89.516 GiB, 17.64% gc time)
+truncation wtime: 287.341763 seconds (3.47 k allocations: 329.750 GiB, 10.07% gc time)
+direct addition wtime:  35.106476 seconds (1.63 k allocations: 89.516 GiB, 17.35% gc time)
+truncation wtime: 284.792530 seconds (3.47 k allocations: 329.750 GiB, 9.67% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 400
+rand X wtime:   8.541314 seconds (26.41 M allocations: 2.676 GiB, 12.17% gc time, 72.02% compilation time)
+rand Y wtime: 108.222044 seconds (5.16 k allocations: 89.577 GiB, 5.35% gc time, 0.00% compilation time)
+right-orthogonalize X wtime:   0.656079 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  51.588417 seconds (15.01 M allocations: 113.994 GiB, 14.56% gc time, 14.79% compilation time)
+truncation wtime: 379.411147 seconds (15.24 M allocations: 421.889 GiB, 8.40% gc time, 1.56% compilation time)
+direct addition wtime:  43.893685 seconds (1.63 k allocations: 113.281 GiB, 16.79% gc time)
+truncation wtime: 377.594919 seconds (3.47 k allocations: 421.165 GiB, 8.80% gc time)
+direct addition wtime:  43.839770 seconds (1.63 k allocations: 113.281 GiB, 16.86% gc time)
+truncation wtime: 380.355158 seconds (3.47 k allocations: 421.165 GiB, 8.75% gc time)
+direct addition wtime:  43.851640 seconds (1.63 k allocations: 113.281 GiB, 16.89% gc time)
+truncation wtime: 378.202635 seconds (3.47 k allocations: 421.165 GiB, 8.68% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 450
+rand X wtime:   8.566021 seconds (26.41 M allocations: 2.676 GiB, 12.15% gc time, 72.09% compilation time)
+rand Y wtime: 140.601020 seconds (5.75 k allocations: 113.347 GiB, 4.84% gc time, 0.00% compilation time)
+right-orthogonalize X wtime:   0.655081 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  62.269235 seconds (15.01 M allocations: 140.554 GiB, 14.63% gc time, 12.36% compilation time)
+truncation wtime: 473.306017 seconds (15.24 M allocations: 524.482 GiB, 8.49% gc time, 1.29% compilation time)
+direct addition wtime:  55.163125 seconds (1.63 k allocations: 139.840 GiB, 16.83% gc time)
+truncation wtime: 476.898206 seconds (3.47 k allocations: 523.759 GiB, 8.38% gc time)
+direct addition wtime:  56.723343 seconds (1.63 k allocations: 139.840 GiB, 15.72% gc time)
+truncation wtime: 470.545726 seconds (3.47 k allocations: 523.759 GiB, 8.52% gc time)
+direct addition wtime:  56.957004 seconds (1.63 k allocations: 139.840 GiB, 15.78% gc time)
+truncation wtime: 470.445531 seconds (3.47 k allocations: 523.759 GiB, 8.52% gc time)
+┌ Warning: You seem to be running in a SLURM allocation that doesn't cover the entire node. Most likely, only a subset of the available CPU-threads will be accessible. This might lead to unexpected/wrong pinning results.
+└ @ ThreadPinning.Pinning ~/.julia/packages/ThreadPinning/qi8Gl/src/pinning.jl:456
+Hostname: 	be-amd01
+CPU(s): 	2 x AMD EPYC 7773X 64-Core Processor
+CPU target: 	znver3
+Cores: 		128 (256 CPU-threads due to 2-way SMT)
+NUMA domains: 	2 (64 cores each)
+
+SLURM: 128 assigned CPU-threads. Will only show those below.
+
+BLAS threads: 	64
+
+CPU socket 1
+  0,128, 1,129, 2,130, 3,131, 4,132, 5,133, 6,134, 7,135, 
+  8,136, 9,137, 10,138, 11,139, 12,140, 13,141, 14,142, 15,143, 
+  16,144, 17,145, 18,146, 19,147, 20,148, 21,149, 22,150, 23,151, 
+  24,152, 25,153, 26,154, 27,155, 28,156, 29,157, 30,158, 31,159, 
+  32,160, 33,161, 34,162, 35,163, 36,164, 37,165, 38,166, 39,167, 
+  40,168, 41,169, 42,170, 43,171, 44,172, 45,173, 46,174, 47,175, 
+  48,176, 49,177, 50,178, 51,179, 52,180, 53,181, 54,182, 55,183, 
+  56,184, 57,185, 58,186, 59,187, 60,188, 61,189, 62,190, 63,191
+
+
+# = BLAS thread, # = BLAS thread on HT, # = >1 BLAS thread
+
+(Mapping: 1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4, ...)
+Generating random MPS of size 5000^5 with bond dim. 50 and with bond dim. 500
+rand X wtime:   8.494448 seconds (26.41 M allocations: 2.676 GiB, 12.22% gc time, 72.13% compilation time)
+rand Y wtime: 171.159088 seconds (6.36 k allocations: 139.912 GiB, 4.45% gc time, 0.00% compilation time)
+right-orthogonalize X wtime:   0.646086 seconds (4.72 M allocations: 231.350 MiB, 100.00% compilation time)
+right-orthogonalize Y wtime:   0.000003 seconds
+direct addition wtime:  74.463162 seconds (15.01 M allocations: 169.908 GiB, 14.09% gc time, 10.26% compilation time)
+truncation wtime: 584.996102 seconds (15.24 M allocations: 638.254 GiB, 8.02% gc time, 1.03% compilation time)
+direct addition wtime:  67.114603 seconds (1.63 k allocations: 169.194 GiB, 15.32% gc time)
+truncation wtime: 592.279467 seconds (3.49 k allocations: 637.530 GiB, 8.20% gc time)
+direct addition wtime:  69.410814 seconds (1.63 k allocations: 169.194 GiB, 15.39% gc time)
+truncation wtime: 588.621414 seconds (3.49 k allocations: 637.530 GiB, 8.04% gc time)
+direct addition wtime:  67.527613 seconds (1.63 k allocations: 169.194 GiB, 15.77% gc time)
+truncation wtime: 587.924489 seconds (3.49 k allocations: 637.530 GiB, 8.18% gc time)

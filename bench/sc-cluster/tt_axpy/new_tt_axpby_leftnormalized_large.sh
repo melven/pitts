@@ -12,7 +12,7 @@
 ulimit -s unlimited
 export OMP_STACKSIZE=100M
 
-for((r=1;r<=100;r++)); do
+for((r=1;r<=99;r++)); do
   srun taskset -c 0-127 likwid-pin -c 0-63 ../../../build_spack-26.1/src/axpby_bench 50 10 50 $r 100 L L
 done
 
