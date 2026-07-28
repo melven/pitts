@@ -15,6 +15,7 @@
 ulimit -s unlimited
 export OMP_STACKSIZE=100M
 export MKL_NUM_THREADS=64
+export LD_PRELOAD="/home/zoel_ml/lib/libmkl_fakeintel.so"
 
 for r in 1 50 100 150 200 250 300 350 400 450 500; do
   echo "r: $r"

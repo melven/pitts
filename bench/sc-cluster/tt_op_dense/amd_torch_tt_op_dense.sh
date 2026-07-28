@@ -13,10 +13,9 @@
 ulimit -s unlimited
 export OMP_STACKSIZE=100M
 export MKL_NUM_THREADS=64
+export LD_PRELOAD="/home/zoel_ml/lib/libmkl_fakeintel.so"
 
 for((r=1;r<=100;r++)); do
   echo "r: $r"
-  srun taskset -c 0-127 likwid-pin -c 0-63 ~/miniforge3/bin/python ../../torch_tt_op_dense_bench.py 50 $r 2 1000
-  #srun taskset -c 0-127 likwid-pin -c 0-63 python ../../torch_tt_op_dense_bench.py 50 $r 2 1000
-  #srun taskset -c 0-127 python ../../torch_tt_op_dense_bench.py 50 $r 2 1000
+  srun taskset -c 0-127 likwid-pin -c 0-63 python ../../torch_tt_op_dense_bench.py 50 $r 2 1000
 done

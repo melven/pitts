@@ -16,6 +16,5 @@ export MKL_NUM_THREADS=64
 
 for((r=10;r<=100;r+=10)); do
   echo "r: $r"
-  srun taskset -c 0-127 likwid-pin -c 0-63 ~/miniforge3/bin/python ../../numpy_tt_op_dense_bench.py 50 $r 2 10
-  #srun taskset -c 0-127 likwid-pin -c 0-63 python ../../numpy_tt_op_dense_bench.py 50 $r 2 10
+  srun taskset -c 0-127 likwid-pin -c 0-63 python ../../numpy_tt_op_dense_bench.py 50 $r 2 10
 done
