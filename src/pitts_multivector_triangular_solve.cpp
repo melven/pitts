@@ -15,3 +15,4 @@ using namespace PITTS;
 
 template void PITTS::triangularSolve<double>(MultiVector<double>& X, const Tensor2<double>& R, const std::vector<int>&);
 template void PITTS::triangularSolve<float>(MultiVector<float>& X, const Tensor2<float>& R, const std::vector<int>&);
+

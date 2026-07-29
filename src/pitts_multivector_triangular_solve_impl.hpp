@@ -22,6 +22,9 @@
 #include "pitts_performance.hpp"
 #include "pitts_chunk_ops.hpp"
 #include "pitts_machine_info.hpp"
+#include "pitts_eigen.hpp"
+#include "pitts_tensor2.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -331,7 +334,6 @@ namespace PITTS
     // reshape to resulting size
     X.resize(X.rows(), m);
   }
-
 }
 
 

@@ -1,0 +1,326 @@
+// Copyright (c) 2023 German Aerospace Center (DLR), Institute for Software Technology, Germany
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <gtest/gtest.h>
+#include "pitts_multivector_triangular_mult.hpp"
+#include "pitts_multivector_random.hpp"
+#include "pitts_multivector_eigen_adaptor.hpp"
+#include "pitts_tensor2.hpp"
+#include "pitts_tensor2_random.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
+#include "eigen_test_helper.hpp"
+
+
+// anonymous namespace
+namespace
+{
+  const auto eps = 1.e-8;
+
+  template<typename T>
+  void test_triangularMult(PITTS::MultiVector<T>& X, const PITTS::Tensor2<T>& R, const std::vector<int>& colsPermutation)
+  {
+    const Eigen::MatrixX<T> X_input = ConstEigenMap(X);
+    Eigen::MatrixX<T> X_ref;
+    const auto mapR = ConstEigenMap(R).template triangularView<Eigen::Upper>();
+
+    if( colsPermutation.empty() )
+      X_ref = X_input;
+    else
+      X_ref = X_input(Eigen::placeholders::all, colsPermutation);
+
+    X_ref = X_ref * mapR.transpose();
+
+    triangularMult(X, R, colsPermutation);
+
+    EXPECT_NEAR(X_ref, ConstEigenMap(X), eps);
+  }
+}
+
+TEST(PITTS_MultiVector_triangularMult, invalid_args)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(50,3);
+  Tensor2_double R(1,1);
+
+  EXPECT_THROW(triangularMult(X, R), std::invalid_argument);
+
+  R.resize(3,2);
+
+  EXPECT_THROW(triangularMult(X, R), std::invalid_argument);
+
+  R.resize(3,3);
+  randomize(X);
+  randomize(R);
+
+  EXPECT_NO_THROW(triangularMult(X, R));
+
+  EXPECT_THROW(triangularMult(X, R, {0, 1, 2, 3}), std::invalid_argument);
+
+  EXPECT_NO_THROW(triangularMult(X, R, {1, 0, 2}));
+
+  EXPECT_THROW(triangularMult(X, R, {5, 1, 2}), std::invalid_argument);
+}
+
+TEST(PITTS_MultiVector_triangularMult, single_col)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(20,1);
+  randomize(X);
+  Tensor2_double R(1,1);
+  R(0,0) = 1.7;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, large_single_col)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(100,1);
+  randomize(X);
+  Tensor2_double R(1,1);
+  R(0,0) = 1.7;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, small_two_cols_diagonal)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(5,2);
+  randomize(X);
+  Tensor2_double R(2,2);
+  R(0,0) = 2;
+  R(0,1) = 0;
+  R(1,1) = -1;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, small_two_cols)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(3,2);
+  X(0,0) = 1; X(0,1) = 10;
+  X(1,0) = 2; X(1,1) = 11;
+  X(2,0) = 3; X(2,1) = 12;
+  Tensor2_double R(2,2);
+  R(0,0) = 0.5;
+  R(0,1) = 1;
+  R(1,1) = -1;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, small_two_cols_pivoted)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(3,2);
+  X(0,0) = 1; X(0,1) = 10;
+  X(1,0) = 2; X(1,1) = 11;
+  X(2,0) = 3; X(2,1) = 12;
+  Tensor2_double R(2,2);
+  R(0,0) = 0.5;
+  R(0,1) = 1;
+  R(1,1) = -1;
+
+  test_triangularMult(X, R, {1,0});
+}
+
+TEST(PITTS_MultiVector_triangularMult, small_two_cols_pivoted_rankDeficient)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(3,2);
+  X(0,0) = 1; X(0,1) = 10;
+  X(1,0) = 2; X(1,1) = 11;
+  X(2,0) = 3; X(2,1) = 12;
+  Tensor2_double R(1,1);
+  R(0,0) = 0.5;
+
+  test_triangularMult(X, R, {1});
+}
+
+TEST(PITTS_MultiVector_triangularMult, two_cols)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(20,2);
+  randomize(X);
+  Tensor2_double R(2,2);
+  R(0,0) = 1.7;
+  R(0,1) = 0.3;
+  R(1,1) = 0.8;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, large_two_cols)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(75,2);
+  randomize(X);
+  Tensor2_double R(2,2);
+  R(0,0) = 1.3;
+  R(0,1) = -0.2;
+  R(1,1) = 0.93;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, two_cols_pivoted)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(20,2);
+  randomize(X);
+  Tensor2_double R(2,2);
+  R(0,0) = 1.7;
+  R(0,1) = 0.3;
+  R(1,1) = 0.8;
+
+  test_triangularMult(X, R, {1,0});
+}
+
+TEST(PITTS_MultiVector_triangularMult, random_nx20)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(50,20);
+  randomize(X);
+  Tensor2_double R(20,20);
+  randomize(R);
+  for(int i = 0; i < 20; i++)
+    R(i,i) += 3;
+
+  test_triangularMult(X, R, {});
+}
+
+TEST(PITTS_MultiVector_triangularMult, random_nx5_pivoted)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(30,5);
+  randomize(X);
+  Tensor2_double R(5,5);
+  randomize(R);
+  for(int i = 0; i < 5; i++)
+    R(i,i) += 3;
+
+  test_triangularMult(X, R, {3,1,0,2,4});
+}
+
+TEST(PITTS_MultiVector_triangularMult, random_nx5_pivoted_rankDeficient)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(30,5);
+  randomize(X);
+  Tensor2_double R(3,3);
+  randomize(R);
+  for(int i = 0; i < 3; i++)
+    R(i,i) += 3;
+
+  test_triangularMult(X, R, {3,1,0});
+}
+
+TEST(PITTS_MultiVector_triangularMult, large_random_nx5_pivoted)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(200,5);
+  randomize(X);
+  Tensor2_double R(5,5);
+  randomize(R);
+  for(int i = 0; i < 5; i++)
+    R(i,i) += 3;
+
+  test_triangularMult(X, R, {3,1,0,2,4});
+}
+
+TEST(PITTS_MultiVector_triangularMult, large_random_nx5_pivoted_rankDeficient)
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  MultiVector_double X(200,5);
+  randomize(X);
+  Tensor2_double R(3,3);
+  randomize(R);
+  for(int i = 0; i < 3; i++)
+    R(i,i) += 3;
+
+  test_triangularMult(X, R, {3,1,0});
+}
+
+#ifdef NDEBUG
+TEST(PITTS_MultiVector_triangularMult, large_random_different_dimensions)
+#else
+TEST(PITTS_MultiVector_triangularMult, DISABLED_large_random_different_dimensions)
+#endif
+{
+  using MultiVector_double = PITTS::MultiVector<double>;
+  using Tensor2_double = PITTS::Tensor2<double>;
+
+  constexpr auto test_with_dim = [](int n, int m, int k) -> bool
+  {
+    MultiVector_double X(n, m);
+    randomize(X);
+    Tensor2_double R(k,k);
+    randomize(R);
+    for(int i = 0; i < k; i++)
+      R(i,i) += 3;
+    std::vector<int> colsPerm(k);
+    for(int i = 0; i < k; i++)
+      colsPerm[i] = m - i - 1;
+    
+    test_triangularMult(X, R, colsPerm);
+
+    return HasFailure();
+  };
+
+  for(int i = 1; i <= 20; i++)
+  {
+    std::cout << "testing 1 x " << i << "\n";
+    ASSERT_FALSE(test_with_dim(1, i, i));
+  }
+  ASSERT_FALSE(test_with_dim(1, 1, 1));
+  ASSERT_FALSE(test_with_dim(100, 10, 10));
+  ASSERT_FALSE(test_with_dim(1000, 10, 10));
+  ASSERT_FALSE(test_with_dim(10000, 10, 10));
+  ASSERT_FALSE(test_with_dim(1000, 37, 13));
+  ASSERT_FALSE(test_with_dim(1000, 37, 37));
+  ASSERT_FALSE(test_with_dim(1, 19, 18));
+  ASSERT_FALSE(test_with_dim(1, 65, 65));
+  ASSERT_FALSE(test_with_dim(1, 99, 65));
+  ASSERT_FALSE(test_with_dim(1, 99, 95));
+  ASSERT_FALSE(test_with_dim(1, 99, 98));
+  ASSERT_FALSE(test_with_dim(10, 99, 98));
+  ASSERT_FALSE(test_with_dim(10, 599, 598));
+  ASSERT_FALSE(test_with_dim(100, 599, 598));
+  ASSERT_FALSE(test_with_dim(1000, 599, 598));
+  //ASSERT_FALSE(test_with_dim(10000, 599, 598));
+  ASSERT_FALSE(test_with_dim(33337, 312, 207));
+  ASSERT_FALSE(test_with_dim(10, 312, 207));
+}

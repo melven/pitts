@@ -133,6 +133,8 @@ target_sources(pitts INTERFACE
   pitts_multivector_transform_impl.hpp
   pitts_multivector_triangular_solve.hpp
   pitts_multivector_triangular_solve_impl.hpp
+  pitts_multivector_triangular_mult.hpp
+  pitts_multivector_triangular_mult_impl.hpp
   pitts_multivector_transpose.hpp
   pitts_multivector_transpose_impl.hpp
   pitts_multivector_reshape.hpp
@@ -181,6 +183,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_multivector_scale.cpp
     pitts_multivector_transform.cpp
     pitts_multivector_triangular_solve.cpp
+    pitts_multivector_triangular_mult.cpp
     pitts_multivector_transpose.cpp
     pitts_multivector_tsqr.cpp
     pitts_tensor2.cpp
@@ -264,6 +267,7 @@ add_executable(tt_from_dense_twosided_thickbounds_bench tt_from_dense_twosided_t
 add_executable(tsqr_transform_block_calc_bench tsqr_transform_block_calc_bench.cpp)
 add_executable(unary_truncation_bench unary_truncation_bench.cpp)
 add_executable(binary_truncation_bench binary_truncation_bench.cpp)
+add_executable(binary_orthogonalization_bench binary_orthogonalization_bench.cpp)
 
 # typed test executables
 add_executable(tsqr_double_bench tsqr_bench.cpp)

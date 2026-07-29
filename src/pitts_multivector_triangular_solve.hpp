@@ -32,7 +32,6 @@ namespace PITTS
   //!
   template<typename T>
   void triangularSolve(MultiVector<T>& X, const Tensor2<T>& R, const std::vector<int>& colsPermutation = {});
-
 }
 
 #ifndef PITTS_DEVELOP_BUILD
