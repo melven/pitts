@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
   std::vector<int> colsPermutation(m);
   PITTS::Tensor2<Type> tau(m,1);
 
-  PITTS::MultiVector<Type> Qleft_ref(n, m);
-  PITTS::MultiVector<Type> Y_ref(k, m);
+  //PITTS::MultiVector<Type> Qleft_ref(n, m);
+  //PITTS::MultiVector<Type> Y_ref(k, m);
 
   using EigenMatrix = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   Eigen::ColPivHouseholderQR<EigenMatrix> qrcp;
@@ -133,16 +133,36 @@ int main(int argc, char* argv[])
   //---------- run TSQR variant ----------
   if( nIterTSQR > 0 )
   {
+    copy(X, Qleft);
+    copy(Qright, Y);
     run_TSQR();
+
+    copy(X, Qleft);
+    copy(Qright, Y);
     run_TSQR();
+
+    double wtime_copy = omp_get_wtime();
+    for(int iter = 0; iter < nIterTSQR; iter++)
+    {
+      copy(X, Qleft);
+      copy(Qright, Y);
+    }
+    wtime_copy = (omp_get_wtime() - wtime_copy) / nIterTSQR;
+    std::cout << "wtime copy: " << wtime_copy << std::endl;
+
 
     PITTS::performance::clearStatistics();
 
     double wtime = omp_get_wtime();
     for(int iter = 0; iter < nIterTSQR; iter++)
+    {
+      copy(X, Qleft);
+      copy(Qright, Y);
+
       run_TSQR();
+    }
     wtime = (omp_get_wtime() - wtime) / nIterTSQR;
-    std::cout << "wtime TSQR variant: " << wtime << std::endl;
+    std::cout << "wtime TSQR variant: " << wtime - wtime_copy << std::endl;
 
     //copy(Qleft, Qleft_ref);
     //copy(Y, Y_ref);

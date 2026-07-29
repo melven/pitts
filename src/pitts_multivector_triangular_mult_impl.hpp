@@ -25,10 +25,30 @@
 #include "pitts_eigen.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#endif
+
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
+  //! namespace for helper functionality
+  namespace internal
+  {
+#ifdef PITTS_DIRECT_MKL_GEMM
+    inline void cblas_trmm_mapper(const CBLAS_LAYOUT Layout, const CBLAS_SIDE side, const CBLAS_UPLO uplo, const CBLAS_TRANSPOSE transa, const CBLAS_DIAG diag, const CBLAS_INDEX M, const CBLAS_INDEX N, const double alpha, const double * A, const CBLAS_INDEX lda, double * B, const CBLAS_INDEX ldb)
+    {
+      cblas_dtrmm(Layout, side, uplo, transa, diag, M, N, alpha, A, lda, B, ldb);
+    }
+
+    inline void cblas_trmm_mapper(const CBLAS_LAYOUT Layout, const CBLAS_SIDE side, const CBLAS_UPLO uplo, const CBLAS_TRANSPOSE transa, const CBLAS_DIAG diag, const CBLAS_INDEX M, const CBLAS_INDEX N, const float alpha, const float * A, const CBLAS_INDEX lda, float * B, const CBLAS_INDEX ldb)
+    {
+      cblas_strmm(Layout, side, uplo, transa, diag, M, N, alpha, A, lda, B, ldb);
+    }
+#endif
+  }
+
   // implement multivector triangular multiplication
   template<typename T>
   void triangularMult(MultiVector<T>& X, const Tensor2<T>& R, const std::vector<int>& colsPermutation)
@@ -195,8 +215,14 @@ namespace PITTS
 
 
         using EigenMatrix = Eigen::MatrixX<T>;
-        auto buffMatrix = Eigen::Map<EigenMatrix, EigenAligned>(&buff[0][0], nChunks*Chunk<T>::size, m);
-        buffMatrix = buffMatrix * ConstEigenMap(R).template triangularView<Eigen::Upper>().transpose();
+        auto mapBuff = Eigen::Map<EigenMatrix, EigenAligned>(&buff[0][0], nChunks*Chunk<T>::size, m);
+        auto mapR = ConstEigenMap(R);
+
+#ifndef PITTS_DIRECT_MKL_GEMM
+        mapBuff = mapBuff * mapR.template triangularView<Eigen::Upper>().transpose();
+#else
+        internal::cblas_trmm_mapper(CblasColMajor, CblasRight, CblasUpper, CblasTrans, CblasNonUnit, mapBuff.rows(), mapBuff.cols(), T(1), mapR.data(), mapR.colStride(), mapBuff.data(), mapBuff.colStride());
+#endif
 
 
         // store result
