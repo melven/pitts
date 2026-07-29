@@ -154,7 +154,7 @@ namespace PITTS
       
       using mat = Eigen::MatrixX<T>;
       const double Ic = (2.*xn*r*m*yn*rA) / (8.*xn*r*m + 8.*yn*m*rA + 8.*yn*xn*r*rA);
-      if( Ic > 100 )
+      if( Ic > 200 )
       {
         // just let MKL / BLAS do its job for sufficiently compute-bound cases
         for(long long iA = 0; iA < rA; iA++)
