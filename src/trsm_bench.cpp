@@ -87,7 +87,14 @@ int main(int argc, char* argv[])
   randomize(X_in);
   randomize(M);
   for(int i = 0; i < k; i++)
-    M(i,i) = 1 + 0.1*M(i,i);
+  {
+    for(int j = 0; j < k; j++)
+    {
+      M(j,i) = (i==j ? 1 : 0) + M(j,i) / (10*k);
+      if( j > i )
+        M(j,i) = 0;
+    }
+  }
   std::vector<int> colPermutation;
 
   colPermutation.resize(k);
