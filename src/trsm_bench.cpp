@@ -45,6 +45,27 @@ namespace
 #endif
   }
 
+  template<typename T>
+  void lapmt(MultiVector<T>& X, const std::vector<int>& colPermutation)
+  {
+    // gather performance data
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"Xrows", "Xcols", "XCols_new"},{X.rows(),X.cols(),int(colPermutation.size())}}, // arguments
+        {{0.*kernel_info::FMA<T>()}, // flops
+         {(double(X.rows())*colPermutation.size())*kernel_info::Update<T>()}} // data transfers (idealized)
+        );
+
+#ifndef PITTS_DIRECT_MKL_GEMM
+    EigenMap(X) = ConstEigenMap(X)(Eigen::placeholders::all, colPermutation);
+#else
+    std::vector<lapack_int> jpvt(X.cols());
+    for(int i = 0; i < jpvt.size(); i++)
+      jpvt[i] = i < colPermutation.size() ? colPermutation[i]+1 : i+1;
+    LAPACKE_dlapmt(LAPACK_COL_MAJOR, 1, X.rows(), X.cols(), &X(0,0), X.colStrideChunks()*Chunk<T>::size, jpvt.data());
+#endif
+
+    X.resize(X.rows(), colPermutation.size());
+  }
 }
 
 int main(int argc, char* argv[])
@@ -68,12 +89,11 @@ int main(int argc, char* argv[])
   for(int i = 0; i < k; i++)
     M(i,i) = 1 + 0.1*M(i,i);
   std::vector<int> colPermutation;
-  if( m != k )
-  {
-    colPermutation.resize(k);
-    for(int i = 0; i < k; i++)
-      colPermutation[i] = m-i-1;
-  }
+
+  colPermutation.resize(k);
+  for(int i = 0; i < k; i++)
+    colPermutation[i] = std::min<int>(i, m-1);
+
   copy(X_in, X);
   triangularSolve(X, M, colPermutation);
   if( m == k )
@@ -113,6 +133,21 @@ int main(int argc, char* argv[])
     wtime = (omp_get_wtime() - wtime) / nIter;
     std::cout << "trsm wtime (without copy): " << wtime-copy_wtime << std::endl;
   }
+
+  if( !colPermutation.empty() )
+  {
+    wtime = omp_get_wtime();
+    for(int iter = 0; iter < nIter; iter++)
+    {
+      copy(X_in, X2);
+      lapmt(X2, colPermutation);
+      trsm(X2, M);
+    }
+    wtime = (omp_get_wtime() - wtime) / nIter;
+    std::cout << "lapmt+trsm wtime (without copy): " << wtime-copy_wtime << std::endl;
+  }
+
+  std::cout << "Error: " << (ConstEigenMap(X) - ConstEigenMap(X2)).norm() << "\n";
 
 
   PITTS::finalize();
