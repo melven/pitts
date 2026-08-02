@@ -1,0 +1,1892 @@
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 6101658482496 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 6101470799808 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 6101269473344 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 6101068146880 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 6100866820416 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 6100665493952 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 6100464167488 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 6100262841024 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 6100061514560 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 6099860188096 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 6099658861632 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 6099457535168 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 6099256208704 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 6099054882240 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 6098853555776 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 6098652229312 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 6098450902848 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 6098249576384 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 6098048249920 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 6097846923456 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 6097645596992 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 6097444270528 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 6097242944064 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 6097041617600 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 6096840291136 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 6096638964672 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 6096437638208 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 6096236311744 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 6096034985280 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 6095833658816 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 6095632332352 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 6095431005888 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 6095229675328 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 6095028348864 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 6094827022400 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 6094625695936 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 6094424369472 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 6094223043008 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 6094021716544 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 6093820390080 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 6093619063616 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 6093417737152 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 6093216410688 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 6093015084224 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 6092813757760 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 6092612431296 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 6092411104832 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 6092209778368 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 6092008451904 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 6091807125440 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 6091605798976 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 6091404472512 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 6091203146048 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 6091001819584 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 6090800493120 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 6090599166656 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 6090397840192 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 6090196513728 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 6089995187264 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 6089793860800 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 6089592534336 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 6089391207872 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 6089189881408 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 6101553034944 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 6101546731200 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.000987489
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 32768000, Xcols: 2, Yrows: 16384000, Ycols: 2, fast: 1)	 0.0987037 	 100       	 132.793   	 0         	 796.76    	 0.166667  
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.0987037 	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 11811836376896 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 11811629819840 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 11811428493376 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 11811227166912 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 11811025840448 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 11810824513984 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 11810623187520 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 11810421861056 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 11810220534592 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 11810019208128 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 11809817881664 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 11809616555200 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 11809415228736 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 11809213902272 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 11809012575808 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 11808811249344 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 11808609922880 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 11808408596416 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 11808207269952 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 11808005943488 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 11807804617024 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 11807603290560 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 11807401964096 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 11807200637632 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 11806999311168 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 11806797984704 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 11806596658240 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 11806395331776 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 11806194005312 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 11805992678848 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 11805791352384 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 11805590025920 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 11805388695360 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 11805187368896 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 11804986042432 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 11804784715968 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 11804583389504 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 11804382063040 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 11804180736576 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 11803979410112 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 11803778083648 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 11803576757184 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 11803375430720 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 11803174104256 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 11802972777792 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 11802771451328 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 11802570124864 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 11802368798400 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 11802167471936 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 11801966145472 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 11801764819008 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 11801563492544 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 11801362166080 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 11801160839616 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 11800959513152 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 11800758186688 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 11800556860224 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 11800355533760 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 11800154207296 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 11799952880832 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 11799751554368 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 11799550227904 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 11799348901440 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 11811730667200 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 11811723982528 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.00105164
+Performance statistics:
+function                                                                                                                                                                                                                               	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 16384000, Xcols: 4, Yrows: 8192000, Ycols: 4, fast: 1)	 0.105103  	 100       	 249.416   	 0         	 748.247   	 0.333333  
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.105103  	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 8810509875008 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 8810320095168 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 8810118768704 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 8809917442240 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 8809716115776 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 8809514789312 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 8809313462848 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 8809112136384 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 8808910809920 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 8808709483456 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 8808508156992 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 8808306830528 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 8808105504064 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 8807904177600 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 8807702851136 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 8807501524672 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 8807300198208 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 8807098871744 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 8806897545280 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 8806696218816 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 8806494892352 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 8806293565888 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 8806092239424 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 8805890912960 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 8805689586496 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 8805488260032 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 8805286933568 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 8805085607104 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 8804884280640 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 8804682954176 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 8804481627712 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 8804280301248 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 8804078970688 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 8803877644224 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 8803676317760 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 8803474991296 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 8803273664832 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 8803072338368 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 8802871011904 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 8802669685440 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 8802468358976 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 8802267032512 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 8802065706048 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 8801864379584 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 8801663053120 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 8801461726656 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 8801260400192 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 8801059073728 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 8800857747264 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 8800656420800 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 8800455094336 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 8800253767872 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 8800052441408 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 8799851114944 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 8799649788480 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 8799448462016 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 8799247135552 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 8799045809088 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 8798844482624 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 8798643156160 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 8798441829696 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 8798240503232 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 8798039176768 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 8810404427456 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 8810397890240 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0011279
+Performance statistics:
+function                                                                                                                                                                                                                              	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 8192000, Xcols: 8, Yrows: 4096000, Ycols: 8, fast: 1)	 0.112735  	 100       	 465.061   	 0         	 697.591   	 0.666666  
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.112735  	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 22838198122304 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22838018828224 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 22837817501760 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 22837616175296 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 22837414848832 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 22837213522368 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 22837012195904 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 22836810869440 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 22836609542976 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 22836408216512 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 22836206890048 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 22836005563584 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 22835804237120 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 22835602910656 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 22835401584192 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 22835200257728 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22834998931264 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22834797604800 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22834596278336 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22834394951872 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22834193625408 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22833992298944 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22833790972480 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22833589646016 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22833388319552 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22833186993088 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22832985666624 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22832784340160 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22832583013696 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22832381687232 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22832180360768 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 22831979034304 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 22831777703744 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 22831576377280 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 22831375050816 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 22831173724352 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 22830972397888 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 22830771071424 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 22830569744960 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 22830368418496 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 22830167092032 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 22829965765568 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 22829764439104 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 22829563112640 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 22829361786176 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 22829160459712 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 22828959133248 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 22828757806784 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 22828556480320 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 22828355153856 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 22828153827392 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 22827952500928 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 22827751174464 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 22827549848000 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 22827348521536 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 22827147195072 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 22826945868608 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 22826744542144 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 22826543215680 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 22826341889216 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 22826140562752 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 22825939236288 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 22825737909824 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22838092674752 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 22837913966272 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.00117624
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 4096000, Xcols: 16, Yrows: 2048000, Ycols: 16, fast: 1)	 0.117567  	 100       	 891.898   	 0         	 668.924   	 1.33333   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.117567  	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 8509266573120 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 8509068404672 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 8508867078208 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 8508665751744 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 8508464425280 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 8508263098816 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 8508061772352 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 8507860445888 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 8507659119424 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 8507457792960 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 8507256466496 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 8507055140032 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 8506853813568 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 8506652487104 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 8506451160640 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 8506249834176 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 8506048507712 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 8505847181248 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 8505645854784 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 8505444528320 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 8505243201856 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 8505041875392 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 8504840548928 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 8504639222464 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 8504437896000 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 8504236569536 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 8504035243072 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 8503833916608 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 8503632590144 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 8503431263680 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 8503229937216 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 8503028610752 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 8502827280192 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 8502625953728 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 8502424627264 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 8502223300800 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 8502021974336 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 8501820647872 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 8501619321408 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 8501417994944 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 8501216668480 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 8501015342016 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 8500814015552 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 8500612689088 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 8500411362624 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 8500210036160 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 8500008709696 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 8499807383232 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 8499606056768 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 8499404730304 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 8499203403840 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 8499002077376 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 8498800750912 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 8498599424448 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 8498398097984 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 8498196771520 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 8497995445056 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 8497794118592 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 8497592792128 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 8497391465664 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 8497190139200 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 8496988812736 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 8496787486272 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 8509160888000 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 8509154203328 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.00243444
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 2048000, Xcols: 32, Yrows: 1024000, Ycols: 32, fast: 1)	 0.243389  	 100       	 861.647   	 0         	 323.119   	 2.66665   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.243389  	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 7356306929472 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 7356071012288 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 7355869685824 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 7355668359360 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 7355467032896 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 7355265706432 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 7355064379968 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 7354863053504 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 7354661727040 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 7354460400576 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 7354259074112 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 7354057747648 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 7353856421184 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 7353655094720 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 7353453768256 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 7353252441792 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 7353051115328 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 7352849788864 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 7352648462400 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 7352447135936 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 7352245809472 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 7352044483008 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 7351843156544 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 7351641830080 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 7351440503616 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 7351239177152 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 7351037850688 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 7350836524224 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 7350635197760 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 7350433871296 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 7350232544832 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 7350031218368 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 7349829887808 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 7349628561344 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 7349427234880 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 7349225908416 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 7349024581952 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 7348823255488 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 7348621929024 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 7348420602560 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 7348219276096 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 7348017949632 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 7347816623168 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 7347615296704 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 7347413970240 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 7347212643776 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 7347011317312 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 7346809990848 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 7346608664384 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 7346407337920 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 7346206011456 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 7346004684992 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 7345803358528 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 7345602032064 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 7345400705600 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 7345199379136 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 7344998052672 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 7344796726208 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 7344595399744 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 7344394073280 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 7344192746816 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 7343991420352 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 7343790093888 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 7356201481920 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 7356194973376 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.00379147
+Performance statistics:
+function                                                                                                                                                                                                                               	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1024000, Xcols: 64, Yrows: 512000, Ycols: 64, fast: 1)	 0.379092  	 100       	 1106.41   	 0         	 207.456   	 5.33322   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.379092  	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 17019978098496 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 17019747428288 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 17019546101824 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 17019344775360 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 17019143448896 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 17018942122432 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 17018740795968 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 17018539469504 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 17018338143040 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 17018136816576 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 17017935490112 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 17017734163648 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 17017532837184 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 17017331510720 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 17017130184256 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 17016928857792 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 17016727531328 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 17016526204864 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 17016324878400 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 17016123551936 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 17015922225472 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 17015720899008 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 17015519572544 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 17015318246080 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 17015116919616 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 17014915593152 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 17014714266688 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 17014512940224 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 17014311613760 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 17014110287296 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 17013908960832 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 17013707634368 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 17013506303808 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 17013304977344 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 17013103650880 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 17012902324416 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 17012700997952 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 17012499671488 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 17012298345024 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 17012097018560 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 17011895692096 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 17011694365632 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 17011493039168 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 17011291712704 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 17011090386240 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 17010889059776 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 17010687733312 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 17010486406848 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 17010285080384 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 17010083753920 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 17009882427456 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 17009681100992 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 17009479774528 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 17009278448064 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 17009077121600 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 17008875795136 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 17008674468672 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 17008473142208 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 17008271815744 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 17008070489280 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 17007869162816 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 17007667836352 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 17007466509888 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 17019873236672 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 17019866687168 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.00570138
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 512000, Xcols: 128, Yrows: 256000, Ycols: 128, fast: 1)	 0.570078  	 100       	 1471.49   	 0         	 137.963   	 10.6658   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.570078  	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 16631603377984 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 16631388432320 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 16631187105856 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 16630985779392 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 16630784452928 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 16630583126464 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 16630381800000 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 16630180473536 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 16629979147072 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 16629777820608 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 16629576494144 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 16629375167680 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 16629173841216 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 16628972514752 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 16628771188288 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 16628569861824 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 16628368535360 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 16628167208896 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 16627965882432 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 16627764555968 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 16627563229504 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 16627361903040 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 16627160576576 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 16626959250112 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 16626757923648 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 16626556597184 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 16626355270720 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 16626153944256 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 16625952617792 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 16625751291328 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 16625549964864 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 16625348638400 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 16625147307840 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 16624945981376 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 16624744654912 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 16624543328448 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 16624342001984 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 16624140675520 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 16623939349056 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 16623738022592 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 16623536696128 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 16623335369664 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 16623134043200 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 16622932716736 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 16622731390272 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 16622530063808 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 16622328737344 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 16622127410880 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 16621926084416 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 16621724757952 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 16621523431488 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 16621322105024 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 16621120778560 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 16620919452096 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 16620718125632 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 16620516799168 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 16620315472704 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 16620114146240 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 16619912819776 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 16619711493312 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 16619510166848 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 16619308840384 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 16619107513920 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 16631497930432 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 16631491393216 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0103983
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 256000, Xcols: 256, Yrows: 128000, Ycols: 256, fast: 1)	 1.03977   	 100       	 1613.55   	 0         	 75.6605   	 21.3262   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 1.03977   	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 15932712793920 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 15932516722624 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 15932315396160 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 15932114069696 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 15931912743232 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 15931711416768 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 15931510090304 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 15931308763840 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 15931107437376 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 15930906110912 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 15930704784448 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 15930503457984 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 15930302131520 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 15930100805056 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 15929899478592 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 15929698152128 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 15929496825664 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 15929295499200 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 15929094172736 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 15928892846272 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 15928691519808 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 15928490193344 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 15928288866880 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 15928087540416 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 15927886213952 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 15927684887488 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 15927483561024 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 15927282234560 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 15927080908096 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 15926879581632 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 15926678255168 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 15926476928704 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 15926275598144 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 15926074271680 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 15925872945216 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 15925671618752 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 15925470292288 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 15925268965824 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 15925067639360 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 15924866312896 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 15924664986432 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 15924463659968 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 15924262333504 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 15924061007040 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 15923859680576 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 15923658354112 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 15923457027648 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 15923255701184 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 15923054374720 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 15922853048256 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 15922651721792 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 15922450395328 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 15922249068864 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 15922047742400 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 15921846415936 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 15921645089472 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 15921443763008 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 15921242436544 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 15921041110080 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 15920839783616 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 15920638457152 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 15920437130688 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 15920235804224 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 15932607850176 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 15932601185984 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.021838
+Performance statistics:
+function                                                                                                                                                                                                                               	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 128000, Xcols: 512, Yrows: 64000, Ycols: 512, fast: 3)	 2.1837    	 100       	 1536.58   	 0         	 36.0617   	 42.6099   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 2.1837    	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 18564397381440 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 18564190824384 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 18563989497920 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 18563788171456 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 18563586844992 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 18563385518528 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 18563184192064 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 18562982865600 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 18562781539136 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 18562580212672 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 18562378886208 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 18562177559744 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 18561976233280 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 18561774906816 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 18561573580352 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 18561372253888 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 18561170927424 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 18560969600960 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 18560768274496 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 18560566948032 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 18560365621568 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 18560164295104 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 18559962968640 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 18559761642176 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 18559560315712 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 18559358989248 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 18559157662784 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 18558956336320 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 18558755009856 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 18558553683392 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 18558352356928 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 18558151030464 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 18557949699904 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 18557748373440 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 18557547046976 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 18557345720512 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 18557144394048 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 18556943067584 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 18556741741120 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 18556540414656 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 18556339088192 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 18556137761728 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 18555936435264 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 18555735108800 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 18555533782336 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 18555332455872 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 18555131129408 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 18554929802944 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 18554728476480 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 18554527150016 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 18554325823552 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 18554124497088 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 18553923170624 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 18553721844160 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 18553520517696 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 18553319191232 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 18553117864768 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 18552916538304 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 18552715211840 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 18552513885376 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 18552312558912 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 18552111232448 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 18551909905984 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 18564292519616 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 18564285990592 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0424668
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 64000, Xcols: 1024, Yrows: 32000, Ycols: 1024, fast: 3)	 4.2466    	 100       	 1580.3    	 0         	 18.6179   	 84.8806   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 4.2466    	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 15288472938304 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 15288271628224 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 15288070301760 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 15287868975296 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 15287667648832 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 15287466322368 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 15287264995904 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 15287063669440 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 15286862342976 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 15286661016512 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 15286459690048 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 15286258363584 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 15286057037120 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 15285855710656 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 15285654384192 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 15285453057728 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 15285251731264 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 15285050404800 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 15284849078336 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 15284647751872 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 15284446425408 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 15284245098944 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 15284043772480 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 15283842446016 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 15283641119552 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 15283439793088 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 15283238466624 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 15283037140160 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 15282835813696 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 15282634487232 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 15282433160768 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 15282231834304 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 15282030503744 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 15281829177280 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 15281627850816 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 15281426524352 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 15281225197888 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 15281023871424 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 15280822544960 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 15280621218496 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 15280419892032 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 15280218565568 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 15280017239104 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 15279815912640 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 15279614586176 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 15279413259712 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 15279211933248 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 15279010606784 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 15278809280320 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 15278607953856 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 15278406627392 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 15278205300928 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 15278003974464 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 15277802648000 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 15277601321536 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 15277399995072 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 15277198668608 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 15276997342144 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 15276796015680 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 15276594689216 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 15276393362752 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 15276192036288 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 15275990709824 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 15288367490752 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 15288360834752 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0841073
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 32000, Xcols: 2048, Yrows: 16000, Ycols: 2048, fast: 3)	 8.41063   	 100       	 1595.81   	 0         	 9.54993   	 167.102   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 8.41063   	 100       
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 14503512094528 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 14503299246016 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 14503097919552 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 14502896593088 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 14502695266624 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 14502493940160 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 14502292613696 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 14502091287232 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 14501889960768 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 14501688634304 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 14501487307840 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 14501285981376 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 14501084654912 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 14500883328448 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 14500682001984 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 14500480675520 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 14500279349056 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 14500078022592 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 14499876696128 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 14499675369664 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 14499474043200 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 14499272716736 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 14499071390272 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 14498870063808 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 14498668737344 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 14498467410880 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 14498266084416 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 14498064757952 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 14497863431488 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 14497662105024 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 14497460778560 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 14497259452096 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 14497058121536 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 14496856795072 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 14496655468608 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 14496454142144 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 14496252815680 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 14496051489216 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 14495850162752 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 14495648836288 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 14495447509824 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 14495246183360 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 14495044856896 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 14494843530432 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 14494642203968 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 14494440877504 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 14494239551040 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 14494038224576 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 14493836898112 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 14493635571648 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 14493434245184 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 14493232918720 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 14493031592256 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 14492830265792 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 14492628939328 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 14492427612864 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 14492226286400 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 14492024959936 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 14491823633472 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 14491622307008 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 14491420980544 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 14491219654080 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 14491018327616 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 14503407232704 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 14503400654528 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.050603
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 327680000, Xcols: 2, Yrows: 163840000, Ycols: 2, fast: 1)	 0.506016  	 10        	 25.9027   	 0         	 155.416   	 0.166667  
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.506016  	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 19539494414144 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 19539282618304 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 19539081291840 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 19538879965376 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 19538678638912 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 19538477312448 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 19538275985984 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 19538074659520 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 19537873333056 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 19537672006592 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 19537470680128 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 19537269353664 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 19537068027200 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 19536866700736 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 19536665374272 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 19536464047808 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 19536262721344 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 19536061394880 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 19535860068416 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 19535658741952 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 19535457415488 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 19535256089024 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 19535054762560 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 19534853436096 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 19534652109632 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 19534450783168 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 19534249456704 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 19534048130240 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 19533846803776 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 19533645477312 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 19533444150848 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 19533242824384 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 19533041493824 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 19532840167360 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 19532638840896 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 19532437514432 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 19532236187968 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 19532034861504 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 19531833535040 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 19531632208576 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 19531430882112 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 19531229555648 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 19531028229184 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 19530826902720 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 19530625576256 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 19530424249792 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 19530222923328 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 19530021596864 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 19529820270400 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 19529618943936 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 19529417617472 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 19529216291008 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 19529014964544 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 19528813638080 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 19528612311616 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 19528410985152 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 19528209658688 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 19528008332224 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 19527807005760 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 19527605679296 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 19527404352832 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 19527203026368 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 19527001699904 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 19539389503168 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 19539382838976 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0504575
+Performance statistics:
+function                                                                                                                                                                                                                                 	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 163840000, Xcols: 4, Yrows: 81920000, Ycols: 4, fast: 1)	 0.504563  	 10        	 51.9547   	 0         	 155.864   	 0.333333  
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.504563  	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 17567438583616 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 17567221540800 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 17567020214336 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 17566818887872 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 17566617561408 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 17566416234944 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 17566214908480 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 17566013582016 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 17565812255552 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 17565610929088 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 17565409602624 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 17565208276160 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 17565006949696 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 17564805623232 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 17564604296768 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 17564402970304 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 17564201643840 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 17564000317376 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 17563798990912 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 17563597664448 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 17563396337984 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 17563195011520 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 17562993685056 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 17562792358592 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 17562591032128 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 17562389705664 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 17562188379200 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 17561987052736 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 17561785726272 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 17561584399808 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 17561383073344 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 17561181746880 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 17560980416320 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 17560779089856 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 17560577763392 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 17560376436928 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 17560175110464 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 17559973784000 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 17559772457536 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 17559571131072 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 17559369804608 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 17559168478144 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 17558967151680 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 17558765825216 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 17558564498752 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 17558363172288 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 17558161845824 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 17557960519360 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 17557759192896 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 17557557866432 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 17557356539968 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 17557155213504 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 17556953887040 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 17556752560576 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 17556551234112 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 17556349907648 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 17556148581184 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 17555947254720 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 17555745928256 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 17555544601792 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 17555343275328 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 17555141948864 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 17554940622400 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 17567333721792 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 17567327086272 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0504892
+Performance statistics:
+function                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 81920000, Xcols: 8, Yrows: 40960000, Ycols: 8, fast: 1)	 0.504878  	 10        	 103.844   	 0         	 155.767   	 0.666667  
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.504878  	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 13599736051520 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 13599544174528 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 13599342848064 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 13599141521600 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 13598940195136 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 13598738868672 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 13598537542208 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 13598336215744 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 13598134889280 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 13597933562816 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 13597732236352 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 13597530909888 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 13597329583424 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 13597128256960 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 13596926930496 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 13596725604032 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 13596524277568 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 13596322951104 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 13596121624640 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 13595920298176 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 13595718971712 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 13595517645248 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 13595316318784 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 13595114992320 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 13594913665856 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 13594712339392 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 13594511012928 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 13594309686464 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 13594108360000 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 13593907033536 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 13593705707072 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 13593504380608 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 13593303050048 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 13593101723584 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 13592900397120 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 13592699070656 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 13592497744192 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 13592296417728 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 13592095091264 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 13591893764800 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 13591692438336 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 13591491111872 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 13591289785408 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 13591088458944 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 13590887132480 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 13590685806016 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 13590484479552 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 13590283153088 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 13590081826624 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 13589880500160 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 13589679173696 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 13589477847232 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 13589276520768 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 13589075194304 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 13588873867840 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 13588672541376 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 13588471214912 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 13588269888448 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 13588068561984 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 13587867235520 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 13587665909056 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 13587464582592 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 13587263256128 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 13599631189696 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 13599624554176 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0530457
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 40960000, Xcols: 16, Yrows: 20480000, Ycols: 16, fast: 1)	 0.530447  	 10        	 197.678   	 0         	 148.258   	 1.33333   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.530447  	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 6445432026944 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 6445202401216 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 6445001074752 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 6444799748288 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 6444598421824 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 6444397095360 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 6444195768896 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 6443994442432 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 6443793115968 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 6443591789504 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 6443390463040 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 6443189136576 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 6442987810112 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 6442786483648 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 6442585157184 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 6442383830720 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 6442182504256 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 6441981177792 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 6441779851328 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 6441578524864 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 6441377198400 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 6441175871936 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 6440974545472 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 6440773219008 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 6440571892544 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 6440370566080 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 6440169239616 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 6439967913152 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 6439766586688 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 6439565260224 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 6439363933760 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 6439162607296 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 6438961276736 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 6438759950272 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 6438558623808 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 6438357297344 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 6438155970880 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 6437954644416 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 6437753317952 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 6437551991488 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 6437350665024 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 6437149338560 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 6436948012096 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 6436746685632 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 6436545359168 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 6436344032704 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 6436142706240 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 6435941379776 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 6435740053312 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 6435538726848 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 6435337400384 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 6435136073920 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 6434934747456 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 6434733420992 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 6434532094528 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 6434330768064 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 6434129441600 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 6433928115136 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 6433726788672 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 6433525462208 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 6433324135744 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 6433122809280 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 6432921482816 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 6445326579392 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 6445320337088 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0508555
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 20480000, Xcols: 32, Yrows: 10240000, Ycols: 32, fast: 1)	 0.508542  	 10        	 412.385   	 0         	 154.645   	 2.66667   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.508542  	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 9969570133824 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 9969357285312 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 9969155958848 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 9968954632384 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 9968753305920 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 9968551979456 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 9968350652992 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 9968149326528 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 9967948000064 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 9967746673600 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 9967545347136 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 9967344020672 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 9967142694208 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 9966941367744 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 9966740041280 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 9966538714816 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 9966337388352 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 9966136061888 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 9965934735424 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 9965733408960 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 9965532082496 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 9965330756032 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 9965129429568 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 9964928103104 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 9964726776640 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 9964525450176 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 9964324123712 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 9964122797248 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 9963921470784 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 9963720144320 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 9963518817856 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 9963317491392 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 9963116160832 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 9962914834368 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 9962713507904 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 9962512181440 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 9962310854976 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 9962109528512 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 9961908202048 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 9961706875584 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 9961505549120 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 9961304222656 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 9961102896192 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 9960901569728 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 9960700243264 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 9960498916800 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 9960297590336 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 9960096263872 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 9959894937408 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 9959693610944 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 9959492284480 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 9959290958016 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 9959089631552 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 9958888305088 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 9958686978624 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 9958485652160 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 9958284325696 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 9958082999232 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 9957881672768 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 9957680346304 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 9957479019840 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 9957277693376 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 9957076366912 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 9969464374976 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 9969457710784 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.061518
+Performance statistics:
+function                                                                                                                                                                                                                                 	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 10240000, Xcols: 64, Yrows: 5120000, Ycols: 64, fast: 1)	 0.615168  	 10        	 681.814   	 0         	 127.84    	 5.33332   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.615168  	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 15024005293888 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 15023795595200 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 15023594268736 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 15023392942272 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 15023191615808 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 15022990289344 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 15022788962880 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 15022587636416 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 15022386309952 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 15022184983488 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 15021983657024 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 15021782330560 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 15021581004096 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 15021379677632 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 15021178351168 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 15020977024704 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 15020775698240 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 15020574371776 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 15020373045312 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 15020171718848 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 15019970392384 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 15019769065920 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 15019567739456 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 15019366412992 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 15019165086528 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 15018963760064 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 15018762433600 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 15018561107136 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 15018359780672 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 15018158454208 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 15017957127744 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 15017755801280 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 15017554470720 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 15017353144256 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 15017151817792 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 15016950491328 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 15016749164864 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 15016547838400 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 15016346511936 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 15016145185472 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 15015943859008 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 15015742532544 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 15015541206080 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 15015339879616 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 15015138553152 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 15014937226688 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 15014735900224 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 15014534573760 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 15014333247296 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 15014131920832 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 15013930594368 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 15013729267904 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 15013527941440 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 15013326614976 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 15013125288512 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 15012923962048 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 15012722635584 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 15012521309120 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 15012319982656 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 15012118656192 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 15011917329728 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 15011716003264 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 15011514676800 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 15023899846336 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 15023893415616 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.0682932
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 5120000, Xcols: 128, Yrows: 2560000, Ycols: 128, fast: 1)	 0.68292   	 10        	 1228.34   	 0         	 115.158   	 10.6666   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 0.68292   	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 21399548700480 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 21399339001792 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 21399137675328 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 21398936348864 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 21398735022400 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 21398533695936 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 21398332369472 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 21398131043008 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 21397929716544 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 21397728390080 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 21397527063616 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 21397325737152 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 21397124410688 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 21396923084224 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 21396721757760 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 21396520431296 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 21396319104832 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 21396117778368 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 21395916451904 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 21395715125440 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 21395513798976 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 21395312472512 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 21395111146048 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 21394909819584 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 21394708493120 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 21394507166656 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 21394305840192 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 21394104513728 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 21393903187264 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 21393701860800 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 21393500534336 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 21393299207872 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 21393097877312 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 21392896550848 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 21392695224384 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 21392493897920 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 21392292571456 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 21392091244992 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 21391889918528 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 21391688592064 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 21391487265600 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 21391285939136 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 21391084612672 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 21390883286208 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 21390681959744 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 21390480633280 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 21390279306816 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 21390077980352 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 21389876653888 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 21389675327424 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 21389474000960 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 21389272674496 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 21389071348032 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 21388870021568 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 21388668695104 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 21388467368640 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 21388266042176 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 21388064715712 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 21387863389248 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 21387662062784 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 21387460736320 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 21387259409856 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 21387058083392 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 21399443838656 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 21399437153984 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.102199
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 2560000, Xcols: 256, Yrows: 1280000, Ycols: 256, fast: 1)	 1.02198   	 10        	 1641.64   	 0         	 76.9544   	 21.3326   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 1.02198   	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 12702580717376 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 12702365771712 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 12702164445248 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 12701963118784 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 12701761792320 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 12701560465856 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 12701359139392 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 12701157812928 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 12700956486464 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 12700755160000 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 12700553833536 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 12700352507072 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 12700151180608 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 12699949854144 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 12699748527680 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 12699547201216 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 12699345874752 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 12699144548288 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 12698943221824 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 12698741895360 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 12698540568896 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 12698339242432 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 12698137915968 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 12697936589504 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 12697735263040 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 12697533936576 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 12697332610112 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 12697131283648 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 12696929957184 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 12696728630720 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 12696527304256 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 12696325977792 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 12696124647232 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 12695923320768 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 12695721994304 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 12695520667840 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 12695319341376 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 12695118014912 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 12694916688448 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 12694715361984 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 12694514035520 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 12694312709056 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 12694111382592 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 12693910056128 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 12693708729664 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 12693507403200 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 12693306076736 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 12693104750272 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 12692903423808 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 12692702097344 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 12692500770880 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 12692299444416 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 12692098117952 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 12691896791488 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 12691695465024 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 12691494138560 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 12691292812096 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 12691091485632 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 12690890159168 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 12690688832704 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 12690487506240 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 12690286179776 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 12690084853312 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 12702475097792 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 12702468437696 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.223368
+Performance statistics:
+function                                                                                                                                                                                                                                 	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 1280000, Xcols: 512, Yrows: 640000, Ycols: 512, fast: 3)	 2.23366   	 10        	 1502.22   	 0         	 35.2129   	 42.661    
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 2.23366   	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 22266311063360 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 22266117089216 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 22265915762752 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 22265714436288 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 22265513109824 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 22265311783360 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 22265110456896 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 22264909130432 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 22264707803968 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 22264506477504 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 22264305151040 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 22264103824576 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 22263902498112 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 22263701171648 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 22263499845184 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 22263298518720 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 22263097192256 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 22262895865792 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 22262694539328 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 22262493212864 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 22262291886400 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 22262090559936 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 22261889233472 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 22261687907008 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 22261486580544 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 22261285254080 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 22261083927616 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 22260882601152 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 22260681274688 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 22260479948224 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 22260278621760 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 22260077295296 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 22259875964736 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 22259674638272 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 22259473311808 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 22259271985344 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 22259070658880 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 22258869332416 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 22258668005952 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 22258466679488 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 22258265353024 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 22258064026560 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 22257862700096 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 22257661373632 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 22257460047168 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 22257258720704 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 22257057394240 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 22256856067776 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 22256654741312 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 22256453414848 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 22256252088384 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 22256050761920 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 22255849435456 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 22255648108992 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 22255446782528 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 22255245456064 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 22255044129600 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 22254842803136 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 22254641476672 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 22254440150208 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 22254238823744 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 22254037497280 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 22253836170816 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 22266206201536 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 22266199590592 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.430722
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 640000, Xcols: 1024, Yrows: 320000, Ycols: 1024, fast: 3)	 4.30721   	 10        	 1558.06   	 0         	 18.2683   	 85.2878   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 4.30721   	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 8406537582400 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 8406324733888 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 8406123407424 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 8405922080960 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 8405720754496 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 8405519428032 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 8405318101568 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 8405116775104 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 8404915448640 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 8404714122176 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 8404512795712 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 8404311469248 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 8404110142784 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 8403908816320 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 8403707489856 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 8403506163392 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 8403304836928 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 8403103510464 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 8402902184000 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 8402700857536 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 8402499531072 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 8402298204608 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 8402096878144 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 8401895551680 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 8401694225216 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 8401492898752 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 8401291572288 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 8401090245824 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 8400888919360 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 8400687592896 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 8400486266432 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 8400284939968 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 8400083609408 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 8399882282944 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 8399680956480 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 8399479630016 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 8399278303552 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 8399076977088 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 8398875650624 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 8398674324160 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 8398472997696 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 8398271671232 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 8398070344768 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 8397869018304 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 8397667691840 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 8397466365376 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 8397265038912 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 8397063712448 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 8396862385984 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 8396661059520 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 8396459733056 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 8396258406592 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 8396057080128 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 8395855753664 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 8395654427200 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 8395453100736 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 8395251774272 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 8395050447808 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 8394849121344 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 8394647794880 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 8394446468416 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 8394245141952 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 8394043815488 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 8406432134848 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 8406425872064 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-78-g0790613-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+wtime: 0.854007
+Performance statistics:
+function                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double](Xrows: 320000, Xcols: 2048, Yrows: 160000, Ycols: 2048, fast: 3)	 8.54006   	 10        	 1571.63   	 0         	 9.22839   	 170.303   
+Timing statistics:
+function                                                                                                                                                                 	 time [s]  	 #calls    
+<PITTS::MultiVector<double>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = double]	 8.54006   	 10        
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
