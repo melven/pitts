@@ -219,7 +219,7 @@ namespace PITTS
         auto mapR = ConstEigenMap(R);
 
 #ifndef PITTS_DIRECT_MKL_GEMM
-        mapBuff = mapBuff * mapR.template triangularView<Eigen::Upper>().transpose();
+        mapBuff = mapBuff * mapR.transpose().template triangularView<Eigen::Lower>();
 #else
         internal::cblas_trmm_mapper(CblasColMajor, CblasRight, CblasUpper, CblasTrans, CblasNonUnit, mapBuff.rows(), mapBuff.cols(), T(1), mapR.data(), mapR.colStride(), mapBuff.data(), mapBuff.colStride());
 #endif
