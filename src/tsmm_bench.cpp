@@ -11,6 +11,7 @@
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_transform.hpp"
 #include "pitts_multivector_random.hpp"
+#include "pitts_performance.hpp"
 #include <iostream>
 #include <charconv>
 #include <stdexcept>
@@ -48,6 +49,11 @@ int main(int argc, char* argv[])
   PITTS::Tensor2<Type> M(m, k);
   randomize(X);
   randomize(M);
+
+  transform(X, M, Y, {n_, m_});
+  transform(X, M, Y, {n_, m_});
+
+  PITTS::performance::clearStatistics();
 
   double wtime = omp_get_wtime();
   for(int iter = 0; iter < nIter; iter++)

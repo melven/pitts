@@ -153,49 +153,74 @@ namespace PITTS
           );
       
       using mat = Eigen::MatrixX<T>;
-
-#pragma omp parallel
+      const double Ic = (2.*xn*r*m*yn*rA) / (8.*xn*r*m + 8.*yn*m*rA + 8.*yn*xn*r*rA);
+      if( Ic > 200 )
       {
-        const long long blockSize = 64;
-        const auto [iThread, nThreads] = parallel::ompThreadInfo();
-        //const auto [xnrFirst, xnrLast] = parallel::distribute(xn*r, {iThread, nThreads});
-        const auto [xnrFirstBlock, xnrLastBlock] = parallel::distribute(((xn*r)-1)/blockSize+1, {iThread, nThreads});
-        const auto xnrFirst = xnrFirstBlock*blockSize;
-        const auto xnrLast = std::min(xnrLastBlock*blockSize+blockSize-1, xn*r-1);
-        const auto xnrLocal = xnrLast - xnrFirst + 1;
-        const double Ic = (2.*xn*r*m*rA) / (8.*xn*r*m + 8.*yn*m*rA + 8.*yn*xn*r*rA);
-        auto bs = blockSize;
-        if( Ic > 25 )
+        // just let MKL / BLAS do its job for sufficiently compute-bound cases
+        for(long long iA = 0; iA < rA; iA++)
         {
-          while( bs < 2*m )
-            bs *= 2;
-          if( bs > xnrLocal/3 )
-            bs = xnrLocal;
-        }
-        for(long long ib = xnrFirst; ib <= xnrLast; ib+=bs)
-        {
-          const auto xnrRemain = std::min(xnrLast-ib+1, bs);
-          for(long long iA = 0; iA < rA; iA++)
-          {
-            const auto xstride = Eigen::OuterStride<>(xn*r);
-            const auto ystride = Eigen::OuterStride<>(yn);
-            const auto Astride = Eigen::OuterStride<>(&A(0,1) - &A(0,0));
+          const auto xstride = Eigen::OuterStride<>(xn*r);
+          const auto ystride = Eigen::OuterStride<>(yn);
+          const auto Astride = Eigen::OuterStride<>(&A(0,1) - &A(0,0));
 
-            using map = Eigen::Map<mat, Eigen::Unaligned, Eigen::OuterStride<>>;
-            using const_map = Eigen::Map<const mat, Eigen::Unaligned, Eigen::OuterStride<>>;
+          using map = Eigen::Map<mat, Eigen::Unaligned, Eigen::OuterStride<>>;
+          using const_map = Eigen::Map<const mat, Eigen::Unaligned, Eigen::OuterStride<>>;
 
-            const_map mapx(&x(ib,0), xnrRemain, m, xstride);
-            const_map mapA(&A(0,m*iA), yn, m, Astride);
-            //const_map mapA(&A(0,yn*iA), m, yn, Astride);
-            map mapy(&y(yn*ib+yn*r*xn*iA,0), yn, xnrRemain, ystride);
+          const_map mapx(&x(0,0), xn*r, m, xstride);
+          const_map mapA(&A(0,m*iA), yn, m, Astride);
+          map mapy(&y(yn*r*xn*iA,0), yn, xn*r, ystride);
 
 #ifndef PITTS_DIRECT_MKL_GEMM
-            //mapy.noalias() = mapA.transpose() * mapx.transpose();
-            mapy.noalias() = mapA * mapx.transpose();
+          mapy.noalias() = mapA * mapx.transpose();
 #else
-            cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
-            //cblas_gemm_mapper(CblasColMajor, CblasTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
+          cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
 #endif
+        }
+      }
+      else
+      {
+#pragma omp parallel
+        {
+          const long long blockSize = 64;
+          const auto [iThread, nThreads] = parallel::ompThreadInfo();
+          //const auto [xnrFirst, xnrLast] = parallel::distribute(xn*r, {iThread, nThreads});
+          const auto [xnrFirstBlock, xnrLastBlock] = parallel::distribute(((xn*r)-1)/blockSize+1, {iThread, nThreads});
+          const auto xnrFirst = xnrFirstBlock*blockSize;
+          const auto xnrLast = std::min(xnrLastBlock*blockSize+blockSize-1, xn*r-1);
+          const auto xnrLocal = xnrLast - xnrFirst + 1;
+          auto bs = blockSize;
+          if( Ic > 25 )
+          {
+            while( bs < 2*m )
+              bs *= 2;
+            if( bs > xnrLocal/3 )
+              bs = xnrLocal;
+          }
+          for(long long ib = xnrFirst; ib <= xnrLast; ib+=bs)
+          {
+            const auto xnrRemain = std::min(xnrLast-ib+1, bs);
+            for(long long iA = 0; iA < rA; iA++)
+            {
+              const auto xstride = Eigen::OuterStride<>(xn*r);
+              const auto ystride = Eigen::OuterStride<>(yn);
+              const auto Astride = Eigen::OuterStride<>(&A(0,1) - &A(0,0));
+
+              using map = Eigen::Map<mat, Eigen::Unaligned, Eigen::OuterStride<>>;
+              using const_map = Eigen::Map<const mat, Eigen::Unaligned, Eigen::OuterStride<>>;
+
+              const_map mapx(&x(ib,0), xnrRemain, m, xstride);
+              const_map mapA(&A(0,m*iA), yn, m, Astride);
+              //const_map mapA(&A(0,yn*iA), m, yn, Astride);
+              map mapy(&y(yn*ib+yn*r*xn*iA,0), yn, xnrRemain, ystride);
+
+#ifndef PITTS_DIRECT_MKL_GEMM
+              //mapy.noalias() = mapA.transpose() * mapx.transpose();
+              mapy.noalias() = mapA * mapx.transpose();
+#else
+              cblas_gemm_mapper(CblasColMajor, CblasNoTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
+              //cblas_gemm_mapper(CblasColMajor, CblasTrans, CblasTrans, mapy.rows(), mapy.cols(), m, T(1), mapA.data(), mapA.colStride(), mapx.data(), mapx.colStride(), T(0), mapy.data(), mapy.colStride());
+#endif
+            }
           }
         }
       }

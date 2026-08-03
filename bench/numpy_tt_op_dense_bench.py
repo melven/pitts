@@ -7,7 +7,7 @@ import functools
 import timeit
 import argparse
 import numpy as np
-#import opt_einsum as oe
+import opt_einsum as oe
 
 
 def timer(func):
@@ -21,12 +21,23 @@ def timer(func):
         return value
     return wrapper_fun
 
-@timer
-def tt_op_apply_numpy(A1, A2, A3, X, Y, nIter=1):
-    for i in range(nIter):
-        np.einsum('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, out=Y, optimize=True)
-        oe.contract('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, out=Y, optimize=True)
+def tt_op_apply_numpy_einsum_path(A1, A2, A3, X, Y):
+    path = np.einsum_path('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, optimize='optimal')
+    print('path:\n', *path)
 
+def tt_op_apply_opt_einsum_path(A1, A2, A3, X, Y):
+    path = oe.contract_path('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, optimize='optimal')
+    print('path:\n', *path)
+
+@timer
+def tt_op_apply_numpy_einsum(A1, A2, A3, X, Y, nIter=1):
+    for i in range(nIter):
+        np.einsum('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, out=Y, optimize='optimal')
+
+@timer
+def tt_op_apply_opt_einsum(A1, A2, A3, X, Y, nIter=1):
+    for i in range(nIter):
+        oe.contract('ijk,klmn,nop,jmp->ilo', A1, A2, A3, X, out=Y, optimize='optimal')
 
 @timer
 def random(shape):
@@ -48,8 +59,16 @@ def main():
     A2 = random([args.rOp, args.n, args.n, args.rOp])
     A3 = random([args.rOp, args.r, args.r])
     Y = random([args.r, args.n, args.r])
-    tt_op_apply_numpy(A1, A2, A3, X, Y, nIter=args.nIter)
-    tt_op_apply_numpy(A1, A2, A3, X, Y, nIter=args.nIter)
+
+    #tt_op_apply_numpy_einsum_path(A1, A2, A3, X, Y)
+    #tt_op_apply_opt_einsum_path(A1, A2, A3, X, Y)
+
+    #tt_op_apply_numpy_einsum(A1, A2, A3, X, Y, nIter=args.nIter)
+    #tt_op_apply_numpy_einsum(A1, A2, A3, X, Y, nIter=args.nIter)
+    #tt_op_apply_numpy_einsum(A1, A2, A3, X, Y, nIter=args.nIter)
+    tt_op_apply_opt_einsum(A1, A2, A3, X, Y, nIter=args.nIter)
+    tt_op_apply_opt_einsum(A1, A2, A3, X, Y, nIter=args.nIter)
+    tt_op_apply_opt_einsum(A1, A2, A3, X, Y, nIter=args.nIter)
 
 
 if __name__ == '__main__':

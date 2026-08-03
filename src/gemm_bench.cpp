@@ -19,6 +19,7 @@
 namespace
 {
   using namespace PITTS;
+
   template<typename T>
   void gemm_unpadded(const Tensor2<T>& A, const Tensor2<T>& B, Tensor2<T>& C)
   {
@@ -40,7 +41,6 @@ namespace
 #endif
   }
 
-  using namespace PITTS;
   template<typename T>
   void gemm_padded(const MultiVector<T>& X, const MultiVector<T>& Y, MultiVector<T>& Z)
   {
@@ -62,6 +62,26 @@ namespace
 #endif
   }
 
+  template<typename T>
+  void gemm_padded_except_second(const MultiVector<T>& X, const Tensor2<T>& Y, MultiVector<T>& Z)
+  {
+    // check dimensions
+    if( X.cols() != Y.r1() || X.rows() != Z.rows() || Z.cols() != Y.r2() )
+      throw std::invalid_argument("gemm_padded_except_second: dimension mismatch!");
+
+    // gather performance data
+    const auto timer = PITTS::performance::createScopedTimer<MultiVector<T>>(
+        {{"n", "m", "k"},{X.rows(),X.cols(),Z.cols()}}, // arguments
+        {{(double(X.rows())*Y.r1()*Y.r2())*kernel_info::FMA<T>()}, // flops
+         {(double(X.rows())*X.cols() + Y.r1()*Y.r2())*kernel_info::Load<T>() + (double(X.rows())*Y.r2())*kernel_info::Store<T>()}} // data transfers
+        );
+    
+#ifndef PITTS_DIRECT_MKL_GEMM
+    EigenMap(Z).noalias() = ConstEigenMap(X) * ConstEigenMap(Y);
+#else
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, X.colStrideChunks()*Chunk<T>::size, Y.r2(), X.cols(), 1., &X(0,0), X.colStrideChunks()*Chunk<T>::size, &Y(0,0), Y.r2(), 0., &Z(0,0), Z.colStrideChunks()*Chunk<T>::size);
+#endif
+  }
 }
 
 
@@ -86,13 +106,19 @@ int main(int argc, char* argv[])
   randomize(mvZ);
 
   PITTS::Tensor2<Type> t2A(n,m), t2B(m,k), t2C(n,k);
+  randomize(t2A);
+  randomize(t2B);
+  randomize(t2C);
 
   // allow MKL to initialize stuff (slow/costly)
+  gemm_padded(mvX, mvY, mvZ);
+  gemm_padded(mvX, mvY, mvZ);
+
   gemm_unpadded(t2A, t2B, t2C);
   gemm_unpadded(t2A, t2B, t2C);
 
-  gemm_padded(mvX, mvY, mvZ);
-  gemm_padded(mvX, mvY, mvZ);
+  gemm_padded_except_second(mvX, t2B, mvZ);
+  gemm_padded_except_second(mvX, t2B, mvZ);
 
   PITTS::performance::clearStatistics();
 
@@ -112,6 +138,15 @@ int main(int argc, char* argv[])
 
   wtime = (omp_get_wtime() - wtime) / nIter;
   std::cout << "gemm_padded: " << wtime << std::endl;
+
+  wtime = omp_get_wtime();
+
+  for(int iter = 0; iter < nIter; iter++)
+    gemm_padded_except_second(mvX, t2B, mvZ);
+
+  wtime = (omp_get_wtime() - wtime) / nIter;
+  std::cout << "gemm_padded_except_second: " << wtime << std::endl;
+
 
 
   PITTS::finalize();

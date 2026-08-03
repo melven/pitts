@@ -37,7 +37,7 @@ namespace PITTS
       reshape = std::array<long long,2>{X.cols(), X.rows()};
 
     if( reshape[0] * reshape[1] != X.rows()*X.cols() )
-      throw std::invalid_argument("MultiVector::transform: invalid reshape dimensions!");
+      throw std::invalid_argument("MultiVector::transpose: invalid reshape dimensions!");
 
 
     // gather performance data

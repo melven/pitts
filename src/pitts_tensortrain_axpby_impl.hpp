@@ -34,16 +34,14 @@ namespace PITTS
     {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const std::vector<int>& x_dim = TTx.dimensions();
-        const std::vector<int>& y_dim = TTy.dimensions();
-        const int& d = x_dim.size(); // order d
+        const int& d = TTx.dimensions().size(); // order d
 
         TT_Orthogonality x_ortho = TTx.isOrthogonal();
         TT_Orthogonality y_ortho = TTy.isOrthogonal();
 
         // check that dimensions match
 
-        if (x_dim != y_dim)
+        if (TTx.dimensions() != TTy.dimensions())
             throw std::invalid_argument("TensorTrain axpby dimension mismatch!");
     
         if( TTx.subTensor(0).r1() != TTy.subTensor(0).r1() || TTx.subTensor(d-1).r2() != TTy.subTensor(d-1).r2() )
@@ -102,8 +100,10 @@ namespace PITTS
         else if (x_ortho != TT_Orthogonality::none && y_ortho != TT_Orthogonality::none)
         {
             // both tensors are normalized
-            const int x_max_rank = *std::max_element(x_dim.begin(), x_dim.end());
-            const int y_max_rank = *std::max_element(y_dim.begin(), y_dim.end());
+            const auto& x_ranks = TTx.getTTranks();
+            const auto& y_ranks = TTy.getTTranks();
+            const int x_max_rank = *std::max_element(x_ranks.begin(), x_ranks.end());
+            const int y_max_rank = *std::max_element(y_ranks.begin(), y_ranks.end());
             if (x_max_rank >= y_max_rank)
             {
                 gamma = internal::axpby_normalized(alpha, TTx, beta, TTy, rankTolerance, maxRank);

@@ -9,8 +9,7 @@
 #SBATCH --output="%x-%j.out"
 
 
-# module load PrgEnv/gcc13-openmpi-python
-export PYTHONPATH=$PYTHONPATH:~/pitts/build_gcc_amd/src/:~/pitts/examples/
+export PYTHONPATH=$PYTHONPATH:~/pitts/build_spack-26.1/src/:~/pitts/examples/
 export PYTHONUNBUFFERED=1
 ulimit -s unlimited
 export OMP_STACKSIZE=100M

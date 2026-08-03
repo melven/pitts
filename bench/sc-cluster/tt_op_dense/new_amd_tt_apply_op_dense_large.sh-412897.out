@@ -1,0 +1,1100 @@
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 8266182534976 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 8266000099264 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 8265798772800 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 8265597446336 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 8265396119872 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 8265194793408 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 8264993466944 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 8264792140480 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 8264590814016 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 8264389487552 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 8264188161088 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 8263986834624 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 8263785508160 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 8263584181696 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 8263382855232 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 8263181528768 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 8262980202304 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 8262778875840 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 8262577549376 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 8262376222912 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 8262174896448 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 8261973569984 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 8261772243520 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 8261570917056 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 8261369590592 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 8261168264128 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 8260966937664 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 8260765611200 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 8260564284736 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 8260362958272 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 8260161631808 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 8259960305344 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 8259758974784 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 8259557648320 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 8259356321856 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 8259154995392 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 8258953668928 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 8258752342464 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 8258551016000 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 8258349689536 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 8258148363072 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 8257947036608 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 8257745710144 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 8257544383680 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 8257343057216 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 8257141730752 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 8256940404288 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 8256739077824 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 8256537751360 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 8256336424896 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 8256135098432 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 8255933771968 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 8255732445504 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 8255531119040 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 8255329792576 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 8255128466112 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 8254927139648 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 8254725813184 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 8254524486720 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 8254323160256 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 8254121833792 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 8253920507328 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 8253719180864 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 8266077087424 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 8266070546112 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 5000, n_right: 1, m: 5000, r1: 2)	 0.128656  	 3         	 4.6636    	 0         	 18.6581   	 0.24995   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 1, m: 10000, rA: 2, r: 1)                           	 0.0757915 	 3         	 7.91645   	 0         	 31.6721   	 0.24995   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 5000, r2: 1, n: 1, n_right: 1, m: 1, r1: 2)   	 0.00687772	 3         	 0.00872382	 0         	 0.0523499 	 0.166644  
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 5000, cols: 1)                                                                                                                                                                           	 0.00116412	 2         	 0         	 0         	 0.0687212 	 0         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 1, xn: 1, m: 1, rA: 2, r: 5000)                               	 0.000158955	 3         	 0.377465  	 0         	 2.26509   	 0.166644  
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 1, n_right: 5000, m: 1, r1: 1)   	 3.108e-05 	 3         	 1.9305    	 0         	 11.5846   	 0.166644  
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 1, xn: 5000, m: 2, rA: 1, r: 1)                               	 1.9011e-05	 3         	 3.15607   	 0         	 18.9389   	 0.166644  
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.26395   	 3         
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 0.13558   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 0.135565  	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 0.0759882 	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 0.0759695 	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0657897 	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.03848   	 16        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.00116412	 2         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000121223	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 1.2e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 14253069150016 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 14252848965568 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 14252647639104 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 14252446312640 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 14252244986176 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 14252043659712 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 14251842333248 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 14251641006784 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 14251439680320 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 14251238353856 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 14251037027392 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 14250835700928 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 14250634374464 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 14250433048000 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 14250231721536 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 14250030395072 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 14249829068608 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 14249627742144 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 14249426415680 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 14249225089216 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 14249023762752 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 14248822436288 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 14248621109824 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 14248419783360 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 14248218456896 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 14248017130432 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 14247815803968 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 14247614477504 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 14247413151040 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 14247211824576 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 14247010498112 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 14246809171648 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 14246607841088 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 14246406514624 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 14246205188160 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 14246003861696 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 14245802535232 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 14245601208768 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 14245399882304 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 14245198555840 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 14244997229376 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 14244795902912 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 14244594576448 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 14244393249984 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 14244191923520 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 14243990597056 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 14243789270592 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 14243587944128 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 14243386617664 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 14243185291200 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 14242983964736 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 14242782638272 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 14242581311808 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 14242379985344 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 14242178658880 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 14241977332416 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 14241776005952 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 14241574679488 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 14241373353024 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 14241172026560 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 14240970700096 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 14240769373632 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 14240568047168 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 14252964288192 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 14252957652672 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                  	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 50, r2: 2, n: 5000, n_right: 50, m: 5000, r1: 2)	 1.0249    	 3         	 1463.56   	 0         	 3.51254   	 416.667   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 50, m: 10000, rA: 2, r: 50)                           	 0.716086  	 3         	 2094.72   	 0         	 5.02733   	 416.667   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 250000, r2: 1, n: 50, n_right: 1, m: 50, r1: 2) 	 0.046666  	 3         	 160.717   	 0         	 19.2886   	 8.33222   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 12500000, cols: 1)                                                                                                                                                                         	 0.0159124 	 2         	 0         	 0         	 12.5688   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 50, xn: 50, m: 50, rA: 2, r: 5000)                              	 0.0144588 	 3         	 518.716   	 0         	 62.2543   	 8.33222   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 50, n_right: 250000, m: 50, r1: 1) 	 0.00783776	 3         	 956.906   	 0         	 114.844   	 8.33222   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 50, xn: 5000, m: 100, rA: 1, r: 50)                             	 0.00727122	 3         	 1031.46   	 0         	 123.792   	 8.33222   
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.33168   	 3         
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 1.14755   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 1.0794    	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 0.737879  	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 0.737816  	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0870831 	 1         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.0635326 	 16        
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.0159124 	 2         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000131214	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 3.3e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 20180558128960 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 20180373596096 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 20180172269632 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 20179970943168 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 20179769616704 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 20179568290240 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 20179366963776 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 20179165637312 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 20178964310848 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 20178762984384 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 20178561657920 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 20178360331456 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 20178159004992 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 20177957678528 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 20177756352064 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 20177555025600 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 20177353699136 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 20177152372672 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 20176951046208 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 20176749719744 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 20176548393280 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 20176347066816 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 20176145740352 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 20175944413888 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 20175743087424 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 20175541760960 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 20175340434496 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 20175139108032 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 20174937781568 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 20174736455104 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 20174535128640 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 20174333802176 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 20174132471616 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 20173931145152 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 20173729818688 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 20173528492224 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 20173327165760 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 20173125839296 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 20172924512832 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 20172723186368 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 20172521859904 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 20172320533440 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 20172119206976 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 20171917880512 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 20171716554048 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 20171515227584 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 20171313901120 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 20171112574656 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 20170911248192 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 20170709921728 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 20170508595264 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 20170307268800 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 20170105942336 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 20169904615872 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 20169703289408 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 20169501962944 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 20169300636480 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 20169099310016 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 20168897983552 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 20168696657088 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 20168495330624 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 20168294004160 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 20168092677696 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 20180452542144 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 20180445853376 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 100, r2: 2, n: 5000, n_right: 100, m: 5000, r1: 2)	 4.06946   	 3         	 1474.4    	 0         	 1.76927   	 833.333   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 100, m: 10000, rA: 2, r: 100)                           	 3.14631   	 3         	 1907      	 0         	 2.2884    	 833.333   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 500000, r2: 1, n: 100, n_right: 1, m: 100, r1: 2) 	 0.138261  	 3         	 433.963   	 0         	 26.0412   	 16.6644   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 100, xn: 100, m: 100, rA: 2, r: 5000)                             	 0.0589074 	 3         	 1018.55   	 0         	 61.121    	 16.6644   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 50000000, cols: 1)                                                                                                                                                                           	 0.0588044 	 2         	 0         	 0         	 13.6044   	 0         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 100, n_right: 500000, m: 100, r1: 1) 	 0.0447079 	 3         	 1342.05   	 0         	 80.5335   	 16.6644   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 100, xn: 5000, m: 200, rA: 1, r: 100)                             	 0.0416382 	 3         	 1440.98   	 0         	 86.4705   	 16.6644   
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 4.49003   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 4.25243   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 3.24693   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 3.24685   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.26409   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.0791263 	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0760128 	 1         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.0588044 	 2         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000128883	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 3.9e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 18839060326208 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 18838867404736 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 18838666078272 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 18838464751808 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 18838263425344 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 18838062098880 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 18837860772416 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 18837659445952 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 18837458119488 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 18837256793024 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 18837055466560 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 18836854140096 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 18836652813632 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 18836451487168 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 18836250160704 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 18836048834240 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 18835847507776 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 18835646181312 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 18835444854848 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 18835243528384 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 18835042201920 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 18834840875456 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 18834639548992 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 18834438222528 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 18834236896064 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 18834035569600 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 18833834243136 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 18833632916672 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 18833431590208 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 18833230263744 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 18833028937280 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 18832827610816 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 18832626280256 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 18832424953792 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 18832223627328 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 18832022300864 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 18831820974400 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 18831619647936 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 18831418321472 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 18831216995008 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 18831015668544 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 18830814342080 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 18830613015616 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 18830411689152 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 18830210362688 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 18830009036224 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 18829807709760 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 18829606383296 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 18829405056832 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 18829203730368 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 18829002403904 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 18828801077440 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 18828599750976 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 18828398424512 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 18828197098048 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 18827995771584 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 18827794445120 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 18827593118656 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 18827391792192 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 18827190465728 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 18826989139264 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 18826787812800 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 18826586486336 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 18838954878656 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 18838948189888 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 150, r2: 2, n: 5000, n_right: 150, m: 5000, r1: 2)	 8.39187   	 3         	 1608.7    	 0         	 1.57295   	 1022.73   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 150, m: 10000, rA: 2, r: 150)                           	 6.15823   	 3         	 2192.19   	 0         	 2.14347   	 1022.73   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 750000, r2: 1, n: 150, n_right: 1, m: 150, r1: 2) 	 0.312819  	 3         	 647.34    	 0         	 25.8971   	 24.9967   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 150, xn: 150, m: 150, rA: 2, r: 5000)                             	 0.153549  	 3         	 1318.8    	 0         	 52.759    	 24.9967   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 150, n_right: 750000, m: 150, r1: 1) 	 0.151447  	 3         	 1337.1    	 0         	 53.4912   	 24.9967   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 112500000, cols: 1)                                                                                                                                                                          	 0.131296  	 2         	 0         	 0         	 13.7095   	 0         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 150, xn: 5000, m: 300, rA: 1, r: 150)                             	 0.123234  	 3         	 1643.21   	 0         	 65.7371   	 24.9967   
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 9.33934   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 8.85614   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 6.43509   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 6.43501   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.27231   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.131296  	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.111124  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0704193 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000168905	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 4.8e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 23426506925888 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 23426295130048 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 23426093803584 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 23425892477120 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 23425691150656 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 23425489824192 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 23425288497728 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 23425087171264 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 23424885844800 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 23424684518336 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 23424483191872 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 23424281865408 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 23424080538944 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 23423879212480 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 23423677886016 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 23423476559552 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 23423275233088 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 23423073906624 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 23422872580160 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 23422671253696 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 23422469927232 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 23422268600768 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 23422067274304 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 23421865947840 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 23421664621376 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 23421463294912 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 23421261968448 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 23421060641984 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 23420859315520 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 23420657989056 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 23420456662592 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 23420255336128 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 23420054005568 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 23419852679104 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 23419651352640 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 23419450026176 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 23419248699712 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 23419047373248 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 23418846046784 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 23418644720320 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 23418443393856 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 23418242067392 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 23418040740928 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 23417839414464 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 23417638088000 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 23417436761536 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 23417235435072 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 23417034108608 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 23416832782144 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 23416631455680 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 23416430129216 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 23416228802752 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 23416027476288 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 23415826149824 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 23415624823360 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 23415423496896 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 23415222170432 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 23415020843968 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 23414819517504 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 23414618191040 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 23414416864576 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 23414215538112 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 23414014211648 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 23426401240768 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 23426394552000 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 200, r2: 2, n: 5000, n_right: 200, m: 5000, r1: 2)	 13.8958   	 3         	 1727.14   	 0         	 1.55443   	 1111.11   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 200, m: 10000, rA: 2, r: 200)                           	 10.7906   	 3         	 2224.17   	 0         	 2.00175   	 1111.11   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1000000, r2: 1, n: 200, n_right: 1, m: 200, r1: 2)	 0.628441  	 3         	 763.795   	 0         	 22.9169   	 33.3289   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 200, n_right: 1000000, m: 200, r1: 1)	 0.317314  	 3         	 1512.7    	 0         	 45.387    	 33.3289   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 200, xn: 200, m: 200, rA: 2, r: 5000)                             	 0.303095  	 3         	 1583.66   	 0         	 47.5163   	 33.3289   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 200, xn: 5000, m: 400, rA: 1, r: 200)                             	 0.263322  	 3         	 1822.86   	 0         	 54.6932   	 33.3289   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 200000000, cols: 1)                                                                                                                                                                          	 0.231601  	 2         	 0         	 0         	 13.8168   	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 15.6455   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 14.8415   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 11.3571   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 11.357    	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.27958   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.231601  	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.163577  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0700547 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000138314	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 4e-07     	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 11308527232832 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 11308313339840 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 11308112013376 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 11307910686912 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 11307709360448 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 11307508033984 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 11307306707520 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 11307105381056 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 11306904054592 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 11306702728128 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 11306501401664 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 11306300075200 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 11306098748736 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 11305897422272 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 11305696095808 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 11305494769344 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 11305293442880 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 11305092116416 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 11304890789952 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 11304689463488 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 11304488137024 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 11304286810560 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 11304085484096 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 11303884157632 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 11303682831168 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 11303481504704 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 11303280178240 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 11303078851776 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 11302877525312 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 11302676198848 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 11302474872384 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 11302273545920 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 11302072215360 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 11301870888896 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 11301669562432 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 11301468235968 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 11301266909504 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 11301065583040 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 11300864256576 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 11300662930112 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 11300461603648 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 11300260277184 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 11300058950720 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 11299857624256 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 11299656297792 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 11299454971328 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 11299253644864 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 11299052318400 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 11298850991936 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 11298649665472 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 11298448339008 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 11298247012544 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 11298045686080 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 11297844359616 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 11297643033152 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 11297441706688 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 11297240380224 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 11297039053760 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 11296837727296 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 11296636400832 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 11296435074368 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 11296233747904 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 11296032421440 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 11308421646016 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 11308415043264 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 250, r2: 2, n: 5000, n_right: 250, m: 5000, r1: 2)	 18.4482   	 3         	 2032.72   	 0         	 1.75627   	 1157.41   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 250, m: 10000, rA: 2, r: 250)                           	 16.7792   	 3         	 2234.91   	 0         	 1.93097   	 1157.41   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1250000, r2: 1, n: 250, n_right: 1, m: 250, r1: 2)	 0.941186  	 3         	 996.084   	 0         	 23.9092   	 41.6611   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 250, n_right: 1250000, m: 250, r1: 1)	 0.599676  	 3         	 1563.34   	 0         	 37.5252   	 41.6611   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 250, xn: 250, m: 250, rA: 2, r: 5000)                             	 0.567645  	 3         	 1651.56   	 0         	 39.6427   	 41.6611   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 250, xn: 5000, m: 500, rA: 1, r: 250)                             	 0.455707  	 3         	 2057.24   	 0         	 49.3804   	 41.6611   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 312500000, cols: 1)                                                                                                                                                                          	 0.364672  	 2         	 0         	 0         	 13.7109   	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 21.2591   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 19.989    	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 17.8026   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 17.8025   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.26838   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.364672  	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.242388  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0713496 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000153765	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 1.7e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 20921990494016 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 20921792325568 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 20921590999104 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 20921389672640 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 20921188346176 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 20920987019712 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 20920785693248 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 20920584366784 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 20920383040320 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 20920181713856 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 20919980387392 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 20919779060928 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 20919577734464 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 20919376408000 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 20919175081536 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 20918973755072 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 20918772428608 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 20918571102144 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 20918369775680 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 20918168449216 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 20917967122752 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 20917765796288 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 20917564469824 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 20917363143360 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 20917161816896 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 20916960490432 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 20916759163968 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 20916557837504 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 20916356511040 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 20916155184576 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 20915953858112 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 20915752531648 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 20915551201088 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 20915349874624 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 20915148548160 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 20914947221696 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 20914745895232 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 20914544568768 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 20914343242304 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 20914141915840 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 20913940589376 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 20913739262912 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 20913537936448 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 20913336609984 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 20913135283520 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 20912933957056 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 20912732630592 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 20912531304128 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 20912329977664 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 20912128651200 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 20911927324736 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 20911725998272 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 20911524671808 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 20911323345344 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 20911122018880 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 20910920692416 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 20910719365952 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 20910518039488 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 20910316713024 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 20910115386560 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 20909914060096 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 20909712733632 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 20909511407168 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 20921885632192 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 20921878992576 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 300, r2: 2, n: 5000, n_right: 300, m: 5000, r1: 2)	 26.8707   	 3         	 2009.63   	 0         	 1.69702   	 1184.21   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 300, m: 10000, rA: 2, r: 300)                           	 24.198    	 3         	 2231.59   	 0         	 1.88445   	 1184.21   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1500000, r2: 1, n: 300, n_right: 1, m: 300, r1: 2)	 1.75119   	 3         	 925.085   	 0         	 18.5042   	 49.9933   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 300, n_right: 1500000, m: 300, r1: 1)	 0.960066  	 3         	 1687.38   	 0         	 33.7522   	 49.9933   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 300, xn: 300, m: 300, rA: 2, r: 5000)                             	 0.881895  	 3         	 1836.95   	 0         	 36.744    	 49.9933   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 300, xn: 5000, m: 600, rA: 1, r: 300)                             	 0.805705  	 3         	 2010.66   	 0         	 40.2186   	 49.9933   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 450000000, cols: 1)                                                                                                                                                                          	 0.523577  	 2         	 0         	 0         	 13.7516   	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 31.3196   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 29.5819   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 25.8857   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 25.8856   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.28739   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.523577  	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.326729  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0687972 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000148524	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 4.8e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 9735059253056 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 9734878914496 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 9734677588032 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 9734476261568 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 9734274935104 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 9734073608640 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 9733872282176 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 9733670955712 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 9733469629248 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 9733268302784 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 9733066976320 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 9732865649856 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 9732664323392 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 9732462996928 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 9732261670464 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 9732060344000 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 9731859017536 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 9731657691072 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 9731456364608 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 9731255038144 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 9731053711680 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 9730852385216 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 9730651058752 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 9730449732288 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 9730248405824 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 9730047079360 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 9729845752896 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 9729644426432 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 9729443099968 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 9729241773504 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 9729040447040 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 9728839120576 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 9728637790016 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 9728436463552 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 9728235137088 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 9728033810624 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 9727832484160 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 9727631157696 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 9727429831232 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 9727228504768 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 9727027178304 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 9726825851840 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 9726624525376 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 9726423198912 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 9726221872448 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 9726020545984 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 9725819219520 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 9725617893056 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 9725416566592 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 9725215240128 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 9725013913664 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 9724812587200 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 9724611260736 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 9724409934272 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 9724208607808 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 9724007281344 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 9723805954880 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 9723604628416 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 9723403301952 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 9723201975488 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 9723000649024 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 9722799322560 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 9722597996096 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 9734953567936 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 9734774052544 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 350, r2: 2, n: 5000, n_right: 350, m: 5000, r1: 2)	 37.0905   	 3         	 1981.64   	 0         	 1.65002   	 1200.98   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 350, m: 10000, rA: 2, r: 350)                           	 32.885    	 3         	 2235.06   	 0         	 1.86103   	 1200.98   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1750000, r2: 1, n: 350, n_right: 1, m: 350, r1: 2)	 2.578     	 3         	 997.865   	 0         	 17.1085   	 58.3256   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 350, n_right: 1750000, m: 350, r1: 1)	 1.41908   	 3         	 1812.79   	 0         	 31.0806   	 58.3256   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 350, xn: 350, m: 350, rA: 2, r: 5000)                             	 1.3687    	 3         	 1879.53   	 0         	 32.2247   	 58.3256   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 350, xn: 5000, m: 700, rA: 1, r: 350)                             	 1.23368   	 3         	 2085.23   	 0         	 35.7515   	 58.3256   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 612500000, cols: 1)                                                                                                                                                                          	 0.711846  	 2         	 0         	 0         	 13.767    	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 43.3456   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 41.0875   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 35.4875   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 35.4874   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.26202   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.711846  	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.423868  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0712336 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000166125	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 1e-07     	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 14977698080576 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 14977490479040 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 14977289152576 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 14977087826112 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 14976886499648 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 14976685173184 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 14976483846720 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 14976282520256 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 14976081193792 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 14975879867328 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 14975678540864 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 14975477214400 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 14975275887936 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 14975074561472 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 14974873235008 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 14974671908544 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 14974470582080 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 14974269255616 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 14974067929152 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 14973866602688 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 14973665276224 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 14973463949760 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 14973262623296 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 14973061296832 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 14972859970368 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 14972658643904 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 14972457317440 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 14972255990976 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 14972054664512 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 14971853338048 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 14971652011584 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 14971450685120 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 14971249354560 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 14971048028096 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 14970846701632 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 14970645375168 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 14970444048704 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 14970242722240 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 14970041395776 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 14969840069312 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 14969638742848 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 14969437416384 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 14969236089920 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 14969034763456 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 14968833436992 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 14968632110528 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 14968430784064 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 14968229457600 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 14968028131136 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 14967826804672 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 14967625478208 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 14967424151744 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 14967222825280 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 14967021498816 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 14966820172352 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 14966618845888 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 14966417519424 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 14966216192960 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 14966014866496 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 14965813540032 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 14965612213568 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 14965410887104 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 14965209560640 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 14977592633024 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 14977586452160 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 400, r2: 2, n: 5000, n_right: 400, m: 5000, r1: 2)	 47.9782   	 3         	 2000.91   	 0         	 1.65075   	 1212.12   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 400, m: 10000, rA: 2, r: 400)                           	 43.0412   	 3         	 2230.42   	 0         	 1.8401    	 1212.12   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 2000000, r2: 1, n: 400, n_right: 1, m: 400, r1: 2)	 3.38034   	 3         	 1135.98   	 0         	 17.042    	 66.6578   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 400, n_right: 2000000, m: 400, r1: 1)	 2.23286   	 3         	 1719.76   	 0         	 25.7999   	 66.6578   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 400, xn: 400, m: 400, rA: 2, r: 5000)                             	 2.18064   	 3         	 1760.95   	 0         	 26.4178   	 66.6578   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 400, xn: 5000, m: 800, rA: 1, r: 400)                             	 1.9194    	 3         	 2000.62   	 0         	 30.0133   	 66.6578   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 800000000, cols: 1)                                                                                                                                                                          	 0.957967  	 2         	 0         	 0         	 13.3616   	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 56.5266   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 53.5914   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 47.1413   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 47.1412   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.27092   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 0.957967  	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.525998  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0690122 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000138764	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 2.4e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 16705186150208 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 16705006856128 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 16704805529664 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 16704604203200 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 16704402876736 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 16704201550272 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 16704000223808 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 16703798897344 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 16703597570880 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 16703396244416 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 16703194917952 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 16702993591488 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 16702792265024 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 16702590938560 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 16702389612096 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 16702188285632 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 16701986959168 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 16701785632704 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 16701584306240 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 16701382979776 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 16701181653312 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 16700980326848 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 16700779000384 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 16700577673920 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 16700376347456 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 16700175020992 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 16699973694528 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 16699772368064 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 16699571041600 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 16699369715136 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 16699168388672 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 16698967062208 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 16698765731648 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 16698564405184 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 16698363078720 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 16698161752256 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 16697960425792 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 16697759099328 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 16697557772864 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 16697356446400 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 16697155119936 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 16696953793472 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 16696752467008 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 16696551140544 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 16696349814080 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 16696148487616 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 16695947161152 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 16695745834688 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 16695544508224 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 16695343181760 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 16695141855296 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 16694940528832 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 16694739202368 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 16694537875904 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 16694336549440 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 16694135222976 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 16693933896512 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 16693732570048 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 16693531243584 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 16693329917120 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 16693128590656 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 16692927264192 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 16692725937728 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 16705080702656 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 16704901994176 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 450, r2: 2, n: 5000, n_right: 450, m: 5000, r1: 2)	 61.9971   	 3         	 1959.77   	 0         	 1.60653   	 1219.88   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 450, m: 10000, rA: 2, r: 450)                           	 54.3855   	 3         	 2234.05   	 0         	 1.83137   	 1219.88   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 2250000, r2: 1, n: 450, n_right: 1, m: 450, r1: 2)	 3.91406   	 3         	 1396.89   	 0         	 18.6276   	 74.99     
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 450, n_right: 2250000, m: 450, r1: 1)	 2.96567   	 3         	 1843.59   	 0         	 24.5845   	 74.99     
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 450, xn: 450, m: 450, rA: 2, r: 5000)                             	 2.7942    	 3         	 1956.73   	 0         	 26.0933   	 74.99     
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 450, xn: 5000, m: 900, rA: 1, r: 450)                             	 2.65557   	 3         	 2058.88   	 0         	 27.4554   	 74.99     
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1012500000, cols: 1)                                                                                                                                                                         	 1.17357   	 2         	 0         	 0         	 13.804    	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 72.6437   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 68.8768   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 59.8354   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 59.8353   	 9         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.28323   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 1.17357   	 2         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.644417  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.0698324 	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000148025	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 6.4e-07   	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 21240293074752 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 21240089667520 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 21239888341056 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 21239687014592 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 21239485688128 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 21239284361664 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 21239083035200 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 21238881708736 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 21238680382272 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 21238479055808 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 21238277729344 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 21238076402880 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 21237875076416 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 21237673749952 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 21237472423488 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 21237271097024 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 21237069770560 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 21236868444096 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 21236667117632 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 21236465791168 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 21236264464704 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 21236063138240 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 21235861811776 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 21235660485312 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 21235459158848 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 21235257832384 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 21235056505920 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 21234855179456 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 21234653852992 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 21234452526528 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 21234251200064 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 21234049873600 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 21233848543040 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 21233647216576 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 21233445890112 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 21233244563648 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 21233043237184 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 21232841910720 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 21232640584256 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 21232439257792 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 21232237931328 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 21232036604864 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 21231835278400 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 21231633951936 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 21231432625472 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 21231231299008 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 21231029972544 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 21230828646080 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 21230627319616 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 21230425993152 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 21230224666688 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 21230023340224 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 21229822013760 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 21229620687296 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 21229419360832 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 21229218034368 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 21229016707904 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 21228815381440 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 21228614054976 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 21228412728512 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 21228211402048 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 21228010075584 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 21227808749120 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 21240187455168 -> hwthread 0 - OK[0m[1;34m
+Problems reading symbols for shepherd thread detection: Invalid argument
+[0m[1;34m	threadid 21240180766400 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-70-g30503c4-dirty
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx2
+PITTS: Eigen SIMD implementation: AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 524288, 805306368)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+Performance statistics:
+function                                                                                                                                                                                                                                                                                    	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 500, r2: 2, n: 5000, n_right: 500, m: 5000, r1: 2)	 70.2643   	 3         	 2134.8    	 0         	 1.74199   	 1225.49   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 5000, xn: 500, m: 10000, rA: 2, r: 500)                           	 67.6338   	 3         	 2217.82   	 0         	 1.80974   	 1225.49   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 2500000, r2: 1, n: 500, n_right: 1, m: 500, r1: 2)	 5.48249   	 3         	 1367.99   	 0         	 16.4181   	 83.3222   
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](nCols: 1, m_left: 1, r2: 2, n: 500, n_right: 2500000, m: 500, r1: 1)	 4.03906   	 3         	 1856.87   	 0         	 22.2854   	 83.3222   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 500, xn: 500, m: 500, rA: 2, r: 5000)                             	 3.96654   	 3         	 1890.82   	 0         	 22.6928   	 83.3222   
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double](yn: 500, xn: 5000, m: 1000, rA: 1, r: 500)                            	 3.63048   	 3         	 2065.84   	 0         	 24.7934   	 83.3222   
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double](rows: 1250000000, cols: 1)                                                                                                                                                                         	 1.49306   	 2         	 0         	 0         	 13.3953   	 0         
+Timing statistics:
+function                                                                                                                                                                                                               	 time [s]  	 #calls    
+<PITTS::TensorTrainOperator<double>> :: void PITTS::apply(const TensorTrainOperator<T>&, const MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                     	 84.4054   	 3         
+<PITTS::TensorTrain<double>> :: void PITTS::internal::apply_dense_contract(const PITTS::TensorTrainOperator<T>&, int, const PITTS::Tensor3<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]	 79.7859   	 9         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::apply(const TTOpApplyDenseHelper<T>&, MultiVector<T>&, MultiVector<T>&) [with T = double]                                                                         	 75.231    	 3         
+<PITTS::MultiVector<double>> :: void PITTS::internal::apply_dense_contract_padded(long long int, long long int, const PITTS::MultiVector<T>&, const PITTS::MultiVector<T>&, PITTS::MultiVector<T>&) [with T = double]  	 75.2309   	 9         
+<PITTS::MultiVector<double>> :: void PITTS::randomize(MultiVector<T>&) [with T = double]                                                                                                                               	 1.49306   	 2         
+<PITTS::Tensor3<double>> :: void PITTS::randomize(Tensor3<T>&) [with T = double]                                                                                                                                       	 1.28719   	 3         
+<PITTS::MultiVector<double>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = double]                                                                                         	 0.766565  	 16        
+<PITTS::TTOpApplyDenseHelper<double>> :: PITTS::TTOpApplyDenseHelper<T>::TTOpApplyDenseHelper(const PITTS::TensorTrainOperator<T>&) [with T = double]                                                                  	 0.069788  	 1         
+<PITTS::Tensor3<double>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = double]                                                                                  	 0.000179975	 3         
+<PITTS::TTOpApplyDenseHelper<double>> :: void PITTS::TTOpApplyDenseHelper<T>::preparePadding(PITTS::MultiVector<T>&) const [with T = double]                                                                           	 5e-07     	 3         
+INFO: You are running LIKWID in a cpuset with 64 CPUs. Taking given IDs as logical ID in cpuset
