@@ -39,7 +39,7 @@ namespace
         );
     
 #ifndef PITTS_DIRECT_MKL_GEMM
-    EigenMap(X) = ConstEigenMap(X) * ConstEigenMap(R).template triangularView<Eigen::Upper>().transpose();
+    EigenMap(X) = ConstEigenMap(X) * ConstEigenMap(R).transpose().template triangularView<Eigen::Lower>();
 #else
     cblas_dtrmm(CblasColMajor, CblasRight, CblasUpper, CblasTrans, CblasNonUnit, X.rows(), X.cols(), 1., &R(0,0), R.r1(), &X(0,0), X.colStrideChunks()*Chunk<T>::size);
 #endif
