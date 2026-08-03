@@ -23,13 +23,13 @@ namespace PITTS
   struct MachineInfo
   {
     //! L1 cache size in bytes per core, -1 if not available
-    int cacheSize_L1_perCore = -1;
+    long long cacheSize_L1_perCore = -1;
 
     //! L2 cache size in bytes per core, -1 if not available
-    int cacheSize_L2_perCore = -1;
+    long long cacheSize_L2_perCore = -1;
 
     //! L3 cache size in bytes currently available (total/#cores*#threads), -1 if not available
-    int cacheSize_L3_total = -1;
+    long long cacheSize_L3_total = -1;
   };
 
   //! get information on the machine (cached)

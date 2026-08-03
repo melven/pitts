@@ -72,11 +72,11 @@ namespace PITTS
       auto cache_cores = cache.threads / cpuTopo->numThreadsPerCore;
 
       if( cache.level == 1 )
-        mi.cacheSize_L1_perCore = cache.size / cache_cores;
+        mi.cacheSize_L1_perCore = static_cast<long long>(cache.size) / cache_cores;
       if( cache.level == 2 )
-        mi.cacheSize_L2_perCore = cache.size / cache_cores;
+        mi.cacheSize_L2_perCore = static_cast<long long>(cache.size) / cache_cores;
       if( cache.level == 3 )
-        mi.cacheSize_L3_total = cache.size / cache_cores * available_cores;
+        mi.cacheSize_L3_total = static_cast<long long>(cache.size) / cache_cores * available_cores;
     }
     topology_finalize();
 #endif
