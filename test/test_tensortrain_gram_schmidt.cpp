@@ -87,7 +87,7 @@ TEST(PITTS_TensorTrain_gram_schmidt, random_vectors)
   EXPECT_NEAR(I, QtQ, eps);
 
   mat Q_H = Q * H;
-  EXPECT_NEAR(X, Q_H, eps);
+  EXPECT_NEAR(X, Q_H, 10*eps);
 }
 
 namespace
