@@ -33,6 +33,8 @@
 #define PITTS_TENSORTRAIN_CROSS_HELPER_HPP
 
 // includes
+#include <stdexcept>
+#include <utility>
 #include <vector>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
@@ -51,8 +53,18 @@ namespace PITTS
       //!
       //! Left sets I_k: element a is the multi-index (I_{k-1}[link[a]], idx[a]),
       //! right sets J_k: element b is the multi-index (idx[b], J_{k+1}[link[b]]).
-      //! Only these two numbers per element are needed by the algorithms; full multi-indices
-      //! are recovered by following the links (expandLeft / expandRight, for tests and debugging).
+      //!
+      //! Why not store full multi-indices: the cross algorithms only ever need (a) the position of the
+      //! parent multi-index to pick the matching row of the neighboring interface matrix and (b) the
+      //! own mode index to pick the slice of the core. Both are exactly what a row of the left unfolding
+      //! (r_{k-1} n_k x r_k) encodes, so a maxvol row selection converts to a nested set in O(1) per
+      //! element and nestedness holds by construction. Full multi-indices are only recovered for
+      //! tests, diagnostics and the final TTCrossInfo (expandLeft / expandRight).
+      //!
+      //! Note: a left set is only valid relative to the I_{k-1} it was created from. When the sweep
+      //! replaces I_{k-1}, the old I_k is not nested any more (it still refers to the old parent
+      //! positions) and must be recomputed before it is used; this is inherent to cross sweeps
+      //! (Dolgov/Savostyanov 2020, Remark 5) and handled by the sweep order in the driver.
       //!
       struct NestedIndices
       {
@@ -66,10 +78,22 @@ namespace PITTS
         [[nodiscard]] int size() const {return static_cast<int>(idx.size());}
 
         //! row numbers of the multi-indices in a left unfolding with r_prev rows per mode index: link + idx*r_prev
-        [[nodiscard]] std::vector<int> rowIndices(int r_prev) const;
+        [[nodiscard]] std::vector<int> rowIndices(int r_prev) const
+        {
+          std::vector<int> rows(size());
+          for(int a = 0; a < size(); a++)
+            rows[a] = link[a] + idx[a]*r_prev;
+          return rows;
+        }
 
         //! column numbers of the multi-indices in a right unfolding with mode size n: idx + link*n
-        [[nodiscard]] std::vector<int> columnIndices(int n) const;
+        [[nodiscard]] std::vector<int> columnIndices(int n) const
+        {
+          std::vector<int> columns(size());
+          for(int b = 0; b < size(); b++)
+            columns[b] = idx[b] + link[b]*n;
+          return columns;
+        }
       };
 
       //! decode a row selection of a left unfolding (r_prev*n x r) into a nested left index set
@@ -77,20 +101,88 @@ namespace PITTS
       //! @param rows     selected rows (e.g. from maxvol), each row = link + idx*r_prev
       //! @param r_prev   number of rows per mode index (= |I_{k-1}|)
       //!
-      NestedIndices leftIndicesFromRows(const std::vector<int>& rows, int r_prev);
+      inline NestedIndices leftIndicesFromRows(const std::vector<int>& rows, int r_prev)
+      {
+        if( r_prev < 1 )
+          throw std::invalid_argument("leftIndicesFromRows: r_prev must be positive!");
+        NestedIndices I;
+        I.link.resize(rows.size());
+        I.idx.resize(rows.size());
+        for(int a = 0; a < rows.size(); a++)
+        {
+          if( rows[a] < 0 )
+            throw std::invalid_argument("leftIndicesFromRows: negative row index!");
+          I.link[a] = rows[a] % r_prev;
+          I.idx[a] = rows[a] / r_prev;
+        }
+        return I;
+      }
 
       //! decode a column selection of a right unfolding (r x n*r_next) into a nested right index set
       //!
       //! @param columns  selected columns (e.g. from maxvol of the transposed unfolding), each column = idx + link*n
       //! @param n        mode size
       //!
-      NestedIndices rightIndicesFromColumns(const std::vector<int>& columns, int n);
+      inline NestedIndices rightIndicesFromColumns(const std::vector<int>& columns, int n)
+      {
+        if( n < 1 )
+          throw std::invalid_argument("rightIndicesFromColumns: n must be positive!");
+        NestedIndices J;
+        J.link.resize(columns.size());
+        J.idx.resize(columns.size());
+        for(int b = 0; b < columns.size(); b++)
+        {
+          if( columns[b] < 0 )
+            throw std::invalid_argument("rightIndicesFromColumns: negative column index!");
+          J.idx[b] = columns[b] % n;
+          J.link[b] = columns[b] / n;
+        }
+        return J;
+      }
 
       //! full multi-indices (i_0,...,i_k) of the left set I_k (I[0] is the set of bond 0)
-      std::vector<std::vector<int>> expandLeft(const std::vector<NestedIndices>& I, int k);
+      //!
+      //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()}.
+      //!
+      inline std::vector<std::vector<int>> expandLeft(const std::vector<NestedIndices>& I, int k)
+      {
+        // follow the links from bond k back to bond 0, prepending one mode index per step
+        std::vector<std::vector<int>> result(k < 0 ? 1 : I.at(k).size());
+        for(int a = 0; a < result.size(); a++)
+        {
+          std::vector<int> multiIndex(k+1);
+          int pos = a;
+          for(int j = k; j >= 0; j--)
+          {
+            multiIndex[j] = I[j].idx.at(pos);
+            pos = I[j].link[pos];
+          }
+          result[a] = std::move(multiIndex);
+        }
+        return result;
+      }
 
       //! full multi-indices (i_k,...,i_{d-1}) of the right set J_k (J[k] is the set of bond k-1, J[0] unused)
-      std::vector<std::vector<int>> expandRight(const std::vector<NestedIndices>& J, int k, int nDim);
+      //!
+      //! expandRight(J, nDim, nDim) returns the single empty multi-index of J_d = {()}.
+      //!
+      inline std::vector<std::vector<int>> expandRight(const std::vector<NestedIndices>& J, int k, int nDim)
+      {
+        // follow the links from bond k-1 forward to the last dimension, appending one mode index per step
+        std::vector<std::vector<int>> result(k >= nDim ? 1 : J.at(k).size());
+        for(int b = 0; b < result.size(); b++)
+        {
+          std::vector<int> multiIndex(nDim-k);
+          int pos = b;
+          for(int j = k; j < nDim; j++)
+          {
+            multiIndex[j-k] = J[j].idx.at(pos);
+            pos = J[j].link[pos];
+          }
+          result[b] = std::move(multiIndex);
+        }
+        return result;
+      }
 
 
       //! copy selected rows of a matrix: B = A(rows,:)

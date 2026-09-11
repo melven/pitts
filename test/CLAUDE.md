@@ -55,6 +55,7 @@ TensorTrain and TensorTrainOperator:
 | `test_tensortrain_axpby.cpp`, `test_tensortrain_axpby_plain.cpp`, `test_tensortrain_axpby_normalized.cpp` | TT addition variants (the normalized one has many special cases: zero vectors, rank-1, boundary ranks). |
 | `test_tensortrain_from_dense.cpp`, `test_tensortrain_from_dense_classical.cpp`, `test_tensortrain_from_dense_twosided.cpp`, `test_tensortrain_to_dense.cpp` | TT-SVD variants and reconstruction, incl. MPI-distributed input and rank/tolerance options. |
 | `test_tensortrain_gram_schmidt.cpp` | Gram-Schmidt orthogonalization of TT vectors. |
+| `test_tensortrain_cross_helper.cpp` | Building blocks of TT-cross: nested index sets (encoding, decoding, expansion, consistency with the Tensor3 unfoldings). |
 | `test_tensortrain_laplace_operator.cpp` | Laplace stencil application. |
 | `test_tensortrain_operator.cpp`, `test_tensortrain_operator_debug.cpp` | TTOp construction, `setEye`, sub-tensors, debug operators. |
 | `test_tensortrain_operator_apply.cpp`, `test_tensortrain_operator_apply_transposed.cpp`, `test_tensortrain_operator_apply_op.cpp`, `test_tensortrain_operator_apply_transposed_op.cpp`, `test_tensortrain_operator_apply_dense.cpp`, `test_tensortrain_operator_apply_transposed_dense.cpp` | All apply variants vs dense reference. |

@@ -57,6 +57,7 @@
 // includes
 #include <cmath>
 #include <limits>
+#include <vector>
 #include "pitts_tensortrain.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -70,6 +71,11 @@ namespace PITTS
   struct TTCrossOptions
   {
     //! relative truncation tolerance for the singular values of each local block (rank adaptation)
+    //!
+    //! Applied as rankTolerance/sqrt(d-1) per block like in solveMALS / dmrg_cross. Note that the blocks
+    //! are truncated in the interpolation gauge, so unlike in solveMALS this is a heuristic and not a
+    //! rigorous bound on the global error (the left/right parts of y are not orthonormal, only bounded).
+    //!
     T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon());
 
     //! maximal TT rank of the result, enforced even if this violates rankTolerance
@@ -91,6 +97,10 @@ namespace PITTS
 
     //! number of error directions appended to each core per step (nMALS = 1 only, <= errorRank)
     int enrichmentRank = 2;
+
+    //! initial index sets of the error approximation z: true = random right-nested sets (as in amen_cross),
+    //! false = the first errorRank elements of the maxvol sets derived from x (nMALS = 1 only)
+    bool randomErrorIndexSets = true;
 
     //! tolerance for the dominance criterion of the maxvol row selection (see internal::maxvol)
     T maxvolTolerance = T(0.05);
@@ -118,6 +128,16 @@ namespace PITTS
 
     //! true if convergenceTolerance was reached within nSweeps
     bool converged = false;
+
+    //! final left index sets: leftIndices[k] holds the multi-indices (i_0,...,i_k) of I_k for k = 0..d-2
+    //!
+    //! y interpolates f(x) exactly on the fibers (I_{k-1}, S_k, J_{k+1}) of the final crosses, so together
+    //! with rightIndices these sets define the result completely (useful for tests and warm starts).
+    //!
+    std::vector<std::vector<std::vector<int>>> leftIndices;
+
+    //! final right index sets: rightIndices[k] holds the multi-indices (i_k,...,i_{d-1}) of J_k for k = 1..d-1
+    std::vector<std::vector<std::vector<int>>> rightIndices;
   };
 
 
