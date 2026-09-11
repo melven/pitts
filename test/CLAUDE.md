@@ -61,6 +61,7 @@ TensorTrain and TensorTrainOperator:
 | `test_tensortrain_operator_apply.cpp`, `test_tensortrain_operator_apply_transposed.cpp`, `test_tensortrain_operator_apply_op.cpp`, `test_tensortrain_operator_apply_transposed_op.cpp`, `test_tensortrain_operator_apply_dense.cpp`, `test_tensortrain_operator_apply_transposed_dense.cpp` | All apply variants vs dense reference. |
 | `test_tensortrain_operator_to_dense.cpp`, `test_tensortrain_operator_to_qtt.cpp` | Dense expansion and QTT conversion. |
 | `test_tensortrain_sweep_index.cpp` | Sweep iteration for ALS/MALS/TT-GMRES widths. |
+| `test_tensortrain_sweep_data.cpp` | `SweepData` cache: incremental update from both sides, invalidation (ALS and MALS width), sweep access pattern. |
 | `test_tensortrain_solve_gmres.cpp` | TT-GMRES on identity and random (symmetric/non-symmetric) systems, 1 to 6 dimensions (the `random_nDim2` case is the slowest test). |
 | `test_tensortrain_solve_mals.cpp` | Largest file: ALS/MALS/AMEn variants, symmetric and Petrov-Galerkin, different dimensions and options. |
 | `test_tensortrain_solve_mals_helper.cpp` | Internal helper loops of MALS. |
