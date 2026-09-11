@@ -40,7 +40,7 @@ Install everything through the Ubuntu package manager; do not mix in pip package
 
 ```sh
 sudo apt-get update
-sudo apt-get install -y build-essential cmake ccache gdb lld reuse \
+sudo apt-get install -y build-essential cmake ninja-build ccache gdb lld reuse \
   libopenmpi-dev openmpi-bin libopenblas-dev liblapack-dev \
   libeigen3-dev libcereal-dev pybind11-dev python3.12-dev python3-numpy
 ```
@@ -58,10 +58,12 @@ Notes:
 ccache is used exactly as in `.gitlab-ci.yml` (`-DCMAKE_CXX_COMPILER_LAUNCHER=ccache`).
 The default for agents is the **development build** (`PITTS_DEVELOP_BUILD=On`): templates are
 instantiated once in `src/pitts_*.cpp` (object library `pitts_impl`, linked with `lld`), so a
-change in one `_impl.hpp` recompiles only that file instead of every test and benchmark.
+change in one `_impl.hpp` recompiles only that file instead of every test and benchmark
+(measured: editing `pitts_tensortrain_normalize_impl.hpp` rebuilds 1 translation unit in ~3 s
+in the development build versus 31 translation units in the header-only build).
 
 ```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DPYTHON_EXECUTABLE=/usr/bin/python3.12 \
   -DPITTS_DEVELOP_BUILD=On
@@ -69,8 +71,9 @@ cmake --build build -j$(nproc) --target all pitts_tests   # pitts_tests is EXCLU
 ccache -s                                                # optional: cache statistics
 ```
 
-A full build takes several minutes on 4 cores; run it in the background and wait for it.
-`build*/` directories are git-ignored.
+A full (cold) build takes ~15 minutes on 4 cores (187 translation units of heavy template
+code, `test_multivector_tsqr.cpp` alone takes >3 minutes); run it in the background and wait for
+it. The session-start hook has usually done this already. `build*/` directories are git-ignored.
 
 Development-build pitfalls:
 * Every template function used outside its own `_impl.hpp` needs an explicit instantiation

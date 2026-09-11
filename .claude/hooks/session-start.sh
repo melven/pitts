@@ -32,7 +32,7 @@ done
 
 $SUDO apt-get update -qq
 $SUDO apt-get install -y -qq --no-install-recommends \
-  build-essential cmake ccache gdb lld reuse \
+  build-essential cmake ninja-build ccache gdb lld reuse \
   libopenmpi-dev openmpi-bin libopenblas-dev liblapack-dev \
   libeigen3-dev libcereal-dev pybind11-dev python3.12-dev python3-numpy
 
@@ -50,7 +50,7 @@ fi
 
 # --- configure and build ---------------------------------------------------
 cd "$CLAUDE_PROJECT_DIR"
-cmake -S . -B build \
+cmake -S . -B build -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DPYTHON_EXECUTABLE=/usr/bin/python3.12 \
