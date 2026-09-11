@@ -45,6 +45,11 @@ TEST(PITTS_TensorTrain_cross_helper, NestedIndices_size)
 
   NestedIndices empty;
   EXPECT_EQ(0, empty.size());
+
+  const NestedIndices sized(4);
+  EXPECT_EQ(4, sized.size());
+  EXPECT_EQ(4, sized.link.size());
+  EXPECT_EQ(4, sized.idx.size());
 }
 
 TEST(PITTS_TensorTrain_cross_helper, leftIndicesFromRows)
@@ -172,10 +177,11 @@ namespace
     {
       const int parentSize = (k == 0) ? 1 : sizes[k-1];
       std::uniform_int_distribution<int> linkDist(0, parentSize-1), idxDist(0, dims[k]-1);
+      I[k] = NestedIndices(sizes[k]);
       for(int a = 0; a < sizes[k]; a++)
       {
-        I[k].link.push_back(linkDist(gen));
-        I[k].idx.push_back(idxDist(gen));
+        I[k].link[a] = linkDist(gen);
+        I[k].idx[a] = idxDist(gen);
       }
     }
     return I;
@@ -190,10 +196,11 @@ namespace
     {
       const int childSize = (k == nDim-1) ? 1 : sizes[k+1];
       std::uniform_int_distribution<int> linkDist(0, childSize-1), idxDist(0, dims[k]-1);
+      J[k] = NestedIndices(sizes[k]);
       for(int b = 0; b < sizes[k]; b++)
       {
-        J[k].link.push_back(linkDist(gen));
-        J[k].idx.push_back(idxDist(gen));
+        J[k].link[b] = linkDist(gen);
+        J[k].idx[b] = idxDist(gen);
       }
     }
     return J;

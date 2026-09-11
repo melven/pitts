@@ -81,6 +81,12 @@ namespace PITTS
       //!
       struct NestedIndices
       {
+        //! empty set
+        NestedIndices() = default;
+
+        //! set with n (uninitialized) multi-indices
+        explicit NestedIndices(int n) : link(n), idx(n) {}
+
         //! position in the neighboring (parent) index set: I_{k-1} for left sets, J_{k+1} for right sets
         std::vector<int> link;
 
@@ -104,9 +110,7 @@ namespace PITTS
       {
         if( r_prev < 1 )
           throw std::invalid_argument("leftIndicesFromRows: r_prev must be positive!");
-        NestedIndices I;
-        I.link.resize(rows.size());
-        I.idx.resize(rows.size());
+        NestedIndices I(rows.size());
         for(int a = 0; a < rows.size(); a++)
         {
           if( rows[a] < 0 )
@@ -128,9 +132,7 @@ namespace PITTS
       {
         if( n < 1 )
           throw std::invalid_argument("rightIndicesFromColumns: n must be positive!");
-        NestedIndices J;
-        J.link.resize(columns.size());
-        J.idx.resize(columns.size());
+        NestedIndices J(columns.size());
         for(int b = 0; b < columns.size(); b++)
         {
           if( columns[b] < 0 )
