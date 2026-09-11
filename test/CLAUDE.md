@@ -33,10 +33,11 @@ Core data structures and infrastructure:
 | `test_chunk.cpp` | `Chunk<T>` size/alignment. |
 | `test_tensor2.cpp`, `test_tensor2_random.cpp`, `test_tensor2_concat.cpp`, `test_tensor2_eigen_adaptor.cpp`, `test_tensor2_qb_decomposition.cpp` | Tensor2 construction/resize, randomize, block concatenation, Eigen map, SVQB-style QB decomposition (incl. rank-deficient cases). |
 | `test_tensor3.cpp`, `test_tensor3_random.cpp`, `test_tensor3_combine.cpp`, `test_tensor3_split.cpp`, `test_tensor3_fold.cpp`, `test_tensor3_unfold.cpp` | Tensor3 basics, randomize, core contraction, core splitting with truncation, fold/unfold reshapes. |
-| `test_fixed_tensor3*.cpp`, `test_fixed_tensortrain*.cpp` | Fixed-dimension variants (apply, combine, split, random, axpby, dot). |
+| `test_fixed_tensor3.cpp`, `test_fixed_tensor3_apply.cpp`, `test_fixed_tensor3_combine.cpp`, `test_fixed_tensor3_split.cpp`, `test_fixed_tensor3_random.cpp` | Fixed-dimension rank-3 tensor: basics, apply, combine, split, random. |
+| `test_fixed_tensortrain.cpp`, `test_fixed_tensortrain_axpby.cpp`, `test_fixed_tensortrain_dot.cpp`, `test_fixed_tensortrain_random.cpp` | Fixed-dimension tensor train: basics, axpby, dot, random. |
 | `test_multivector.cpp`, `test_multivector_random.cpp`, `test_multivector_eigen_adaptor.cpp`, `test_multivector_reshape.cpp` | MultiVector basics, thread-count independent randomize, Eigen map, reshape. |
-| `test_multivector_axpby.cpp`, `_dot.cpp`, `_norm.cpp`, `_scale.cpp`, `_gramian.cpp`, `_cdist.cpp`, `_centroids.cpp` | Column-wise vector operations against Eigen reference results. |
-| `test_multivector_transform.cpp`, `_transpose.cpp`, `_triangular_mult.cpp`, `_triangular_solve.cpp` | TSMM (incl. reshape variants), transpose, triangular multiply/solve (many size combinations, padding edge cases). |
+| `test_multivector_axpby.cpp`, `test_multivector_dot.cpp`, `test_multivector_norm.cpp`, `test_multivector_scale.cpp`, `test_multivector_gramian.cpp`, `test_multivector_cdist.cpp`, `test_multivector_centroids.cpp` | Column-wise vector operations against Eigen reference results. |
+| `test_multivector_transform.cpp`, `test_multivector_transpose.cpp`, `test_multivector_triangular_mult.cpp`, `test_multivector_triangular_solve.cpp` | TSMM (incl. reshape variants), transpose, triangular multiply/solve (many size combinations, padding edge cases). |
 | `test_multivector_tsqr.cpp` | Householder building blocks (`applyReflection`, `transformBlock`, `combineTwoBlocks`) and `block_TSQR` serial / 4 threads / MPI, varying sizes, rank-deficient input. |
 | `test_parallel.cpp` | `ompThreadInfo`, `mpiProcInfo`, `distribute`, MPI type mapping, `mpiGather`, `mpiCombineMaps`. |
 | `test_random.cpp` | Seed generation and distributions for all scalar types. |
@@ -51,13 +52,13 @@ TensorTrain and TensorTrainOperator:
 | `test_tensortrain.cpp`, `test_tensortrain_random.cpp`, `test_tensortrain_debug.cpp` | TT construction, ranks, sub-tensors, copy; randomize; debug operator overloads. |
 | `test_tensortrain_norm.cpp`, `test_tensortrain_dot.cpp` | Norms and inner products vs dense reference. |
 | `test_tensortrain_normalize.cpp` | left/right/full normalization, orthogonality flags, truncation error bounds, boundary ranks. |
-| `test_tensortrain_axpby.cpp`, `_axpby_plain.cpp`, `_axpby_normalized.cpp` | TT addition variants (the normalized one has many special cases: zero vectors, rank-1, boundary ranks). |
-| `test_tensortrain_from_dense.cpp`, `_from_dense_classical.cpp`, `_from_dense_twosided.cpp`, `test_tensortrain_to_dense.cpp` | TT-SVD variants and reconstruction, incl. MPI-distributed input and rank/tolerance options. |
+| `test_tensortrain_axpby.cpp`, `test_tensortrain_axpby_plain.cpp`, `test_tensortrain_axpby_normalized.cpp` | TT addition variants (the normalized one has many special cases: zero vectors, rank-1, boundary ranks). |
+| `test_tensortrain_from_dense.cpp`, `test_tensortrain_from_dense_classical.cpp`, `test_tensortrain_from_dense_twosided.cpp`, `test_tensortrain_to_dense.cpp` | TT-SVD variants and reconstruction, incl. MPI-distributed input and rank/tolerance options. |
 | `test_tensortrain_gram_schmidt.cpp` | Gram-Schmidt orthogonalization of TT vectors. |
 | `test_tensortrain_laplace_operator.cpp` | Laplace stencil application. |
-| `test_tensortrain_operator.cpp`, `_operator_debug.cpp` | TTOp construction, `setEye`, sub-tensors, debug operators. |
-| `test_tensortrain_operator_apply.cpp`, `_apply_transposed.cpp`, `_apply_op.cpp`, `_apply_transposed_op.cpp`, `_apply_dense.cpp`, `_apply_transposed_dense.cpp` | All apply variants vs dense reference. |
-| `test_tensortrain_operator_to_dense.cpp`, `_to_qtt.cpp` | Dense expansion and QTT conversion. |
+| `test_tensortrain_operator.cpp`, `test_tensortrain_operator_debug.cpp` | TTOp construction, `setEye`, sub-tensors, debug operators. |
+| `test_tensortrain_operator_apply.cpp`, `test_tensortrain_operator_apply_transposed.cpp`, `test_tensortrain_operator_apply_op.cpp`, `test_tensortrain_operator_apply_transposed_op.cpp`, `test_tensortrain_operator_apply_dense.cpp`, `test_tensortrain_operator_apply_transposed_dense.cpp` | All apply variants vs dense reference. |
+| `test_tensortrain_operator_to_dense.cpp`, `test_tensortrain_operator_to_qtt.cpp` | Dense expansion and QTT conversion. |
 | `test_tensortrain_sweep_index.cpp` | Sweep iteration for ALS/MALS/TT-GMRES widths. |
 | `test_tensortrain_solve_gmres.cpp` | TT-GMRES on identity and random (symmetric/non-symmetric) systems, 1 to 6 dimensions (the `random_nDim2` case is the slowest test). |
 | `test_tensortrain_solve_mals.cpp` | Largest file: ALS/MALS/AMEn variants, symmetric and Petrov-Galerkin, different dimensions and options. |

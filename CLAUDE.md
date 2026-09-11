@@ -25,7 +25,14 @@ Each main directory has its own `CLAUDE.md` with per-file summaries; read it bef
 | `.gitlab-ci.yml` | CI jobs: release/debug/coverage/clang builds with ccache and MKL modules, REUSE lint, GitLab pages publishing the coverage report. |
 | `CITATION.cff`, `README.md`, `LICENSE` | Citation metadata (Zenodo DOI), project description, license. |
 | `DESIGN.md` | Design goals and conventions (API shape, kernels, TT specifics, testing). Read before adding or changing library code. Coding style is in `src/CLAUDE.md`. |
-| `.claude/` | `settings.json` registers `hooks/session-start.sh`, which performs the whole environment setup below for Claude Code on the web. |
+| `.claude/` | `settings.json` registers `hooks/session-start.sh` (environment setup below, Claude Code on the web) and `hooks/stop-check-claude-md.sh` (blocks ending a turn while the `CLAUDE.md` files are out of sync). |
+| `scripts/` | `check_claude_md.sh`: consistency check between the directory contents and the `CLAUDE.md` tables (used by the Stop hook; run it manually any time). |
+
+**Keeping this documentation current:** when you add, rename or delete a file in `src/`, `test/`,
+`examples/` or `cmake/`, update the table in that directory's `CLAUDE.md` in the same commit (full
+file names, one short sentence). When you change how to build or run tests, update this file; when you
+change a convention, update `DESIGN.md` or the style section in `src/CLAUDE.md`. New top-level
+directories go into the table above. `scripts/check_claude_md.sh` verifies the file lists.
 
 Every new source or documentation file needs an SPDX header (REUSE compliance is checked in CI; check locally with `reuse lint`, which the hook installs). For files that cannot carry a header (e.g. JSON) add a `<file>.license` file next to it.
 

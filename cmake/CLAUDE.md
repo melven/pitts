@@ -14,4 +14,4 @@ Added to `CMAKE_MODULE_PATH` by the root `CMakeLists.txt`.
 | `prepare_gcovr.sh` | Helper for coverage: renames mangled `#...#.gcda` files so gcovr finds them. |
 | `FindLIKWID.cmake` | Finds likwid (`LIKWID_INCLUDE_DIRS`, `LIKWID_LIBRARIES`); optional. |
 | `FindITensor.cmake` | Finds ITensor (`ITENSOR_INCLUDE_DIRS`, `ITENSOR_LIBRARIES`); optional. |
-| `GetGitRevisionDescription.cmake`, `.cmake.in` | Third-party module (rpavlik) providing `git_describe_working_tree`, used for `PITTS_GIT_VERSION`. |
+| `GetGitRevisionDescription.cmake`, `GetGitRevisionDescription.cmake.in` | Third-party module (rpavlik) providing `git_describe_working_tree`, used for `PITTS_GIT_VERSION`. |

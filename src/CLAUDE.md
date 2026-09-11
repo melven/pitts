@@ -48,13 +48,14 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 |---|---|
 | `pitts_chunk.hpp` | `Chunk<T>`: fixed-size aligned SIMD block (the basic storage unit of all tensors). |
 | `pitts_chunk_ops.hpp` | Dispatch header for chunk operations (fma, mul, bcast, ...) selecting the best implementation. |
-| `pitts_chunk_ops_plain.hpp` / `_avx2.hpp` / `_avx512.hpp` | Scalar / AVX2 / AVX-512 implementations of the chunk operations. |
+| `pitts_chunk_ops_plain.hpp`, `pitts_chunk_ops_avx2.hpp`, `pitts_chunk_ops_avx512.hpp` | Scalar / AVX2 / AVX-512 implementations of the chunk operations. |
 | `pitts_tensor2.hpp`, `_impl.hpp` | `Tensor2<T>`: small dense matrix (chunked, column-major). Also `ConstTensor2View`/`Tensor2View`. |
 | `pitts_tensor3.hpp`, `_impl.hpp` | `Tensor3<T>`: rank-3 tensor (r1 x n x r2), the TT core type. |
 | `pitts_multivector.hpp`, `_impl.hpp` | `MultiVector<T>`: tall-skinny matrix (many rows, few columns), chunked and padded. |
 | `pitts_tensortrain.hpp`, `_impl.hpp` | `TensorTrain<T>`: list of `Tensor3` cores + dimensions, TT ranks, orthogonality flag; `copy`, `setZero/setOnes/setUnit`, sub-tensor access. |
 | `pitts_tensortrain_operator.hpp`, `_impl.hpp` | `TensorTrainOperator<T>`: linear operator in TT format (row/column dims per core), `setEye`, sub-tensor access. |
-| `pitts_fixed_tensor3*.hpp`, `pitts_fixed_tensortrain*.hpp` | Older variant with compile-time mode dimension `N` (`FixedTensor3<T,N>`, `FixedTensorTrain<T,N>`) and its apply/combine/split/random/axpby/dot operations. Not used by the main algorithms. |
+| `pitts_fixed_tensor3.hpp`, `pitts_fixed_tensor3_apply.hpp`, `pitts_fixed_tensor3_combine.hpp`, `pitts_fixed_tensor3_split.hpp`, `pitts_fixed_tensor3_random.hpp` | Older variant with compile-time mode dimension `N` (`FixedTensor3<T,N>`) and its apply/combine/split/random operations. Used by the qubit simulator, not by the main algorithms. |
+| `pitts_fixed_tensortrain.hpp`, `pitts_fixed_tensortrain_axpby.hpp`, `pitts_fixed_tensortrain_dot.hpp`, `pitts_fixed_tensortrain_random.hpp` | `FixedTensorTrain<T,N>` with axpby/dot/random operations (same remark). |
 | `pitts_tensor2_eigen_adaptor.hpp`, `pitts_multivector_eigen_adaptor.hpp` | `EigenMap`/`ConstEigenMap` helpers giving an `Eigen::Map` onto Tensor2 / MultiVector data. |
 | `pitts_eigen.hpp` | Includes Eigen with the project's defines and warning suppressions. |
 | `pitts_mkl.hpp` | Optional Intel MKL include plus workarounds for non-Intel CPUs (`PITTS_DIRECT_MKL_GEMM`). |
@@ -109,7 +110,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_gram_schmidt.hpp` | Modified/iterated Gram-Schmidt for TT vectors (used by TT-GMRES). |
 | `pitts_tensortrain_laplace_operator.hpp` | Apply a simple Laplace stencil to a TT (test/bench helper). |
 | `pitts_tensortrain_debug.hpp` | Operator overloads (`+`, `-`, `*`) on TTs for tests, not for production use. |
-| `pitts_tensortrain_from_itensor.hpp`, `_to_itensor.hpp` | Conversion from/to ITensor MPS (needs ITensor). |
+| `pitts_tensortrain_from_itensor.hpp`, `pitts_tensortrain_to_itensor.hpp` | Conversion from/to ITensor MPS (needs ITensor). |
 
 ## Operations on TensorTrainOperator
 
@@ -117,12 +118,12 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 |---|---|
 | `pitts_tensortrain_operator_apply.hpp` | `apply(TTOp, TT, TT)`: operator times TT vector. |
 | `pitts_tensortrain_operator_apply_transposed.hpp` | Transposed operator times TT vector. |
-| `pitts_tensortrain_operator_apply_op.hpp`, `_apply_transposed_op.hpp` | Operator times operator (product of two TT operators). |
-| `pitts_tensortrain_operator_apply_dense.hpp`, `_apply_transposed_dense.hpp` | Operator times dense MultiVector (used inside MALS; padded contraction unless `PITTS_TENSORTRAIN_MALS_SLOWCONTRACT`). |
+| `pitts_tensortrain_operator_apply_op.hpp`, `pitts_tensortrain_operator_apply_transposed_op.hpp` | Operator times operator (product of two TT operators), plain and transposed. |
+| `pitts_tensortrain_operator_apply_dense.hpp`, `pitts_tensortrain_operator_apply_transposed_dense.hpp` | Operator (or its transpose) times dense MultiVector (used inside MALS; padded contraction unless `PITTS_TENSORTRAIN_MALS_SLOWCONTRACT`). |
 | `pitts_tensortrain_operator_to_dense.hpp` | Expand a TT operator to a dense matrix. |
 | `pitts_tensortrain_operator_to_qtt.hpp` | Split every dimension into 2x2 factors (QTT format). |
 | `pitts_tensortrain_operator_debug.hpp` | Operator overloads for tests. |
-| `pitts_tensortrain_operator_from_itensor.hpp`, `_to_itensor.hpp` | Conversion from/to ITensor MPO. |
+| `pitts_tensortrain_operator_from_itensor.hpp`, `pitts_tensortrain_operator_to_itensor.hpp` | Conversion from/to ITensor MPO. |
 | `pitts_tensortrain_operator_itensor_autompo_pybind.*` | Python binding wrapping ITensor AutoMPO (only with ITensor). |
 
 ## Solvers
