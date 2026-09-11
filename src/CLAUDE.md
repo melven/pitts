@@ -22,6 +22,26 @@ Every header has a Doxygen `@file`/`@brief` block; keep it when adding files. `C
 
 Scalar types supported everywhere: `float`, `double`, `std::complex<float>`, `std::complex<double>`.
 
+Design goals and API/kernel conventions: see `DESIGN.md` (repository root).
+
+## Coding style
+
+There is no `.clang-format` on purpose (existing code would change massively). Follow the style of the surrounding code; the dominant conventions are:
+
+- 2-space indentation, no tabs; Allman braces (`{` on its own line); namespace contents indented; `public:`/`private:` indented two spaces relative to `class`, members two more.
+- `if( cond )` and `while( cond )` with spaces inside the parentheses; `for(int i = 0; i < n; i++)` without. No space before `(`.
+- Compact arithmetic in index expressions: `i+1`, `r1*n*r2`, `offset+i`; spaces around comparison and logical operators (`i+1 < n && ...`).
+- `template<typename T>` (no space), `T* p`, `const T& x`; `const auto` for local sizes and views.
+- Types `int` for dimensions/ranks/loop indices over them, `long long` for row counts and chunk indices.
+- Names: types `CamelCase`, functions/variables `camelCase` (`leftNormalize`, `nChunks`), internal kernels may use `snake_case` with a prefix (`normalize_contract1`, `t3_scale`), members with trailing underscore (`subTensors_`), template type parameter `T`.
+- One-line getters as `{return x_;}`; single-statement loop/if bodies without braces are fine.
+- No line-length limit, but wrap long parameter lists one parameter per line (see `solveMALS`).
+- `#pragma omp ...` and preprocessor directives in column 0, even inside functions.
+- Includes: standard headers first, then `pitts_*.hpp`; in `_impl.hpp` include the own `.hpp` first.
+- Doxygen: `//!` line comments; each file starts with the SPDX header and a `/*! @file ... @brief ... */` block; every public function has `@param`/`@return`.
+- Commented-out code blocks exist on purpose (debugging aids for numerical details); leave them alone unless asked.
+- Error handling: `throw std::invalid_argument` for wrong arguments at the API boundary, `assert` for internal invariants.
+
 ## Core data structures
 
 | File | Content |
