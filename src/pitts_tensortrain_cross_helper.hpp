@@ -12,6 +12,13 @@
 * nested left index sets I_k (bond k, k = -1..d-2, I_{-1} = {()}) and nested right index sets J_k
 * (bond k-1, k = 1..d, J_d = {()}).
 *
+* Index set numbering: I_k contains multi-indices of the dimensions 0..k, J_k contains multi-indices of
+* the dimensions k..d-1. So the two sets of the same bond k are I_k and J_{k+1}, and a local problem on
+* the cores k..k+m (SweepIndex with leftDim = k, rightDim = k+m, m = 0 for ALS-cross, m = 1 for DMRG-cross)
+* is the block x(I_{k-1}, S_k x ... x S_{k+m}, J_{k+m+1}) = L_{k-1} * X_k * ... * X_{k+m} * R_{k+m+1};
+* the sets I_k..I_{k+m-1} and J_{k+1}..J_{k+m} inside the block are not used and are recomputed by the
+* update. In vectors, I[k] and J[k] store I_k and J_k (J[0] is unused, J_d and I_{-1} are implicit).
+*
 * Index conventions follow the unfoldings in pitts_tensor3_unfold.hpp:
 *   left unfolding  (r_{k-1} n_k) x r_k : row    = a + i*r_{k-1}   for (a in I_{k-1}, i in S_k)
 *   right unfolding r_{k-1} x (n_k r_k) : column = i + b*n_k       for (i in S_k, b in J_{k+1})
