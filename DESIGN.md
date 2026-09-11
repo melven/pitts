@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 SPDX-License-Identifier: BSD-3-Clause
 -->
 
-# PITTS design guidelines (draft, to be iterated)
+# PITTS design guidelines
 
 These guidelines describe how the library is meant to be structured and extended.
 They are derived from the existing code and are not strict rules: apply them where they
