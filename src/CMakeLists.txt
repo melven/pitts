@@ -104,6 +104,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_operator_to_qtt_impl.hpp
   pitts_tensortrain_operator_debug.hpp
   pitts_tensortrain_sweep_index.hpp
+  pitts_tensortrain_sweep_data.hpp
   pitts_tensortrain_solve_mals.hpp
   pitts_tensortrain_solve_mals_impl.hpp
   pitts_tensortrain_solve_mals_helper.hpp

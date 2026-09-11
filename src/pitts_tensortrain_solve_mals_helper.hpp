@@ -17,6 +17,7 @@
 
 // includes
 #include "pitts_tensortrain_sweep_index.hpp"
+#include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_operator.hpp"
 #include "pitts_tensortrain_operator_apply.hpp"
@@ -40,74 +41,10 @@ namespace PITTS
     //! dedicated helper functions for solveMALS
     namespace solve_mals
     {
-      template<typename T>
-      using optional_cref = std::optional<std::reference_wrapper<const T>>;
-
-      template<typename ResultType, typename LeftToRightFunction, typename RightToLeftFunction>
-      class SweepData final
-      {
-        public:
-          SweepData(int nDim, LeftToRightFunction&& leftToRight, RightToLeftFunction rightToLeft) :
-            nDim_(nDim), leftDim_(-1), rightDim_(nDim_), result_(nDim),
-            updateLeftToRight_(std::move(leftToRight)),
-            updateRightToLeft_(std::move(rightToLeft))
-          {
-          }
-          [[nodiscard]] int nDim() const {return nDim_;}
-          [[nodiscard]] int leftDim() const {return leftDim_;}
-          [[nodiscard]] int rightDim() const {return rightDim_;}
-          [[nodiscard]] const ResultType& subTensor(int iDim) const
-          {
-            assert((iDim >= 0 && iDim <= leftDim_) || (iDim >= rightDim_ && iDim <= nDim_-1));
-            return result_[iDim];
-          }
-          [[nodiscard]] const std::vector<ResultType>& data() const {return result_;}
-          void invalidate(int iDim, int nMALS = 1)
-          {
-            iDim = std::clamp(iDim, 0, nDim_-1);
-            leftDim_ = std::min(leftDim_, iDim-1);
-            rightDim_ = std::max(rightDim_, iDim+nMALS);
-          }
-          void update(int newLeftDim, int newRightDim)
-          {
-            assert(leftDim_ >= -1 && leftDim_ < rightDim_ && rightDim_ <= nDim_);
-            assert(newLeftDim >= -1 && newLeftDim < newRightDim && newRightDim <= nDim_);
-
-            for(; leftDim_ < newLeftDim; leftDim_++)
-              updateLeftToRight_(leftDim_+1, left(), result_[leftDim_+1]);
-            leftDim_ = newLeftDim;
-
-            for(; rightDim_ > newRightDim; rightDim_--)
-              updateRightToLeft_(rightDim_-1, right(), result_[rightDim_-1]);
-            rightDim_ = newRightDim;
-          }
-          [[nodiscard]] optional_cref<ResultType> left() const
-          {
-            if(leftDim_ < 0)
-              return std::nullopt;
-            return std::ref(result_[leftDim_]);
-          }
-          [[nodiscard]] optional_cref<ResultType> right() const
-          {
-            if(rightDim_ >= nDim_) 
-              return std::nullopt;
-            return std::cref(result_[rightDim_]);
-          }
-        private:
-          int nDim_;
-          int leftDim_ = 0;
-          int rightDim_ = nDim_-1;
-          std::vector<ResultType> result_;
-          LeftToRightFunction updateLeftToRight_;
-          RightToLeftFunction updateRightToLeft_;
-      };
-
-      //! for template argument deduction...
-      template<typename ResultType, typename LeftToRightFunction, typename RightToLeftFunction>
-      SweepData<ResultType, LeftToRightFunction, RightToLeftFunction> defineSweepData(int nDim, LeftToRightFunction&& leftToRight, RightToLeftFunction rightToLeft)
-      {
-        return {nDim, std::forward<LeftToRightFunction>(leftToRight), std::forward<RightToLeftFunction>(rightToLeft)};
-      }
+      // SweepData now lives in pitts_tensortrain_sweep_data.hpp (shared with TT-cross)
+      using internal::optional_cref;
+      using internal::SweepData;
+      using internal::defineSweepData;
 
       template<typename T>
       constexpr auto apply_loop(const TensorTrainOperator<T>& TTOpA, const TensorTrain<T>& TTx)

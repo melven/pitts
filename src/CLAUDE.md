@@ -139,6 +139,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_solve_mals_helper.hpp` | Building blocks for MALS: left/right contractions, local operator/RHS, AMEn residual enrichment. |
 | `pitts_tensortrain_solve_mals_debug.hpp` | Expensive consistency checks for MALS (only in debug/tests). |
 | `pitts_tensortrain_sweep_index.hpp` | `SweepIndex`: iterates over core positions for sweeps (ALS width 1, MALS width 2, ...). |
+| `pitts_tensortrain_sweep_data.hpp` | `SweepData`/`defineSweepData`: cache of per-dimension results computed incrementally from the left and right with invalidation (partial contractions in MALS, interface matrices in TT-cross). |
 | `pitts_ttn_local_gradient_contraction.hpp` | Special contraction for local gradients in tree tensor networks (used from Python). |
 
 ## Infrastructure / helpers
