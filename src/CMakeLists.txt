@@ -106,6 +106,7 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_sweep_index.hpp
   pitts_tensortrain_sweep_data.hpp
   pitts_tensortrain_cross.hpp
+  pitts_tensortrain_cross_impl.hpp
   pitts_tensortrain_cross_helper.hpp
   pitts_tensortrain_cross_helper_impl.hpp
   pitts_tensortrain_solve_mals.hpp

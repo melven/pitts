@@ -35,7 +35,11 @@
 *        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep).
 *     4. maxvol on the resulting orthogonal factor U selects the new nested index set I_k;
 *        Y_k = U * U(I_k,:)^{-1} (interpolation gauge), the remainder is multiplied into Y_{k+1}.
-*   The right-to-left sweep is the mirror image (right unfoldings, column selection, J_k).
+*   The right-to-left sweep is the mirror image (right unfoldings, column selection, J_k) but without
+*   step 3: it only truncates, so after every full sweep the ranks of y are the truncated ranks. The
+*   enlarged left sets I_{k-1} (|I_{k-1}| = r_{k-1} + enrichmentRank) still allow the rank r_k to grow
+*   in the right-to-left sweep (amen_cross enriches in both directions and needs a final truncation).
+*   The error crosses (I^z, J^z) are updated in both directions.
 *   With nMALS = 2 (DMRG-cross / TT-RC), step 1 evaluates the 2-core block
 *   f( x(I_{k-1}, S_k, S_{k+1}, J_{k+2}) ) and step 2 splits it, which adapts the rank without an
 *   error approximation but costs O(n^2) instead of O(n) entries per core.
@@ -43,8 +47,8 @@
 *   Initialization: index sets from a maxvol sweep over the orthogonalized cores of x itself (no
 *   function evaluations), initial y = f applied to the corresponding slices of x.
 *
-*   Cost per sweep (nMALS = 1, ranks r of y, r_x of x, error rank rho):
-*     function evaluations  sum_k r_{k-1} n_k (r_k + rho) + rho n_k rho,
+*   Cost per full sweep (nMALS = 1, ranks r of y, r_x of x, error rank rho, enrichment rank rho'):
+*     function evaluations  sum_k 2 (r_{k-1} + rho') n_k r_k  (blocks)  +  r_{k-1} n_k rho + 2 rho n_k rho  (error crosses),
 *     flops                 O(d n r r_x^2 + d n r^2 r_x) for the interface contractions and blocks,
 *                           O(d n r^3) for SVD/maxvol.
 *
@@ -85,8 +89,10 @@ namespace PITTS
     //! maximal number of full sweeps (left-to-right + right-to-left)
     int nSweeps = 10;
 
-    //! convergence: stop after a sweep if max_k ||B_k - Y_k||_F / ||B_k||_F < convergenceTolerance
-    //! (B_k: newly evaluated block, Y_k: previous core, both on the cross of core k)
+    //! convergence: stop after a full sweep if max_k ||B_k - Y_k||_F / ||B_k||_F < convergenceTolerance
+    //! (B_k: newly evaluated block, Y_k: previous core, both on the cross of core k). With enrichment the
+    //! relative error ||f(x) - y||_F / ||B_k||_F on the error crosses of core k is included in the maximum
+    //! (the change of y on its own crosses alone cannot detect a rank that is too low).
     T convergenceTolerance = std::sqrt(std::numeric_limits<T>::epsilon());
 
     //! number of cores treated together per step: 1 = ALS-cross with error-based enrichment,
@@ -121,7 +127,7 @@ namespace PITTS
     //! number of full sweeps performed
     int nSweeps = 0;
 
-    //! maximal relative change of a local block in the last sweep (the convergence measure)
+    //! maximal relative change of a local block (and relative error on the error crosses) in the last sweep, see convergenceTolerance
     T lastChange = T(0);
 
     //! total number of evaluated tensor entries (calls of the element-wise function)
@@ -132,12 +138,16 @@ namespace PITTS
 
     //! final left index sets: leftIndices[k] holds the multi-indices (i_0,...,i_k) of I_k for k = 0..d-2, one per row
     //!
-    //! y interpolates f(x) exactly on the fibers (I_{k-1}, S_k, J_{k+1}) of the final crosses, so together
-    //! with rightIndices these sets define the result completely (useful for tests and warm starts).
+    //! y interpolates f(x) on the fibers (I_{k-1}, S_k, J_{k+1}) of the final crosses up to the truncation
+    //! errors (exactly if nothing was truncated), so together with rightIndices these sets define the result
+    //! (useful for tests and warm starts). The last sweep ends right-to-left, hence |J_{k+1}| = r_k is the
+    //! final rank while I_k stems from the preceding left-to-right sweep and contains up to enrichmentRank
+    //! additional multi-indices (nMALS = 1 with enrichment).
     //!
     std::vector<Eigen::MatrixXi> leftIndices;
 
     //! final right index sets: rightIndices[k] holds the multi-indices (i_k,...,i_{d-1}) of J_k for k = 1..d-1, one per row
+    //! (these are the pivot sets of the final cores: |J_k| = r_{k-1}, and Y_k restricted to the columns J_k is the identity)
     std::vector<Eigen::MatrixXi> rightIndices;
   };
 
@@ -166,6 +176,9 @@ namespace PITTS
                                   const TTCrossOptions<T>& options = TTCrossOptions<T>());
 }
 
-// TODO(tt-cross): #include "pitts_tensortrain_cross_impl.hpp" unless PITTS_DEVELOP_BUILD once implemented
+// applyElementwise is templated on the functor type, so it cannot be instantiated explicitly in a .cpp file:
+// the implementation is always included (also for PITTS_DEVELOP_BUILD); only the non-templated helpers
+// (pitts_tensortrain_cross_helper.hpp) are compiled separately in the development build.
+#include "pitts_tensortrain_cross_impl.hpp"
 
 #endif // PITTS_TENSORTRAIN_CROSS_HPP

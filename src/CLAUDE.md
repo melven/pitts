@@ -109,7 +109,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_from_dense_twosided.hpp` | Two-sided TSQR variant of the fast TT-SVD. |
 | `pitts_tensortrain_to_dense.hpp` | Expand a TT to a dense MultiVector / array. |
 | `pitts_tensortrain_gram_schmidt.hpp` | Modified/iterated Gram-Schmidt for TT vectors (used by TT-GMRES). |
-| `pitts_tensortrain_cross.hpp` | `applyElementwise`: y ~ f(x) entry-wise via TT-cross (ALS-cross with AMEn-style enrichment or DMRG-cross), options/info structs. Interface draft, implementation pending. |
+| `pitts_tensortrain_cross.hpp`, `_impl.hpp` | `applyElementwise`: y ~ f(x) entry-wise via TT-cross (ALS-cross with AMEn-style enrichment in the left-to-right sweeps, or DMRG-cross with `nMALS = 2`), options/info structs, algorithm description in the file header. The sweep driver (`_impl.hpp`) is templated on the functor and therefore always included (no explicit instantiation). |
 | `pitts_tensortrain_cross_helper.hpp`, `_impl.hpp` | Building blocks for TT-cross: nested index sets, interface matrices as `SweepData` lambdas, block helpers, local core updates in interpolation gauge (`updateCoreLeft/Right`: truncated SVD, optional enrichment, maxvol), `initialRightIndexSets` (maxvol sweep over an orthogonalized copy of the input). |
 | `pitts_tensortrain_laplace_operator.hpp` | Apply a simple Laplace stencil to a TT (test/bench helper). |
 | `pitts_tensortrain_debug.hpp` | Operator overloads (`+`, `-`, `*`) on TTs for tests, not for production use. |
