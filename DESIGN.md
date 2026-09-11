@@ -12,19 +12,25 @@ matter (numerical kernels, data structures, public API) and prefer readability e
 
 ## Goals
 
-1. **Performance on multi-core CPUs (and clusters).** The core kernels are written for
+1. **High code quality with a small, well-designed interface.** PITTS aims to combine
+   high performance with template generality (one implementation for all scalar types,
+   composable free functions on a few data types) without sacrificing readability of the
+   interface. Every public function should be documented, tested and easy to call
+   correctly; complexity belongs into the `_impl.hpp` files, not into the API. Prefer a
+   clear design over a clever one, and keep the interface stable and minimal.
+2. **Performance on multi-core CPUs (and clusters).** The core kernels are written for
    SIMD (`Chunk<T>`, aligned and padded storage), OpenMP parallelism with explicit thread
    distribution, and memory reuse. Performance-critical code may be less pretty than
    library-style C++; that is a deliberate trade-off, but only where it pays off.
-2. **Measurability.** Every kernel reports runtime, flops and data transfers through
+3. **Measurability.** Every kernel reports runtime, flops and data transfers through
    `pitts_performance.hpp`, so the roofline position of each operation can be checked.
-3. **Small, composable operations.** One operation per header, free functions on a few
+4. **Small, composable operations.** One operation per header, free functions on a few
    data types (`Tensor2`, `Tensor3`, `MultiVector`, `TensorTrain`, `TensorTrainOperator`).
    Higher-level algorithms (normalize, axpby, TT-SVD, GMRES, MALS/AMEn) are built from these.
-4. **Complete documentation.** Every public function, class and file has Doxygen
+5. **Complete documentation.** Every public function, class and file has Doxygen
    documentation (`@brief`, `@param`, `@return`); only internal helpers may be terse.
    REUSE/SPDX compliance is checked in CI.
-5. **Reproducible correctness.** Every operation has unit tests for all supported scalar
+6. **Reproducible correctness.** Every operation has unit tests for all supported scalar
    types (`float`, `double`, `std::complex<float>`, `std::complex<double>`), usually
    against a dense/Eigen reference.
 
@@ -45,7 +51,10 @@ matter (numerical kernels, data structures, public API) and prefer readability e
 
 - Prefer **free functions with output parameters** (`void op(const A& a, B& result)`) to
   returning large objects, so callers can reuse allocated memory. Small results
-  (scalars, `std::vector<int>` of ranks) are returned by value.
+  (scalars, `std::vector<int>` of ranks) are returned by value. Free functions on PITTS
+  types are found by argument-dependent lookup, so calling code (benchmarks, examples,
+  user code) can write `copy(a, b)`, `normalize(TT)`, `dot(x, y)` without the `PITTS::`
+  prefix; keep new operations in namespace `PITTS` (or `PITTS::internal`) for this to work.
 - **Explicit copies:** `copy(a, b)`; copy assignment of the large types is deleted, moves
   are allowed and cheap.
 - **Argument validation** at the API boundary with exceptions (`std::invalid_argument` for
@@ -83,7 +92,10 @@ matter (numerical kernels, data structures, public API) and prefer readability e
 
 ## Testing
 
-- Compare against a dense reference (`toDense`, Eigen) with tolerances scaled by
-  `std::numeric_limits<T>::epsilon()`; cover rank-deficient, rank-1 and boundary cases.
+- Compare against a dense reference (`toDense`, Eigen). The typical tolerance is
+  `std::sqrt(std::numeric_limits<T>::epsilon())` (i.e. ~1e-8 for double, ~3e-4 for float):
+  strict enough to catch real errors, loose enough for floating-point deviations from
+  different summation orders or thread counts. Cover rank-deficient, rank-1 and boundary
+  cases.
 - Tests must pass with 1 and 3 MPI processes and with 4 OpenMP threads; tests that need
   a specific thread/process count check for it explicitly.
