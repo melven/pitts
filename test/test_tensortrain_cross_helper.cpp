@@ -33,14 +33,6 @@ namespace
     }
     return result;
   }
-
-  // helper: compare two integer matrices (gtest cannot print Eigen matrices, so no EXPECT_EQ on them)
-  void expectEqual(const Eigen::MatrixXi& expected, const Eigen::MatrixXi& actual)
-  {
-    ASSERT_EQ(expected.rows(), actual.rows());
-    ASSERT_EQ(expected.cols(), actual.cols());
-    EXPECT_TRUE((expected.array() == actual.array()).all()) << "expected:\n" << expected << "\nactual:\n" << actual;
-  }
 }
 
 
@@ -118,8 +110,8 @@ TEST(PITTS_TensorTrain_cross_helper, expandLeft)
   const Eigen::MatrixXi boundary = expandLeft(I, -1);
   EXPECT_EQ(1, boundary.rows());
   EXPECT_EQ(0, boundary.cols());
-  expectEqual(rows({{2}, {0}}), expandLeft(I, 0));
-  expectEqual(rows({{0, 0}, {2, 2}, {0, 1}}), expandLeft(I, 1));
+  EXPECT_NEAR(rows({{2}, {0}}), expandLeft(I, 0), 0);
+  EXPECT_NEAR(rows({{0, 0}, {2, 2}, {0, 1}}), expandLeft(I, 1), 0);
 }
 
 TEST(PITTS_TensorTrain_cross_helper, expandRight)
@@ -135,6 +127,6 @@ TEST(PITTS_TensorTrain_cross_helper, expandRight)
   const Eigen::MatrixXi boundary = expandRight(J, nDim, nDim);
   EXPECT_EQ(1, boundary.rows());
   EXPECT_EQ(0, boundary.cols());
-  expectEqual(rows({{1}, {0}}), expandRight(J, 2, nDim));
-  expectEqual(rows({{2, 0}, {0, 0}, {1, 1}}), expandRight(J, 1, nDim));
+  EXPECT_NEAR(rows({{1}, {0}}), expandRight(J, 2, nDim), 0);
+  EXPECT_NEAR(rows({{2, 0}, {0, 0}, {1, 1}}), expandRight(J, 1, nDim), 0);
 }
