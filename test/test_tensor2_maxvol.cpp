@@ -230,3 +230,41 @@ TYPED_TEST(PITTS_Tensor2_maxvol, max_iterations_limits_swaps)
   // and the volume is non-zero
   EXPECT_GT(volume(A, I), 0);
 }
+
+TYPED_TEST(PITTS_Tensor2_maxvol, returns_interpolation_coefficients)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const auto eps = 100*std::sqrt(std::numeric_limits<decltype(std::abs(Type()))>::epsilon());
+
+  const int m = 50, r = 4;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+
+  Tensor2 AAinv;
+  const std::vector<int> I = PITTS::internal::maxvol(A, Type(0.01), 100, &AAinv);
+  checkValidIndices(I, m, r);
+  ASSERT_EQ(m, AAinv.r1());
+  ASSERT_EQ(r, AAinv.r2());
+
+  // reference: A * A(I,:)^-1
+  mat Ahat(r, r);
+  for(int j = 0; j < r; j++)
+    Ahat.row(j) = ConstEigenMap(A).row(I[j]);
+  const mat ref = ConstEigenMap(A) * Ahat.inverse();
+  EXPECT_NEAR(ref, ConstEigenMap(AAinv), eps);
+
+  // the selected rows form the identity
+  for(int j = 0; j < r; j++)
+    for(int k = 0; k < r; k++)
+      EXPECT_NEAR(Type(j == k ? 1 : 0), AAinv(I[j], k), eps);
+
+  // square case: identity without any swaps
+  Tensor2 S(r, r);
+  EigenMap(S).setRandom();
+  EigenMap(S) += 3 * mat::Identity(r, r);
+  const std::vector<int> Isq = PITTS::internal::maxvol(S, Type(0.01), 100, &AAinv);
+  checkValidIndices(Isq, r, r);
+  EXPECT_NEAR(mat::Identity(r, r), ConstEigenMap(AAinv), eps);
+}

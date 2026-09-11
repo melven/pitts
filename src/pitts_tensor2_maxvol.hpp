@@ -43,12 +43,14 @@ namespace PITTS
     //! @param A          tall matrix (m x r, m >= r) with full column rank, e.g. the left unfolding (r1*n x r2) of an orthogonal TT core
     //! @param tol        stop swapping when max |A * A(I,:)^{-1}| <= 1+tol (only the real part is used, must be >= 0)
     //! @param maxIter    maximal number of row swaps (the result is a valid selection even if this limit is hit)
+    //! @param AAinv      optional output: the interpolation coefficients A * A(I,:)^{-1} (m x r, rows I are the identity),
+    //!                   which the algorithm maintains anyway; in TT-cross this is directly the core in interpolation gauge
     //! @return           indices of the selected rows I (size r, arbitrary order, no duplicates)
     //!
     //! @throws std::invalid_argument if m < r, r == 0, or A is (numerically) rank-deficient
     //!
     template<typename T>
-    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol = T(0.05), int maxIter = 100);
+    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol = T(0.05), int maxIter = 100, Tensor2<T>* AAinv = nullptr);
   }
 }
 

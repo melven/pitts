@@ -33,7 +33,7 @@ namespace PITTS
   {
     // implement maxvol
     template<typename T>
-    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol, int maxIter)
+    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol, int maxIter, Tensor2<T>* AAinv)
     {
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -64,9 +64,16 @@ namespace PITTS
         if( std::abs(Rqr(j,j)) <= rankTolerance * maxDiag )
           throw std::invalid_argument("maxvol: input matrix is (numerically) rank-deficient!");
 
-      // fast return: nothing to swap
+      // fast return: nothing to swap (and A * A(I,:)^{-1} is the identity)
       if( m == r )
+      {
+        if( AAinv != nullptr )
+        {
+          AAinv->resize(m, r);
+          EigenMap(*AAinv) = mat::Identity(m, r);
+        }
         return I;
+      }
 
       // B = A * A(I,:)^{-1}, so B(I,:) is the identity
       mat Ahat(r, r);
@@ -92,6 +99,13 @@ namespace PITTS
         Bi(j) -= T(1);
         B.noalias() -= Bj * (Bi / pivot);
         I[j] = i;
+      }
+
+      // B is kept consistent with the final selection by the rank-1 updates, so it can be returned as is
+      if( AAinv != nullptr )
+      {
+        AAinv->resize(m, r);
+        EigenMap(*AAinv) = B;
       }
 
       return I;
