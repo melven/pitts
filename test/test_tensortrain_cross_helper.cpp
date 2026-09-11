@@ -582,6 +582,45 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
   checkLeftUpdate(B, upd, maxvolTol, true);
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_limited_by_rows)
+{
+  using Type = typename TestFixture::Type;
+  const Type maxvolTol = Type(0.05);
+
+  // the left unfolding has only r1*n = 4 rows: at most 4 - rank directions can be added
+  const auto B = randomBlock<Type>(2, 2, 3);
+  PITTS::Tensor2<Type> E(4, 2);
+  EigenMap(E).setRandom();
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  EXPECT_EQ(3, upd.truncatedRank);
+  EXPECT_EQ(4, upd.core.r2());
+  checkLeftUpdate(B, upd, maxvolTol, true);
+
+  // full rank already: nothing can be added (the projected remainder is only round-off)
+  const auto Bfull = randomBlock<Type>(1, 3, 5);
+  PITTS::Tensor2<Type> Efull(3, 2);
+  EigenMap(Efull).setRandom();
+  const CoreUpdate<Type> updFull = updateCoreLeft<Type>(Bfull, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(Efull));
+  EXPECT_EQ(3, updFull.truncatedRank);
+  EXPECT_EQ(3, updFull.core.r2());
+  checkLeftUpdate(Bfull, updFull, maxvolTol, true);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_enrichment_limited_by_columns)
+{
+  using Type = typename TestFixture::Type;
+  const Type maxvolTol = Type(0.05);
+
+  // full rank already (r1 = 3 = n*r2): nothing can be added
+  const auto B = randomBlock<Type>(3, 3, 1);
+  PITTS::Tensor2<Type> E(2, 3);
+  EigenMap(E).setRandom();
+  const CoreUpdate<Type> upd = updateCoreRight<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  EXPECT_EQ(3, upd.truncatedRank);
+  EXPECT_EQ(3, upd.core.r1());
+  checkRightUpdate(B, upd, maxvolTol, true);
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_full_rank)
 {
   using Type = typename TestFixture::Type;

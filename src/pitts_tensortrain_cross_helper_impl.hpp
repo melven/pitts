@@ -41,7 +41,8 @@ namespace PITTS
       //!
       //! Returns Q_E (m x rho' for leftOrthog, rho' x m otherwise) with rho' <= rho; directions that are
       //! (numerically) in the span of Q are dropped. Same sequence as in the enrichSubspace lambda of
-      //! solveMALS: project out, then a rank-revealing QR with an absolute tolerance.
+      //! solveMALS: project out, then a rank-revealing QR of the remainder with the rank limited to the
+      //! dimension of the orthogonal complement of Q.
       //!
       template<typename T>
       Tensor2<T> newDirections(const Tensor2<T>& Q, const Tensor2<T>& E, bool leftOrthog)
@@ -56,6 +57,16 @@ namespace PITTS
         if( !leftOrthog && mapE.cols() != mapQ.cols() )
           throw std::invalid_argument("TT-cross enrichment: wrong number of columns!");
 
+        // the complement of span(Q) has dimension m - r: never return more directions than that
+        // (with a rank-deficient remainder the QR below only sees round-off there and would otherwise
+        // happily return noise directions; the following maxvol then fails because the matrix is not tall)
+        const int m = leftOrthog ? Q.r1() : Q.r2();
+        const int r = leftOrthog ? Q.r2() : Q.r1();
+        const int rho = std::min<int>(leftOrthog ? E.r2() : E.r1(), m - r);
+        Tensor2<T> empty(leftOrthog ? m : 0, leftOrthog ? 0 : m);
+        if( rho <= 0 )
+          return empty;
+
         // project out the known directions (one pass is enough: Q is orthonormal up to round-off,
         // and small remaining components are removed by the tolerance below)
         Tensor2<T> Ep(E.r1(), E.r2());
@@ -64,10 +75,14 @@ namespace PITTS
         else
           EigenMap(Ep).noalias() = mapE - (mapE * mapQ.adjoint()) * mapQ;
 
-        // absolute tolerance relative to the size of E: directions that vanish after the projection are dropped
+        // Absolute tolerance relative to the size of E: a direction whose component outside span(Q) is below
+        // sqrt(eps) * ||E|| is dropped. It would not enlarge the space in any useful way (the block SVD
+        // truncates at rankTolerance >= sqrt(eps) by default anyway), and the projection remainder of the
+        // factors from normalize_svd/normalize_qb is well above eps * ||E|| (observed ~1e-12 for double).
         const RealType scaleE = mapE.norm();
-        const RealType tolerance = 1000 * std::numeric_limits<RealType>::epsilon() * std::sqrt(RealType(std::max(mapE.rows(), mapE.cols()))) * scaleE;
-        const int rho = leftOrthog ? E.r2() : E.r1();
+        const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * scaleE;
+        if( ConstEigenMap(Ep).norm() <= tolerance )
+          return empty;
 
         auto [QE, RE] = normalize_qb(Ep, leftOrthog, T(tolerance), rho, true);
         return leftOrthog ? std::move(QE) : std::move(RE);
