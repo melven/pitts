@@ -76,7 +76,7 @@ namespace PITTS
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   std::type_identity_t<optional_cref<Tensor2<T>>> enrichment)
+                                   optional_cref<Tensor2<T>> enrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
         using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
@@ -129,7 +129,7 @@ namespace PITTS
       // implement updateCoreRight
       template<typename T>
       CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                    std::type_identity_t<optional_cref<Tensor2<T>>> enrichment)
+                                    optional_cref<Tensor2<T>> enrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
         using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;

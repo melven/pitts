@@ -553,7 +553,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment)
   PITTS::Tensor2<Type> E(8, 2);
   EigenMap(E).setRandom();
 
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(5, upd.core.r2());
   // the enrichment does not change the represented block (zero rows in the carry)
@@ -576,7 +576,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
   PITTS::Tensor2<Type> E(8, 2);
   EigenMap(E) = ConstEigenMap(unfold_left(B)) * mat::Random(3, 2);
 
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(3, upd.core.r2());
   checkLeftUpdate(B, upd, maxvolTol, true);
@@ -624,7 +624,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_enrichment
   PITTS::Tensor2<Type> E(2, 8);
   EigenMap(E).setRandom();
 
-  const CoreUpdate<Type> upd = updateCoreRight(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  const CoreUpdate<Type> upd = updateCoreRight<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(5, upd.core.r1());
   checkRightUpdate(B, upd, maxvolTol, true);

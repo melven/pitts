@@ -44,7 +44,6 @@
 // includes
 #include <cassert>
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 #include <vector>
 #include "pitts_tensor2.hpp"
@@ -361,12 +360,12 @@ namespace PITTS
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
       //! @param enrichment         optional directions to append (r1 n x rho), nullopt for none
-      //!                           (std::type_identity_t keeps T deducible from B when std::cref(E) is passed)
+      //!                           (pass std::cref(E) and give T explicitly, updateCoreLeft<T>(...), as for the solveMALS helpers)
       //! @return                   new core, carry, selected rows and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   std::type_identity_t<optional_cref<Tensor2<T>>> enrichment = std::nullopt);
+                                   optional_cref<Tensor2<T>> enrichment = std::nullopt);
 
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
@@ -379,7 +378,7 @@ namespace PITTS
       //!
       template<typename T>
       CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                    std::type_identity_t<optional_cref<Tensor2<T>>> enrichment = std::nullopt);
+                                    optional_cref<Tensor2<T>> enrichment = std::nullopt);
 
 
       //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)
