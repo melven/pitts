@@ -42,12 +42,14 @@
 #define PITTS_TENSORTRAIN_CROSS_HELPER_HPP
 
 // includes
+#include <cassert>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_eigen.hpp"
 
@@ -195,14 +197,43 @@ namespace PITTS
       //!
       //! SweepData's invalidation matches the dependency structure: L_k depends on L_{k-1}, X_k and I_k only,
       //! so after I_k (or X_k) changed, invalidate(k) marks L_k..L_{d-1} invalid and update() recomputes on demand.
+      //! Caveat: SweepData stores the left and right results in one array, so the valid ranges must not overlap
+      //! (update(k-1, k+1) around the current core k is the intended pattern; update asserts newLeftDim < newRightDim).
       //! Used for x on the index sets of y, and for x and y on the index sets of the error approximation z.
       //!
       //! @param TT   the tensor train (captured by reference, must outlive the SweepData)
       //! @param I    the left index sets (captured by reference, I[k] must be valid when L_k is computed)
       //! @return     lambda (int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& result) for defineSweepData
       //!
+      //! Defined in the header (like the *_loop_from_left helpers of solveMALS) because the deduced lambda
+      //! type cannot be separated into an explicit instantiation; the actual work is in normalize_contract1.
+      //!
       template<typename T>
-      auto interface_loop_from_left(const TensorTrain<T>& TT, const std::vector<NestedIndices>& I);
+      auto interface_loop_from_left(const TensorTrain<T>& TT, const std::vector<NestedIndices>& I)
+      {
+        return [&](int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& L)
+        {
+          const Tensor3<T>& X = TT.subTensor(iDim);
+          const NestedIndices& Ik = I.at(iDim);
+
+          // LX = L_{iDim-1} * X (all mode indices); at the left boundary L_{-1} is the 1x1 identity, so LX = X
+          Tensor3<T> tmp;
+          const Tensor3<T>* LX = &X;
+          if( prev )
+          {
+            normalize_contract1(prev->get(), X, tmp);
+            LX = &tmp;
+          }
+          else
+            assert(X.r1() == 1);
+
+          // pick the rows of the nested index set: L(a,:) = LX(link[a], idx[a], :)
+          L.resize(Ik.size(), LX->r2());
+          for(int a = 0; a < Ik.size(); a++)
+            for(int j = 0; j < LX->r2(); j++)
+              L(a, j) = (*LX)(Ik.link[a], Ik.idx[a], j);
+        };
+      }
 
       //! right interface matrices for SweepData, see interface_loop_from_left
       //!
@@ -210,7 +241,31 @@ namespace PITTS
       //! @param J    the right index sets (captured by reference, J[k] must be valid when R_k is computed)
       //!
       template<typename T>
-      auto interface_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J);
+      auto interface_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J)
+      {
+        return [&](int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& R)
+        {
+          const Tensor3<T>& X = TT.subTensor(iDim);
+          const NestedIndices& Jk = J.at(iDim);
+
+          // XR = X * R_{iDim+1} (all mode indices); at the right boundary R_d is the 1x1 identity, so XR = X
+          Tensor3<T> tmp;
+          const Tensor3<T>* XR = &X;
+          if( prev )
+          {
+            normalize_contract2(X, prev->get(), tmp);
+            XR = &tmp;
+          }
+          else
+            assert(X.r2() == 1);
+
+          // pick the columns of the nested index set: R(:,b) = XR(:, idx[b], link[b])
+          R.resize(XR->r1(), Jk.size());
+          for(int b = 0; b < Jk.size(); b++)
+            for(int i = 0; i < XR->r1(); i++)
+              R(i, b) = (*XR)(i, Jk.idx[b], Jk.link[b]);
+        };
+      }
 
 
       //! apply a scalar function to every entry of a block (the only place where f is called)
