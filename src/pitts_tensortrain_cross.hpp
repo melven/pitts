@@ -59,6 +59,7 @@
 #include <limits>
 #include <vector>
 #include "pitts_tensortrain.hpp"
+#include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -129,15 +130,15 @@ namespace PITTS
     //! true if convergenceTolerance was reached within nSweeps
     bool converged = false;
 
-    //! final left index sets: leftIndices[k] holds the multi-indices (i_0,...,i_k) of I_k for k = 0..d-2
+    //! final left index sets: leftIndices[k] holds the multi-indices (i_0,...,i_k) of I_k for k = 0..d-2, one per row
     //!
     //! y interpolates f(x) exactly on the fibers (I_{k-1}, S_k, J_{k+1}) of the final crosses, so together
     //! with rightIndices these sets define the result completely (useful for tests and warm starts).
     //!
-    std::vector<std::vector<std::vector<int>>> leftIndices;
+    std::vector<Eigen::MatrixXi> leftIndices;
 
-    //! final right index sets: rightIndices[k] holds the multi-indices (i_k,...,i_{d-1}) of J_k for k = 1..d-1
-    std::vector<std::vector<std::vector<int>>> rightIndices;
+    //! final right index sets: rightIndices[k] holds the multi-indices (i_k,...,i_{d-1}) of J_k for k = 1..d-1, one per row
+    std::vector<Eigen::MatrixXi> rightIndices;
   };
 
 

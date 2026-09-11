@@ -23,14 +23,16 @@
 *   left unfolding  (r_{k-1} n_k) x r_k : row    = a + i*r_{k-1}   for (a in I_{k-1}, i in S_k)
 *   right unfolding r_{k-1} x (n_k r_k) : column = i + b*n_k       for (i in S_k, b in J_{k+1})
 *
-* Sketch of one left-to-right step at core k with these helpers (for a TT x and its cross sets I, J):
+* Sketch of one left-to-right step at core k with these helpers (for a TT x and its cross sets I, J;
+* Lx is a SweepData of interface matrices, see interface_loop_from_left):
 *
-*   normalize_contract1(Lx.left(k-1), X_k, LX);     // LX = L_{k-1} * X_k        (|I_{k-1}| x n_k x r_k(x))
-*   normalize_contract2(LX, Lx.right(k+1), B);      // B  = LX * R_{k+1}         (|I_{k-1}| x n_k x |J_{k+1}|)
+*   Lx.update(k-1, k+1);                            // L_{k-1} and R_{k+1} valid
+*   normalize_contract1(*Lx.left(), X_k, LX);       // LX = L_{k-1} * X_k        (|I_{k-1}| x n_k x r_k(x))
+*   normalize_contract2(LX, *Lx.right(), B);        // B  = LX * R_{k+1}         (|I_{k-1}| x n_k x |J_{k+1}|)
 *   applyToBlock(f, B);                             // B  = f(x) on the cross
 *   auto upd = updateCoreLeft(B, tol, maxRank, maxvolTol, enrichment);
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
-*   Lx.updateLeft(k, LX, I[k]);                     // L_k = rows I_k of unfold_left(LX)
+*   Lx.invalidate(k);                               // L_k depends on the new I_k, recomputed on the next update
 *   Y_k = upd.core;  Y_{k+1} = upd.carry * Y_{k+1};
 *
 **/
@@ -46,6 +48,8 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_sweep_data.hpp"
+#include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -83,27 +87,13 @@ namespace PITTS
 
         //! number of multi-indices in the set (= TT rank of the bond)
         [[nodiscard]] int size() const {return static_cast<int>(idx.size());}
-
-        //! row numbers of the multi-indices in a left unfolding with r_prev rows per mode index: link + idx*r_prev
-        [[nodiscard]] std::vector<int> rowIndices(int r_prev) const
-        {
-          std::vector<int> rows(size());
-          for(int a = 0; a < size(); a++)
-            rows[a] = link[a] + idx[a]*r_prev;
-          return rows;
-        }
-
-        //! column numbers of the multi-indices in a right unfolding with mode size n: idx + link*n
-        [[nodiscard]] std::vector<int> columnIndices(int n) const
-        {
-          std::vector<int> columns(size());
-          for(int b = 0; b < size(); b++)
-            columns[b] = idx[b] + link[b]*n;
-          return columns;
-        }
       };
 
       //! decode a row selection of a left unfolding (r_prev*n x r) into a nested left index set
+      //!
+      //! This is the inverse of the row numbering of unfold_left (row = i1 + j*r1) and the only place
+      //! where this index arithmetic appears: maxvol works on the unfolded matrix and returns row
+      //! numbers, everything else accesses cores with three indices (link, idx, :) again.
       //!
       //! @param rows     selected rows (e.g. from maxvol), each row = link + idx*r_prev
       //! @param r_prev   number of rows per mode index (= |I_{k-1}|)
@@ -127,6 +117,8 @@ namespace PITTS
 
       //! decode a column selection of a right unfolding (r x n*r_next) into a nested right index set
       //!
+      //! Inverse of the column numbering of unfold_right (column = j + k*n), see leftIndicesFromRows.
+      //!
       //! @param columns  selected columns (e.g. from maxvol of the transposed unfolding), each column = idx + link*n
       //! @param n        mode size
       //!
@@ -147,122 +139,78 @@ namespace PITTS
         return J;
       }
 
-      //! full multi-indices (i_0,...,i_k) of the left set I_k (I[0] is the set of bond 0)
+      //! full multi-indices of the left set I_k as a matrix with one row (i_0,...,i_k) per element (I[0] is the set of bond 0)
       //!
-      //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()}.
+      //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()} (a 1 x 0 matrix).
       //!
-      inline std::vector<std::vector<int>> expandLeft(const std::vector<NestedIndices>& I, int k)
+      inline Eigen::MatrixXi expandLeft(const std::vector<NestedIndices>& I, int k)
       {
-        // follow the links from bond k back to bond 0, prepending one mode index per step
-        std::vector<std::vector<int>> result(k < 0 ? 1 : I.at(k).size());
-        for(int a = 0; a < result.size(); a++)
+        // follow the links from bond k back to bond 0, filling one column per step
+        Eigen::MatrixXi result(k < 0 ? 1 : I.at(k).size(), k+1);
+        for(int a = 0; a < result.rows(); a++)
         {
-          std::vector<int> multiIndex(k+1);
           int pos = a;
           for(int j = k; j >= 0; j--)
           {
-            multiIndex[j] = I[j].idx.at(pos);
+            result(a, j) = I[j].idx.at(pos);
             pos = I[j].link[pos];
           }
-          result[a] = std::move(multiIndex);
         }
         return result;
       }
 
-      //! full multi-indices (i_k,...,i_{d-1}) of the right set J_k (J[k] is the set of bond k-1, J[0] unused)
+      //! full multi-indices of the right set J_k as a matrix with one row (i_k,...,i_{d-1}) per element (J[k] is the set of bond k-1, J[0] unused)
       //!
-      //! expandRight(J, nDim, nDim) returns the single empty multi-index of J_d = {()}.
+      //! expandRight(J, nDim, nDim) returns the single empty multi-index of J_d = {()} (a 1 x 0 matrix).
       //!
-      inline std::vector<std::vector<int>> expandRight(const std::vector<NestedIndices>& J, int k, int nDim)
+      inline Eigen::MatrixXi expandRight(const std::vector<NestedIndices>& J, int k, int nDim)
       {
-        // follow the links from bond k-1 forward to the last dimension, appending one mode index per step
-        std::vector<std::vector<int>> result(k >= nDim ? 1 : J.at(k).size());
-        for(int b = 0; b < result.size(); b++)
+        // follow the links from bond k-1 forward to the last dimension, filling one column per step
+        Eigen::MatrixXi result(k >= nDim ? 1 : J.at(k).size(), nDim-k);
+        for(int b = 0; b < result.rows(); b++)
         {
-          std::vector<int> multiIndex(nDim-k);
           int pos = b;
           for(int j = k; j < nDim; j++)
           {
-            multiIndex[j-k] = J[j].idx.at(pos);
+            result(b, j-k) = J[j].idx.at(pos);
             pos = J[j].link[pos];
           }
-          result[b] = std::move(multiIndex);
         }
         return result;
       }
 
 
-      //! copy selected rows of a matrix: B = A(rows,:)
-      template<typename T>
-      void selectRows(const ConstTensor2View<T>& A, const std::vector<int>& rows, Tensor2<T>& B);
-
-      //! copy selected columns of a matrix: B = A(:,columns)
-      template<typename T>
-      void selectColumns(const ConstTensor2View<T>& A, const std::vector<int>& columns, Tensor2<T>& B);
-
-
-      //! Cached interface matrices (partial contractions) of one tensor train on nested index sets
+      //! Interface matrices (partial contractions of a TT on nested index sets), cached with SweepData
       //!
-      //! left(k)  = L_k of shape |I_k| x r_k       with L_k(a,:) = X_0(i_0) X_1(i_1) ... X_k(i_k) for (i_0..i_k) = I_k[a]
-      //! right(k) = R_k of shape r_{k-1} x |J_k|   with R_k(:,b) = X_k(i_k) ... X_{d-1}(i_{d-1}) for (i_k..i_{d-1}) = J_k[b]
-      //! left(-1) and right(nDim) are the 1x1 identity (boundary ranks 1).
+      //! Use with defineSweepData<Tensor2<T>>(nDim, interface_loop_from_left<T>(TT, I), interface_loop_from_right<T>(TT, J)):
+      //!   subTensor(k) from the left  = L_k of shape |I_k| x r_k       with L_k(a,:) = X_0(i_0) X_1(i_1) ... X_k(i_k) for (i_0..i_k) = I_k[a]
+      //!   subTensor(k) from the right = R_k of shape r_{k-1} x |J_k|   with R_k(:,b) = X_k(i_k) ... X_{d-1}(i_{d-1}) for (i_k..i_{d-1}) = J_k[b]
+      //! The boundary interfaces L_{-1} and R_d are the 1x1 identity and appear as std::nullopt (SweepData::left()/right()).
       //!
-      //! The entries are updated incrementally during sweeps: L_k only depends on L_{k-1}, X_k and I_k,
-      //! so after a change of I_k (or X_k) all L_j with j >= k are invalid; analogously for R_k.
-      //! Used for x on the index sets of y, for x and y on the index sets of the error approximation z.
+      //! The recursion L_k(a,:) = L_{k-1}(link[a],:) * X_k(:,idx[a],:) is why the index sets are stored as (link, idx).
+      //! L_k is computed by contracting L_{k-1} with the full core (normalize_contract1, all mode indices) and
+      //! picking the rows (link, idx) of the result. This is the same contraction the block evaluation of
+      //! core k needs, so it is currently done twice per core (once here, once for the block); acceptable for
+      //! the first version, a shared scratch tensor can remove it later.
+      //!
+      //! SweepData's invalidation matches the dependency structure: L_k depends on L_{k-1}, X_k and I_k only,
+      //! so after I_k (or X_k) changed, invalidate(k) marks L_k..L_{d-1} invalid and update() recomputes on demand.
+      //! Used for x on the index sets of y, and for x and y on the index sets of the error approximation z.
+      //!
+      //! @param TT   the tensor train (captured by reference, must outlive the SweepData)
+      //! @param I    the left index sets (captured by reference, I[k] must be valid when L_k is computed)
+      //! @return     lambda (int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& result) for defineSweepData
       //!
       template<typename T>
-      class CrossInterfaces
-      {
-        public:
-          //! set up for a TT with nDim cores, all entries invalid except the boundaries
-          explicit CrossInterfaces(int nDim);
+      auto interface_loop_from_left(const TensorTrain<T>& TT, const std::vector<NestedIndices>& I);
 
-          //! number of dimensions
-          [[nodiscard]] int nDim() const {return nDim_;}
-
-          //! left interface L_k, k = -1..nDim-1, must be valid
-          [[nodiscard]] const Tensor2<T>& left(int k) const;
-
-          //! right interface R_k, k = 0..nDim, must be valid
-          [[nodiscard]] const Tensor2<T>& right(int k) const;
-
-          //! is L_k valid?
-          [[nodiscard]] bool leftValid(int k) const;
-
-          //! is R_k valid?
-          [[nodiscard]] bool rightValid(int k) const;
-
-          //! recompute L_k = rows I_k of unfold_left(LX), where LX = L_{k-1} * X_k (|I_{k-1}| x n_k x r_k) was
-          //! computed by the caller (it is needed for the block evaluation anyway); invalidates L_j for j > k
-          void updateLeft(int k, const Tensor3<T>& LX, const NestedIndices& Ik);
-
-          //! recompute R_k = columns J_k of unfold_right(XR), where XR = X_k * R_{k+1} (r_{k-1} x n_k x |J_{k+1}|)
-          //! was computed by the caller; invalidates R_j for j < k
-          void updateRight(int k, const Tensor3<T>& XR, const NestedIndices& Jk);
-
-          //! mark L_k..L_{nDim-1} as invalid (after I_k or X_k changed)
-          void invalidateLeft(int k);
-
-          //! mark R_0..R_k as invalid (after J_k or X_k changed)
-          void invalidateRight(int k);
-
-        private:
-          //! number of dimensions
-          int nDim_;
-
-          //! left interfaces, index k+1 for L_k
-          std::vector<Tensor2<T>> left_;
-
-          //! right interfaces, index k for R_k
-          std::vector<Tensor2<T>> right_;
-
-          //! first invalid left index (L_k valid for k < leftValidUpTo_)
-          int leftValidUpTo_;
-
-          //! last invalid right index (R_k valid for k > rightValidFrom_)
-          int rightValidFrom_;
-      };
+      //! right interface matrices for SweepData, see interface_loop_from_left
+      //!
+      //! @param TT   the tensor train (captured by reference)
+      //! @param J    the right index sets (captured by reference, J[k] must be valid when R_k is computed)
+      //!
+      template<typename T>
+      auto interface_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J);
 
 
       //! apply a scalar function to every entry of a block (the only place where f is called)
@@ -301,12 +249,19 @@ namespace PITTS
       //!
       //! Given the evaluated block B (r1 x n x r2) of f(x) on the cross (I_{k-1}, S_k, J_{k+1}):
       //!  1. truncated SVD of the left unfolding of B: B ~ U * SVt with U (r1 n x r'), relative tolerance
-      //!     rankTolerance on the singular values and maximal rank maxRank;
+      //!     rankTolerance on the singular values and maximal rank maxRank (internal::normalize_svd);
       //!  2. optional enrichment: the columns of E (r1 n x rho, e.g. error directions from the AMEn-style
       //!     residual) are orthogonalized against U and appended, U' = [U, Q_E] (r1 n x r'+rho'), and SVt is
-      //!     padded with zero rows (rho' <= rho, linearly dependent directions are dropped);
+      //!     padded with zero rows (rho' <= rho, linearly dependent directions are dropped). This is the
+      //!     same sequence as in the enrichSubspace lambda of solveMALS (project out, normalize_qb/svd of the
+      //!     remainder, concatLeftRight / concatTopBottom with zero padding) and reuses those building blocks;
       //!  3. maxvol(U', maxvolTolerance) selects the rows I_k;
       //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}), carry = U'(rows,:) * SVt'.
+      //!     (maxvol forms U' * U'(rows,:)^{-1} internally; it should return it instead of recomputing it here.)
+      //!
+      //! Compared to solveMALS this replaces "solve the local problem, then orthogonalize" by "evaluate the
+      //! block, then select interpolation rows": the orthogonal gauge and the setSubTensors orthogonality
+      //! flags of MALS are not used, y is in the interpolation gauge instead (see pitts_tensortrain_cross.hpp).
       //!
       //! Invariants: unfold_left(core)(rows,:) = identity, |entries of core| <= 1 + maxvolTolerance,
       //! and core * carry = U * SVt (= B up to the truncation error).
@@ -345,12 +300,11 @@ namespace PITTS
       //!
       //! @param TTx                input tensor train (boundary ranks 1)
       //! @param maxvolTolerance    dominance tolerance for maxvol
-      //! @param J                  [out] right index sets, J[k] for k = 1..d-1 (J[0] empty)
-      //! @param Rx                 [out] right interfaces of x on J (right(k) valid for k = 1..d)
+      //! @return                   right index sets, J[k] for k = 1..d-1 (J[0] empty); the interfaces are then
+      //!                           obtained with a SweepData built from interface_loop_from_right
       //!
       template<typename T>
-      void initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance,
-                                 std::vector<NestedIndices>& J, CrossInterfaces<T>& Rx);
+      std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance);
     }
   }
 }
