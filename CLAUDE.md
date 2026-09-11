@@ -36,6 +36,18 @@ directories go into the table above. `scripts/check_claude_md.sh` verifies the f
 
 Every new source or documentation file needs an SPDX header (REUSE compliance is checked in CI; check locally with `reuse lint`, which the hook installs). For files that cannot carry a header (e.g. JSON) add a `<file>.license` file next to it.
 
+**Authorship of AI-generated files:** files written by an AI coding agent must be distinguishable from
+hand-written ones. In new files, use the prompting person as the human contact but name the agent as
+the author, both in the SPDX header and in the Doxygen `@author` line:
+
+```
+// SPDX-FileContributor: Claude Code (Anthropic AI model), prompted by <Name> <<e-mail>>
+* @author Claude Code (Anthropic AI model), prompted by <Name> <<e-mail>>
+```
+
+Do not add this line to existing hand-written files when editing them; the git history records
+those changes (commit messages carry the `Co-Authored-By` trailer).
+
 ## Environment setup (Ubuntu 24.04, apt only)
 
 In Claude Code on the web the SessionStart hook (`.claude/hooks/session-start.sh`) already did
