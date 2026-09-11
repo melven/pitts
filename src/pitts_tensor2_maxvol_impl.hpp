@@ -64,9 +64,12 @@ namespace PITTS
         if( std::abs(Rqr(j,j)) <= rankTolerance * maxDiag )
           throw std::invalid_argument("maxvol: input matrix is (numerically) rank-deficient!");
 
-      // fast return: nothing to swap (and A * A(I,:)^{-1} is the identity)
+      // fast return: nothing to swap, all rows are selected. Return them in natural order so that
+      // A * A(I,:)^{-1} is the identity with I[j] = j (with the pivot order it would be a permutation matrix)
       if( m == r )
       {
+        for(int j = 0; j < r; j++)
+          I[j] = j;
         if( AAinv != nullptr )
         {
           AAinv->resize(m, r);

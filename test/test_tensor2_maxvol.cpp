@@ -106,6 +106,8 @@ TYPED_TEST(PITTS_Tensor2_maxvol, square_matrix_selects_all_rows)
 
   std::vector<int> I = PITTS::internal::maxvol(A);
   checkValidIndices(I, 4, 4);
+  // natural order, consistent with the returned coefficients (identity)
+  EXPECT_EQ((std::vector<int>{0, 1, 2, 3}), I);
 }
 
 TYPED_TEST(PITTS_Tensor2_maxvol, single_column_selects_max_abs_entry)
