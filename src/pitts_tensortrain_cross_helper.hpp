@@ -44,6 +44,7 @@
 // includes
 #include <cassert>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
 #include "pitts_tensor2.hpp"
@@ -346,8 +347,7 @@ namespace PITTS
       //!     same sequence as in the enrichSubspace lambda of solveMALS (project out, normalize_qb/svd of the
       //!     remainder, concatLeftRight / concatTopBottom with zero padding) and reuses those building blocks;
       //!  3. maxvol(U', maxvolTolerance) selects the rows I_k;
-      //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}), carry = U'(rows,:) * SVt'.
-      //!     (maxvol forms U' * U'(rows,:)^{-1} internally; it should return it instead of recomputing it here.)
+      //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}) (returned by maxvol), carry = U'(rows,:) * SVt'.
       //!
       //! Compared to solveMALS this replaces "solve the local problem, then orthogonalize" by "evaluate the
       //! block, then select interpolation rows": the orthogonal gauge and the setSubTensors orthogonality
@@ -360,12 +360,13 @@ namespace PITTS
       //! @param rankTolerance      relative truncation tolerance for the singular values of B
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
-      //! @param enrichment         optional directions to append (r1 n x rho), nullptr for none
+      //! @param enrichment         optional directions to append (r1 n x rho), nullopt for none
+      //!                           (std::type_identity_t keeps T deducible from B when std::cref(E) is passed)
       //! @return                   new core, carry, selected rows and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   const Tensor2<T>* enrichment = nullptr);
+                                   std::type_identity_t<optional_cref<Tensor2<T>>> enrichment = std::nullopt);
 
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
@@ -378,7 +379,7 @@ namespace PITTS
       //!
       template<typename T>
       CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                    const Tensor2<T>* enrichment = nullptr);
+                                    std::type_identity_t<optional_cref<Tensor2<T>>> enrichment = std::nullopt);
 
 
       //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)
@@ -399,6 +400,8 @@ namespace PITTS
   }
 }
 
-// TODO(tt-cross): #include "pitts_tensortrain_cross_helper_impl.hpp" unless PITTS_DEVELOP_BUILD once implemented
+#ifndef PITTS_DEVELOP_BUILD
+#include "pitts_tensortrain_cross_helper_impl.hpp"
+#endif
 
 #endif // PITTS_TENSORTRAIN_CROSS_HELPER_HPP

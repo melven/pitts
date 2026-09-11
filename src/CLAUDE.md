@@ -110,7 +110,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_to_dense.hpp` | Expand a TT to a dense MultiVector / array. |
 | `pitts_tensortrain_gram_schmidt.hpp` | Modified/iterated Gram-Schmidt for TT vectors (used by TT-GMRES). |
 | `pitts_tensortrain_cross.hpp` | `applyElementwise`: y ~ f(x) entry-wise via TT-cross (ALS-cross with AMEn-style enrichment or DMRG-cross), options/info structs. Interface draft, implementation pending. |
-| `pitts_tensortrain_cross_helper.hpp` | Building blocks for TT-cross: nested index sets and interface matrices as `SweepData` lambdas (implemented), local core updates in interpolation gauge, initialization from the input TT (interface draft, implementation pending). |
+| `pitts_tensortrain_cross_helper.hpp`, `_impl.hpp` | Building blocks for TT-cross: nested index sets, interface matrices as `SweepData` lambdas, block helpers, local core updates in interpolation gauge (`updateCoreLeft/Right`: truncated SVD, optional enrichment, maxvol); `initialRightIndexSets` still pending. |
 | `pitts_tensortrain_laplace_operator.hpp` | Apply a simple Laplace stencil to a TT (test/bench helper). |
 | `pitts_tensortrain_debug.hpp` | Operator overloads (`+`, `-`, `*`) on TTs for tests, not for production use. |
 | `pitts_tensortrain_from_itensor.hpp`, `pitts_tensortrain_to_itensor.hpp` | Conversion from/to ITensor MPS (needs ITensor). |
