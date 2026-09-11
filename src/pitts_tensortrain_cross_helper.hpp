@@ -47,7 +47,9 @@
 #include <utility>
 #include <vector>
 #include "pitts_tensor2.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
@@ -272,16 +274,47 @@ namespace PITTS
 
       //! apply a scalar function to every entry of a block (the only place where f is called)
       //!
+      //! f must be pure (no shared state): the entries are processed in parallel.
+      //!
       //! @tparam Function  scalar functor T f(T)
       //! @return           number of function evaluations (= number of entries)
       //!
       template<typename T, typename Function>
-      long long applyToBlock(const Function& f, Tensor3<T>& B);
+      long long applyToBlock(const Function& f, Tensor3<T>& B)
+      {
+        const auto r1 = B.r1();
+        const auto n = B.n();
+        const auto r2 = B.r2();
+
+        // simple entry-wise loop; the first index is contiguous in memory
+#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 500)
+        for(long long k = 0; k < r2; k++)
+          for(long long j = 0; j < n; j++)
+            for(long long i = 0; i < r1; i++)
+              B(i, j, k) = f(B(i, j, k));
+
+        return r1*n*r2;
+      }
 
 
       //! relative Frobenius-norm difference ||A - B||_F / ||B||_F of two blocks of equal shape (convergence measure)
+      //!
+      //! Returns the absolute difference ||A - B||_F if B is zero.
+      //!
+      //! @throws std::invalid_argument for different shapes
+      //!
       template<typename T>
-      auto relativeDifference(const Tensor3<T>& A, const Tensor3<T>& B);
+      auto relativeDifference(const Tensor3<T>& A, const Tensor3<T>& B)
+      {
+        if( A.r1() != B.r1() || A.n() != B.n() || A.r2() != B.r2() )
+          throw std::invalid_argument("relativeDifference: blocks have different shapes!");
+
+        const auto mapA = ConstEigenMap(unfold_left(A));
+        const auto mapB = ConstEigenMap(unfold_left(B));
+        const auto normB = mapB.norm();
+        const auto diff = (mapA - mapB).norm();
+        return normB > 0 ? diff / normB : diff;
+      }
 
 
       //! Result of a local core update (updateCoreLeft / updateCoreRight)

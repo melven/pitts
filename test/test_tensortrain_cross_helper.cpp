@@ -337,3 +337,74 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_i
       EXPECT_NEAR(evaluate(TT, multiIndex), LR(a, b), eps);
     }
 }
+
+
+// ---- block helpers ----
+
+using PITTS::internal::tt_cross::applyToBlock;
+using PITTS::internal::tt_cross::relativeDifference;
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock)
+{
+  using Type = typename TestFixture::Type;
+  constexpr auto eps = 1.e-6;
+
+  PITTS::Tensor3<Type> B(3, 4, 2);
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 4; j++)
+      for(int k = 0; k < 2; k++)
+        B(i, j, k) = Type(1 + i + 3*j + 12*k);
+
+  const long long nEval = applyToBlock([](Type v){return v*v + Type(1);}, B);
+  EXPECT_EQ(3*4*2, nEval);
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 4; j++)
+      for(int k = 0; k < 2; k++)
+      {
+        const Type v = Type(1 + i + 3*j + 12*k);
+        EXPECT_NEAR(v*v + Type(1), B(i, j, k), eps);
+      }
+
+  // larger block (parallel path) with a non-trivial function
+  PITTS::Tensor3<Type> C(5, 40, 7);
+  for(int i = 0; i < 5; i++)
+    for(int j = 0; j < 40; j++)
+      for(int k = 0; k < 7; k++)
+        C(i, j, k) = Type(1 + i + j + k);
+  EXPECT_EQ(5*40*7, applyToBlock([](Type v){return std::sqrt(v);}, C));
+  for(int i = 0; i < 5; i++)
+    for(int j = 0; j < 40; j++)
+      for(int k = 0; k < 7; k++)
+        EXPECT_NEAR(std::sqrt(Type(1 + i + j + k)), C(i, j, k), eps);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, relativeDifference)
+{
+  using Type = typename TestFixture::Type;
+  constexpr auto eps = 1.e-6;
+
+  PITTS::Tensor3<Type> A(2, 3, 2), B(2, 3, 2), C(2, 3, 2), zero(2, 3, 2);
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 2; k++)
+      {
+        B(i, j, k) = Type(1 + i + 2*j + 6*k);
+        A(i, j, k) = B(i, j, k);
+        C(i, j, k) = Type(1.5) * B(i, j, k);
+        zero(i, j, k) = Type(0);
+      }
+
+  EXPECT_NEAR(0, relativeDifference(A, B), eps);
+  // ||1.5 B - B|| / ||B|| = 0.5
+  EXPECT_NEAR(0.5, relativeDifference(C, B), eps);
+  // reference zero: the absolute difference is returned
+  Type normB = 0;
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int k = 0; k < 2; k++)
+        normB += B(i, j, k)*B(i, j, k);
+  EXPECT_NEAR(std::sqrt(normB), relativeDifference(B, zero), eps);
+
+  PITTS::Tensor3<Type> wrongShape(2, 3, 3);
+  EXPECT_THROW(relativeDifference(wrongShape, B), std::invalid_argument);
+}
