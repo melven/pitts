@@ -48,6 +48,13 @@ the author, both in the SPDX header and in the Doxygen `@author` line:
 Do not add this line to existing hand-written files when editing them; the git history records
 those changes (commit messages carry the `Co-Authored-By` trailer).
 
+**Commit messages:** first line in the form `<topic>: <short description>` (lower-case topic,
+imperative, no trailing period), as in the existing history:
+`triangular_mult: use dtrmm for compute-bound cases`, `bench: update benchmark results`,
+`machine_info: fix datatype`. The topic is the affected component (file name without the
+`pitts_` prefix, e.g. `tensor2_maxvol`, `tt_axpby`, `bench`, `ci`, `claude_md`); a longer
+explanation goes into the body after a blank line. Keep one topic per commit.
+
 ## Environment setup (Ubuntu 24.04, apt only)
 
 In Claude Code on the web the SessionStart hook (`.claude/hooks/session-start.sh`) already did
