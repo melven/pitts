@@ -385,8 +385,9 @@ namespace PITTS
       //!
       //! Right-to-left maxvol sweep over a right-orthogonalized copy of x: for k = d-1..1,
       //! XR = X_k * R_{k+1}, J_k = maxvol columns of unfold_right(XR), R_k = the selected columns.
-      //! The resulting sets are right-nested with |J_k| = r_{k-1}(x) and the columns of R_k form a
-      //! dominant submatrix, so the first left-to-right sweep starts from well-conditioned crosses.
+      //! The resulting sets are right-nested with |J_k| = r_{k-1}(x) (after removing exactly dependent
+      //! ranks) and the columns of R_k form a dominant submatrix in the orthogonalized TT, so the first
+      //! left-to-right sweep starts from well-conditioned crosses. No function evaluations are needed.
       //!
       //! @param TTx                input tensor train (boundary ranks 1)
       //! @param maxvolTolerance    dominance tolerance for maxvol

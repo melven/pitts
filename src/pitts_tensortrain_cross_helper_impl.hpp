@@ -25,6 +25,7 @@
 #include "pitts_tensor2_maxvol.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensortrain_normalize.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -181,6 +182,60 @@ namespace PITTS
         EigenMap(result.carry).noalias() = ConstEigenMap(US) * Vhat;
 
         return result;
+      }
+
+
+      // implement initialRightIndexSets
+      template<typename T>
+      std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const int nDim = TTx.dimensions().size();
+        if( nDim < 1 || TTx.subTensor(0).r1() != 1 || TTx.subTensor(nDim-1).r2() != 1 )
+          throw std::invalid_argument("initialRightIndexSets: boundary ranks must be 1!");
+
+        // Work on a right-orthogonalized copy: maxvol needs full column rank, and the right unfolding of a
+        // right-orthogonal core has orthonormal rows, so X_k * R_{k+1} keeps full row rank as long as R_{k+1}
+        // is a nonsingular (maxvol) submatrix. The orthogonalization also removes exactly dependent ranks
+        // and makes the greedy initial pivoting of maxvol well-conditioned (the QR trick of the TT-cross paper).
+        // The resulting sets are also valid for the original TTx: the interpolation entries x(I, S_k, J)
+        // do not depend on the gauge of the cores.
+        // A right sweep alone does not reveal rank deficiencies that sit in the left unfoldings (e.g. a zero
+        // slice in X_0), so the copy is first left-normalized (minimal ranks) and then right-normalized.
+        TensorTrain<T> TTortho(TTx.dimensions());
+        copy(TTx, TTortho);
+        leftNormalize(TTortho, T(0));
+        rightNormalize(TTortho, T(0));
+
+        std::vector<NestedIndices> J(nDim);
+        Tensor2<T> R;     // right interface R_{k+1} of TTortho on J_{k+1}, empty for k = nDim-1 (R_d = 1x1 identity)
+        for(int k = nDim-1; k >= 1; k--)
+        {
+          const Tensor3<T>& X = TTortho.subTensor(k);
+          const int n = X.n();
+
+          // XR = X_k * R_{k+1} (all mode indices); at the right boundary XR = X_k
+          Tensor3<T> XR;
+          if( k == nDim-1 )
+            copy(X, XR);
+          else
+            normalize_contract2(X, R, XR);
+
+          // maxvol on the adjoint of the right unfolding (n |J_{k+1}| x r_{k-1}) selects the columns J_k
+          Tensor2<T> VtH(XR.n()*XR.r2(), XR.r1());
+          EigenMap(VtH) = ConstEigenMap(unfold_right(XR)).adjoint();
+          const std::vector<int> columns = maxvol(VtH, maxvolTolerance);
+          J[k] = rightIndicesFromColumns(columns, n);
+
+          // R_k = the selected columns (three-index access, the same as in interface_loop_from_right)
+          R.resize(XR.r1(), J[k].size());
+          for(int b = 0; b < J[k].size(); b++)
+            for(int i = 0; i < XR.r1(); i++)
+              R(i, b) = XR(i, J[k].idx[b], J[k].link[b]);
+        }
+
+        return J;
       }
     }
   }

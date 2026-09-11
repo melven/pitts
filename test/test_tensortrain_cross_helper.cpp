@@ -636,3 +636,114 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_enrichment
   const mat residual = ConstEigenMap(E) - coeff.transpose() * mapCore;
   EXPECT_NEAR(mat::Zero(2, 8), residual, eps);
 }
+
+
+// ---- initial index sets from the input tensor train ----
+
+#include "pitts_tensortrain_normalize.hpp"
+
+using PITTS::internal::tt_cross::initialRightIndexSets;
+
+namespace
+{
+  // check that J is a valid right-nested family of sets for the given dimensions and sizes (links and indices in range, no duplicates)
+  void checkRightNested(const std::vector<NestedIndices>& J, const std::vector<int>& dims, const std::vector<int>& sizes)
+  {
+    const int nDim = dims.size();
+    ASSERT_EQ(nDim, J.size());
+    EXPECT_EQ(0, J[0].size());
+    for(int k = 1; k < nDim; k++)
+    {
+      ASSERT_EQ(sizes[k], J[k].size());
+      const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
+      std::set<std::pair<int,int>> unique;
+      for(int b = 0; b < J[k].size(); b++)
+      {
+        EXPECT_LE(0, J[k].link[b]);
+        EXPECT_LT(J[k].link[b], childSize);
+        EXPECT_LE(0, J[k].idx[b]);
+        EXPECT_LT(J[k].idx[b], dims[k]);
+        unique.emplace(J[k].link[b], J[k].idx[b]);
+      }
+      EXPECT_EQ(J[k].size(), unique.size());
+    }
+  }
+
+  // max |A^H (A(:,cols))^-H| for the right unfolding A = unfold_right(X_k * R_{k+1}): the dominance of the selected columns
+  template<typename T>
+  auto columnDominance(const PITTS::Tensor3<T>& XR, const NestedIndices& Jk)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const auto mapA = ConstEigenMap(unfold_right(XR));
+    const int r = Jk.size();
+    mat Ahat(mapA.rows(), r);
+    for(int b = 0; b < r; b++)
+      Ahat.col(b) = mapA.col(Jk.idx[b] + Jk.link[b]*XR.n());
+    const mat B = Ahat.inverse() * mapA;
+    return B.array().abs().maxCoeff();
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_random_TT)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = blockTolerance<Type>();
+  const Type maxvolTol = Type(0.05);
+
+  const std::vector<int> dims = {3, 4, 2, 5};
+  const int nDim = dims.size();
+  TensorTrain TT(dims);
+  TT.setTTranks({2, 3, 2});
+  randomize(TT);
+
+  const std::vector<NestedIndices> J = initialRightIndexSets(TT, maxvolTol);
+  // |J_k| = rank of bond k-1 (the random TT has full ranks)
+  checkRightNested(J, dims, {0, 2, 3, 2});
+
+  // the selected columns are dominant in the right-orthogonalized TT: recompute X_k * R_{k+1} with the interfaces
+  TensorTrain TTortho(dims);
+  copy(TT, TTortho);
+  rightNormalize(TTortho, Type(0));
+  std::vector<NestedIndices> noLeft(nDim);
+  auto Rx = defineSweepData<PITTS::Tensor2<Type>>(nDim, interface_loop_from_left<Type>(TTortho, noLeft), interface_loop_from_right<Type>(TTortho, J));
+  Rx.update(-1, 1);
+  for(int k = nDim-1; k >= 1; k--)
+  {
+    PITTS::Tensor3<Type> XR;
+    if( k+1 < nDim )
+      PITTS::internal::normalize_contract2(TTortho.subTensor(k), Rx.subTensor(k+1), XR);
+    else
+      copy(TTortho.subTensor(k), XR);
+    EXPECT_LE(columnDominance(XR, J[k]), 1 + maxvolTol + eps);
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_rank_deficient_TT)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  // TT ranks 3 but the actual rank of bond 0 is 2 (third slice of the first core is zero)
+  const std::vector<int> dims = {4, 3, 3};
+  TensorTrain TT(dims, 3);
+  randomize(TT);
+  TT.editSubTensor(0, [](PITTS::Tensor3<Type>& X){for(int j = 0; j < X.n(); j++) X(0, j, 2) = Type(0);});
+
+  const std::vector<NestedIndices> J = initialRightIndexSets(TT, maxvolTol);
+  checkRightNested(J, dims, {0, 2, 3});
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_invalid_boundary_rank)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  std::vector<PITTS::Tensor3<Type>> cores(2);
+  cores[0].resize(2, 3, 2);
+  cores[1].resize(2, 3, 1);
+  TensorTrain TT(std::move(cores));
+  randomize(TT);
+  EXPECT_THROW(initialRightIndexSets(TT, Type(0.05)), std::invalid_argument);
+}
