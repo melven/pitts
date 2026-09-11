@@ -8,6 +8,25 @@ SPDX-License-Identifier: BSD-3-Clause
 PITTS is a header-only C++20 library (OpenMP + MPI) with a pybind11 Python binding.
 See `README.md` for the project description and `.gitlab-ci.yml` for the reference CI setup.
 
+## Repository layout
+
+Each main directory has its own `CLAUDE.md` with per-file summaries; read it before working there.
+
+| Path | Content |
+|---|---|
+| `src/` | Library headers (`pitts_*.hpp` + `*_impl.hpp`), explicit-instantiation `.cpp` files for `PITTS_DEVELOP_BUILD`, Python/Julia bindings, benchmark executables. See `src/CLAUDE.md`. |
+| `test/` | googletest (MPI-patched) C++ unit tests, Python `unittest` tests for `pitts_py`, Julia tests, `itensor/` subfolder. See `test/CLAUDE.md`. |
+| `examples/` | Python example scripts (TT solvers/preconditioners prototyped on top of `pitts_py`). See `examples/CLAUDE.md`. |
+| `bench/` | SLURM scripts, comparison scripts for other TT libraries and ~2.4 GB of archived logs. Only a high-level `bench/CLAUDE.md`; do not scan the logs. |
+| `cmake/` | CMake modules (googletest unpacking, coverage, Find* modules, git version). See `cmake/CLAUDE.md`. |
+| `third-party/` | `gtest-1.8.0-mpi.tar.gz` (googletest with MPI patch) and its license file. |
+| `LICENSES/` | License texts (BSD-3-Clause for PITTS, BSL-1.0) for REUSE compliance; `.reuse/dep5` covers files without headers (bench logs/scripts, .gitignore). |
+| `CMakeLists.txt` | Root build: compiler flags (`-march=native`, GCC inliner params), options `PITTS_DEVELOP_BUILD`, `PITTS_OPTIMIZE_FOR_HOST`, `PITTS_EIGEN_USE_LAPACKE`, `PITTS_DIRECT_MKL_GEMM`, algorithm-variant switches (`PITTS_TENSORTRAIN_*`), required/optional dependency lookup. |
+| `.gitlab-ci.yml` | CI jobs: release/debug/coverage/clang builds with ccache and MKL modules, REUSE lint, GitLab pages publishing the coverage report. |
+| `CITATION.cff`, `README.md`, `LICENSE` | Citation metadata (Zenodo DOI), project description, license. |
+
+Every new source or documentation file needs an SPDX header (REUSE compliance is checked in CI).
+
 ## Environment setup (Ubuntu 24.04, apt only)
 
 Install everything through the Ubuntu package manager; do not mix in pip packages.
