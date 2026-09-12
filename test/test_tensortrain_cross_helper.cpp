@@ -465,9 +465,10 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, local_block_vs_direct_eval
           {
             // combine stores the modes of the block as j = i_k + i_{k+1}*n_k
             Eigen::RowVectorXi multiIndex(nDim);
-            multiIndex << Ik.row(a), j % dims[k], Jk.row(b);
             if( nMALS == 2 )
               multiIndex << Ik.row(a), j % dims[k], j / dims[k], Jk.row(b);
+            else
+              multiIndex << Ik.row(a), j % dims[k], Jk.row(b);
             EXPECT_NEAR(evaluate(TT, multiIndex), B(a, j, b), eps);
           }
 
