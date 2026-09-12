@@ -40,25 +40,16 @@ namespace PITTS
     //! dedicated helper functionality for TT-cross algorithms
     namespace tt_cross
     {
-      //! enrich the two factors of a truncated SVD by new directions of E, leaving their product unchanged
-      //!
-      //! The orthogonal factor Q is the core-shaped form (r1 x n x r) of a left-orthogonal matrix, B (r x l)
-      //! the remainder, so unfold_left(Q)*B is the truncated block, and E (r1 x n x rho) holds candidate
-      //! directions: the part of E outside the span of Q is orthonormalized and appended to Q, and B is
-      //! padded with rho' zero rows.
-      //! Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
-      //! complement of Q is added (rho' <= min(rho, r1 n - r)); with a rank-deficient remainder the QR below
-      //! would otherwise return noise directions, and the maxvol that follows fails because its matrix is
-      //! not tall.
-      //!
-      //! Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
-      //! remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
-      //! for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
-      //!
-      //! @param Q   orthogonal factor as a core, extended in place
-      //! @param B   remainder, padded with zero rows in place
-      //! @param E   candidate directions as a core, consumed (the projection overwrites it)
-      //!
+      // implement enrichFactors
+      //
+      // Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
+      // complement of Q is added (rho' <= min(rho, r1 n - r)); with a rank-deficient remainder the QR below
+      // would otherwise return noise directions, and the maxvol that follows fails because its matrix is
+      // not tall.
+      //
+      // Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
+      // remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
+      // for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
       template<typename T>
       void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E)
       {
@@ -80,10 +71,23 @@ namespace PITTS
         // Computed before the projection overwrites E.
         const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * t3_nrm(E);
 
-        // project out the known directions, in place: E := E - Q (Q^T E) (one pass is enough: Q is
-        // orthonormal up to round-off, and small remaining components are removed by the tolerance)
+        // Project out the known directions, in place: E := E - Q (Q^H Q)^{-1} (Q^H E).
+        // Q is only orthogonal up to round-off (internal::normalize_svd does not compute its orthogonal
+        // factor but reconstructs it as Q = M V S^{-1} from the Q-less TSQR, so ||Q^H Q - I|| grows like
+        // eps*sigma_1/sigma_r). With the plain projection E := E - Q (Q^H E) the result keeps a component
+        // of that size in the span of Q; near convergence E lies almost completely in span(Q), the
+        // subtraction cancels nearly everything and this component dominates what is left. The enriched
+        // factor then loses its orthogonality (max|Q^H Q - I| = O(1) observed) and the maxvol in
+        // updateCoreLeft aborts with a rank-deficient matrix. Correcting with the Gram matrix of Q (which
+        // is almost the identity) makes this the exact projection onto the orthogonal complement of Q,
+        // independent of the orthogonality error -- the same fix as in the residual calculation of
+        // PITTS::solveMALS.
         Tensor2<T> QtE;
         reverse_dot_contract2(Q, E, QtE);       // QtE = Q(*,*,:) * E(*,*,:)
+        Eigen::MatrixX<T> QtQ = ConstEigenMap(unfold_left(Q)).adjoint() * ConstEigenMap(unfold_left(Q));
+        const Eigen::LLT<Eigen::Ref<Eigen::MatrixX<T>>> llt(QtQ);   // in-place decomposition
+        if( llt.info() == Eigen::Success )
+          llt.solveInPlace(EigenMap(QtE));
         Tensor3<T> QQtE;
         normalize_contract2(Q, QtE, QQtE);      // QQtE = Q(:,:,*) * QtE(*,:)
         t3_axpy(T(-1), QQtE, E);
