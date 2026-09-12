@@ -10,6 +10,7 @@
 #include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_multivector.hpp"
+#include "pitts_random.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "eigen_test_helper.hpp"
 #include <cmath>
@@ -237,6 +238,41 @@ TYPED_TEST(PITTS_TensorTrain_cross, qtt_sqrt_with_rank_growth)
     options.maxRank = 40;
     const auto info = applyElementwise([](Type v){return Type(1)/v;}, TTx, TTy, options);
     EXPECT_NEAR(invDense, dense(TTy), 100*eps*invDense.norm());
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, array_function)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 5);
+
+  // a function that is applied to all entries of a block at once must give the same result as the
+  // corresponding scalar function (the algorithm only sees the same numbers); the random error index
+  // sets require the same seed for both runs
+  for(int nMALS: {1, 2})
+  {
+    PITTS::TTCrossOptions<Type> options;
+    options.nMALS = nMALS;
+
+    TensorTrain TTy(dims), TTyRef(dims);
+    PITTS::internal::randomGenerator.seed(2026);
+    const auto info = applyElementwise([](PITTS::MultiVector<Type>& mv)
+    {
+      for(long long i = 0; i < mv.rows(); i++)
+        mv(i, 0) = std::sqrt(mv(i, 0));
+    }, TTx, TTy, options);
+    PITTS::internal::randomGenerator.seed(2026);
+    const auto infoRef = applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTyRef, options);
+
+    EXPECT_EQ(infoRef.nEvaluations, info.nEvaluations);
+    EXPECT_EQ(infoRef.nSweeps, info.nSweeps);
+    ASSERT_EQ(TTyRef.getTTranks(), TTy.getTTranks());
+    // only up to rounding differences of the threaded reductions inside the kernels
+    const auto yRef = dense(TTyRef);
+    EXPECT_NEAR(yRef, dense(TTy), tolerance<Type>()*yRef.norm());
   }
 }
 

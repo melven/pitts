@@ -43,14 +43,17 @@
 // includes
 #include <algorithm>
 #include <cassert>
+#include <concepts>
 #include <numeric>
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include "pitts_multivector.hpp"
 #include "pitts_random.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor3.hpp"
 #include "pitts_tensor3_combine.hpp"
+#include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"
@@ -413,12 +416,20 @@ namespace PITTS
       }
 
 
-      //! apply a scalar function to every entry of a block (the only place where f is called)
+      //! apply the element-wise function to every entry of a block (the only place where f is called)
       //!
-      //! f must be pure (no shared state): the entries are processed in parallel.
+      //! Two kinds of functors are supported, see applyElementwise:
+      //!  * a scalar function T f(T): it must be pure (no shared state), the entries are processed in parallel;
+      //!  * an array function f(MultiVector<T>&) transforming all entries of the block in-place. The block is
+      //!    reshaped to a single column of r1*n*r2 rows without copying data, so the function is called once
+      //!    per block (for functions with a per-call overhead, e.g. a numpy function called from Python) and
+      //!    is itself responsible for any parallelization.
+      //! A functor that accepts both signatures (e.g. a generic lambda) is used as an array function.
       //!
-      //! @tparam Function  scalar functor T f(T)
+      //! @tparam Function  scalar functor T f(T) or array functor f(MultiVector<T>&)
       //! @return           number of function evaluations (= number of entries)
+      //!
+      //! @throws std::invalid_argument if an array function changes the dimensions of the block
       //!
       template<typename T, typename Function>
       long long applyToBlock(const Function& f, Tensor3<T>& B)
@@ -429,12 +440,23 @@ namespace PITTS
         const auto n = B.n();
         const auto r2 = B.r2();
 
-        // simple entry-wise loop; the first index is contiguous in memory
+        if constexpr( std::invocable<const Function&, MultiVector<T>&> )
+        {
+          MultiVector<T> entries = unfold(std::move(B));
+          f(entries);
+          if( entries.rows() != r1*n*r2 || entries.cols() != 1 )
+            throw std::invalid_argument("TT-cross: the array function must not change the dimensions of the block!");
+          B = fold(std::move(entries), r1, n, r2);
+        }
+        else
+        {
+          // simple entry-wise loop; the first index is contiguous in memory
 #pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 500)
-        for(long long k = 0; k < r2; k++)
-          for(long long j = 0; j < n; j++)
-            for(long long i = 0; i < r1; i++)
-              B(i, j, k) = f(B(i, j, k));
+          for(long long k = 0; k < r2; k++)
+            for(long long j = 0; j < n; j++)
+              for(long long i = 0; i < r1; i++)
+                B(i, j, k) = f(B(i, j, k));
+        }
 
         return r1*n*r2;
       }

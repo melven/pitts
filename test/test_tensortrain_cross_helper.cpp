@@ -563,6 +563,49 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock)
         EXPECT_NEAR(std::sqrt(Type(1 + i + j + k)), C(i, j, k), eps);
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock_multivector)
+{
+  using Type = typename TestFixture::Type;
+  constexpr auto eps = 1.e-6;
+
+  // the array variant sees all entries of the block as one column, ordered as in the Tensor3 memory
+  PITTS::Tensor3<Type> B(3, 4, 2);
+  const long long nEval = applyToBlock([](PITTS::MultiVector<Type>& mv)
+  {
+    EXPECT_EQ(3*4*2, mv.rows());
+    EXPECT_EQ(1, mv.cols());
+    for(long long i = 0; i < mv.rows(); i++)
+      mv(i, 0) = Type(i);
+  }, B);
+  EXPECT_EQ(3*4*2, nEval);
+  for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 4; j++)
+      for(int k = 0; k < 2; k++)
+        EXPECT_NEAR(Type(i + 3*j + 12*k), B(i, j, k), eps);
+
+  // same result as the scalar variant
+  PITTS::Tensor3<Type> C(5, 40, 7), Cref(5, 40, 7);
+  for(int i = 0; i < 5; i++)
+    for(int j = 0; j < 40; j++)
+      for(int k = 0; k < 7; k++)
+        C(i, j, k) = Cref(i, j, k) = Type(1 + i + j + k);
+
+  EXPECT_EQ(5*40*7, applyToBlock([](PITTS::MultiVector<Type>& mv)
+  {
+    for(long long i = 0; i < mv.rows(); i++)
+      mv(i, 0) = std::sqrt(mv(i, 0));
+  }, C));
+  applyToBlock([](Type v){return std::sqrt(v);}, Cref);
+  for(int i = 0; i < 5; i++)
+    for(int j = 0; j < 40; j++)
+      for(int k = 0; k < 7; k++)
+        EXPECT_NEAR(Cref(i, j, k), C(i, j, k), eps);
+
+  // the array function must not change the dimensions of the block
+  PITTS::Tensor3<Type> D(2, 3, 2);
+  EXPECT_THROW(applyToBlock([](PITTS::MultiVector<Type>& mv){mv.resize(7, 1);}, D), std::invalid_argument);
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, relativeDifference)
 {
   using Type = typename TestFixture::Type;
