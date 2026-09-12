@@ -40,25 +40,16 @@ namespace PITTS
     //! dedicated helper functionality for TT-cross algorithms
     namespace tt_cross
     {
-      //! enrich the two factors of a truncated SVD by new directions of E, leaving their product unchanged
-      //!
-      //! The orthogonal factor Q is the core-shaped form (r1 x n x r) of a left-orthogonal matrix, B (r x l)
-      //! the remainder, so unfold_left(Q)*B is the truncated block, and E (r1 x n x rho) holds candidate
-      //! directions: the part of E outside the span of Q is orthonormalized and appended to Q, and B is
-      //! padded with rho' zero rows.
-      //! Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
-      //! complement of Q is added (rho' <= min(rho, r1 n - r)); with a rank-deficient remainder the QR below
-      //! would otherwise return noise directions, and the maxvol that follows fails because its matrix is
-      //! not tall.
-      //!
-      //! Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
-      //! remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
-      //! for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
-      //!
-      //! @param Q   orthogonal factor as a core, extended in place
-      //! @param B   remainder, padded with zero rows in place
-      //! @param E   candidate directions as a core, consumed (the projection overwrites it)
-      //!
+      // implement enrichFactors
+      //
+      // Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
+      // complement of Q is added (rho' <= min(rho, r1 n - r)); with a rank-deficient remainder the QR below
+      // would otherwise return noise directions, and the maxvol that follows fails because its matrix is
+      // not tall.
+      //
+      // Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
+      // remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
+      // for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
       template<typename T>
       void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E)
       {

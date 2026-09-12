@@ -833,6 +833,40 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
 }
 
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, enrichFactors_inexactly_orthogonal_factor)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using PITTS::internal::tt_cross::enrichFactors;
+  const Type machEps = std::numeric_limits<Type>::epsilon();
+
+  // internal::normalize_svd does not compute the orthogonal factor of a block but reconstructs it as
+  // Q = M V S^{-1}, so ||Q^H Q - I|| is only of the order eps*sigma_1/sigma_r. Mimic that here with a
+  // prescribed orthogonality error, well above the sqrt(eps) below which the enrichment drops a direction.
+  const int r1 = 3, n = 4, r = 4;
+  const Type orthogonalityError = std::pow(machEps, Type(0.25));
+  mat Qmat = mat(mat::Random(r1*n, r).householderQr().householderQ()).leftCols(r);
+  Qmat.col(r-1) += orthogonalityError * Qmat.col(0);
+
+  PITTS::Tensor3<Type> Q(r1, n, r);
+  EigenMap(unfold_left(Q)) = Qmat;
+  PITTS::Tensor2<Type> B(r, 2);
+  EigenMap(B) = mat::Random(r, 2);
+
+  // candidate directions that lie exactly in the span of Q: nothing may be added. Projecting them out as
+  // E - Q (Q^H E) leaves the orthogonality error instead of zero, which is far above the drop tolerance,
+  // so directions of pure round-off get appended and the enriched factor becomes rank-deficient.
+  PITTS::Tensor3<Type> E(r1, n, 2);
+  EigenMap(unfold_left(E)) = Qmat * mat::Random(r, 2);
+
+  enrichFactors(Q, B, std::move(E));
+
+  EXPECT_EQ(r, Q.r2());
+  EXPECT_EQ(r, B.r1());
+  EXPECT_NEAR(Qmat, ConstEigenMap(unfold_left(Q)), Type(0));
+}
+
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_full_rank)
 {
   using Type = typename TestFixture::Type;

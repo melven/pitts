@@ -482,6 +482,24 @@ namespace PITTS
       }
 
 
+      //! Enrich the two factors of a truncated SVD by new directions of E, leaving their product unchanged
+      //!
+      //! Q is the core-shaped form (r1 x n x r) of a left-orthogonal matrix, B (r x l) the remainder, so
+      //! unfold_left(Q)*B is the truncated block, and E (r1 x n x rho) holds candidate directions: the part
+      //! of E outside the span of Q is orthonormalized and appended to Q, and B is padded with zero rows.
+      //!
+      //! Q is only orthogonal up to round-off (internal::normalize_svd reconstructs it as Q = M V S^{-1}),
+      //! which the projection takes into account, see the implementation. Used by updateCoreLeft; declared
+      //! here so that the projection can be tested with a Q of a prescribed orthogonality error.
+      //!
+      //! @param Q   orthogonal factor as a core, extended in place
+      //! @param B   remainder, padded with zero rows in place
+      //! @param E   candidate directions as a core, consumed (the projection overwrites it)
+      //!
+      template<typename T>
+      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E);
+
+
       //! Result of a local core update (updateCoreLeft / updateCoreRight)
       template<typename T>
       struct CoreUpdate
