@@ -109,6 +109,7 @@ namespace PITTS
     // Note: the first left-to-right sweep then contracts and subtracts these zeros in the enrichment and in
     // the convergence measure. That work could be optimized away, but it only pays off if the iteration
     // converges within the very first sweeps.
+    TTy.setSubTensors(0, [&]()
     {
       std::vector<Tensor3<T>> zeroCores(nDim);
       for(int k = 0; k < nDim; k++)
@@ -116,8 +117,8 @@ namespace PITTS
         zeroCores[k].resize(k == 0 ? 1 : J[k].size(), dims[k], k+1 == nDim ? 1 : J[k+1].size());
         zeroCores[k].setConstant(T(0));
       }
-      TTy.setSubTensors(0, std::move(zeroCores));
-    }
+      return zeroCores;
+    }());
 
     // Convergence measure of a step: the relative change of y on its own cross (block vs. current core)
     // and, with enrichment, the relative error f(x) - y on the error crosses, both scaled by the norm of
