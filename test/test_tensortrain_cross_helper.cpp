@@ -182,6 +182,7 @@ TEST(PITTS_TensorTrain_cross_helper, randomRightIndexSets)
 
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensor3_random.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include <random>
@@ -288,6 +289,40 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, interfaceLeft_interfaceRig
   for(int b = 0; b < 2; b++)
     for(int i = 0; i < 2; i++)
       EXPECT_NEAR(Type(i + 10*J.idx[b] + 100*J.link[b]), R(i, b), eps);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, contract_interface_boundary)
+{
+  using Type = typename TestFixture::Type;
+  using PITTS::internal::tt_cross::contractLeftInterface;
+  using PITTS::internal::tt_cross::contractRightInterface;
+  using optional_cref_t3 = PITTS::internal::optional_cref<PITTS::Tensor3<Type>>;
+  constexpr auto eps = 1.e-6;
+
+  PITTS::Tensor3<Type> B(2, 3, 2), neighbor(2, 2, 2), C;
+  randomize(B);
+  randomize(neighbor);
+
+  // at the boundary (nullopt) the interface is the 1x1 identity, so the block is passed through unchanged
+  std::vector<NestedIndices> I(1), J(2);
+  contractLeftInterface<Type>(std::nullopt, I, 0, B, C);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(B)), ConstEigenMap(unfold_left(C)), eps);
+  contractRightInterface<Type>(B, std::nullopt, J, 1, C);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(B)), ConstEigenMap(unfold_left(C)), eps);
+
+  // otherwise the interface of the neighboring contraction is contracted
+  I[0].link = {0, 1, 1};  I[0].idx = {1, 0, 1};
+  contractLeftInterface<Type>(optional_cref_t3(std::cref(neighbor)), I, 0, B, C);
+  ASSERT_EQ(3, C.r1());
+  PITTS::Tensor3<Type> Cref;
+  PITTS::internal::normalize_contract1(interfaceLeft(neighbor, I[0]), B, Cref);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(Cref)), ConstEigenMap(unfold_left(C)), eps);
+
+  J[1].idx = {0, 1};  J[1].link = {1, 0};
+  contractRightInterface<Type>(B, optional_cref_t3(std::cref(neighbor)), J, 1, C);
+  ASSERT_EQ(2, C.r2());
+  PITTS::internal::normalize_contract2(B, interfaceRight(neighbor, J[1]), Cref);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(Cref)), ConstEigenMap(unfold_left(C)), eps);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, boundary_cores)

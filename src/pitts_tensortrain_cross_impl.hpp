@@ -128,25 +128,6 @@ namespace PITTS
       return normB > 0 ? nrm / normB : nrm;
     };
 
-    // Interface matrices from the cached contractions (see contraction_loop_from_left): L_{k-1} from LX_{k-1} and
-    // I_{k-1}, R_{k+1} from XR_{k+1} and J_{k+1}; at the boundaries (nullopt) the 1x1 identity.
-    const auto leftInterface = [](optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& Iset, int k) -> Tensor2<T>
-    {
-      if( LX )
-        return interfaceLeft(LX->get(), Iset[k]);
-      Tensor2<T> one(1, 1);
-      one(0, 0) = T(1);
-      return one;
-    };
-    const auto rightInterface = [](optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& Jset, int k) -> Tensor2<T>
-    {
-      if( XR )
-        return interfaceRight(XR->get(), Jset[k]);
-      Tensor2<T> one(1, 1);
-      one(0, 0) = T(1);
-      return one;
-    };
-
     // ---- one step of a left-to-right sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() ----
     // returns the convergence measure of the step (0 in the first sweep)
     const auto stepLeftToRight = [&](const SweepIndex& swpIdx) -> RealType
@@ -160,9 +141,9 @@ namespace PITTS
       const Tensor3<T>& LX = Lx.left()->get();
       Tensor3<T> B;
       if( nMALS == 2 )
-        internal::normalize_contract2(combine(LX, TTx.subTensor(k+1)), rightInterface(Lx.right(), J, kRight+1), B);
+        contractRightInterface<T>(combine(LX, TTx.subTensor(k+1)), Lx.right(), J, kRight+1, B);
       else
-        internal::normalize_contract2(LX, rightInterface(Lx.right(), J, kRight+1), B);
+        contractRightInterface<T>(LX, Lx.right(), J, kRight+1, B);
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 
@@ -194,14 +175,14 @@ namespace PITTS
       {
         Lxz.update(k, k+1);
         Tensor3<T> residual;
-        internal::normalize_contract2(LX, rightInterface(Lxz.right(), Jz, k+1), residual);
+        contractRightInterface<T>(LX, Lxz.right(), Jz, k+1, residual);
         info.nEvaluations += applyToBlock(f, residual);
         if( yValid )
         {
           // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
           Lyz.update(k-1, k+1);
           Tensor3<T> yOnCross;
-          internal::normalize_contract2(TTy.subTensor(k), rightInterface(Lyz.right(), Jz, k+1), yOnCross);
+          contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
           internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
@@ -251,13 +232,13 @@ namespace PITTS
       {
         Lyz.invalidate(k, 2);
         Tensor3<T> residual;
-        internal::normalize_contract2(Lxz.left()->get(), rightInterface(Lxz.right(), Jz, k+1), residual);
+        contractRightInterface<T>(Lxz.left()->get(), Lxz.right(), Jz, k+1, residual);
         info.nEvaluations += applyToBlock(f, residual);
         if( yValid )
         {
           Lyz.update(k, k+1);
           Tensor3<T> yOnCross;
-          internal::normalize_contract2(Lyz.left()->get(), rightInterface(Lyz.right(), Jz, k+1), yOnCross);
+          contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
           internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
@@ -282,9 +263,9 @@ namespace PITTS
       const Tensor3<T>& XR = Lx.right()->get();
       Tensor3<T> B;
       if( nMALS == 2 )
-        internal::normalize_contract1(leftInterface(Lx.left(), I, kLeft-1), combine(TTx.subTensor(k-1), XR), B);
+        contractLeftInterface<T>(Lx.left(), I, kLeft-1, combine(TTx.subTensor(k-1), XR), B);
       else
-        internal::normalize_contract1(leftInterface(Lx.left(), I, kLeft-1), XR, B);
+        contractLeftInterface<T>(Lx.left(), I, kLeft-1, XR, B);
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 
@@ -327,11 +308,11 @@ namespace PITTS
         Lyz.invalidate(k-1, 2);
         Lxz.update(k-1, k);
         Tensor3<T> residual;
-        internal::normalize_contract1(leftInterface(Lxz.left(), Iz, k-1), Lxz.right()->get(), residual);
+        contractLeftInterface<T>(Lxz.left(), Iz, k-1, Lxz.right()->get(), residual);
         info.nEvaluations += applyToBlock(f, residual);
         Lyz.update(k-1, k);
         Tensor3<T> yOnCross;
-        internal::normalize_contract1(leftInterface(Lyz.left(), Iz, k-1), Lyz.right()->get(), yOnCross);
+        contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         change = std::max(change, relativeNorm(residual, normB));
         const CoreUpdate<T> updz = updateCoreRight<T>(residual, localTolerance, options.errorRank, maxvolTolerance);

@@ -206,6 +206,45 @@ namespace PITTS
         return R;
       }
 
+      //! C = L_k * B with the left interface L_k of the cached contraction LX (nullopt at the left boundary: C = B)
+      //!
+      //! The boundary interface L_{-1} is the 1x1 identity, so nothing has to be contracted there; this is the same
+      //! std::nullopt convention as for the partial contractions of solveMALS (see SweepData::left()).
+      //!
+      //! @param LX    cached contraction LX_k of the neighboring dimension, nullopt at the left boundary
+      //! @param I     the left index sets
+      //! @param k     bond index, I[k] selects the rows of LX (unused at the boundary)
+      //! @param B     block to contract (r_k x n x m)
+      //! @param C     result (|I_k| x n x m)
+      //!
+      template<typename T>
+      void contractLeftInterface(optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& I, int k,
+                                 const Tensor3<T>& B, Tensor3<T>& C)
+      {
+        if( LX )
+          normalize_contract1(interfaceLeft(LX->get(), I.at(k)), B, C);
+        else
+          copy(B, C);
+      }
+
+      //! C = B * R_k with the right interface R_k of the cached contraction XR (nullopt at the right boundary: C = B)
+      //!
+      //! @param B     block to contract (m x n x r_{k-1})
+      //! @param XR    cached contraction XR_k of the neighboring dimension, nullopt at the right boundary
+      //! @param J     the right index sets
+      //! @param k     bond index + 1, J[k] selects the columns of XR (unused at the boundary)
+      //! @param C     result (m x n x |J_k|)
+      //!
+      template<typename T>
+      void contractRightInterface(const Tensor3<T>& B, optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, int k,
+                                  Tensor3<T>& C)
+      {
+        if( XR )
+          normalize_contract2(B, interfaceRight(XR->get(), J.at(k)), C);
+        else
+          copy(B, C);
+      }
+
       //! full multi-indices of the left set I_k as a matrix with one row (i_0,...,i_k) per element (I[0] is the set of bond 0)
       //!
       //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()} (a 1 x 0 matrix).
@@ -255,7 +294,8 @@ namespace PITTS
       //! where the interface matrices L_k (|I_k| x r_k, rows X_0(i_0) ... X_k(i_k) for (i_0..i_k) in I_k) and
       //! R_k (r_{k-1} x |J_k|, columns X_k(i_k) ... X_{d-1}(i_{d-1}) for (i_k..i_{d-1}) in J_k) are row/column
       //! selections of these: L_k = interfaceLeft(LX_k, I_k), R_k = interfaceRight(XR_k, J_k).
-      //! The boundary interfaces L_{-1} and R_d are the 1x1 identity (LX_0 = X_0, XR_{d-1} = X_{d-1}).
+      //! The boundary interfaces L_{-1} and R_d are the 1x1 identity: SweepData reports them as std::nullopt
+      //! (left()/right()) and the contraction is simply omitted (LX_0 = X_0, XR_{d-1} = X_{d-1}), as in solveMALS.
       //!
       //! The recursion L_k(a,:) = L_{k-1}(link[a],:) * X_k(:,idx[a],:) is why the index sets are stored as (link, idx).
       //! The cached quantity is the full contraction and not the interface, because the cross algorithms need it
@@ -283,12 +323,8 @@ namespace PITTS
       {
         return [&](int iDim, optional_cref<Tensor3<T>> prev, Tensor3<T>& LX)
         {
-          // L_{iDim-1} from the previous contraction; at the left boundary the 1x1 identity
-          Tensor2<T> L(1, 1);
-          L(0, 0) = T(1);
-          if( prev )
-            L = interfaceLeft(prev->get(), I.at(iDim-1));
-          normalize_contract1(L, TT.subTensor(iDim), LX);
+          // LX_iDim = L_{iDim-1} X_iDim with L_{iDim-1} selected from the previous contraction
+          contractLeftInterface<T>(prev, I, iDim-1, TT.subTensor(iDim), LX);
         };
       }
 
@@ -302,12 +338,8 @@ namespace PITTS
       {
         return [&](int iDim, optional_cref<Tensor3<T>> prev, Tensor3<T>& XR)
         {
-          // R_{iDim+1} from the previous contraction; at the right boundary the 1x1 identity
-          Tensor2<T> R(1, 1);
-          R(0, 0) = T(1);
-          if( prev )
-            R = interfaceRight(prev->get(), J.at(iDim+1));
-          normalize_contract2(TT.subTensor(iDim), R, XR);
+          // XR_iDim = X_iDim R_{iDim+1} with R_{iDim+1} selected from the previous contraction
+          contractRightInterface<T>(TT.subTensor(iDim), prev, J, iDim+1, XR);
         };
       }
 
