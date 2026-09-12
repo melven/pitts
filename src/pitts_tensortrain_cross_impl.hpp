@@ -115,14 +115,10 @@ namespace PITTS
     };
 
     // Convergence measure of a step: the relative change of y on its own cross (block vs. current core)
-    // and, with enrichment, the relative error f(x) - y on the error crosses. The change alone is blind
-    // when the crosses of y are too small but y is exact on them (e.g. a rank that is too low at some
-    // bond); the residual on the (different) error crosses detects this and prevents an early stop.
-    const auto relativeNorm = [](const Tensor3<T>& R, RealType normB) -> RealType
-    {
-      const RealType nrm = internal::t3_nrm(R);
-      return normB > 0 ? nrm / normB : nrm;
-    };
+    // and, with enrichment, the relative error f(x) - y on the error crosses, both scaled by the norm of
+    // the block. The change alone is blind when the crosses of y are too small but y is exact on them
+    // (e.g. a rank that is too low at some bond); the error on the (different) error crosses detects this
+    // and prevents an early stop.
 
     // ---- one step of a left-to-right sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() ----
     // returns the convergence measure of the step (0 in the first sweep)
@@ -138,7 +134,9 @@ namespace PITTS
       Tensor3<T> B;
       localBlockFromLeft<T>(LX, TTx, k, nMALS, Lx.right(), J, B);
       info.nEvaluations += applyToBlock(f, B);
-      const RealType normB = internal::t3_nrm(B);
+      RealType normB = internal::t3_nrm(B);
+      if( normB == 0 )
+        normB = 1;   // zero block: the measures below become absolute
 
       // convergence measure: the current y on the same cross is exactly the current core(s)
       RealType change = 0;
@@ -173,7 +171,7 @@ namespace PITTS
           Tensor3<T> yOnCross;
           contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
           internal::t3_axpy(T(-1), yOnCross, residual);
-          change = std::max(change, relativeNorm(residual, normB));
+          change = std::max(change, internal::t3_nrm(residual) / normB);
         }
         E = dominantDirections(std::move(residual));
         enrichment = std::cref(E);
@@ -230,7 +228,7 @@ namespace PITTS
           Tensor3<T> yOnCross;
           contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
           internal::t3_axpy(T(-1), yOnCross, residual);
-          change = std::max(change, relativeNorm(residual, normB));
+          change = std::max(change, internal::t3_nrm(residual) / normB);
         }
         const int rPrevZ = residual.r1();
         const CoreUpdate<T> updz = updateCoreLeft<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
@@ -254,7 +252,9 @@ namespace PITTS
       Tensor3<T> B;
       localBlockFromRight<T>(Lx.left(), I, TTx, kLeft, nMALS, XR, B);
       info.nEvaluations += applyToBlock(f, B);
-      const RealType normB = internal::t3_nrm(B);
+      RealType normB = internal::t3_nrm(B);
+      if( normB == 0 )
+        normB = 1;   // zero block: the measures below become absolute
 
       RealType change = relativeDifference(B, combineCores(TTy, kLeft, nMALS));
 
@@ -298,7 +298,7 @@ namespace PITTS
         Tensor3<T> yOnCross;
         contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
-        change = std::max(change, relativeNorm(residual, normB));
+        change = std::max(change, internal::t3_nrm(residual) / normB);
         const CoreUpdate<T> updz = updateCoreRight<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Jz[k] = rightIndicesFromColumns(updz.selected, dims[k]);
         Lxz.invalidate(k-1);
