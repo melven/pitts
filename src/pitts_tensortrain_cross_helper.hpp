@@ -24,15 +24,14 @@
 *   right unfolding r_{k-1} x (n_k r_k) : column = i + b*n_k       for (i in S_k, b in J_{k+1})
 *
 * Sketch of one left-to-right step at core k with these helpers (for a TT x and its cross sets I, J;
-* Lx is a SweepData of interface matrices, see interface_loop_from_left):
+* Lx is a SweepData of the partial contractions, see contraction_loop_from_left):
 *
-*   Lx.update(k-1, k+1);                            // L_{k-1} and R_{k+1} valid
-*   normalize_contract1(*Lx.left(), X_k, LX);       // LX = L_{k-1} * X_k        (|I_{k-1}| x n_k x r_k(x))
-*   normalize_contract2(LX, *Lx.right(), B);        // B  = LX * R_{k+1}         (|I_{k-1}| x n_k x |J_{k+1}|)
+*   Lx.update(k, k+1);                              // LX_k = L_{k-1} X_k and XR_{k+1} = X_{k+1} R_{k+2} valid
+*   contractRightInterface(*Lx.left(), Lx.right(), J, k+1, B);   // B = LX_k * R_{k+1}  (|I_{k-1}| x n_k x |J_{k+1}|)
 *   applyToBlock(f, B);                             // B  = f(x) on the cross
 *   auto upd = updateCoreLeft(B, tol, maxRank, maxvolTol, enrichment);
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
-*   Lx.invalidate(k);                               // L_k depends on the new I_k, recomputed on the next update
+*   Lx.invalidate(k+1);                             // LX_{k+1} depends on the new I_k, recomputed on the next update
 *   Y_k = upd.core;  Y_{k+1} = upd.carry * Y_{k+1};
 *
 **/
@@ -54,6 +53,8 @@
 #include "pitts_tensor3.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
+#include "pitts_tensortrain_axpby_normalized.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_eigen.hpp"
@@ -381,11 +382,11 @@ namespace PITTS
         if( A.r1() != B.r1() || A.n() != B.n() || A.r2() != B.r2() )
           throw std::invalid_argument("relativeDifference: blocks have different shapes!");
 
-        const auto mapA = ConstEigenMap(unfold_left(A));
-        const auto mapB = ConstEigenMap(unfold_left(B));
-        const auto normB = mapB.norm();
-        const auto diff = (mapA - mapB).norm();
-        return normB > 0 ? diff / normB : diff;
+        Tensor3<T> diff;
+        copy(A, diff);
+        t3_axpy(T(-1), B, diff);
+        const auto normB = t3_nrm(B);
+        return normB > 0 ? t3_nrm(diff) / normB : t3_nrm(diff);
       }
 
 
