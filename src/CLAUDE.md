@@ -41,6 +41,15 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 - Doxygen: `//!` line comments; each file starts with the SPDX header and a `/*! @file ... @brief ... */` block; every public function has `@param`/`@return`.
 - Commented-out code blocks exist on purpose (debugging aids for numerical details); leave them alone unless asked.
 - Error handling: `throw std::invalid_argument` for wrong arguments at the API boundary, `assert` for internal invariants.
+- **Check existing functionality before writing helpers.** Before adding a small function (norm, axpy, scaling, reshape,
+  contraction, concatenation, ...), look for it in the headers of the data structure you work with: for `Tensor3` read
+  `pitts_tensor3.hpp` and all `pitts_tensor3_*.hpp` (not the `_impl.hpp` files, the declarations and Doxygen comments in
+  the `.hpp` are enough), and likewise for `Tensor2`, `MultiVector` and `TensorTrain`; kernels used by several algorithms
+  often live in `internal` of another header (`t3_nrm` in `pitts_tensortrain_norm.hpp`, `t3_axpy` in
+  `pitts_tensortrain_axpby_normalized.hpp`, `t3_scale`/`normalize_contract1/2` in `pitts_tensortrain_normalize.hpp`,
+  `concatLeftRight`/`concatTopBottom` in `pitts_tensor2_concat.hpp`). The tables below list what each header provides.
+  Reuse is preferred over a private one-liner: no duplicated kernel, and the existing ones carry timers, OpenMP and
+  dimension checks. A boundary case (first/last dimension) is usually handled with a 1x1 identity instead of a special case.
 
 ## Core data structures
 
