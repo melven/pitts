@@ -90,13 +90,32 @@ namespace PITTS
       }
 
 
+      // implement maxvolColumns
+      template<typename T>
+      std::vector<int> maxvolColumns(const ConstTensor2View<T>& Vt, T maxvolTolerance, Tensor2<T>* coefficients)
+      {
+        Tensor2<T> VtH(Vt.r2(), Vt.r1());
+        EigenMap(VtH) = ConstEigenMap(Vt).adjoint();
+
+        Tensor2<T> coefficientsH;
+        const std::vector<int> columns = maxvol(VtH, maxvolTolerance, 100, coefficients ? &coefficientsH : nullptr);
+
+        if( coefficients )
+        {
+          // (Vt^H(columns,:)^{-1} Vt^H)^H = Vt(:,columns)^{-1} Vt
+          coefficients->resize(Vt.r1(), Vt.r2());
+          EigenMap(*coefficients) = ConstEigenMap(coefficientsH).adjoint();
+        }
+        return columns;
+      }
+
+
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
                                    optional_cref<Tensor2<T>> enrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-        using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
         const int r1 = B.r1();
         const int n = B.n();
@@ -133,7 +152,8 @@ namespace PITTS
         result.core = fold_left(std::move(coefficients), n);
 
         // carry = U(rows,:) * SVt, so that core * carry = U * SVt
-        mat Uhat(r, r);
+        // (the row selection as an explicit loop: an Eigen indexed view triggers -Warray-bounds false positives with GCC 13)
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uhat(r, r);
         for(int j = 0; j < r; j++)
           Uhat.row(j) = ConstEigenMap(U).row(result.selected[j]);
         result.carry.resize(r, r2);
@@ -149,7 +169,6 @@ namespace PITTS
                                     optional_cref<Tensor2<T>> enrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-        using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
         const int r1 = B.r1();
         const int n = B.n();
@@ -179,19 +198,13 @@ namespace PITTS
         }
         const int r = Vt.r1();
 
-        // 3.+4. maxvol works on tall matrices, so apply it to Vt^H (n r2 x r): it selects the columns J_k of Vt
-        //       and returns Vt^H * (Vt^H(cols,:))^{-1} = (Vt(:,cols)^{-1} * Vt)^H, the adjoint of the core in
-        //       interpolation gauge
-        Tensor2<T> VtH(Vt.r2(), r);
-        EigenMap(VtH) = ConstEigenMap(Vt).adjoint();
-        Tensor2<T> coefficientsH;
-        result.selected = maxvol(VtH, maxvolTolerance, 100, &coefficientsH);
-        Tensor2<T> coefficients(r, Vt.r2());
-        EigenMap(coefficients) = ConstEigenMap(coefficientsH).adjoint();
+        // 3.+4. maxvol selects the columns J_k of Vt and returns the core in interpolation gauge, Vt(:,cols)^{-1} Vt
+        Tensor2<T> coefficients;
+        result.selected = maxvolColumns<T>(Vt, maxvolTolerance, &coefficients);
         result.core = fold_right(std::move(coefficients), n);
 
-        // carry = US * Vt(:,cols), so that carry * core = US * Vt
-        mat Vhat(r, r);
+        // carry = US * Vt(:,cols), so that carry * core = US * Vt (explicit loop, see updateCoreLeft)
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Vhat(r, r);
         for(int j = 0; j < r; j++)
           Vhat.col(j) = ConstEigenMap(Vt).col(result.selected[j]);
         result.carry.resize(r1, r);
@@ -235,11 +248,8 @@ namespace PITTS
           Rx.update(-1, k);
           const Tensor3<T>& XR = Rx.subTensor(k);
 
-          // maxvol on the adjoint of the right unfolding (n |J_{k+1}| x r_{k-1}) selects the columns J_k
-          Tensor2<T> VtH(XR.n()*XR.r2(), XR.r1());
-          EigenMap(VtH) = ConstEigenMap(unfold_right(XR)).adjoint();
-          const std::vector<int> columns = maxvol(VtH, maxvolTolerance);
-          J[k] = rightIndicesFromColumns(columns, XR.n());
+          // the right unfolding (r_{k-1} x n |J_{k+1}|) is wide, maxvolColumns selects the columns J_k
+          J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(XR), maxvolTolerance), XR.n());
         }
 
         return J;

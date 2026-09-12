@@ -440,6 +440,21 @@ namespace PITTS
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
                                    optional_cref<Tensor2<T>> enrichment = std::nullopt);
 
+      //! maxvol column selection of a wide matrix (r x m with m >= r)
+      //!
+      //! internal::maxvol selects rows of a tall matrix, so this applies it to the adjoint. Used wherever a
+      //! right index set is chosen (the right unfolding of a core is wide).
+      //!
+      //! @param Vt              wide matrix (r x m)
+      //! @param maxvolTolerance dominance tolerance for maxvol
+      //! @param coefficients    optional output Vt(:,columns)^{-1} Vt (r x m), the identity on the selected columns
+      //! @return                selected columns (size r)
+      //!
+      //! @throws std::invalid_argument if Vt has more rows than columns or is rank-deficient (see maxvol)
+      //!
+      template<typename T>
+      std::vector<int> maxvolColumns(const ConstTensor2View<T>& Vt, T maxvolTolerance, Tensor2<T>* coefficients = nullptr);
+
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
       //! Truncated SVD of the right unfolding of B (r1 x n r2): B ~ US * Vt with Vt (r' x n r2); optional
@@ -465,7 +480,7 @@ namespace PITTS
       //! @param TTx                input tensor train (boundary ranks 1)
       //! @param maxvolTolerance    dominance tolerance for maxvol
       //! @return                   right index sets, J[k] for k = 1..d-1 (J[0] empty); the interfaces are then
-      //!                           obtained with a SweepData built from interface_loop_from_right
+      //!                           obtained with a SweepData built from contraction_loop_from_right
       //!
       template<typename T>
       std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance);
