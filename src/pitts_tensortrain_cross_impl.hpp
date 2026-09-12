@@ -102,9 +102,22 @@ namespace PITTS
     auto Lxz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTx, Iz), contraction_loop_from_right<T>(TTx, Jz));
     auto Lyz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, Iz), contraction_loop_from_right<T>(TTy, Jz));
 
-    // y is undefined until the first left-to-right sweep has built all cores; until then the residual is f(x) itself
-    bool yValid = false;
-    std::vector<Tensor3<T>> firstCores(nDim);
+    // Start with a zero y of the initial cross ranks (|J_{k+1}| at bond k): a sweep replaces the cores one
+    // by one and multiplies the remainder of each local update into the next core, so y must be a tensor
+    // train of exactly these ranks before the first step. In the later sweeps this holds automatically
+    // because the opposite sweep selects the index set and the rank of a core together (see stepRightToLeft).
+    // Note: the first left-to-right sweep then contracts and subtracts these zeros in the enrichment and in
+    // the convergence measure. That work could be optimized away, but it only pays off if the iteration
+    // converges within the very first sweeps.
+    {
+      std::vector<Tensor3<T>> zeroCores(nDim);
+      for(int k = 0; k < nDim; k++)
+      {
+        zeroCores[k].resize(k == 0 ? 1 : J[k].size(), dims[k], k+1 == nDim ? 1 : J[k+1].size());
+        zeroCores[k].setConstant(T(0));
+      }
+      TTy.setSubTensors(0, std::move(zeroCores));
+    }
 
     // Convergence measure of a step: the relative change of y on its own cross (block vs. current core)
     // and, with enrichment, the relative error f(x) - y on the error crosses, both scaled by the norm of
@@ -113,7 +126,7 @@ namespace PITTS
     // and prevents an early stop.
 
     // ---- one step of a left-to-right sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() ----
-    // returns the convergence measure of the step (0 in the first sweep)
+    // returns the convergence measure of the step
     const auto stepLeftToRight = [&](const SweepIndex& swpIdx) -> RealType
     {
       const int k = swpIdx.leftDim();
@@ -131,17 +144,12 @@ namespace PITTS
         normB = 1;   // zero block: the measures below become absolute
 
       // convergence measure: the current y on the same cross is exactly the current core(s)
-      RealType change = 0;
-      if( yValid )
-        change = relativeDifference(B, combineCores(TTy, k, nMALS));
+      RealType change = relativeDifference(B, combineCores(TTy, k, nMALS));
 
       // last core of the 1-site sweep: the block is the core, nothing to select
       if( nMALS == 1 && k == nDim-1 )
       {
-        if( yValid )
-          TTy.setSubTensor(k, std::move(B));
-        else
-          firstCores[k] = std::move(B);
+        TTy.setSubTensor(k, std::move(B));
         Lyz.invalidate(k);   // the core of y changed
         return change;
       }
@@ -156,15 +164,12 @@ namespace PITTS
         Tensor3<T> residual;
         contractRightInterface<T>(LX, Lxz.right(), Jz, k+1, residual);
         info.nEvaluations += applyToBlock(f, residual);
-        if( yValid )
-        {
-          // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
-          Lyz.update(k-1, k+1);
-          Tensor3<T> yOnCross;
-          contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
-          internal::t3_axpy(T(-1), yOnCross, residual);
-          change = std::max(change, internal::t3_nrm(residual) / normB);
-        }
+        // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
+        Lyz.update(k-1, k+1);
+        Tensor3<T> yOnCross;
+        contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
+        internal::t3_axpy(T(-1), yOnCross, residual);
+        change = std::max(change, internal::t3_nrm(residual) / normB);
         // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors
         E = internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first;
         enrichment = std::cref(E);
@@ -181,31 +186,13 @@ namespace PITTS
       Lx.invalidate(k+1);
 
       // new core(s); the carry keeps y consistent as a tensor until the next core is rebuilt
+      std::vector<Tensor3<T>> newCores(2);
+      newCores[0] = std::move(upd.core);
       if( nMALS == 2 )
-      {
-        Tensor3<T> next = fold_right(std::move(upd.carry), dims[k+1]);
-        if( yValid )
-        {
-          std::vector<Tensor3<T>> newCores(2);
-          newCores[0] = std::move(upd.core);
-          newCores[1] = std::move(next);
-          TTy.setSubTensors(k, std::move(newCores));
-        }
-        else
-        {
-          firstCores[k] = std::move(upd.core);
-          firstCores[k+1] = std::move(next);
-        }
-      }
-      else if( yValid )
-      {
-        std::vector<Tensor3<T>> newCores(2);
-        newCores[0] = std::move(upd.core);
-        internal::normalize_contract1(upd.carry, TTy.subTensor(k+1), newCores[1]);
-        TTy.setSubTensors(k, std::move(newCores));
-      }
+        newCores[1] = fold_right(std::move(upd.carry), dims[k+1]);
       else
-        firstCores[k] = std::move(upd.core);
+        internal::normalize_contract1(upd.carry, TTy.subTensor(k+1), newCores[1]);
+      TTy.setSubTensors(k, std::move(newCores));
 
       // update of the error crosses: I^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
       // i.e. of f(LX^z_k R^z_{k+1}) - LY^z_k R^{yz}_{k+1}
@@ -215,14 +202,11 @@ namespace PITTS
         Tensor3<T> residual;
         contractRightInterface<T>(Lxz.left()->get(), Lxz.right(), Jz, k+1, residual);
         info.nEvaluations += applyToBlock(f, residual);
-        if( yValid )
-        {
-          Lyz.update(k, k+1);
-          Tensor3<T> yOnCross;
-          contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
-          internal::t3_axpy(T(-1), yOnCross, residual);
-          change = std::max(change, internal::t3_nrm(residual) / normB);
-        }
+        Lyz.update(k, k+1);
+        Tensor3<T> yOnCross;
+        contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
+        internal::t3_axpy(T(-1), yOnCross, residual);
+        change = std::max(change, internal::t3_nrm(residual) / normB);
         const int rPrevZ = residual.r1();
         const CoreUpdate<T> updz = updateCoreLeft<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Iz[k] = leftIndicesFromRows(updz.selected, rPrevZ);
@@ -313,17 +297,11 @@ namespace PITTS
     const SweepIndex firstIdx(nDim, nMALS, nMALS-1, 0);
     for(int iSweep = 0; iSweep < options.nSweeps; iSweep++)
     {
-      // left to right (the very first one builds y)
+      // left to right (the very first one builds y from scratch, its change measure is meaningless)
       RealType maxChange = 0;
       for(SweepIndex swpIdx = firstIdx.first(); swpIdx; swpIdx = swpIdx.next())
         maxChange = std::max(maxChange, stepLeftToRight(swpIdx));
-      if( !yValid )
-      {
-        TTy.setSubTensors(0, std::move(firstCores));
-        yValid = true;
-        Lyz.invalidate(0, nDim);
-      }
-      else if( options.verbose )
+      if( options.verbose )
         printProgress(iSweep+0.5, maxChange);
 
       // right to left (this also truncates the enrichment of the left-to-right sweep, so the convergence
