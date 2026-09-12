@@ -42,23 +42,6 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  //! namespace for helper functionality
-  namespace internal
-  {
-    //! dedicated helper functionality for TT-cross algorithms
-    namespace tt_cross
-    {
-      //! 1x1 identity: the boundary interfaces L_{-1} and R_d (SweepData returns nullopt there), so that the
-      //! block contractions need no special case for the first and last dimension
-      template<typename T>
-      const Tensor2<T>& identityOr(optional_cref<Tensor2<T>> M, const Tensor2<T>& one)
-      {
-        return M ? M->get() : one;
-      }
-    }
-  }
-
-
   // implement applyElementwise
   template<typename T, typename Function>
   TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
@@ -96,16 +79,12 @@ namespace PITTS
 
     TTCrossInfo<T> info;
 
-    // 1x1 identity for the boundary interfaces L_{-1} and R_d (see identityOr)
-    Tensor2<T> one(1, 1);
-    one(0, 0) = T(1);
-
-    // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused); interfaces of x on them
+    // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused); partial contractions of x on them
     std::vector<NestedIndices> I(nDim);
     std::vector<NestedIndices> J = initialRightIndexSets(TTx, maxvolTolerance);
-    auto Lx = defineSweepData<Tensor2<T>>(nDim, interface_loop_from_left<T>(TTx, I), interface_loop_from_right<T>(TTx, J));
+    auto Lx = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTx, I), contraction_loop_from_right<T>(TTx, J));
 
-    // index sets of the error approximation z (no cores needed, only the crosses), interfaces of x and y on them
+    // index sets of the error approximation z (no cores needed, only the crosses), partial contractions of x and y on them
     std::vector<NestedIndices> Iz(nDim), Jz(nDim);
     if( enrich )
     {
@@ -120,8 +99,8 @@ namespace PITTS
         Jz = initialRightIndexSets(TTxTrunc, maxvolTolerance);
       }
     }
-    auto Lxz = defineSweepData<Tensor2<T>>(nDim, interface_loop_from_left<T>(TTx, Iz), interface_loop_from_right<T>(TTx, Jz));
-    auto Lyz = defineSweepData<Tensor2<T>>(nDim, interface_loop_from_left<T>(TTy, Iz), interface_loop_from_right<T>(TTy, Jz));
+    auto Lxz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTx, Iz), contraction_loop_from_right<T>(TTx, Jz));
+    auto Lyz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, Iz), contraction_loop_from_right<T>(TTy, Jz));
 
     // y is undefined until the first left-to-right sweep has built all cores; until then the residual is f(x) itself
     bool yValid = false;
@@ -149,24 +128,41 @@ namespace PITTS
       return normB > 0 ? nrm / normB : nrm;
     };
 
+    // Interface matrices from the cached contractions (see contraction_loop_from_left): L_{k-1} from LX_{k-1} and
+    // I_{k-1}, R_{k+1} from XR_{k+1} and J_{k+1}; at the boundaries (nullopt) the 1x1 identity.
+    const auto leftInterface = [](optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& Iset, int k) -> Tensor2<T>
+    {
+      if( LX )
+        return interfaceLeft(LX->get(), Iset[k]);
+      Tensor2<T> one(1, 1);
+      one(0, 0) = T(1);
+      return one;
+    };
+    const auto rightInterface = [](optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& Jset, int k) -> Tensor2<T>
+    {
+      if( XR )
+        return interfaceRight(XR->get(), Jset[k]);
+      Tensor2<T> one(1, 1);
+      one(0, 0) = T(1);
+      return one;
+    };
+
     // ---- one step of a left-to-right sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() ----
     // returns the convergence measure of the step (0 in the first sweep)
     const auto stepLeftToRight = [&](const SweepIndex& swpIdx) -> RealType
     {
       const int k = swpIdx.leftDim();
       const int kRight = swpIdx.rightDim();
-      Lx.update(k-1, kRight+1);
 
-      // block B = f( x(I_{k-1}, S_k [x S_{k+1}], J_{kRight+1}) ); LX = L_{k-1} X_k is reused for the enrichment
-      Tensor3<T> LX, B;
-      internal::normalize_contract1(identityOr<T>(Lx.left(), one), TTx.subTensor(k), LX);
+      // block B = f( x(I_{k-1}, S_k [x S_{k+1}], J_{kRight+1}) ) = LX_k [X_{k+1}] R_{kRight+1};
+      // LX_k = L_{k-1} X_k is cached: it is reused for the enrichment residual and for the next interface L_k
+      Lx.update(k, kRight+1);
+      const Tensor3<T>& LX = Lx.left()->get();
+      Tensor3<T> B;
       if( nMALS == 2 )
-      {
-        const Tensor3<T> LXX = combine(LX, TTx.subTensor(k+1));
-        internal::normalize_contract2(LXX, identityOr<T>(Lx.right(), one), B);
-      }
+        internal::normalize_contract2(combine(LX, TTx.subTensor(k+1)), rightInterface(Lx.right(), J, kRight+1), B);
       else
-        internal::normalize_contract2(LX, identityOr<T>(Lx.right(), one), B);
+        internal::normalize_contract2(LX, rightInterface(Lx.right(), J, kRight+1), B);
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 
@@ -187,24 +183,25 @@ namespace PITTS
           TTy.setSubTensor(k, std::move(B));
         else
           firstCores[k] = std::move(B);
+        Lyz.invalidate(k);
         return change;
       }
 
-      // enrichment: dominant directions of the residual f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1})
+      // enrichment: dominant directions of the residual f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1}) = LX_k R^z_{k+1}
       Tensor2<T> E;
       optional_cref<Tensor2<T>> enrichment;
       if( enrich )
       {
-        Lxz.update(k-1, k+1);
+        Lxz.update(k, k+1);
         Tensor3<T> residual;
-        internal::normalize_contract2(LX, identityOr<T>(Lxz.right(), one), residual);
+        internal::normalize_contract2(LX, rightInterface(Lxz.right(), Jz, k+1), residual);
         info.nEvaluations += applyToBlock(f, residual);
         if( yValid )
         {
           // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
           Lyz.update(k-1, k+1);
           Tensor3<T> yOnCross;
-          internal::normalize_contract2(TTy.subTensor(k), identityOr<T>(Lyz.right(), one), yOnCross);
+          internal::normalize_contract2(TTy.subTensor(k), rightInterface(Lyz.right(), Jz, k+1), yOnCross);
           internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
@@ -220,7 +217,7 @@ namespace PITTS
       const int rPrev = B.r1();
       CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, enrichment);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
-      Lx.invalidate(k);
+      Lx.invalidate(k+1);
 
       // new core(s); the carry keeps y consistent as a tensor until the next core is rebuilt
       if( nMALS == 2 )
@@ -249,29 +246,26 @@ namespace PITTS
       else
         firstCores[k] = std::move(upd.core);
 
-      // update of the error crosses: I^z_k from the residual on (I^z_{k-1}, S_k, J^z_{k+1})
+      // update of the error crosses: I^z_k from the residual on (I^z_{k-1}, S_k, J^z_{k+1}) = LX^z_k R^z_{k+1} - LY^z_k R^{yz}_{k+1}
       if( enrich )
       {
         Lyz.invalidate(k, 2);
-        Lxz.update(k-1, k+1);
-        Tensor3<T> LXz, residual;
-        internal::normalize_contract1(identityOr<T>(Lxz.left(), one), TTx.subTensor(k), LXz);
-        internal::normalize_contract2(LXz, identityOr<T>(Lxz.right(), one), residual);
+        Tensor3<T> residual;
+        internal::normalize_contract2(Lxz.left()->get(), rightInterface(Lxz.right(), Jz, k+1), residual);
         info.nEvaluations += applyToBlock(f, residual);
         if( yValid )
         {
-          Lyz.update(k-1, k+1);
-          Tensor3<T> LYz, yOnCross;
-          internal::normalize_contract1(identityOr<T>(Lyz.left(), one), TTy.subTensor(k), LYz);
-          internal::normalize_contract2(LYz, identityOr<T>(Lyz.right(), one), yOnCross);
+          Lyz.update(k, k+1);
+          Tensor3<T> yOnCross;
+          internal::normalize_contract2(Lyz.left()->get(), rightInterface(Lyz.right(), Jz, k+1), yOnCross);
           internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
         const int rPrevZ = residual.r1();
         const CoreUpdate<T> updz = updateCoreLeft<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Iz[k] = leftIndicesFromRows(updz.selected, rPrevZ);
-        Lxz.invalidate(k);
-        Lyz.invalidate(k);
+        Lxz.invalidate(k+1);
+        Lyz.invalidate(k+1);
       }
 
       return change;
@@ -282,18 +276,15 @@ namespace PITTS
     {
       const int k = swpIdx.rightDim();
       const int kLeft = swpIdx.leftDim();
-      Lx.update(kLeft-1, k+1);
 
-      // block B = f( x(I_{kLeft-1}, [S_{k-1} x] S_k, J_{k+1}) ); XR = X_k R_{k+1} is reused for the enrichment
-      Tensor3<T> XR, B;
-      internal::normalize_contract2(TTx.subTensor(k), identityOr<T>(Lx.right(), one), XR);
+      // block B = f( x(I_{kLeft-1}, [S_{k-1} x] S_k, J_{k+1}) ) = L_{kLeft-1} [X_{k-1}] XR_k with the cached XR_k = X_k R_{k+1}
+      Lx.update(kLeft-1, k);
+      const Tensor3<T>& XR = Lx.right()->get();
+      Tensor3<T> B;
       if( nMALS == 2 )
-      {
-        const Tensor3<T> XXR = combine(TTx.subTensor(k-1), XR);
-        internal::normalize_contract1(identityOr<T>(Lx.left(), one), XXR, B);
-      }
+        internal::normalize_contract1(leftInterface(Lx.left(), I, kLeft-1), combine(TTx.subTensor(k-1), XR), B);
       else
-        internal::normalize_contract1(identityOr<T>(Lx.left(), one), XR, B);
+        internal::normalize_contract1(leftInterface(Lx.left(), I, kLeft-1), XR, B);
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 
@@ -307,6 +298,7 @@ namespace PITTS
       if( nMALS == 1 && k == 0 )
       {
         TTy.setSubTensor(k, std::move(B));
+        Lyz.invalidate(k);
         return change;
       }
 
@@ -319,7 +311,7 @@ namespace PITTS
         B = fold_left(unfold_left(std::move(B)), dims[k]);
       CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRank, maxvolTolerance);
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
-      Lx.invalidate(k);
+      Lx.invalidate(k-1);
 
       std::vector<Tensor3<T>> newCores(2);
       if( nMALS == 2 )
@@ -329,25 +321,23 @@ namespace PITTS
       newCores[1] = std::move(upd.core);
       TTy.setSubTensors(k-1, std::move(newCores));
 
-      // update of the error crosses: J^z_k from the residual on (I^z_{k-1}, S_k, J^z_{k+1})
+      // update of the error crosses: J^z_k from the residual on (I^z_{k-1}, S_k, J^z_{k+1}) = L^z_{k-1} XR^z_k - L^{yz}_{k-1} YR^z_k
       if( enrich )
       {
         Lyz.invalidate(k-1, 2);
-        Lxz.update(k-1, k+1);
-        Tensor3<T> XRz, residual;
-        internal::normalize_contract2(TTx.subTensor(k), identityOr<T>(Lxz.right(), one), XRz);
-        internal::normalize_contract1(identityOr<T>(Lxz.left(), one), XRz, residual);
+        Lxz.update(k-1, k);
+        Tensor3<T> residual;
+        internal::normalize_contract1(leftInterface(Lxz.left(), Iz, k-1), Lxz.right()->get(), residual);
         info.nEvaluations += applyToBlock(f, residual);
-        Lyz.update(k-1, k+1);
-        Tensor3<T> YRz, yOnCross;
-        internal::normalize_contract2(TTy.subTensor(k), identityOr<T>(Lyz.right(), one), YRz);
-        internal::normalize_contract1(identityOr<T>(Lyz.left(), one), YRz, yOnCross);
+        Lyz.update(k-1, k);
+        Tensor3<T> yOnCross;
+        internal::normalize_contract1(leftInterface(Lyz.left(), Iz, k-1), Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         change = std::max(change, relativeNorm(residual, normB));
         const CoreUpdate<T> updz = updateCoreRight<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Jz[k] = rightIndicesFromColumns(updz.selected, dims[k]);
-        Lxz.invalidate(k);
-        Lyz.invalidate(k);
+        Lxz.invalidate(k-1);
+        Lyz.invalidate(k-1);
       }
 
       return change;

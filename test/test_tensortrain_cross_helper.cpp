@@ -186,8 +186,10 @@ TEST(PITTS_TensorTrain_cross_helper, randomRightIndexSets)
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include <random>
 
-using PITTS::internal::tt_cross::interface_loop_from_left;
-using PITTS::internal::tt_cross::interface_loop_from_right;
+using PITTS::internal::tt_cross::contraction_loop_from_left;
+using PITTS::internal::tt_cross::contraction_loop_from_right;
+using PITTS::internal::tt_cross::interfaceLeft;
+using PITTS::internal::tt_cross::interfaceRight;
 using PITTS::internal::defineSweepData;
 
 namespace
@@ -258,6 +260,36 @@ class PITTS_TensorTrain_cross_helper_interfaces : public ::testing::Test
 using InterfaceTestTypes = ::testing::Types<float, double>;
 TYPED_TEST_CASE(PITTS_TensorTrain_cross_helper_interfaces, InterfaceTestTypes);
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, interfaceLeft_interfaceRight)
+{
+  using Type = typename TestFixture::Type;
+  constexpr auto eps = 1.e-6;
+
+  PITTS::Tensor3<Type> LX(2, 3, 4);
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < 3; j++)
+      for(int l = 0; l < 4; l++)
+        LX(i, j, l) = Type(i + 10*j + 100*l);
+
+  NestedIndices I;
+  I.link = {1, 0, 1};  I.idx = {2, 0, 2};   // duplicates are allowed
+  const PITTS::Tensor2<Type> L = interfaceLeft(LX, I);
+  ASSERT_EQ(3, L.r1());
+  ASSERT_EQ(4, L.r2());
+  for(int a = 0; a < 3; a++)
+    for(int l = 0; l < 4; l++)
+      EXPECT_NEAR(Type(I.link[a] + 10*I.idx[a] + 100*l), L(a, l), eps);
+
+  NestedIndices J;
+  J.idx = {1, 1};  J.link = {3, 0};
+  const PITTS::Tensor2<Type> R = interfaceRight(LX, J);
+  ASSERT_EQ(2, R.r1());
+  ASSERT_EQ(2, R.r2());
+  for(int b = 0; b < 2; b++)
+    for(int i = 0; i < 2; i++)
+      EXPECT_NEAR(Type(i + 10*J.idx[b] + 100*J.link[b]), R(i, b), eps);
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, boundary_cores)
 {
   using Type = typename TestFixture::Type;
@@ -272,19 +304,27 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, boundary_cores)
   I[0].link = {0, 0, 0};  I[0].idx = {3, 0, 3};       // duplicates are allowed
   J[2].link = {0, 0};     J[2].idx = {4, 1};
 
-  auto Lx = defineSweepData<PITTS::Tensor2<Type>>(3, interface_loop_from_left<Type>(TT, I), interface_loop_from_right<Type>(TT, J));
+  auto Lx = defineSweepData<PITTS::Tensor3<Type>>(3, contraction_loop_from_left<Type>(TT, I), contraction_loop_from_right<Type>(TT, J));
   Lx.update(0, 2);
 
-  // L_0(a,:) = X_0(0, idx[a], :)
-  const auto& L0 = Lx.subTensor(0);
+  // LX_0 = X_0 (L_{-1} = 1), L_0(a,:) = X_0(0, idx[a], :)
+  const auto& LX0 = Lx.subTensor(0);
+  ASSERT_EQ(1, LX0.r1());
+  ASSERT_EQ(4, LX0.n());
+  ASSERT_EQ(2, LX0.r2());
+  const PITTS::Tensor2<Type> L0 = interfaceLeft(LX0, I[0]);
   ASSERT_EQ(3, L0.r1());
   ASSERT_EQ(2, L0.r2());
   for(int a = 0; a < 3; a++)
     for(int j = 0; j < 2; j++)
       EXPECT_NEAR(TT.subTensor(0)(0, I[0].idx[a], j), L0(a, j), eps);
 
-  // R_2(:,b) = X_2(:, idx[b], 0)
-  const auto& R2 = Lx.subTensor(2);
+  // XR_2 = X_2 (R_3 = 1), R_2(:,b) = X_2(:, idx[b], 0)
+  const auto& XR2 = Lx.subTensor(2);
+  ASSERT_EQ(2, XR2.r1());
+  ASSERT_EQ(5, XR2.n());
+  ASSERT_EQ(1, XR2.r2());
+  const PITTS::Tensor2<Type> R2 = interfaceRight(XR2, J[2]);
   ASSERT_EQ(2, R2.r1());
   ASSERT_EQ(2, R2.r2());
   for(int b = 0; b < 2; b++)
@@ -312,22 +352,28 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, random_TT_random_index_set
   const auto I = randomLeftIndexSets(dims, leftSizes, gen);
   const auto J = randomRightIndexSets(dims, rightSizes, gen);
 
-  auto Lx = defineSweepData<PITTS::Tensor2<Type>>(nDim, interface_loop_from_left<Type>(TT, I), interface_loop_from_right<Type>(TT, J));
+  auto Lx = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TT, I), contraction_loop_from_right<Type>(TT, J));
 
   // sweep over the bonds like the algorithm does: SweepData stores left and right results in the same
-  // array, so only L_0..L_k and R_{k+1}..R_{d-1} can be valid at the same time (never overlapping ranges)
+  // array, so only LX_0..LX_k and XR_{k+1}..XR_{d-1} can be valid at the same time (never overlapping ranges)
   for(int k = 0; k < nDim-1; k++)
   {
     Lx.update(k, k+1);
-    const auto& L = Lx.subTensor(k);
+    const auto& LX = Lx.subTensor(k);
+    ASSERT_EQ(k == 0 ? 1 : leftSizes[k-1], LX.r1());
+    ASSERT_EQ(dims[k], LX.n());
+    ASSERT_EQ(TT.subTensor(k).r2(), LX.r2());
+    const PITTS::Tensor2<Type> L = interfaceLeft(LX, I[k]);
     ASSERT_EQ(leftSizes[k], L.r1());
-    ASSERT_EQ(TT.subTensor(k).r2(), L.r2());
 
     // check L_k and R_{k+1} through their product: (L_k R_{k+1})(a,b) = x(I_k[a], J_{k+1}[b])
     const Eigen::MatrixXi Ik = expandLeft(I, k);
     const Eigen::MatrixXi Jk1 = expandRight(J, k+1, nDim);
-    const auto& R = Lx.subTensor(k+1);
-    ASSERT_EQ(TT.subTensor(k+1).r1(), R.r1());
+    const auto& XR = Lx.subTensor(k+1);
+    ASSERT_EQ(TT.subTensor(k+1).r1(), XR.r1());
+    ASSERT_EQ(dims[k+1], XR.n());
+    ASSERT_EQ(k+1 == nDim-1 ? 1 : rightSizes[k+2], XR.r2());
+    const PITTS::Tensor2<Type> R = interfaceRight(XR, J[k+1]);
     ASSERT_EQ(rightSizes[k+1], R.r2());
 
     const mat LR = ConstEigenMap(L) * ConstEigenMap(R);
@@ -356,20 +402,22 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_i
   std::vector<NestedIndices> I = randomLeftIndexSets(dims, {2, 2, 2}, gen);
   const auto J = randomRightIndexSets(dims, {0, 2, 2, 2}, gen);
 
-  auto Lx = defineSweepData<PITTS::Tensor2<Type>>(nDim, interface_loop_from_left<Type>(TT, I), interface_loop_from_right<Type>(TT, J));
+  auto Lx = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TT, I), contraction_loop_from_right<Type>(TT, J));
   Lx.update(2, 3);
 
-  // change I_1 (which makes I_2 point to new parents): after invalidate + update, L_1 and L_2 follow the new sets
+  // change I_1 (which makes I_2 point to new parents): LX_2 = L_1 X_2 depends on it, so invalidate(2) + update recomputes it
   I[1] = randomLeftIndexSets(dims, {2, 3}, gen)[1];
-  Lx.invalidate(1);
+  Lx.invalidate(2);
   Lx.update(2, 3);
 
   const Eigen::MatrixXi I2 = expandLeft(I, 2);
-  const auto& L2 = Lx.subTensor(2);
+  const PITTS::Tensor2<Type> L2 = interfaceLeft(Lx.subTensor(2), I[2]);
   ASSERT_EQ(2, L2.r1());
   // check the recomputed L_2 through the product with R_3
+  // (an Eigen product is lazy, so store it in a matrix and not in an auto variable)
   const Eigen::MatrixXi J3 = expandRight(J, 3, nDim);
-  const auto LR = ConstEigenMap(L2) * ConstEigenMap(Lx.subTensor(3));
+  const PITTS::Tensor2<Type> R3 = interfaceRight(Lx.subTensor(3), J[3]);
+  const Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic> LR = ConstEigenMap(L2) * ConstEigenMap(R3);
   for(int a = 0; a < I2.rows(); a++)
     for(int b = 0; b < J3.rows(); b++)
     {
@@ -781,22 +829,15 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_rand
   // |J_k| = rank of bond k-1 (the random TT has full ranks)
   checkRightNested(J, dims, {0, 2, 3, 2});
 
-  // the selected columns are dominant in the right-orthogonalized TT: recompute X_k * R_{k+1} with the interfaces
+  // the selected columns are dominant in the right-orthogonalized TT: recompute XR_k = X_k * R_{k+1} with the cached contractions
   TensorTrain TTortho(dims);
   copy(TT, TTortho);
   rightNormalize(TTortho, Type(0));
   std::vector<NestedIndices> noLeft(nDim);
-  auto Rx = defineSweepData<PITTS::Tensor2<Type>>(nDim, interface_loop_from_left<Type>(TTortho, noLeft), interface_loop_from_right<Type>(TTortho, J));
+  auto Rx = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TTortho, noLeft), contraction_loop_from_right<Type>(TTortho, J));
   Rx.update(-1, 1);
   for(int k = nDim-1; k >= 1; k--)
-  {
-    PITTS::Tensor3<Type> XR;
-    if( k+1 < nDim )
-      PITTS::internal::normalize_contract2(TTortho.subTensor(k), Rx.subTensor(k+1), XR);
-    else
-      copy(TTortho.subTensor(k), XR);
-    EXPECT_LE(columnDominance(XR, J[k]), 1 + maxvolTol + eps);
-  }
+    EXPECT_LE(columnDominance(Rx.subTensor(k), J[k]), 1 + maxvolTol + eps);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_rank_deficient_TT)

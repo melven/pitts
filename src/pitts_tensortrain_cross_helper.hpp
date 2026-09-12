@@ -172,6 +172,40 @@ namespace PITTS
         return J;
       }
 
+      //! left interface matrix L_k (|I_k| x r_k) as the rows (link, idx) of the contraction LX_k = L_{k-1} X_k (|I_{k-1}| x n_k x r_k)
+      //!
+      //! L_k(a,:) = LX_k(link[a], idx[a], :), see contraction_loop_from_left.
+      //!
+      template<typename T>
+      Tensor2<T> interfaceLeft(const Tensor3<T>& LX, const NestedIndices& I)
+      {
+        Tensor2<T> L(I.size(), LX.r2());
+        for(int a = 0; a < I.size(); a++)
+        {
+          assert(I.link[a] >= 0 && I.link[a] < LX.r1() && I.idx[a] >= 0 && I.idx[a] < LX.n());
+          for(int j = 0; j < LX.r2(); j++)
+            L(a, j) = LX(I.link[a], I.idx[a], j);
+        }
+        return L;
+      }
+
+      //! right interface matrix R_k (r_{k-1} x |J_k|) as the columns (idx, link) of the contraction XR_k = X_k R_{k+1} (r_{k-1} x n_k x |J_{k+1}|)
+      //!
+      //! R_k(:,b) = XR_k(:, idx[b], link[b]), see contraction_loop_from_right.
+      //!
+      template<typename T>
+      Tensor2<T> interfaceRight(const Tensor3<T>& XR, const NestedIndices& J)
+      {
+        Tensor2<T> R(XR.r1(), J.size());
+        for(int b = 0; b < J.size(); b++)
+        {
+          assert(J.link[b] >= 0 && J.link[b] < XR.r2() && J.idx[b] >= 0 && J.idx[b] < XR.n());
+          for(int i = 0; i < XR.r1(); i++)
+            R(i, b) = XR(i, J.idx[b], J.link[b]);
+        }
+        return R;
+      }
+
       //! full multi-indices of the left set I_k as a matrix with one row (i_0,...,i_k) per element (I[0] is the set of bond 0)
       //!
       //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()} (a 1 x 0 matrix).
@@ -213,88 +247,67 @@ namespace PITTS
       }
 
 
-      //! Interface matrices (partial contractions of a TT on nested index sets), cached with SweepData
+      //! Partial contractions of a TT on nested index sets, cached with SweepData
       //!
-      //! Use with defineSweepData<Tensor2<T>>(nDim, interface_loop_from_left<T>(TT, I), interface_loop_from_right<T>(TT, J)):
-      //!   subTensor(k) from the left  = L_k of shape |I_k| x r_k       with L_k(a,:) = X_0(i_0) X_1(i_1) ... X_k(i_k) for (i_0..i_k) = I_k[a]
-      //!   subTensor(k) from the right = R_k of shape r_{k-1} x |J_k|   with R_k(:,b) = X_k(i_k) ... X_{d-1}(i_{d-1}) for (i_k..i_{d-1}) = J_k[b]
-      //! The boundary interfaces L_{-1} and R_d are the 1x1 identity and appear as std::nullopt (SweepData::left()/right()).
+      //! Use with defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TT, I), contraction_loop_from_right<T>(TT, J)):
+      //!   subTensor(k) from the left  = LX_k = L_{k-1} X_k of shape |I_{k-1}| x n_k x r_k  (all mode indices of core k),
+      //!   subTensor(k) from the right = XR_k = X_k R_{k+1} of shape r_{k-1} x n_k x |J_{k+1}|,
+      //! where the interface matrices L_k (|I_k| x r_k, rows X_0(i_0) ... X_k(i_k) for (i_0..i_k) in I_k) and
+      //! R_k (r_{k-1} x |J_k|, columns X_k(i_k) ... X_{d-1}(i_{d-1}) for (i_k..i_{d-1}) in J_k) are row/column
+      //! selections of these: L_k = interfaceLeft(LX_k, I_k), R_k = interfaceRight(XR_k, J_k).
+      //! The boundary interfaces L_{-1} and R_d are the 1x1 identity (LX_0 = X_0, XR_{d-1} = X_{d-1}).
       //!
       //! The recursion L_k(a,:) = L_{k-1}(link[a],:) * X_k(:,idx[a],:) is why the index sets are stored as (link, idx).
-      //! L_k is computed by contracting L_{k-1} with the full core (normalize_contract1, all mode indices) and
-      //! picking the rows (link, idx) of the result. This is the same contraction the block evaluation of
-      //! core k needs, so it is currently done twice per core (once here, once for the block); acceptable for
-      //! the first version, a shared scratch tensor can remove it later.
+      //! The cached quantity is the full contraction and not the interface, because the cross algorithms need it
+      //! anyway: the block of core k on the cross (I_{k-1}, S_k, J_{k+1}) is LX_k R_{k+1}, the enrichment residual
+      //! is LX_k R^z_{k+1}, and the next interface L_k is a selection of rows of the same LX_k. So each contraction
+      //! is done once per core and sweep direction (this is what defineSweepData is for).
       //!
-      //! SweepData's invalidation matches the dependency structure: L_k depends on L_{k-1}, X_k and I_k only,
-      //! so after I_k (or X_k) changed, invalidate(k) marks L_k..L_{d-1} invalid and update() recomputes on demand.
+      //! Dependencies: LX_k depends on LX_{k-1}, I_{k-1} and X_k (not on I_k); XR_k on XR_{k+1}, J_{k+1} and X_k.
+      //! So after I_k changed, invalidate(k+1); after J_k changed, invalidate(k-1); after X_k changed, invalidate(k).
+      //! (invalidate drops the results from both sides at the given dimension, which costs nothing in a sweep:
+      //! the other side is recomputed in the next step anyway.)
       //! Caveat: SweepData stores the left and right results in one array, so the valid ranges must not overlap
-      //! (update(k-1, k+1) around the current core k is the intended pattern; update asserts newLeftDim < newRightDim).
+      //! (update(k, k+1) for the block of core k; update asserts newLeftDim < newRightDim).
       //! Used for x on the index sets of y, and for x and y on the index sets of the error approximation z.
       //!
       //! @param TT   the tensor train (captured by reference, must outlive the SweepData)
-      //! @param I    the left index sets (captured by reference, I[k] must be valid when L_k is computed)
-      //! @return     lambda (int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& result) for defineSweepData
+      //! @param I    the left index sets (captured by reference, I[k-1] must be valid when LX_k is computed)
+      //! @return     lambda (int iDim, optional_cref<Tensor3<T>> prev, Tensor3<T>& result) for defineSweepData
       //!
       //! Defined in the header (like the *_loop_from_left helpers of solveMALS) because the deduced lambda
       //! type cannot be separated into an explicit instantiation; the actual work is in normalize_contract1.
       //!
       template<typename T>
-      auto interface_loop_from_left(const TensorTrain<T>& TT, const std::vector<NestedIndices>& I)
+      auto contraction_loop_from_left(const TensorTrain<T>& TT, const std::vector<NestedIndices>& I)
       {
-        return [&](int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& L)
+        return [&](int iDim, optional_cref<Tensor3<T>> prev, Tensor3<T>& LX)
         {
-          const Tensor3<T>& X = TT.subTensor(iDim);
-          const NestedIndices& Ik = I.at(iDim);
-
-          // LX = L_{iDim-1} * X (all mode indices); at the left boundary L_{-1} is the 1x1 identity, so LX = X
-          Tensor3<T> tmp;
-          const Tensor3<T>* LX = &X;
+          // L_{iDim-1} from the previous contraction; at the left boundary the 1x1 identity
+          Tensor2<T> L(1, 1);
+          L(0, 0) = T(1);
           if( prev )
-          {
-            normalize_contract1(prev->get(), X, tmp);
-            LX = &tmp;
-          }
-          else
-            assert(X.r1() == 1);
-
-          // pick the rows of the nested index set: L(a,:) = LX(link[a], idx[a], :)
-          L.resize(Ik.size(), LX->r2());
-          for(int a = 0; a < Ik.size(); a++)
-            for(int j = 0; j < LX->r2(); j++)
-              L(a, j) = (*LX)(Ik.link[a], Ik.idx[a], j);
+            L = interfaceLeft(prev->get(), I.at(iDim-1));
+          normalize_contract1(L, TT.subTensor(iDim), LX);
         };
       }
 
-      //! right interface matrices for SweepData, see interface_loop_from_left
+      //! right partial contractions for SweepData, see contraction_loop_from_left
       //!
       //! @param TT   the tensor train (captured by reference)
-      //! @param J    the right index sets (captured by reference, J[k] must be valid when R_k is computed)
+      //! @param J    the right index sets (captured by reference, J[k+1] must be valid when XR_k is computed)
       //!
       template<typename T>
-      auto interface_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J)
+      auto contraction_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J)
       {
-        return [&](int iDim, optional_cref<Tensor2<T>> prev, Tensor2<T>& R)
+        return [&](int iDim, optional_cref<Tensor3<T>> prev, Tensor3<T>& XR)
         {
-          const Tensor3<T>& X = TT.subTensor(iDim);
-          const NestedIndices& Jk = J.at(iDim);
-
-          // XR = X * R_{iDim+1} (all mode indices); at the right boundary R_d is the 1x1 identity, so XR = X
-          Tensor3<T> tmp;
-          const Tensor3<T>* XR = &X;
+          // R_{iDim+1} from the previous contraction; at the right boundary the 1x1 identity
+          Tensor2<T> R(1, 1);
+          R(0, 0) = T(1);
           if( prev )
-          {
-            normalize_contract2(X, prev->get(), tmp);
-            XR = &tmp;
-          }
-          else
-            assert(X.r2() == 1);
-
-          // pick the columns of the nested index set: R(:,b) = XR(:, idx[b], link[b])
-          R.resize(XR->r1(), Jk.size());
-          for(int b = 0; b < Jk.size(); b++)
-            for(int i = 0; i < XR->r1(); i++)
-              R(i, b) = (*XR)(i, Jk.idx[b], Jk.link[b]);
+            R = interfaceRight(prev->get(), J.at(iDim+1));
+          normalize_contract2(TT.subTensor(iDim), R, XR);
         };
       }
 

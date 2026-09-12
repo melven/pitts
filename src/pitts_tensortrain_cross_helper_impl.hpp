@@ -243,11 +243,8 @@ namespace PITTS
           const std::vector<int> columns = maxvol(VtH, maxvolTolerance);
           J[k] = rightIndicesFromColumns(columns, n);
 
-          // R_k = the selected columns (three-index access, the same as in interface_loop_from_right)
-          R.resize(XR.r1(), J[k].size());
-          for(int b = 0; b < J[k].size(); b++)
-            for(int i = 0; i < XR.r1(); i++)
-              R(i, b) = XR(i, J[k].idx[b], J[k].link[b]);
+          // R_k = the selected columns
+          R = interfaceRight(XR, J[k]);
         }
 
         return J;
