@@ -30,7 +30,7 @@
 *     1. Evaluate the block B = f( x(I_{k-1}, S_k, J_{k+1}) ) of shape |I_{k-1}| x n_k x |J_{k+1}|.
 *        The entries of x come from cached partial contractions of the cores of x on the nested index
 *        sets (see pitts_tensortrain_cross_helper.hpp), so the block costs one small contraction plus
-*        one call of f per entry.
+*        one call of f per entry (or a single call of f for the whole block for an array function).
 *     2. Truncated SVD of the left unfolding of B (|I_{k-1}| n_k x |J_{k+1}|) with rankTolerance / maxRank.
 *     3. Optional AMEn-style enrichment (nMALS = 1 only): append directions of the current error
 *        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep).
@@ -193,8 +193,12 @@ namespace PITTS
   //!
   //! @tparam T               underlying data type (double, complex, ...)
   //! @tparam Function        scalar functor T f(T), e.g. [](double v){return std::sqrt(v);}
-  //!                         It is called once per evaluated entry inside the block loops, so a small
-  //!                         inlinable functor is preferable to std::function.
+  //!                         It is called once per evaluated entry inside the block loops (in parallel, so it
+  //!                         must be pure), thus a small inlinable functor is preferable to std::function.
+  //!                         Alternatively an array functor f(MultiVector<T>&) transforming all entries of a
+  //!                         block in-place (a single column of r1*n*r2 rows, dimensions must be kept): it is
+  //!                         called once per block and handles its own parallelization. Use this for functions
+  //!                         with a significant per-call overhead, e.g. a numpy function called from Python.
   //!
   //! @param f                the element-wise function
   //! @param TTx              input tensor in TT format (boundary ranks r_0 = r_d = 1 required)
