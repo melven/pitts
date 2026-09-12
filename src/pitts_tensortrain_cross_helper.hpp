@@ -57,6 +57,7 @@
 #include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
+#include "pitts_timer.hpp"
 #include "pitts_eigen.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -181,6 +182,8 @@ namespace PITTS
       template<typename T>
       Tensor2<T> interfaceLeft(const Tensor3<T>& LX, const NestedIndices& I)
       {
+        const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
+
         Tensor2<T> L(I.size(), LX.r2());
         for(int a = 0; a < I.size(); a++)
         {
@@ -198,6 +201,8 @@ namespace PITTS
       template<typename T>
       Tensor2<T> interfaceRight(const Tensor3<T>& XR, const NestedIndices& J)
       {
+        const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
+
         Tensor2<T> R(XR.r1(), J.size());
         for(int b = 0; b < J.size(); b++)
         {
@@ -418,6 +423,8 @@ namespace PITTS
       template<typename T, typename Function>
       long long applyToBlock(const Function& f, Tensor3<T>& B)
       {
+        const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
+
         const auto r1 = B.r1();
         const auto n = B.n();
         const auto r2 = B.r2();
@@ -521,19 +528,17 @@ namespace PITTS
 
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
-      //! Truncated SVD of the right unfolding of B (r1 x n r2): B ~ US * Vt with Vt (r' x n r2); optional
-      //! enrichment rows E (rho x n r2) appended to Vt; maxvolColumns(Vt') selects the columns J_k;
-      //! core = fold_right(Vt'(:,columns)^{-1} * Vt'), carry = US' * Vt'(:,columns) (r1 x r'+rho').
+      //! Truncated SVD of the right unfolding of B (r1 x n r2): B ~ US * Vt with Vt (r' x n r2);
+      //! maxvolColumns(Vt) selects the columns J_k; core = fold_right(Vt(:,columns)^{-1} * Vt),
+      //! carry = US * Vt(:,columns) (r1 x r').
+      //!
+      //! There is no enrichment here: only the left-to-right sweeps enrich (see pitts_tensortrain_cross.hpp).
       //!
       //! Invariants: unfold_right(core)(:,columns) = identity, |entries of core| <= 1 + maxvolTolerance,
       //! and carry * core = US * Vt.
       //!
-      //! The enrichment is only used by the tests and for symmetry with updateCoreLeft: the driver enriches
-      //! in the left-to-right sweeps only (see pitts_tensortrain_cross.hpp).
-      //!
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                    optional_cref<Tensor2<T>> enrichment = std::nullopt);
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance);
 
 
       //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)

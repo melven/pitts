@@ -790,20 +790,6 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
   checkLeftUpdate(Bfull, updFull, maxvolTol, true);
 }
 
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_enrichment_limited_by_columns)
-{
-  using Type = typename TestFixture::Type;
-  const Type maxvolTol = Type(0.05);
-
-  // full rank already (r1 = 3 = n*r2): nothing can be added
-  const auto B = randomBlock<Type>(3, 3, 1);
-  PITTS::Tensor2<Type> E(2, 3);
-  EigenMap(E).setRandom();
-  const CoreUpdate<Type> upd = updateCoreRight<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
-  EXPECT_EQ(3, upd.truncatedRank);
-  EXPECT_EQ(3, upd.core.r1());
-  checkRightUpdate(B, upd, maxvolTol, true);
-}
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_full_rank)
 {
@@ -834,30 +820,6 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_low_rank_a
   const CoreUpdate<Type> upd1 = updateCoreRight(B, Type(0), 1, maxvolTol);
   EXPECT_EQ(1, upd1.core.r1());
   checkRightUpdate(B, upd1, maxvolTol, false);
-}
-
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_enrichment)
-{
-  using Type = typename TestFixture::Type;
-  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
-  const Type maxvolTol = Type(0.05);
-  const auto eps = blockTolerance<Type>();
-
-  const auto B = randomBlock<Type>(3, 4, 2);
-  PITTS::Tensor2<Type> E(2, 8);
-  EigenMap(E).setRandom();
-
-  const CoreUpdate<Type> upd = updateCoreRight<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
-  EXPECT_EQ(3, upd.truncatedRank);
-  EXPECT_EQ(5, upd.core.r1());
-  checkRightUpdate(B, upd, maxvolTol, true);
-
-  // the rows of the core span the enrichment directions: E - (E core^+) core = 0
-  const auto mapCore = ConstEigenMap(unfold_right(upd.core));
-  const mat coreT = mapCore.transpose();
-  const mat coeff = coreT.colPivHouseholderQr().solve(ConstEigenMap(E).transpose());
-  const mat residual = ConstEigenMap(E) - coeff.transpose() * mapCore;
-  EXPECT_NEAR(mat::Zero(2, 8), residual, eps);
 }
 
 
