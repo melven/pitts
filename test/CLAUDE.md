@@ -55,11 +55,14 @@ TensorTrain and TensorTrainOperator:
 | `test_tensortrain_axpby.cpp`, `test_tensortrain_axpby_plain.cpp`, `test_tensortrain_axpby_normalized.cpp` | TT addition variants (the normalized one has many special cases: zero vectors, rank-1, boundary ranks). |
 | `test_tensortrain_from_dense.cpp`, `test_tensortrain_from_dense_classical.cpp`, `test_tensortrain_from_dense_twosided.cpp`, `test_tensortrain_to_dense.cpp` | TT-SVD variants and reconstruction, incl. MPI-distributed input and rank/tolerance options. |
 | `test_tensortrain_gram_schmidt.cpp` | Gram-Schmidt orthogonalization of TT vectors. |
+| `test_tensortrain_cross.cpp` | `applyElementwise` (TT-cross driver): argument checks, exact recovery of the identity and of x^2, sqrt / 1/x against the dense reference (1-site and 2-site variants, QTT-like dimensions with rank growth), interpolation property on the returned index sets, enrichment options (random and derived error index sets). |
+| `test_tensortrain_cross_helper.cpp` | Building blocks of TT-cross: nested index sets (decoding, expansion, consistency with the Tensor3 unfoldings), partial contractions and interface matrices via `SweepData` against direct evaluation of a random TT, local block assembly (1-site and 2-site) and block helpers, local core updates (identity on the selected rows/columns, reconstruction, truncation, enrichment). |
 | `test_tensortrain_laplace_operator.cpp` | Laplace stencil application. |
 | `test_tensortrain_operator.cpp`, `test_tensortrain_operator_debug.cpp` | TTOp construction, `setEye`, sub-tensors, debug operators. |
 | `test_tensortrain_operator_apply.cpp`, `test_tensortrain_operator_apply_transposed.cpp`, `test_tensortrain_operator_apply_op.cpp`, `test_tensortrain_operator_apply_transposed_op.cpp`, `test_tensortrain_operator_apply_dense.cpp`, `test_tensortrain_operator_apply_transposed_dense.cpp` | All apply variants vs dense reference. |
 | `test_tensortrain_operator_to_dense.cpp`, `test_tensortrain_operator_to_qtt.cpp` | Dense expansion and QTT conversion. |
 | `test_tensortrain_sweep_index.cpp` | Sweep iteration for ALS/MALS/TT-GMRES widths. |
+| `test_tensortrain_sweep_data.cpp` | `SweepData` cache: incremental update from both sides, invalidation (ALS and MALS width), sweep access pattern. |
 | `test_tensortrain_solve_gmres.cpp` | TT-GMRES on identity and random (symmetric/non-symmetric) systems, 1 to 6 dimensions (the `random_nDim2` case is the slowest test). |
 | `test_tensortrain_solve_mals.cpp` | Largest file: ALS/MALS/AMEn variants, symmetric and Petrov-Galerkin, different dimensions and options. |
 | `test_tensortrain_solve_mals_helper.cpp` | Internal helper loops of MALS. |

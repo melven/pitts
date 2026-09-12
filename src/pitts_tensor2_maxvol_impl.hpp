@@ -33,7 +33,7 @@ namespace PITTS
   {
     // implement maxvol
     template<typename T>
-    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol, int maxIter)
+    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol, int maxIter, Tensor2<T>* AAinv)
     {
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -50,23 +50,31 @@ namespace PITTS
       const auto mapA = ConstEigenMap(A);
 
       // initial selection: column-pivoted QR of A^T (greedy choice of the "largest" rows)
-      const Eigen::ColPivHouseholderQR<mat> qr(mapA.adjoint());
+      Eigen::ColPivHouseholderQR<mat> qr(mapA.adjoint());
       const auto& pivots = qr.colsPermutation().indices();
       std::vector<int> I(r);
       for(int j = 0; j < r; j++)
         I[j] = pivots(j);
 
-      // check for a rank-deficient input (A(I,:) would be singular)
-      const RealType rankTolerance = std::numeric_limits<RealType>::epsilon() * std::max(m, r) * 10;
-      const mat Rqr = qr.matrixR().template topLeftCorner(r, r).template triangularView<Eigen::Upper>();
-      const RealType maxDiag = Rqr.diagonal().array().abs().maxCoeff();
-      for(int j = 0; j < r; j++)
-        if( std::abs(Rqr(j,j)) <= rankTolerance * maxDiag )
-          throw std::invalid_argument("maxvol: input matrix is (numerically) rank-deficient!");
+      // check for a rank-deficient input (A(I,:) would be singular); Eigen's rank() counts the diagonal
+      // entries of R above threshold*maxPivot, the same criterion as in normalize_qb
+      qr.setThreshold(std::numeric_limits<RealType>::epsilon() * std::max(m, r) * 10);
+      if( qr.rank() < r )
+        throw std::invalid_argument("maxvol: input matrix is (numerically) rank-deficient!");
 
-      // fast return: nothing to swap
+      // fast return: nothing to swap, all rows are selected. Return them in natural order so that
+      // A * A(I,:)^{-1} is the identity with I[j] = j (with the pivot order it would be a permutation matrix)
       if( m == r )
+      {
+        for(int j = 0; j < r; j++)
+          I[j] = j;
+        if( AAinv != nullptr )
+        {
+          AAinv->resize(m, r);
+          EigenMap(*AAinv) = mat::Identity(m, r);
+        }
         return I;
+      }
 
       // B = A * A(I,:)^{-1}, so B(I,:) is the identity
       mat Ahat(r, r);
@@ -92,6 +100,13 @@ namespace PITTS
         Bi(j) -= T(1);
         B.noalias() -= Bj * (Bi / pivot);
         I[j] = i;
+      }
+
+      // B is kept consistent with the final selection by the rank-1 updates, so it can be returned as is
+      if( AAinv != nullptr )
+      {
+        AAinv->resize(m, r);
+        EigenMap(*AAinv) = B;
       }
 
       return I;

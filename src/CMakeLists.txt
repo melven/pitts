@@ -104,6 +104,11 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_operator_to_qtt_impl.hpp
   pitts_tensortrain_operator_debug.hpp
   pitts_tensortrain_sweep_index.hpp
+  pitts_tensortrain_sweep_data.hpp
+  pitts_tensortrain_cross.hpp
+  pitts_tensortrain_cross_impl.hpp
+  pitts_tensortrain_cross_helper.hpp
+  pitts_tensortrain_cross_helper_impl.hpp
   pitts_tensortrain_solve_mals.hpp
   pitts_tensortrain_solve_mals_impl.hpp
   pitts_tensortrain_solve_mals_helper.hpp
@@ -224,6 +229,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_solve_mals.cpp
     pitts_tensortrain_solve_mals_helper.cpp
     pitts_tensortrain_solve_mals_debug.cpp
+    pitts_tensortrain_cross_helper.cpp
     pitts_ttn_local_gradient_contraction.cpp
   )
   target_link_libraries(pitts_impl PRIVATE pitts)
@@ -268,6 +274,7 @@ add_executable(tt_from_dense_thickbounds_single_bench tt_from_dense_thickbounds_
 add_executable(tt_from_dense_autofusing_bench tt_from_dense_autofusing_bench.cpp)
 add_executable(tt_from_dense_twosided_autofusing_bench tt_from_dense_twosided_autofusing_bench.cpp)
 add_executable(tt_from_dense_twosided_thickbounds_bench tt_from_dense_twosided_thickbounds_bench.cpp)
+add_executable(tt_cross_bench tt_cross_bench.cpp)
 add_executable(tsqr_transform_block_calc_bench tsqr_transform_block_calc_bench.cpp)
 add_executable(unary_truncation_bench unary_truncation_bench.cpp)
 add_executable(binary_truncation_bench binary_truncation_bench.cpp)

@@ -41,6 +41,15 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 - Doxygen: `//!` line comments; each file starts with the SPDX header and a `/*! @file ... @brief ... */` block; every public function has `@param`/`@return`.
 - Commented-out code blocks exist on purpose (debugging aids for numerical details); leave them alone unless asked.
 - Error handling: `throw std::invalid_argument` for wrong arguments at the API boundary, `assert` for internal invariants.
+- **Check existing functionality before writing helpers.** Before adding a small function (norm, axpy, scaling, reshape,
+  contraction, concatenation, ...), look for it in the headers of the data structure you work with: for `Tensor3` read
+  `pitts_tensor3.hpp` and all `pitts_tensor3_*.hpp` (not the `_impl.hpp` files, the declarations and Doxygen comments in
+  the `.hpp` are enough), and likewise for `Tensor2`, `MultiVector` and `TensorTrain`; kernels used by several algorithms
+  often live in `internal` of another header (`t3_nrm` in `pitts_tensortrain_norm.hpp`, `t3_axpy` in
+  `pitts_tensortrain_axpby_normalized.hpp`, `t3_scale`/`normalize_contract1/2` in `pitts_tensortrain_normalize.hpp`,
+  `concatLeftRight`/`concatTopBottom` in `pitts_tensor2_concat.hpp`). The tables below list what each header provides.
+  Reuse is preferred over a private one-liner: no duplicated kernel, and the existing ones carry timers, OpenMP and
+  dimension checks. A boundary case (first/last dimension) is usually handled with a 1x1 identity instead of a special case.
 
 ## Core data structures
 
@@ -109,6 +118,8 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_from_dense_twosided.hpp` | Two-sided TSQR variant of the fast TT-SVD. |
 | `pitts_tensortrain_to_dense.hpp` | Expand a TT to a dense MultiVector / array. |
 | `pitts_tensortrain_gram_schmidt.hpp` | Modified/iterated Gram-Schmidt for TT vectors (used by TT-GMRES). |
+| `pitts_tensortrain_cross.hpp`, `_impl.hpp` | `applyElementwise`: y ~ f(x) entry-wise via TT-cross (ALS-cross with AMEn-style enrichment in the left-to-right sweeps, or DMRG-cross with `nMALS = 2`), options/info structs, algorithm description in the file header. The sweep driver (`_impl.hpp`) is templated on the functor and therefore always included (no explicit instantiation). |
+| `pitts_tensortrain_cross_helper.hpp`, `_impl.hpp` | Building blocks for TT-cross: nested index sets (decoding from unfoldings, expansion, random sets), partial contractions `L_{k-1} X_k` / `X_k R_{k+1}` as `SweepData` lambdas with the interface matrices as row/column selections (`interfaceLeft/Right`, boundary as `std::nullopt`), local block assembly (`combineCores`, `localBlockFromLeft/Right`), `applyToBlock`, `maxvolColumns`, local core updates in interpolation gauge (`updateCoreLeft/Right`: truncated SVD, optional enrichment, maxvol), `initialRightIndexSets` (maxvol sweep over an orthogonalized copy of the input). |
 | `pitts_tensortrain_laplace_operator.hpp` | Apply a simple Laplace stencil to a TT (test/bench helper). |
 | `pitts_tensortrain_debug.hpp` | Operator overloads (`+`, `-`, `*`) on TTs for tests, not for production use. |
 | `pitts_tensortrain_from_itensor.hpp`, `pitts_tensortrain_to_itensor.hpp` | Conversion from/to ITensor MPS (needs ITensor). |
@@ -137,6 +148,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_solve_mals_helper.hpp` | Building blocks for MALS: left/right contractions, local operator/RHS, AMEn residual enrichment. |
 | `pitts_tensortrain_solve_mals_debug.hpp` | Expensive consistency checks for MALS (only in debug/tests). |
 | `pitts_tensortrain_sweep_index.hpp` | `SweepIndex`: iterates over core positions for sweeps (ALS width 1, MALS width 2, ...). |
+| `pitts_tensortrain_sweep_data.hpp` | `SweepData`/`defineSweepData`: cache of per-dimension results computed incrementally from the left and right with invalidation (partial contractions in MALS and TT-cross). |
 | `pitts_ttn_local_gradient_contraction.hpp` | Special contraction for local gradients in tree tensor networks (used from Python). |
 
 ## Infrastructure / helpers
@@ -174,5 +186,5 @@ All call `PITTS::initialize`, take sizes from `argv`, loop `nIter` times and pri
 
 - **Dense kernels**: `gemm_bench`, `tsmm_bench`, `tsmm_inplace_bench`, `tsmm_single_bench` (MultiVector x small matrix), `trmm_bench`, `trsm_bench` (triangular mult/solve), `transpose_bench`, `multivector_copy_bench`, `multivector_axpy_bench`, `qr_bench`, `svd_bench` (Eigen/LAPACK QR/SVD on Tensor2), `normalize_qb_bench` (Tensor3 split), `tsqr_bench.cpp` (compiled four times as `tsqr_{double,single,complex_double,complex_single}_bench`), `tsqr_transform_block_calc_bench` (inner TSQR kernel variants), `tsqr_parallel.cpp` (experiment: thread synchronization scheme with `std::latch` for a parallel TSQR, dummy computations).
 - **TT-SVD**: `tt_from_dense_bench`, `tt_from_dense_classical_bench`, `tt_from_dense_twosided_bench`, `tt_from_dense_thickbounds_bench`, `tt_from_dense_thickbounds_single_bench`, `tt_from_dense_autofusing_bench`, `tt_from_dense_twosided_autofusing_bench`, `tt_from_dense_twosided_thickbounds_bench`; `unary_truncation_bench`, `binary_truncation_bench`, `binary_orthogonalization_bench` (TSQR-based truncation/orthogonalization building blocks).
-- **TT operations**: `axpby_bench`, `axpby_left_ortho_bench`, `axpby_right_ortho_bench`, `dot_bench`, `norm2_bench`, `normalize_bench`, `apply_op_bench`, `apply_op_dense_bench`, `cg_bench` (CG with Laplace operator).
+- **TT operations**: `axpby_bench`, `axpby_left_ortho_bench`, `axpby_right_ortho_bench`, `dot_bench`, `norm2_bench`, `normalize_bench`, `apply_op_bench`, `apply_op_dense_bench`, `cg_bench` (CG with Laplace operator), `tt_cross_bench` (TT-cross round trip: element-wise square of a random TT, then element-wise sqrt, timings per TT-cross and the real error of the result).
 - **Other**: `cdist2_bench`, `centroids_bench`, `kmeans_bench` (k-means on MultiVectors), `qubit_simulator_bench`, `ttn_local_gradient_bench`.

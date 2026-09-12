@@ -13,7 +13,7 @@
 
 using namespace PITTS;
 
-template std::vector<int> PITTS::internal::maxvol<float>(const ConstTensor2View<float>& A, float tol, int maxIter);
-template std::vector<int> PITTS::internal::maxvol<double>(const ConstTensor2View<double>& A, double tol, int maxIter);
-template std::vector<int> PITTS::internal::maxvol<std::complex<float>>(const ConstTensor2View<std::complex<float>>& A, std::complex<float> tol, int maxIter);
-template std::vector<int> PITTS::internal::maxvol<std::complex<double>>(const ConstTensor2View<std::complex<double>>& A, std::complex<double> tol, int maxIter);
+template std::vector<int> PITTS::internal::maxvol<float>(const ConstTensor2View<float>& A, float tol, int maxIter, Tensor2<float>* AAinv);
+template std::vector<int> PITTS::internal::maxvol<double>(const ConstTensor2View<double>& A, double tol, int maxIter, Tensor2<double>* AAinv);
+template std::vector<int> PITTS::internal::maxvol<std::complex<float>>(const ConstTensor2View<std::complex<float>>& A, std::complex<float> tol, int maxIter, Tensor2<std::complex<float>>* AAinv);
+template std::vector<int> PITTS::internal::maxvol<std::complex<double>>(const ConstTensor2View<std::complex<double>>& A, std::complex<double> tol, int maxIter, Tensor2<std::complex<double>>* AAinv);

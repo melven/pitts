@@ -30,17 +30,22 @@ namespace
     }
   }
 
+  // helper: the selected rows A(I,:)
+  template<typename T>
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> submatrix(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
+  {
+    const auto mapA = ConstEigenMap(A);
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Ahat(I.size(), mapA.cols());
+    for(int i = 0; i < I.size(); i++)
+      Ahat.row(i) = mapA.row(I[i]);
+    return Ahat;
+  }
+
   // helper: max |A * A(I,:)^-1| (the "dominance" measure of the selected submatrix)
   template<typename T>
   auto dominance(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto mapA = ConstEigenMap(A);
-    const int r = I.size();
-    mat Ahat(r, r);
-    for(int i = 0; i < r; i++)
-      Ahat.row(i) = mapA.row(I[i]);
-    const mat B = mapA * Ahat.inverse();
+    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> B = ConstEigenMap(A) * submatrix(A, I).inverse();
     return B.array().abs().maxCoeff();
   }
 
@@ -48,13 +53,7 @@ namespace
   template<typename T>
   auto volume(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto mapA = ConstEigenMap(A);
-    const int r = I.size();
-    mat Ahat(r, r);
-    for(int i = 0; i < r; i++)
-      Ahat.row(i) = mapA.row(I[i]);
-    return std::abs(Ahat.determinant());
+    return std::abs(submatrix(A, I).determinant());
   }
 }
 
@@ -106,6 +105,8 @@ TYPED_TEST(PITTS_Tensor2_maxvol, square_matrix_selects_all_rows)
 
   std::vector<int> I = PITTS::internal::maxvol(A);
   checkValidIndices(I, 4, 4);
+  // natural order, consistent with the returned coefficients (identity)
+  EXPECT_EQ((std::vector<int>{0, 1, 2, 3}), I);
 }
 
 TYPED_TEST(PITTS_Tensor2_maxvol, single_column_selects_max_abs_entry)
@@ -229,4 +230,39 @@ TYPED_TEST(PITTS_Tensor2_maxvol, max_iterations_limits_swaps)
   checkValidIndices(I, m, r);
   // and the volume is non-zero
   EXPECT_GT(volume(A, I), 0);
+}
+
+TYPED_TEST(PITTS_Tensor2_maxvol, returns_interpolation_coefficients)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const auto eps = 100*std::sqrt(std::numeric_limits<decltype(std::abs(Type()))>::epsilon());
+
+  const int m = 50, r = 4;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+
+  Tensor2 AAinv;
+  const std::vector<int> I = PITTS::internal::maxvol(A, Type(0.01), 100, &AAinv);
+  checkValidIndices(I, m, r);
+  ASSERT_EQ(m, AAinv.r1());
+  ASSERT_EQ(r, AAinv.r2());
+
+  // reference: A * A(I,:)^-1
+  const mat ref = ConstEigenMap(A) * submatrix(A, I).inverse();
+  EXPECT_NEAR(ref, ConstEigenMap(AAinv), eps);
+
+  // the selected rows form the identity
+  for(int j = 0; j < r; j++)
+    for(int k = 0; k < r; k++)
+      EXPECT_NEAR(Type(j == k ? 1 : 0), AAinv(I[j], k), eps);
+
+  // square case: identity without any swaps
+  Tensor2 S(r, r);
+  EigenMap(S).setRandom();
+  EigenMap(S) += 3 * mat::Identity(r, r);
+  const std::vector<int> Isq = PITTS::internal::maxvol(S, Type(0.01), 100, &AAinv);
+  checkValidIndices(Isq, r, r);
+  EXPECT_NEAR(mat::Identity(r, r), ConstEigenMap(AAinv), eps);
 }
