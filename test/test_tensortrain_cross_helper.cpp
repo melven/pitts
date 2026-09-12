@@ -422,6 +422,66 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, random_TT_random_index_set
   }
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, local_block_vs_direct_evaluation)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using PITTS::internal::tt_cross::localBlockFromLeft;
+  using PITTS::internal::tt_cross::localBlockFromRight;
+  constexpr auto eps = 1.e-4;
+
+  const std::vector<int> dims = {3, 4, 2, 5, 3};
+  const int nDim = dims.size();
+  TensorTrain TT(dims);
+  TT.setTTranks({2, 3, 2, 4});
+  randomize(TT);
+
+  std::mt19937 gen(11);
+  const std::vector<int> leftSizes = {2, 3, 2, 3};
+  const std::vector<int> rightSizes = {0, 3, 2, 3, 2};
+  const auto I = randomLeftIndexSets(dims, leftSizes, gen);
+  const auto J = randomRightIndexSets(dims, rightSizes, gen);
+
+  for(int nMALS: {1, 2})
+  {
+    auto Lx = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TT, I), contraction_loop_from_right<Type>(TT, J));
+
+    for(int k = 0; k + nMALS <= nDim; k++)
+    {
+      // left-to-right: the cached contraction of the first core of the block, interface from the right
+      Lx.update(k, k+nMALS);
+      PITTS::Tensor3<Type> B;
+      localBlockFromLeft<Type>(Lx.left()->get(), TT, k, nMALS, k+nMALS < nDim ? Lx.right() : std::nullopt, J, B);
+
+      const Eigen::MatrixXi Ik = expandLeft(I, k-1);
+      const Eigen::MatrixXi Jk = expandRight(J, k+nMALS, nDim);
+      ASSERT_EQ(Ik.rows(), B.r1());
+      ASSERT_EQ(Jk.rows(), B.r2());
+      ASSERT_EQ(nMALS == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
+
+      for(int a = 0; a < B.r1(); a++)
+        for(int b = 0; b < B.r2(); b++)
+          for(int j = 0; j < B.n(); j++)
+          {
+            // combine stores the modes of the block as j = i_k + i_{k+1}*n_k
+            Eigen::RowVectorXi multiIndex(nDim);
+            multiIndex << Ik.row(a), j % dims[k], Jk.row(b);
+            if( nMALS == 2 )
+              multiIndex << Ik.row(a), j % dims[k], j / dims[k], Jk.row(b);
+            EXPECT_NEAR(evaluate(TT, multiIndex), B(a, j, b), eps);
+          }
+
+      // right-to-left: the cached contraction of the last core of the block, interface from the left
+      Lx.invalidate(0, nDim);
+      Lx.update(k-1, k+nMALS-1);
+      PITTS::Tensor3<Type> Bright;
+      localBlockFromRight<Type>(k > 0 ? Lx.left() : std::nullopt, I, TT, k, nMALS, Lx.right()->get(), Bright);
+      EXPECT_NEAR(ConstEigenMap(unfold_left(B)), ConstEigenMap(unfold_left(Bright)), eps);
+      Lx.invalidate(0, nDim);
+    }
+  }
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_index_set_change)
 {
   using Type = typename TestFixture::Type;

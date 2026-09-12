@@ -140,10 +140,7 @@ namespace PITTS
       Lx.update(k, kRight+1);
       const Tensor3<T>& LX = Lx.left()->get();
       Tensor3<T> B;
-      if( nMALS == 2 )
-        contractRightInterface<T>(combine(LX, TTx.subTensor(k+1)), Lx.right(), J, kRight+1, B);
-      else
-        contractRightInterface<T>(LX, Lx.right(), J, kRight+1, B);
+      localBlockFromLeft<T>(LX, TTx, k, nMALS, Lx.right(), J, B);
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 
@@ -262,10 +259,7 @@ namespace PITTS
       Lx.update(kLeft-1, k);
       const Tensor3<T>& XR = Lx.right()->get();
       Tensor3<T> B;
-      if( nMALS == 2 )
-        contractLeftInterface<T>(Lx.left(), I, kLeft-1, combine(TTx.subTensor(k-1), XR), B);
-      else
-        contractLeftInterface<T>(Lx.left(), I, kLeft-1, XR, B);
+      localBlockFromRight<T>(Lx.left(), I, TTx, kLeft, nMALS, XR, B);
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 

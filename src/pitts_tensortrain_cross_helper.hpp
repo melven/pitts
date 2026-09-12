@@ -51,6 +51,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3.hpp"
+#include "pitts_tensor3_combine.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"
@@ -342,6 +343,58 @@ namespace PITTS
           // XR_iDim = X_iDim R_{iDim+1} with R_{iDim+1} selected from the previous contraction
           contractRightInterface<T>(TT.subTensor(iDim), prev, J, iDim+1, XR);
         };
+      }
+
+
+      //! Local block of the cross for a left-to-right step: x(I_{iDim-1}, S_iDim x ... x S_{iDim+nMALS-1}, J_{iDim+nMALS})
+      //!
+      //! Counterpart of calculate_local_rhs in solveMALS: it assembles the cores of the local problem from the
+      //! cached partial contractions of the sweep. The core at the side the sweep comes from is taken from the
+      //! cache (LX = L_{iDim-1} X_iDim), the remaining cores of the block from TTx, and the interface of the
+      //! other side from the neighboring cached contraction (nullopt at the boundary).
+      //!
+      //! @param LX      cached contraction LX_iDim (SweepData::left() after update(iDim, ...))
+      //! @param TTx     tensor train, cores iDim+1 .. iDim+nMALS-1 are combined into the block
+      //! @param iDim    first dimension of the block
+      //! @param nMALS   number of dimensions of the block
+      //! @param XR      cached contraction XR_{iDim+nMALS} (SweepData::right()), nullopt at the right boundary
+      //! @param J       right index sets
+      //! @param B       block (|I_{iDim-1}| x n_iDim...n_{iDim+nMALS-1} x |J_{iDim+nMALS}|, modes combined as in combine)
+      //!
+      template<typename T>
+      void localBlockFromLeft(const Tensor3<T>& LX, const TensorTrain<T>& TTx, int iDim, int nMALS,
+                              optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, Tensor3<T>& B)
+      {
+        if( nMALS == 1 )
+          return contractRightInterface<T>(LX, XR, J, iDim+1, B);
+
+        Tensor3<T> block = combine(LX, TTx.subTensor(iDim+1));
+        for(int i = iDim+2; i < iDim+nMALS; i++)
+          block = combine(block, TTx.subTensor(i));
+        contractRightInterface<T>(block, XR, J, iDim+nMALS, B);
+      }
+
+      //! Local block of the cross for a right-to-left step (mirror image of localBlockFromLeft)
+      //!
+      //! @param LX      cached contraction LX_{iDim-1} (SweepData::left()), nullopt at the left boundary
+      //! @param I       left index sets
+      //! @param TTx     tensor train, cores iDim .. iDim+nMALS-2 are combined into the block
+      //! @param iDim    first dimension of the block
+      //! @param nMALS   number of dimensions of the block
+      //! @param XR      cached contraction XR_{iDim+nMALS-1} (SweepData::right() after update(..., iDim+nMALS-1))
+      //! @param B       block, see localBlockFromLeft
+      //!
+      template<typename T>
+      void localBlockFromRight(optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& I,
+                               const TensorTrain<T>& TTx, int iDim, int nMALS, const Tensor3<T>& XR, Tensor3<T>& B)
+      {
+        if( nMALS == 1 )
+          return contractLeftInterface<T>(LX, I, iDim-1, XR, B);
+
+        Tensor3<T> block = combine(TTx.subTensor(iDim+nMALS-2), XR);
+        for(int i = iDim+nMALS-3; i >= iDim; i--)
+          block = combine(TTx.subTensor(i), block);
+        contractLeftInterface<T>(LX, I, iDim-1, block, B);
       }
 
 
