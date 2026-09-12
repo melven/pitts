@@ -735,8 +735,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment)
   const auto eps = blockTolerance<Type>();
 
   const auto B = randomBlock<Type>(2, 4, 3);
-  PITTS::Tensor2<Type> E(8, 2);
-  EigenMap(E).setRandom();
+  const auto E = randomBlock<Type>(2, 4, 2);   // the same block shape, 2 candidate directions
 
   const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
   EXPECT_EQ(3, upd.truncatedRank);
@@ -746,7 +745,8 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment)
 
   // the columns of the core span the enrichment directions: E - core * core^+ E = 0
   const auto mapCore = ConstEigenMap(unfold_left(upd.core));
-  const mat residual = ConstEigenMap(E) - mapCore * mapCore.colPivHouseholderQr().solve(ConstEigenMap(E));
+  const auto mapE = ConstEigenMap(unfold_left(E));
+  const mat residual = mapE - mapCore * mapCore.colPivHouseholderQr().solve(mapE);
   EXPECT_NEAR(mat::Zero(8, 2), residual, eps);
 }
 
@@ -758,8 +758,8 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
 
   const auto B = randomBlock<Type>(2, 4, 3);
   // directions inside the column space of B: nothing to add
-  PITTS::Tensor2<Type> E(8, 2);
-  EigenMap(E) = ConstEigenMap(unfold_left(B)) * mat::Random(3, 2);
+  PITTS::Tensor3<Type> E(2, 4, 2);
+  EigenMap(unfold_left(E)) = ConstEigenMap(unfold_left(B)) * mat::Random(3, 2);
 
   const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
   EXPECT_EQ(3, upd.truncatedRank);
@@ -774,8 +774,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
 
   // the left unfolding has only r1*n = 4 rows: at most 4 - rank directions can be added
   const auto B = randomBlock<Type>(2, 2, 3);
-  PITTS::Tensor2<Type> E(4, 2);
-  EigenMap(E).setRandom();
+  const auto E = randomBlock<Type>(2, 2, 2);
   const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(4, upd.core.r2());
@@ -783,8 +782,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
 
   // full rank already: nothing can be added (the projected remainder is only round-off)
   const auto Bfull = randomBlock<Type>(1, 3, 5);
-  PITTS::Tensor2<Type> Efull(3, 2);
-  EigenMap(Efull).setRandom();
+  const auto Efull = randomBlock<Type>(1, 3, 2);
   const CoreUpdate<Type> updFull = updateCoreLeft<Type>(Bfull, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(Efull));
   EXPECT_EQ(3, updFull.truncatedRank);
   EXPECT_EQ(3, updFull.core.r2());

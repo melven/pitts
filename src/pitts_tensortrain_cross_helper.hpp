@@ -483,12 +483,11 @@ namespace PITTS
       //! Given the evaluated block B (r1 x n x r2) of f(x) on the cross (I_{k-1}, S_k, J_{k+1}):
       //!  1. truncated SVD of the left unfolding of B: B ~ U * SVt with U (r1 n x r'), relative tolerance
       //!     rankTolerance on the singular values and maximal rank maxRank (internal::normalize_svd);
-      //!  2. optional enrichment: the columns of E (r1 n x rho, e.g. error directions from the AMEn-style
-      //!     residual) are orthogonalized against U and appended, U' = [U, Q_E] (r1 n x r'+rho'), and SVt is
-      //!     padded with zero rows (rho' <= rho: directions in the span of U and those beyond the dimension of
-      //!     its orthogonal complement are dropped, see newDirections). This is the same sequence as in the
-      //!     enrichSubspace lambda of solveMALS (project out, normalize_qb of the remainder, concatLeftRight /
-      //!     concatTopBottom with zero padding) and reuses those building blocks;
+      //!  2. optional enrichment: the block E (r1 x n x rho, e.g. error directions from the AMEn-style
+      //!     residual) is orthogonalized against U and appended, U' = [U, Q_E] (r1 n x r'+rho'), and SVt is
+      //!     padded with zero rows (rho' <= rho: directions in the span of U and those beyond the dimension
+      //!     of its orthogonal complement are dropped, see enrichFactors). This is the same sequence as in
+      //!     the enrichSubspace lambda of solveMALS and reuses the same contraction kernels;
       //!  3. maxvol(U', maxvolTolerance) selects the rows I_k;
       //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}) (returned by maxvol), carry = U'(rows,:) * SVt'.
       //!
@@ -503,13 +502,13 @@ namespace PITTS
       //! @param rankTolerance      relative truncation tolerance for the singular values of B
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
-      //! @param enrichment         optional directions to append (r1 n x rho), nullopt for none
+      //! @param enrichment         optional directions to append (r1 x n x rho), nullopt for none
       //!                           (pass std::cref(E) and give T explicitly, updateCoreLeft<T>(...), as for the solveMALS helpers)
       //! @return                   new core, carry, selected rows and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   optional_cref<Tensor2<T>> enrichment = std::nullopt);
+                                   optional_cref<Tensor3<T>> enrichment = std::nullopt);
 
       //! maxvol column selection of a wide matrix (r x m with m >= r)
       //!

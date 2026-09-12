@@ -155,8 +155,8 @@ namespace PITTS
 
       // enrichment: dominant directions of the error f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1}),
       // i.e. of f(LX_k R^z_{k+1}) - Y_k R^{yz}_{k+1}
-      Tensor2<T> E;
-      optional_cref<Tensor2<T>> enrichment;
+      Tensor3<T> E;
+      optional_cref<Tensor3<T>> enrichment;
       if( enrich )
       {
         Lxz.update(k, k+1);
@@ -169,8 +169,9 @@ namespace PITTS
         contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         change = std::max(change, internal::t3_nrm(residual) / normB);
-        // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors
-        E = internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first;
+        // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors,
+        // as a core of the same shape as the block (folding the unfolding back is a move)
+        E = fold_left(internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first, dims[k]);
         enrichment = std::cref(E);
       }
 

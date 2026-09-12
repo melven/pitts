@@ -25,6 +25,7 @@
 #include "pitts_tensor2_concat.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor2_maxvol.hpp"
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain_normalize.hpp"
@@ -41,60 +42,63 @@ namespace PITTS
     {
       //! enrich the two factors of a truncated SVD by new directions of E, leaving their product unchanged
       //!
-      //! Q (m x r) has orthonormal columns and B (r x l) is the remainder, so Q*B is the truncated block, and
-      //! the columns of E (m x rho) are candidate directions: the part of E outside the span of Q is
-      //! orthonormalized and appended to Q, and B is padded with rho' zero rows.
+      //! The orthogonal factor Q is the core-shaped form (r1 x n x r) of a left-orthogonal matrix, B (r x l)
+      //! the remainder, so unfold_left(Q)*B is the truncated block, and E (r1 x n x rho) holds candidate
+      //! directions: the part of E outside the span of Q is orthonormalized and appended to Q, and B is
+      //! padded with rho' zero rows.
       //! Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
-      //! complement of Q is added (rho' <= min(rho, m-r)); with a rank-deficient remainder the QR below would
-      //! otherwise return noise directions, and the maxvol that follows fails because its matrix is not tall.
+      //! complement of Q is added (rho' <= min(rho, r1 n - r)); with a rank-deficient remainder the QR below
+      //! would otherwise return noise directions, and the maxvol that follows fails because its matrix is
+      //! not tall.
       //!
       //! Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
-      //! remainder with an absolute tolerance, concatenate with zero padding. Only needed for the
-      //! left-to-right sweeps, which are the only ones that enrich (see pitts_tensortrain_cross.hpp).
+      //! remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
+      //! for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
       //!
-      //! @param Q   orthogonal factor, extended in place
+      //! @param Q   orthogonal factor as a core, extended in place
       //! @param B   remainder, padded with zero rows in place
-      //! @param E   candidate directions
+      //! @param E   candidate directions as a core
       //!
       template<typename T>
-      void enrichFactors(Tensor2<T>& Q, Tensor2<T>& B, const Tensor2<T>& E)
+      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, const Tensor3<T>& E)
       {
-        const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
         using RealType = decltype(std::abs(T()));
 
-        if( E.r1() != Q.r1() )
-          throw std::invalid_argument("TT-cross enrichment: wrong number of rows!");
+        if( Q.r1() != E.r1() || Q.n() != E.n() )
+          throw std::invalid_argument("TT-cross enrichment: dimension mismatch!");
 
-        const int rho = std::min<int>(E.r2(), Q.r1() - Q.r2());
+        const int rho = std::min<int>(E.r2(), Q.r1()*Q.n() - Q.r2());
         if( rho <= 0 )
           return;
 
-        // project out the known directions: Ep = E - Q (Q^H E), as two matrix products without Eigen
-        // temporaries (one pass is enough: Q is orthonormal up to round-off, and small remaining
-        // components are removed by the tolerance below)
-        Tensor2<T> QtE(Q.r2(), E.r2());
-        EigenMap(QtE).noalias() = ConstEigenMap(Q).adjoint() * ConstEigenMap(E);
-        Tensor2<T> Ep;
+        // project out the known directions: Ep = E - Q (Q^T E) (one pass is enough: Q is orthonormal up to
+        // round-off, and small remaining components are removed by the tolerance below)
+        Tensor2<T> QtE;
+        reverse_dot_contract2(Q, E, QtE);       // QtE = Q(*,*,:) * E(*,*,:)
+        Tensor3<T> QQtE;
+        normalize_contract2(Q, QtE, QQtE);      // QQtE = Q(:,:,*) * QtE(*,:)
+        Tensor3<T> Ep;
         copy(E, Ep);
-        EigenMap(Ep).noalias() -= ConstEigenMap(Q) * ConstEigenMap(QtE);
+        t3_axpy(T(-1), QQtE, Ep);
 
         // Absolute tolerance relative to the size of E: a direction whose component outside span(Q) is below
         // sqrt(eps) * ||E|| is dropped. It would not enlarge the space in any useful way (the block SVD
         // truncates at rankTolerance >= sqrt(eps) by default anyway), and the projection remainder of the
         // factors from normalize_svd/normalize_qb is well above eps * ||E|| (observed ~1e-12 for double).
-        const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * ConstEigenMap(E).norm();
-        if( ConstEigenMap(Ep).norm() <= tolerance )
+        const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * t3_nrm(E);
+        if( t3_nrm(Ep) <= tolerance )
           return;
 
-        const auto [QE, RE] = normalize_qb(Ep, true, T(tolerance), rho, true);
+        const auto [QE, RE] = normalize_qb(unfold_left(Ep), true, T(tolerance), rho, true);
         if( QE.r2() == 0 )
           return;
 
-        Tensor2<T> Qext(Q.r1(), Q.r2() + QE.r2());
-        concatLeftRight<T>(Q, QE, Qext);
+        Tensor3<T> Qext(Q.r1(), Q.n(), Q.r2() + QE.r2());
+        concatLeftRight<T>(unfold_left(Q), ConstTensor2View<T>(QE), unfold_left(Qext));
         Tensor2<T> Bext(B.r1() + QE.r2(), B.r2());
-        concatTopBottom<T>(B, std::nullopt, Bext);
+        concatTopBottom<T>(ConstTensor2View<T>(B), std::nullopt, Bext);
         Q = std::move(Qext);
         B = std::move(Bext);
       }
@@ -125,7 +129,7 @@ namespace PITTS
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   optional_cref<Tensor2<T>> enrichment)
+                                   optional_cref<Tensor3<T>> enrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -143,9 +147,14 @@ namespace PITTS
 
 
         // 2. enrichment: append new orthonormal directions to U and zero rows to SVt
-        //    (this does not change U*SVt, it only enlarges the space the next core can use)
+        //    (this does not change U*SVt, it only enlarges the space the next core can use;
+        //     the projection works on the core-shaped factors, folding and unfolding are moves)
         if( enrichment )
-          enrichFactors(U, SVt, enrichment->get());
+        {
+          Tensor3<T> U3 = fold_left(std::move(U), n);
+          enrichFactors(U3, SVt, enrichment->get());
+          U = unfold_left(std::move(U3));
+        }
         const int r = U.r2();
 
         // 3.+4. maxvol selects the rows I_k and returns the core in interpolation gauge, U * U(rows,:)^{-1}
