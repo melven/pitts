@@ -71,7 +71,7 @@ namespace PITTS
     const int nMALS = std::min(options.nMALS, nDim);
     // enrichment only for the 1-site variant (the 2-site variant adapts the ranks through the SVD)
     const bool enrich = nMALS == 1 && nDim > 1 && options.errorRank > 0 && options.enrichmentRank > 0;
-    const T localTolerance = options.rankTolerance / std::sqrt(T(std::max(nDim-1, 1)));
+    const T localTolerance = options.rankTolerance / (2*std::sqrt(T(std::max(nDim-1, 1))));     // factor 2 heuristic, like tt_amen in ttpy
     const T maxvolTolerance = options.maxvolTolerance;
     const int maxRank = options.maxRank;
 
