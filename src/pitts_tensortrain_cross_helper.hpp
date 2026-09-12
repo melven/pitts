@@ -346,6 +346,20 @@ namespace PITTS
       }
 
 
+      //! the cores iDim..iDim+nMALS-1 of a tensor train combined into a single block (modes combined as in combine)
+      //!
+      //! For y in the interpolation gauge this is y on its own cross (both interfaces are the identity there).
+      //!
+      template<typename T>
+      Tensor3<T> combineCores(const TensorTrain<T>& TT, int iDim, int nMALS)
+      {
+        Tensor3<T> block;
+        copy(TT.subTensor(iDim), block);
+        for(int i = iDim+1; i < iDim+nMALS; i++)
+          block = combine(block, TT.subTensor(i));
+        return block;
+      }
+
       //! Local block of the cross for a left-to-right step: x(I_{iDim-1}, S_iDim x ... x S_{iDim+nMALS-1}, J_{iDim+nMALS})
       //!
       //! Counterpart of calculate_local_rhs in solveMALS: it assembles the cores of the local problem from the
@@ -368,10 +382,7 @@ namespace PITTS
         if( nMALS == 1 )
           return contractRightInterface<T>(LX, XR, J, iDim+1, B);
 
-        Tensor3<T> block = combine(LX, TTx.subTensor(iDim+1));
-        for(int i = iDim+2; i < iDim+nMALS; i++)
-          block = combine(block, TTx.subTensor(i));
-        contractRightInterface<T>(block, XR, J, iDim+nMALS, B);
+        contractRightInterface<T>(combine(LX, combineCores(TTx, iDim+1, nMALS-1)), XR, J, iDim+nMALS, B);
       }
 
       //! Local block of the cross for a right-to-left step (mirror image of localBlockFromLeft)
@@ -391,10 +402,7 @@ namespace PITTS
         if( nMALS == 1 )
           return contractLeftInterface<T>(LX, I, iDim-1, XR, B);
 
-        Tensor3<T> block = combine(TTx.subTensor(iDim+nMALS-2), XR);
-        for(int i = iDim+nMALS-3; i >= iDim; i--)
-          block = combine(TTx.subTensor(i), block);
-        contractLeftInterface<T>(LX, I, iDim-1, block, B);
+        contractLeftInterface<T>(LX, I, iDim-1, combine(combineCores(TTx, iDim, nMALS-1), XR), B);
       }
 
 

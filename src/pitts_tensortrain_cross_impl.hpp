@@ -147,12 +147,7 @@ namespace PITTS
       // convergence measure: the current y on the same cross is exactly the current core(s)
       RealType change = 0;
       if( yValid )
-      {
-        if( nMALS == 2 )
-          change = relativeDifference(B, combine(TTy.subTensor(k), TTy.subTensor(k+1)));
-        else
-          change = relativeDifference(B, TTy.subTensor(k));
-      }
+        change = relativeDifference(B, combineCores(TTy, k, nMALS));
 
       // last core of the 1-site sweep: the block is the core, nothing to select
       if( nMALS == 1 && k == nDim-1 )
@@ -263,11 +258,7 @@ namespace PITTS
       info.nEvaluations += applyToBlock(f, B);
       const RealType normB = internal::t3_nrm(B);
 
-      RealType change = 0;
-      if( nMALS == 2 )
-        change = relativeDifference(B, combine(TTy.subTensor(k-1), TTy.subTensor(k)));
-      else
-        change = relativeDifference(B, TTy.subTensor(k));
+      RealType change = relativeDifference(B, combineCores(TTy, kLeft, nMALS));
 
       // first core of the 1-site sweep: the block is the core
       if( nMALS == 1 && k == 0 )
