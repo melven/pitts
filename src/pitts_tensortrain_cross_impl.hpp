@@ -106,14 +106,6 @@ namespace PITTS
     bool yValid = false;
     std::vector<Tensor3<T>> firstCores(nDim);
 
-    // the dominant (at most enrichmentRank) column directions of a residual block; only the left-to-right
-    // sweep enriches, so the mirrored row variant of updateCoreRight is not needed here
-    const auto dominantDirections = [&](Tensor3<T>&& residual) -> Tensor2<T>
-    {
-      auto [U, SVt] = internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank);
-      return std::move(U);
-    };
-
     // Convergence measure of a step: the relative change of y on its own cross (block vs. current core)
     // and, with enrichment, the relative error f(x) - y on the error crosses, both scaled by the norm of
     // the block. The change alone is blind when the crosses of y are too small but y is exact on them
@@ -173,7 +165,8 @@ namespace PITTS
           internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, internal::t3_nrm(residual) / normB);
         }
-        E = dominantDirections(std::move(residual));
+        // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors
+        E = internal::normalize_svd(unfold_left(std::move(residual)), true, T(0), options.enrichmentRank).first;
         enrichment = std::cref(E);
       }
 
