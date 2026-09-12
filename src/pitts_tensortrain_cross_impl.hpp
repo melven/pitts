@@ -20,16 +20,15 @@
 
 // includes
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <iostream>
-#include <numeric>
-#include <random>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 #include "pitts_tensortrain_cross.hpp"
 #include "pitts_tensortrain_cross_helper.hpp"
+#include "pitts_tensortrain_axpby_normalized.hpp"
+#include "pitts_tensortrain_norm.hpp"
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
@@ -38,7 +37,6 @@
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
-#include "pitts_random.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -50,68 +48,12 @@ namespace PITTS
     //! dedicated helper functionality for TT-cross algorithms
     namespace tt_cross
     {
-      //! random right-nested index sets J[k] (k = 1..d-1) with at most `size` elements each, drawn without replacement
-      inline std::vector<NestedIndices> randomRightIndexSets(const std::vector<int>& dims, int size)
-      {
-        const int nDim = dims.size();
-        std::vector<NestedIndices> J(nDim);
-        for(int k = nDim-1; k >= 1; k--)
-        {
-          const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
-          // all (idx, link) candidates in a shuffled order, take the first ones
-          std::vector<int> candidates(dims[k]*childSize);
-          std::iota(candidates.begin(), candidates.end(), 0);
-          std::shuffle(candidates.begin(), candidates.end(), randomGenerator);
-          candidates.resize(std::min<int>(size, candidates.size()));
-          J[k] = rightIndicesFromColumns(candidates, dims[k]);
-        }
-        return J;
-      }
-
-      //! LX = L * X (all mode indices) or X itself at the left boundary
+      //! 1x1 identity: the boundary interfaces L_{-1} and R_d (SweepData returns nullopt there), so that the
+      //! block contractions need no special case for the first and last dimension
       template<typename T>
-      void contractLeft(optional_cref<Tensor2<T>> L, const Tensor3<T>& X, Tensor3<T>& LX)
+      const Tensor2<T>& identityOr(optional_cref<Tensor2<T>> M, const Tensor2<T>& one)
       {
-        if( L )
-          normalize_contract1(L->get(), X, LX);
-        else
-          copy(X, LX);
-      }
-
-      //! XR = X * R (all mode indices) or X itself at the right boundary
-      template<typename T>
-      void contractRight(const Tensor3<T>& X, optional_cref<Tensor2<T>> R, Tensor3<T>& XR)
-      {
-        if( R )
-          normalize_contract2(X, R->get(), XR);
-        else
-          copy(X, XR);
-      }
-
-      //! Frobenius norm of a block
-      template<typename T>
-      auto blockNorm(const Tensor3<T>& B)
-      {
-        return ConstEigenMap(unfold_left(B)).norm();
-      }
-
-      //! B -= A for blocks of equal shape
-      template<typename T>
-      void subtractBlock(const Tensor3<T>& A, Tensor3<T>& B)
-      {
-        assert(A.r1() == B.r1() && A.n() == B.n() && A.r2() == B.r2());
-        EigenMap(unfold_left(B)) -= ConstEigenMap(unfold_left(A));
-      }
-
-      //! view the 2-core block (r1 x n1*n2 x r2) as (r1 x n1 x n2*r2) (leftOrthog) or (r1*n1 x n2 x r2), same memory layout
-      template<typename T>
-      void reshapeSupercore(Tensor3<T>& B, int n1, int n2, bool leftOrthog)
-      {
-        assert(B.n() == n1*n2);
-        if( leftOrthog )
-          B.resize(B.r1(), n1, n2*B.r2(), false, true);
-        else
-          B.resize(B.r1()*n1, n2, B.r2(), false, true);
+        return M ? M->get() : one;
       }
     }
   }
@@ -153,6 +95,10 @@ namespace PITTS
     const int maxRank = options.maxRank;
 
     TTCrossInfo<T> info;
+
+    // 1x1 identity for the boundary interfaces L_{-1} and R_d (see identityOr)
+    Tensor2<T> one(1, 1);
+    one(0, 0) = T(1);
 
     // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused); interfaces of x on them
     std::vector<NestedIndices> I(nDim);
@@ -199,7 +145,7 @@ namespace PITTS
     // bond); the residual on the (different) error crosses detects this and prevents an early stop.
     const auto relativeNorm = [](const Tensor3<T>& R, RealType normB) -> RealType
     {
-      const RealType nrm = blockNorm(R);
+      const RealType nrm = internal::t3_nrm(R);
       return normB > 0 ? nrm / normB : nrm;
     };
 
@@ -213,16 +159,16 @@ namespace PITTS
 
       // block B = f( x(I_{k-1}, S_k [x S_{k+1}], J_{kRight+1}) ); LX = L_{k-1} X_k is reused for the enrichment
       Tensor3<T> LX, B;
-      contractLeft<T>(Lx.left(), TTx.subTensor(k), LX);
+      internal::normalize_contract1(identityOr<T>(Lx.left(), one), TTx.subTensor(k), LX);
       if( nMALS == 2 )
       {
         const Tensor3<T> LXX = combine(LX, TTx.subTensor(k+1));
-        contractRight<T>(LXX, Lx.right(), B);
+        internal::normalize_contract2(LXX, identityOr<T>(Lx.right(), one), B);
       }
       else
-        contractRight<T>(LX, Lx.right(), B);
+        internal::normalize_contract2(LX, identityOr<T>(Lx.right(), one), B);
       info.nEvaluations += applyToBlock(f, B);
-      const RealType normB = blockNorm(B);
+      const RealType normB = internal::t3_nrm(B);
 
       // convergence measure: the current y on the same cross is exactly the current core(s)
       RealType change = 0;
@@ -251,15 +197,15 @@ namespace PITTS
       {
         Lxz.update(k-1, k+1);
         Tensor3<T> residual;
-        contractRight<T>(LX, Lxz.right(), residual);
+        internal::normalize_contract2(LX, identityOr<T>(Lxz.right(), one), residual);
         info.nEvaluations += applyToBlock(f, residual);
         if( yValid )
         {
           // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
           Lyz.update(k-1, k+1);
           Tensor3<T> yOnCross;
-          contractRight<T>(TTy.subTensor(k), Lyz.right(), yOnCross);
-          subtractBlock(yOnCross, residual);
+          internal::normalize_contract2(TTy.subTensor(k), identityOr<T>(Lyz.right(), one), yOnCross);
+          internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
         E = dominantDirections(std::move(residual), true);
@@ -267,8 +213,10 @@ namespace PITTS
       }
 
       // local update: truncated SVD, enrichment, maxvol, interpolation gauge
+      // (2-site: view the block r1 x n_k n_{k+1} x r2 as r1 x n_k x n_{k+1} r2, same memory layout, so that
+      //  the left unfolding of the update splits off core k)
       if( nMALS == 2 )
-        reshapeSupercore(B, dims[k], dims[k+1], true);
+        B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
       CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, enrichment);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
@@ -307,16 +255,16 @@ namespace PITTS
         Lyz.invalidate(k, 2);
         Lxz.update(k-1, k+1);
         Tensor3<T> LXz, residual;
-        contractLeft<T>(Lxz.left(), TTx.subTensor(k), LXz);
-        contractRight<T>(LXz, Lxz.right(), residual);
+        internal::normalize_contract1(identityOr<T>(Lxz.left(), one), TTx.subTensor(k), LXz);
+        internal::normalize_contract2(LXz, identityOr<T>(Lxz.right(), one), residual);
         info.nEvaluations += applyToBlock(f, residual);
         if( yValid )
         {
           Lyz.update(k-1, k+1);
           Tensor3<T> LYz, yOnCross;
-          contractLeft<T>(Lyz.left(), TTy.subTensor(k), LYz);
-          contractRight<T>(LYz, Lyz.right(), yOnCross);
-          subtractBlock(yOnCross, residual);
+          internal::normalize_contract1(identityOr<T>(Lyz.left(), one), TTy.subTensor(k), LYz);
+          internal::normalize_contract2(LYz, identityOr<T>(Lyz.right(), one), yOnCross);
+          internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
         const int rPrevZ = residual.r1();
@@ -338,16 +286,16 @@ namespace PITTS
 
       // block B = f( x(I_{kLeft-1}, [S_{k-1} x] S_k, J_{k+1}) ); XR = X_k R_{k+1} is reused for the enrichment
       Tensor3<T> XR, B;
-      contractRight<T>(TTx.subTensor(k), Lx.right(), XR);
+      internal::normalize_contract2(TTx.subTensor(k), identityOr<T>(Lx.right(), one), XR);
       if( nMALS == 2 )
       {
         const Tensor3<T> XXR = combine(TTx.subTensor(k-1), XR);
-        contractLeft<T>(Lx.left(), XXR, B);
+        internal::normalize_contract1(identityOr<T>(Lx.left(), one), XXR, B);
       }
       else
-        contractLeft<T>(Lx.left(), XR, B);
+        internal::normalize_contract1(identityOr<T>(Lx.left(), one), XR, B);
       info.nEvaluations += applyToBlock(f, B);
-      const RealType normB = blockNorm(B);
+      const RealType normB = internal::t3_nrm(B);
 
       RealType change = 0;
       if( nMALS == 2 )
@@ -366,8 +314,9 @@ namespace PITTS
       // sweep the ranks of y are the truncated ranks (not rank + enrichmentRank as in amen_cross, which
       // leaves the final truncation to the caller). Rank growth still happens: the enlarged left sets
       // I_{k-1} of the preceding left-to-right sweep provide the additional rows of the block here.
+      // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
       if( nMALS == 2 )
-        reshapeSupercore(B, dims[k-1], dims[k], false);
+        B = fold_left(unfold_left(std::move(B)), dims[k]);
       CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRank, maxvolTolerance);
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
       Lx.invalidate(k);
@@ -386,14 +335,14 @@ namespace PITTS
         Lyz.invalidate(k-1, 2);
         Lxz.update(k-1, k+1);
         Tensor3<T> XRz, residual;
-        contractRight<T>(TTx.subTensor(k), Lxz.right(), XRz);
-        contractLeft<T>(Lxz.left(), XRz, residual);
+        internal::normalize_contract2(TTx.subTensor(k), identityOr<T>(Lxz.right(), one), XRz);
+        internal::normalize_contract1(identityOr<T>(Lxz.left(), one), XRz, residual);
         info.nEvaluations += applyToBlock(f, residual);
         Lyz.update(k-1, k+1);
         Tensor3<T> YRz, yOnCross;
-        contractRight<T>(TTy.subTensor(k), Lyz.right(), YRz);
-        contractLeft<T>(Lyz.left(), YRz, yOnCross);
-        subtractBlock(yOnCross, residual);
+        internal::normalize_contract2(TTy.subTensor(k), identityOr<T>(Lyz.right(), one), YRz);
+        internal::normalize_contract1(identityOr<T>(Lyz.left(), one), YRz, yOnCross);
+        internal::t3_axpy(T(-1), yOnCross, residual);
         change = std::max(change, relativeNorm(residual, normB));
         const CoreUpdate<T> updz = updateCoreRight<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Jz[k] = rightIndicesFromColumns(updz.selected, dims[k]);
