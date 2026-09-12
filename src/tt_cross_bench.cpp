@@ -12,6 +12,7 @@
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_cross.hpp"
 #include "pitts_tensortrain_norm.hpp"
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <iostream>
@@ -86,6 +87,9 @@ int main(int argc, char* argv[])
   options.maxRank = maxRank;
   options.rankTolerance = tolerance;
   options.nSweeps = nSweeps;
+  // the error of the low-rank approximation has at most the rank of the input, so enrich by r directions
+  options.enrichmentRank = r;
+  options.errorRank = std::max(options.errorRank, r);
   options.convergenceTolerance = tolerance;
   options.verbose = true;
 
