@@ -736,8 +736,10 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment)
 
   const auto B = randomBlock<Type>(2, 4, 3);
   const auto E = randomBlock<Type>(2, 4, 2);   // the same block shape, 2 candidate directions
+  PITTS::Tensor3<Type> Econsumed;              // updateCoreLeft consumes the directions
+  copy(E, Econsumed);
 
-  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::move(Econsumed));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(5, upd.core.r2());
   // the enrichment does not change the represented block (zero rows in the carry)
@@ -761,7 +763,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
   PITTS::Tensor3<Type> E(2, 4, 2);
   EigenMap(unfold_left(E)) = ConstEigenMap(unfold_left(B)) * mat::Random(3, 2);
 
-  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::move(E));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(3, upd.core.r2());
   checkLeftUpdate(B, upd, maxvolTol, true);
@@ -774,16 +776,14 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
 
   // the left unfolding has only r1*n = 4 rows: at most 4 - rank directions can be added
   const auto B = randomBlock<Type>(2, 2, 3);
-  const auto E = randomBlock<Type>(2, 2, 2);
-  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(E));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(2, 2, 2));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(4, upd.core.r2());
   checkLeftUpdate(B, upd, maxvolTol, true);
 
   // full rank already: nothing can be added (the projected remainder is only round-off)
   const auto Bfull = randomBlock<Type>(1, 3, 5);
-  const auto Efull = randomBlock<Type>(1, 3, 2);
-  const CoreUpdate<Type> updFull = updateCoreLeft<Type>(Bfull, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::cref(Efull));
+  const CoreUpdate<Type> updFull = updateCoreLeft<Type>(Bfull, Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(1, 3, 2));
   EXPECT_EQ(3, updFull.truncatedRank);
   EXPECT_EQ(3, updFull.core.r2());
   checkLeftUpdate(Bfull, updFull, maxvolTol, true);

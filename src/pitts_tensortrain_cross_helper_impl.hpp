@@ -57,10 +57,10 @@ namespace PITTS
       //!
       //! @param Q   orthogonal factor as a core, extended in place
       //! @param B   remainder, padded with zero rows in place
-      //! @param E   candidate directions as a core
+      //! @param E   candidate directions as a core, consumed (the projection overwrites it)
       //!
       template<typename T>
-      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, const Tensor3<T>& E)
+      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -73,25 +73,25 @@ namespace PITTS
         if( rho <= 0 )
           return;
 
-        // project out the known directions: Ep = E - Q (Q^T E) (one pass is enough: Q is orthonormal up to
-        // round-off, and small remaining components are removed by the tolerance below)
-        Tensor2<T> QtE;
-        reverse_dot_contract2(Q, E, QtE);       // QtE = Q(*,*,:) * E(*,*,:)
-        Tensor3<T> QQtE;
-        normalize_contract2(Q, QtE, QQtE);      // QQtE = Q(:,:,*) * QtE(*,:)
-        Tensor3<T> Ep;
-        copy(E, Ep);
-        t3_axpy(T(-1), QQtE, Ep);
-
         // Absolute tolerance relative to the size of E: a direction whose component outside span(Q) is below
         // sqrt(eps) * ||E|| is dropped. It would not enlarge the space in any useful way (the block SVD
         // truncates at rankTolerance >= sqrt(eps) by default anyway), and the projection remainder of the
         // factors from normalize_svd/normalize_qb is well above eps * ||E|| (observed ~1e-12 for double).
+        // Computed before the projection overwrites E.
         const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * t3_nrm(E);
-        if( t3_nrm(Ep) <= tolerance )
+
+        // project out the known directions, in place: E := E - Q (Q^T E) (one pass is enough: Q is
+        // orthonormal up to round-off, and small remaining components are removed by the tolerance)
+        Tensor2<T> QtE;
+        reverse_dot_contract2(Q, E, QtE);       // QtE = Q(*,*,:) * E(*,*,:)
+        Tensor3<T> QQtE;
+        normalize_contract2(Q, QtE, QQtE);      // QQtE = Q(:,:,*) * QtE(*,:)
+        t3_axpy(T(-1), QQtE, E);
+
+        if( t3_nrm(E) <= tolerance )
           return;
 
-        const auto [QE, RE] = normalize_qb(unfold_left(Ep), true, T(tolerance), rho, true);
+        const auto [QE, RE] = normalize_qb(unfold_left(E), true, T(tolerance), rho, true);
         if( QE.r2() == 0 )
           return;
 
@@ -129,7 +129,7 @@ namespace PITTS
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   optional_cref<Tensor3<T>> enrichment)
+                                   Tensor3<T> enrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -149,10 +149,10 @@ namespace PITTS
         // 2. enrichment: append new orthonormal directions to U and zero rows to SVt
         //    (this does not change U*SVt, it only enlarges the space the next core can use;
         //     the projection works on the core-shaped factors, folding and unfolding are moves)
-        if( enrichment )
+        if( enrichment.r2() > 0 )
         {
           Tensor3<T> U3 = fold_left(std::move(U), n);
-          enrichFactors(U3, SVt, enrichment->get());
+          enrichFactors(U3, SVt, std::move(enrichment));
           U = unfold_left(std::move(U3));
         }
         const int r = U.r2();

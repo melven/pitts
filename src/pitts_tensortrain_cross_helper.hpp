@@ -502,13 +502,13 @@ namespace PITTS
       //! @param rankTolerance      relative truncation tolerance for the singular values of B
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
-      //! @param enrichment         optional directions to append (r1 x n x rho), nullopt for none
-      //!                           (pass std::cref(E) and give T explicitly, updateCoreLeft<T>(...), as for the solveMALS helpers)
+      //! @param enrichment         directions to append (r1 x n x rho), an empty block for none; consumed,
+      //!                           so pass it with std::move
       //! @return                   new core, carry, selected rows and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   optional_cref<Tensor3<T>> enrichment = std::nullopt);
+                                   Tensor3<T> enrichment = Tensor3<T>());
 
       //! maxvol column selection of a wide matrix (r x m with m >= r)
       //!

@@ -155,8 +155,7 @@ namespace PITTS
 
       // enrichment: dominant directions of the error f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1}),
       // i.e. of f(LX_k R^z_{k+1}) - Y_k R^{yz}_{k+1}
-      Tensor3<T> E;
-      optional_cref<Tensor3<T>> enrichment;
+      Tensor3<T> E;   // empty unless this step enriches
       if( enrich )
       {
         Lxz.update(k, k+1);
@@ -172,7 +171,6 @@ namespace PITTS
         // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors,
         // as a core of the same shape as the block (folding the unfolding back is a move)
         E = fold_left(internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first, dims[k]);
-        enrichment = std::cref(E);
       }
 
       // local update: truncated SVD, enrichment, maxvol, interpolation gauge
@@ -181,7 +179,7 @@ namespace PITTS
       if( nMALS == 2 )
         B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
-      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, enrichment);
+      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, std::move(E));
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
       Lx.invalidate(k+1);
 
