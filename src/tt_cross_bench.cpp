@@ -88,8 +88,8 @@ int main(int argc, char* argv[])
   options.nSweeps = nSweeps;
   // the error of the low-rank approximation has at most the rank of the input, so enrich by r directions
   // (with a slightly larger rank for the error approximation itself)
-  options.enrichmentRank = r;
-  options.errorRank = r + 5;
+  options.enrichmentRank = r + 5;
+  options.errorRank = 2 * r;
   options.convergenceTolerance = tolerance;
   options.verbose = true;
 
