@@ -43,15 +43,16 @@ int main(int argc, char* argv[])
 {
   PITTS::initialize(&argc, &argv);
 
-  if( argc < 4 || argc > 7 )
-    throw std::invalid_argument("Requires 3 to 6 arguments (n d r [nMALS] [maxRank] [tolerance])!\n"
+  if( argc < 4 || argc > 8 )
+    throw std::invalid_argument("Requires 3 to 7 arguments (n d r [nMALS] [maxRank] [tolerance] [nSweeps])!\n"
                                 "  n: dimension of each tensor index, d: number of dimensions,\n"
                                 "  r: TT rank of the input, nMALS: 1 (ALS-cross) or 2 (DMRG-cross), maxRank: max. TT rank of the result,\n"
-                                "  tolerance: truncation and convergence tolerance of the TT-cross");
+                                "  tolerance: truncation and convergence tolerance of the TT-cross,\n"
+                                "  nSweeps: maximal number of full sweeps of the TT-cross");
 
   using Type = double;
 
-  int n = 0, d = 0, r = 0, nMALS = 1, maxRank = 50;
+  int n = 0, d = 0, r = 0, nMALS = 1, maxRank = 50, nSweeps = 10;
   Type tolerance = std::sqrt(std::numeric_limits<Type>::epsilon());
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], d);
@@ -62,6 +63,8 @@ int main(int argc, char* argv[])
     std::from_chars(argv[5], argv[6], maxRank);
   if( argc > 6 )
     std::from_chars(argv[6], argv[7], tolerance);
+  if( argc > 7 )
+    std::from_chars(argv[7], argv[8], nSweeps);
 
   // random input with only positive entries, so sqrt(x*x) == x (round-trip check below);
   // the 1/r scaling of the core entries keeps the tensor entries in the order of 1/r
@@ -82,6 +85,7 @@ int main(int argc, char* argv[])
   options.nMALS = nMALS;
   options.maxRank = maxRank;
   options.rankTolerance = tolerance;
+  options.nSweeps = nSweeps;
   options.convergenceTolerance = tolerance;
   options.verbose = true;
 
@@ -107,7 +111,8 @@ int main(int argc, char* argv[])
   const auto errNorm = axpby(Type(-1), TTx, Type(1), TTz, Type(0));
   std::cout << "relative round-trip error ||sqrt(x*x) - x|| / ||x||: " << errNorm/xNorm << "\n";
 
-  PITTS::finalize();
+  // don't print the statistics of the error calculation above
+  PITTS::finalize(false);
 
   return 0;
 }
