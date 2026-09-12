@@ -14,7 +14,6 @@
 #include "pitts_tensortrain_norm.hpp"
 #include <charconv>
 #include <cmath>
-#include <cstring>
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -27,15 +26,6 @@ namespace
     for(auto v: vec)
       stream << v << " ";
     return stream;
-  }
-
-  int parseInt(const char* str)
-  {
-    int value = 0;
-    const auto [ptr, ec] = std::from_chars(str, str+std::strlen(str), value);
-    if( ec != std::errc() || ptr != str+std::strlen(str) )
-      throw std::invalid_argument("Cannot parse command line argument as an integer!");
-    return value;
   }
 
   template<typename T>
@@ -57,11 +47,14 @@ int main(int argc, char* argv[])
                                 "  n: dimension of each tensor index, d: number of dimensions,\n"
                                 "  r: TT rank of the input, nMALS: 1 (ALS-cross) or 2 (DMRG-cross), maxRank: max. TT rank of the result");
 
-  const int n = parseInt(argv[1]);
-  const int d = parseInt(argv[2]);
-  const int r = parseInt(argv[3]);
-  const int nMALS = argc > 4 ? parseInt(argv[4]) : 1;
-  const int maxRank = argc > 5 ? parseInt(argv[5]) : 50;
+  int n = 0, d = 0, r = 0, nMALS = 1, maxRank = 50;
+  std::from_chars(argv[1], argv[2], n);
+  std::from_chars(argv[2], argv[3], d);
+  std::from_chars(argv[3], argv[4], r);
+  if( argc > 4 )
+    std::from_chars(argv[4], argv[5], nMALS);
+  if( argc > 5 )
+    std::from_chars(argv[5], argv[6], maxRank);
 
   using Type = double;
 
