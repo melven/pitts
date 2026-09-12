@@ -177,6 +177,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensortrain_pybind.*` | TensorTrain: from/to dense, axpby, dot, norm, normalize, gramSchmidt, sub-tensors. |
 | `pitts_tensortrain_operator_pybind.*` | TensorTrainOperator: apply, applyT, axpby, toDense, toQtt, ... |
 | `pitts_tensortrain_solve_pybind.*` | `solveGMRES`, `solveMALS` and their option enums. |
+| `pitts_tensortrain_cross_pybind.*` | `applyElementwise` (TT-cross): the python function gets a 1d numpy array viewing a block of tensor entries and returns an array of the same size (or modifies it in-place and returns None); the TT-cross options are keyword arguments. Releases the GIL around the algorithm. |
 | `pitts_qubit_simulator_pybind.*` | QubitSimulator. |
 | `pitts_jlbind.cpp`, `*_jlbind.*`, `PittsJl.jl` | Julia binding; currently only QubitSimulator, Tensor2, MultiVector and common are enabled (TensorTrain parts commented out). |
 
