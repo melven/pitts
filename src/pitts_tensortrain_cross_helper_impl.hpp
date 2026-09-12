@@ -142,7 +142,10 @@ namespace PITTS
         CoreUpdate<T> result;
 
         // 1. truncated SVD of the left unfolding: B ~ U * SVt with orthonormal columns of U
-        auto [U, SVt] = normalize_svd(unfold_left(B), true, rankTolerance, maxRank);
+        //    (truncation in the Frobenius norm as in PITTS::normalize: the discarded part is bounded by
+        //     rankTolerance * ||B||_F, whereas a threshold on the individual singular values would allow
+        //     an error of sqrt(#discarded) * rankTolerance * sigma_1)
+        auto [U, SVt] = normalize_svd(unfold_left(B), true, rankTolerance, maxRank, false, true);
         result.truncatedRank = U.r2();
 
 
@@ -189,7 +192,8 @@ namespace PITTS
         CoreUpdate<T> result;
 
         // 1. truncated SVD of the right unfolding: B ~ US * Vt with orthonormal rows of Vt
-        const auto [US, Vt] = normalize_svd(unfold_right(B), false, rankTolerance, maxRank);
+        //    (truncation in the Frobenius norm, see updateCoreLeft)
+        const auto [US, Vt] = normalize_svd(unfold_right(B), false, rankTolerance, maxRank, false, true);
         const int r = Vt.r1();
         result.truncatedRank = r;
 
