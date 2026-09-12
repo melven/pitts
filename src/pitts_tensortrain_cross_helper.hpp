@@ -42,10 +42,13 @@
 #define PITTS_TENSORTRAIN_CROSS_HELPER_HPP
 
 // includes
+#include <algorithm>
 #include <cassert>
+#include <numeric>
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include "pitts_random.hpp"
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3.hpp"
@@ -141,6 +144,30 @@ namespace PITTS
             throw std::invalid_argument("rightIndicesFromColumns: negative column index!");
           J.idx[b] = columns[b] % n;
           J.link[b] = columns[b] / n;
+        }
+        return J;
+      }
+
+      //! random right-nested index sets J[k] (k = 1..d-1) with at most `size` elements each, drawn without replacement
+      //!
+      //! Used for the initial error crosses of the AMEn-style enrichment (as in amen_cross); the sets are
+      //! nested by construction (each J_k is drawn from S_k x J_{k+1}). Uses internal::randomGenerator.
+      //!
+      inline std::vector<NestedIndices> randomRightIndexSets(const std::vector<int>& dims, int size)
+      {
+        if( size < 1 )
+          throw std::invalid_argument("randomRightIndexSets: size must be positive!");
+        const int nDim = dims.size();
+        std::vector<NestedIndices> J(nDim);
+        for(int k = nDim-1; k >= 1; k--)
+        {
+          const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
+          // all (idx, link) candidates in a shuffled order, take the first ones
+          std::vector<int> candidates(dims[k]*childSize);
+          std::iota(candidates.begin(), candidates.end(), 0);
+          std::shuffle(candidates.begin(), candidates.end(), randomGenerator);
+          candidates.resize(std::min<int>(size, candidates.size()));
+          J[k] = rightIndicesFromColumns(candidates, dims[k]);
         }
         return J;
       }

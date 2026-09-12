@@ -7,6 +7,7 @@
 #include "pitts_tensortrain_cross_helper.hpp"
 #include "pitts_tensor3_unfold.hpp"
 #include "eigen_test_helper.hpp"
+#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
@@ -134,6 +135,46 @@ TEST(PITTS_TensorTrain_cross_helper, expandRight)
   EXPECT_EQ(0, boundary.cols());
   EXPECT_NEAR(rows({{1}, {0}}), expandRight(J, 2, nDim), 0);
   EXPECT_NEAR(rows({{2, 0}, {0, 0}, {1, 1}}), expandRight(J, 1, nDim), 0);
+}
+
+TEST(PITTS_TensorTrain_cross_helper, randomRightIndexSets)
+{
+  using PITTS::internal::tt_cross::randomRightIndexSets;
+
+  const std::vector<int> dims = {2, 5, 3, 2};
+  const int nDim = dims.size();
+  const int size = 4;
+  const std::vector<NestedIndices> J = randomRightIndexSets(dims, size);
+  ASSERT_EQ(nDim, J.size());
+  EXPECT_EQ(0, J[0].size());   // unused
+
+  // sizes are limited by the number of candidates |S_k x J_{k+1}|: 2, 4 (of 3*2=6), 4 (of 5*4=20)
+  EXPECT_EQ(2, J[3].size());
+  EXPECT_EQ(4, J[2].size());
+  EXPECT_EQ(4, J[1].size());
+
+  for(int k = 1; k < nDim; k++)
+  {
+    // valid, nested and distinct multi-indices
+    const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
+    std::vector<int> seen;
+    for(int b = 0; b < J[k].size(); b++)
+    {
+      EXPECT_GE(J[k].idx[b], 0);
+      EXPECT_LT(J[k].idx[b], dims[k]);
+      EXPECT_GE(J[k].link[b], 0);
+      EXPECT_LT(J[k].link[b], childSize);
+      seen.push_back(J[k].idx[b] + J[k].link[b]*dims[k]);
+    }
+    std::sort(seen.begin(), seen.end());
+    EXPECT_EQ(seen.end(), std::adjacent_find(seen.begin(), seen.end()));
+    // the full multi-indices are consistent
+    const Eigen::MatrixXi full = expandRight(J, k, nDim);
+    EXPECT_EQ(J[k].size(), full.rows());
+    EXPECT_EQ(nDim-k, full.cols());
+  }
+
+  EXPECT_THROW(randomRightIndexSets(dims, 0), std::invalid_argument);
 }
 
 
