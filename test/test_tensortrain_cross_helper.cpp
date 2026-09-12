@@ -178,7 +178,7 @@ TEST(PITTS_TensorTrain_cross_helper, randomRightIndexSets)
 }
 
 
-// ---- interface matrices (partial contractions on nested index sets) ----
+// ---- partial contractions on nested index sets and the interface matrices selected from them ----
 
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"

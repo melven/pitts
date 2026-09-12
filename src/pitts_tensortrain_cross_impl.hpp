@@ -106,16 +106,12 @@ namespace PITTS
     bool yValid = false;
     std::vector<Tensor3<T>> firstCores(nDim);
 
-    // dominant `enrichmentRank` directions of a residual block (columns for leftOrthog, rows otherwise)
-    const auto dominantDirections = [&](Tensor3<T>&& residual, bool leftOrthog) -> Tensor2<T>
+    // the dominant (at most enrichmentRank) column directions of a residual block; only the left-to-right
+    // sweep enriches, so the mirrored row variant of updateCoreRight is not needed here
+    const auto dominantDirections = [&](Tensor3<T>&& residual) -> Tensor2<T>
     {
-      if( leftOrthog )
-      {
-        auto [U, SVt] = internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank);
-        return std::move(U);
-      }
-      auto [US, Vt] = internal::normalize_svd(unfold_right(residual), false, T(0), options.enrichmentRank);
-      return std::move(Vt);
+      auto [U, SVt] = internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank);
+      return std::move(U);
     };
 
     // Convergence measure of a step: the relative change of y on its own cross (block vs. current core)
@@ -156,11 +152,12 @@ namespace PITTS
           TTy.setSubTensor(k, std::move(B));
         else
           firstCores[k] = std::move(B);
-        Lyz.invalidate(k);
+        Lyz.invalidate(k);   // the core of y changed
         return change;
       }
 
-      // enrichment: dominant directions of the residual f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1}) = LX_k R^z_{k+1}
+      // enrichment: dominant directions of the error f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1}),
+      // i.e. of f(LX_k R^z_{k+1}) - Y_k R^{yz}_{k+1}
       Tensor2<T> E;
       optional_cref<Tensor2<T>> enrichment;
       if( enrich )
@@ -178,7 +175,7 @@ namespace PITTS
           internal::t3_axpy(T(-1), yOnCross, residual);
           change = std::max(change, relativeNorm(residual, normB));
         }
-        E = dominantDirections(std::move(residual), true);
+        E = dominantDirections(std::move(residual));
         enrichment = std::cref(E);
       }
 
@@ -219,7 +216,8 @@ namespace PITTS
       else
         firstCores[k] = std::move(upd.core);
 
-      // update of the error crosses: I^z_k from the residual on (I^z_{k-1}, S_k, J^z_{k+1}) = LX^z_k R^z_{k+1} - LY^z_k R^{yz}_{k+1}
+      // update of the error crosses: I^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
+      // i.e. of f(LX^z_k R^z_{k+1}) - LY^z_k R^{yz}_{k+1}
       if( enrich )
       {
         Lyz.invalidate(k, 2);
@@ -287,7 +285,8 @@ namespace PITTS
       newCores[1] = std::move(upd.core);
       TTy.setSubTensors(k-1, std::move(newCores));
 
-      // update of the error crosses: J^z_k from the residual on (I^z_{k-1}, S_k, J^z_{k+1}) = L^z_{k-1} XR^z_k - L^{yz}_{k-1} YR^z_k
+      // update of the error crosses: J^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
+      // i.e. of f(L^z_{k-1} XR^z_k) - L^{yz}_{k-1} YR^z_k
       if( enrich )
       {
         Lyz.invalidate(k-1, 2);
@@ -334,7 +333,8 @@ namespace PITTS
       else if( options.verbose )
         printProgress(iSweep+0.5, maxChange);
 
-      // right to left (convergence is only checked after the full sweep: the ranks are enriched now)
+      // right to left (this also truncates the enrichment of the left-to-right sweep, so the convergence
+      // check only makes sense on the ranks after the full sweep)
       maxChange = 0;
       for(SweepIndex swpIdx = firstIdx.last(); swpIdx; swpIdx = swpIdx.previous())
         maxChange = std::max(maxChange, stepRightToLeft(swpIdx));

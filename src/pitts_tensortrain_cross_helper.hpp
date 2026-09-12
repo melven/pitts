@@ -8,7 +8,7 @@
 * @author Claude Code (Anthropic AI model), prompted by Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2026-09-11
 *
-* Notation (see pitts_tensortrain_cross.hpp): a tensor train with d cores X_k of shape r_{k-1} x n_k x r_k,
+* Notation and references (see the file header of pitts_tensortrain_cross.hpp): a tensor train with d cores X_k of shape r_{k-1} x n_k x r_k,
 * nested left index sets I_k (bond k, k = -1..d-2, I_{-1} = {()}) and nested right index sets J_k
 * (bond k-1, k = 1..d, J_d = {()}).
 *
@@ -27,7 +27,7 @@
 * Lx is a SweepData of the partial contractions, see contraction_loop_from_left):
 *
 *   Lx.update(k, k+1);                              // LX_k = L_{k-1} X_k and XR_{k+1} = X_{k+1} R_{k+2} valid
-*   contractRightInterface(*Lx.left(), Lx.right(), J, k+1, B);   // B = LX_k * R_{k+1}  (|I_{k-1}| x n_k x |J_{k+1}|)
+*   localBlockFromLeft(*Lx.left(), x, k, 1, Lx.right(), J, B);   // B = LX_k * R_{k+1}  (|I_{k-1}| x n_k x |J_{k+1}|)
 *   applyToBlock(f, B);                             // B  = f(x) on the cross
 *   auto upd = updateCoreLeft(B, tol, maxRank, maxvolTol, enrichment);
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
@@ -84,7 +84,8 @@ namespace PITTS
       //! Note: a left set is only valid relative to the I_{k-1} it was created from. When the sweep
       //! replaces I_{k-1}, the old I_k is not nested any more (it still refers to the old parent
       //! positions) and must be recomputed before it is used; this is inherent to cross sweeps
-      //! (Dolgov/Savostyanov 2020, Remark 5) and handled by the sweep order in the driver.
+      //! (Dolgov/Savostyanov 2020, Remark 5, reference [3] in pitts_tensortrain_cross.hpp) and handled by
+      //! the sweep order in the driver.
       //!
       struct NestedIndices
       {
@@ -215,7 +216,8 @@ namespace PITTS
       //!
       //! @param LX    cached contraction LX_k of the neighboring dimension, nullopt at the left boundary
       //! @param I     the left index sets
-      //! @param k     bond index, I[k] selects the rows of LX (unused at the boundary)
+      //! @param k     dimension of LX: I[k] (the set of bond k) selects its rows; pass iDim-1 for a block
+      //!              starting at core iDim (unused at the boundary)
       //! @param B     block to contract (r_k x n x m)
       //! @param C     result (|I_k| x n x m)
       //!
@@ -234,7 +236,8 @@ namespace PITTS
       //! @param B     block to contract (m x n x r_{k-1})
       //! @param XR    cached contraction XR_k of the neighboring dimension, nullopt at the right boundary
       //! @param J     the right index sets
-      //! @param k     bond index + 1, J[k] selects the columns of XR (unused at the boundary)
+      //! @param k     dimension of XR: J[k] (the set of bond k-1) selects its columns; pass iDim+1 for a
+      //!              block ending at core iDim (unused at the boundary)
       //! @param C     result (m x n x |J_k|)
       //!
       template<typename T>
@@ -476,9 +479,10 @@ namespace PITTS
       //!     rankTolerance on the singular values and maximal rank maxRank (internal::normalize_svd);
       //!  2. optional enrichment: the columns of E (r1 n x rho, e.g. error directions from the AMEn-style
       //!     residual) are orthogonalized against U and appended, U' = [U, Q_E] (r1 n x r'+rho'), and SVt is
-      //!     padded with zero rows (rho' <= rho, linearly dependent directions are dropped). This is the
-      //!     same sequence as in the enrichSubspace lambda of solveMALS (project out, normalize_qb/svd of the
-      //!     remainder, concatLeftRight / concatTopBottom with zero padding) and reuses those building blocks;
+      //!     padded with zero rows (rho' <= rho: directions in the span of U and those beyond the dimension of
+      //!     its orthogonal complement are dropped, see newDirections). This is the same sequence as in the
+      //!     enrichSubspace lambda of solveMALS (project out, normalize_qb of the remainder, concatLeftRight /
+      //!     concatTopBottom with zero padding) and reuses those building blocks;
       //!  3. maxvol(U', maxvolTolerance) selects the rows I_k;
       //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}) (returned by maxvol), carry = U'(rows,:) * SVt'.
       //!
@@ -519,11 +523,14 @@ namespace PITTS
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
       //! Truncated SVD of the right unfolding of B (r1 x n r2): B ~ US * Vt with Vt (r' x n r2); optional
-      //! enrichment rows E (rho x n r2) appended to Vt; maxvol on the transposed Vt' selects the columns J_k;
+      //! enrichment rows E (rho x n r2) appended to Vt; maxvolColumns(Vt') selects the columns J_k;
       //! core = fold_right(Vt'(:,columns)^{-1} * Vt'), carry = US' * Vt'(:,columns) (r1 x r'+rho').
       //!
       //! Invariants: unfold_right(core)(:,columns) = identity, |entries of core| <= 1 + maxvolTolerance,
       //! and carry * core = US * Vt.
+      //!
+      //! The enrichment is only used by the tests and for symmetry with updateCoreLeft: the driver enriches
+      //! in the left-to-right sweeps only (see pitts_tensortrain_cross.hpp).
       //!
       template<typename T>
       CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,

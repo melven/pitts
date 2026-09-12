@@ -227,7 +227,8 @@ namespace PITTS
         // Work on a right-orthogonalized copy: maxvol needs full column rank, and the right unfolding of a
         // right-orthogonal core has orthonormal rows, so X_k * R_{k+1} keeps full row rank as long as R_{k+1}
         // is a nonsingular (maxvol) submatrix. The orthogonalization also removes exactly dependent ranks
-        // and makes the greedy initial pivoting of maxvol well-conditioned (the QR trick of the TT-cross paper).
+        // and makes the greedy initial pivoting of maxvol well-conditioned (the QR step of Oseledets/Tyrtyshnikov
+        // 2010, reference [1] in pitts_tensortrain_cross.hpp).
         // The resulting sets are also valid for the original TTx: the interpolation entries x(I, S_k, J)
         // do not depend on the gauge of the cores.
         // A right sweep alone does not reveal rank deficiencies that sit in the left unfoldings (e.g. a zero
