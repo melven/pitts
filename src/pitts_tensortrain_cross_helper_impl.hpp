@@ -15,6 +15,7 @@
 #define PITTS_TENSORTRAIN_CROSS_HELPER_IMPL_HPP
 
 // includes
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <optional>
@@ -223,28 +224,22 @@ namespace PITTS
         leftNormalize(TTortho, T(0));
         rightNormalize(TTortho, T(0));
 
+        // right-to-left sweep of the partial contractions XR_k = X_k R_{k+1}; J[k+1] is set before XR_k is
+        // computed, so the same recursion (and boundary handling) as in the cross sweeps can be used
         std::vector<NestedIndices> J(nDim);
-        Tensor2<T> R;     // right interface R_{k+1} of TTortho on J_{k+1}, empty for k = nDim-1 (R_d = 1x1 identity)
+        const auto neverFromTheLeft = [](int, optional_cref<Tensor3<T>>, Tensor3<T>&) { assert(false); };
+        auto Rx = defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TTortho, J));
+
         for(int k = nDim-1; k >= 1; k--)
         {
-          const Tensor3<T>& X = TTortho.subTensor(k);
-          const int n = X.n();
-
-          // XR = X_k * R_{k+1} (all mode indices); at the right boundary XR = X_k
-          Tensor3<T> XR;
-          if( k == nDim-1 )
-            copy(X, XR);
-          else
-            normalize_contract2(X, R, XR);
+          Rx.update(-1, k);
+          const Tensor3<T>& XR = Rx.subTensor(k);
 
           // maxvol on the adjoint of the right unfolding (n |J_{k+1}| x r_{k-1}) selects the columns J_k
           Tensor2<T> VtH(XR.n()*XR.r2(), XR.r1());
           EigenMap(VtH) = ConstEigenMap(unfold_right(XR)).adjoint();
           const std::vector<int> columns = maxvol(VtH, maxvolTolerance);
-          J[k] = rightIndicesFromColumns(columns, n);
-
-          // R_k = the selected columns
-          R = interfaceRight(XR, J[k]);
+          J[k] = rightIndicesFromColumns(columns, XR.n());
         }
 
         return J;
