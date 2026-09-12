@@ -30,17 +30,22 @@ namespace
     }
   }
 
+  // helper: the selected rows A(I,:)
+  template<typename T>
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> submatrix(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
+  {
+    const auto mapA = ConstEigenMap(A);
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Ahat(I.size(), mapA.cols());
+    for(int i = 0; i < I.size(); i++)
+      Ahat.row(i) = mapA.row(I[i]);
+    return Ahat;
+  }
+
   // helper: max |A * A(I,:)^-1| (the "dominance" measure of the selected submatrix)
   template<typename T>
   auto dominance(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto mapA = ConstEigenMap(A);
-    const int r = I.size();
-    mat Ahat(r, r);
-    for(int i = 0; i < r; i++)
-      Ahat.row(i) = mapA.row(I[i]);
-    const mat B = mapA * Ahat.inverse();
+    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> B = ConstEigenMap(A) * submatrix(A, I).inverse();
     return B.array().abs().maxCoeff();
   }
 
@@ -48,13 +53,7 @@ namespace
   template<typename T>
   auto volume(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto mapA = ConstEigenMap(A);
-    const int r = I.size();
-    mat Ahat(r, r);
-    for(int i = 0; i < r; i++)
-      Ahat.row(i) = mapA.row(I[i]);
-    return std::abs(Ahat.determinant());
+    return std::abs(submatrix(A, I).determinant());
   }
 }
 
@@ -251,10 +250,7 @@ TYPED_TEST(PITTS_Tensor2_maxvol, returns_interpolation_coefficients)
   ASSERT_EQ(r, AAinv.r2());
 
   // reference: A * A(I,:)^-1
-  mat Ahat(r, r);
-  for(int j = 0; j < r; j++)
-    Ahat.row(j) = ConstEigenMap(A).row(I[j]);
-  const mat ref = ConstEigenMap(A) * Ahat.inverse();
+  const mat ref = ConstEigenMap(A) * submatrix(A, I).inverse();
   EXPECT_NEAR(ref, ConstEigenMap(AAinv), eps);
 
   // the selected rows form the identity

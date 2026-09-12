@@ -285,7 +285,7 @@ namespace PITTS
     };
 
     // ---- sweeps ----
-    const auto printProgress = [&](double sweep, T maxChange)
+    const auto printProgress = [&](double sweep, RealType maxChange)
     {
       std::cout << "TT-cross sweep " << sweep << ": max. relative change " << maxChange << ", ranks:";
       for(int r: TTy.getTTranks())
