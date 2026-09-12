@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 #include "pitts_tensor2_maxvol.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
@@ -157,7 +158,16 @@ namespace PITTS
       // entries of R above threshold*maxPivot, the same criterion as in normalize_qb
       qr.setThreshold(std::numeric_limits<RealType>::epsilon() * std::max(m, r) * 10);
       if( qr.rank() < r )
-        throw std::invalid_argument("maxvol: input matrix is (numerically) rank-deficient!");
+      {
+        // The caller must reduce the number of columns: with fewer selected rows A(I,:) is not square and
+        // the interpolation coefficients A * A(I,:)^{-1} do not exist, so this cannot be fixed here.
+        // Report what is needed to find the offending step (usually an orthogonal factor that lost its
+        // orthogonality, see internal::tt_cross::dropNoiseDirections).
+        const auto absDiagR = qr.matrixR().diagonal().array().abs().eval();
+        throw std::invalid_argument("maxvol: input matrix (" + std::to_string(m) + " x " + std::to_string(r) +
+                                    ") is (numerically) rank-deficient: estimated rank " + std::to_string(qr.rank()) +
+                                    ", |R_rr/R_11| " + std::to_string(absDiagR(r-1)/absDiagR(0)) + "!");
+      }
 
       // fast return: nothing to swap, all rows are selected. Return them in natural order so that
       // A * A(I,:)^{-1} is the identity with I[j] = j (with the pivot order it would be a permutation matrix)
