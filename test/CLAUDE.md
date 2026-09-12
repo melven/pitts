@@ -76,6 +76,7 @@ TensorTrain and TensorTrainOperator:
 | `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt. |
 | `test_tensortrain_operator_pybind.py` | Creation, `setEye`, apply/applyT, axpby, operator product, toDense, toQtt. |
 | `test_tensortrain_solve_pybind.py` | `solveMALS` and `solveGMRES` on identity systems. |
+| `test_tensortrain_cross_pybind.py` | `applyElementwise`: numpy ufuncs, in-place functions, `numpy.vectorize`d scalar functions, float/double, options as keyword arguments, errors (wrong result size, exception in the function). |
 | `test_qubit_simulator_pybind.py` | Simple circuit example. |
 | `test_ttn_local_contraction_pybind.py` | Tree-tensor-network local gradient contraction vs numpy einsum. |
 
