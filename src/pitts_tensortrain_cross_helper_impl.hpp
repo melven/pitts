@@ -23,6 +23,7 @@
 #include <utility>
 #include "pitts_tensortrain_cross_helper.hpp"
 #include "pitts_tensor2_concat.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor2_maxvol.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"

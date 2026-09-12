@@ -32,11 +32,9 @@
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
-#include "pitts_tensor3_combine.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_unfold.hpp"
-#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
