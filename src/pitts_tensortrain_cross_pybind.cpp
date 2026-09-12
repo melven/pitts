@@ -66,23 +66,16 @@ namespace PITTS
                                         int nMALS, int errorRank, int enrichmentRank, bool randomErrorIndexSets,
                                         T maxvolTolerance, bool verbose)
       {
-        TTCrossOptions<T> options;
-        options.rankTolerance = rankTolerance;
-        options.maxRank = maxRank;
-        options.nSweeps = nSweeps;
-        options.convergenceTolerance = convergenceTolerance;
-        options.nMALS = nMALS;
-        options.errorRank = errorRank;
-        options.enrichmentRank = enrichmentRank;
-        options.randomErrorIndexSets = randomErrorIndexSets;
-        options.maxvolTolerance = maxvolTolerance;
-        options.verbose = verbose;
-
         // release the GIL for the (possibly OpenMP/MPI parallel) parts of the algorithm,
         // applyPythonFunction acquires it again for each block
         const py::gil_scoped_release releaseGil;
 
-        applyElementwise([&f](MultiVector<T>& mv){applyPythonFunction<T>(f, mv);}, TTx, TTy, options);
+        applyElementwise([&f](MultiVector<T>& mv){applyPythonFunction<T>(f, mv);}, TTx, TTy,
+                         TTCrossOptions<T>{.rankTolerance = rankTolerance, .maxRank = maxRank, .nSweeps = nSweeps,
+                                           .convergenceTolerance = convergenceTolerance, .nMALS = nMALS,
+                                           .errorRank = errorRank, .enrichmentRank = enrichmentRank,
+                                           .randomErrorIndexSets = randomErrorIndexSets,
+                                           .maxvolTolerance = maxvolTolerance, .verbose = verbose});
       }
 
       //! provide the TT-cross functions for one data type
