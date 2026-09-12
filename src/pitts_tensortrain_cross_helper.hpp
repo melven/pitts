@@ -43,7 +43,7 @@
 // includes
 #include <algorithm>
 #include <cassert>
-#include <ranges>
+#include <numeric>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -164,10 +164,12 @@ namespace PITTS
         std::vector<NestedIndices> J(nDim);
         for(int k = nDim-1; k >= 1; k--)
         {
-          // draw from all (idx, link) candidates of S_k x J_{k+1} without replacement
+          // all (idx, link) candidates of S_k x J_{k+1} in a shuffled order, take the first ones
           const int nCandidates = dims[k] * ((k == nDim-1) ? 1 : J[k+1].size());
-          std::vector<int> candidates(std::min(size, nCandidates));
-          std::ranges::sample(std::views::iota(0, nCandidates), candidates.begin(), size, randomGenerator);
+          std::vector<int> candidates(nCandidates);
+          std::iota(candidates.begin(), candidates.end(), 0);
+          std::shuffle(candidates.begin(), candidates.end(), randomGenerator);
+          candidates.resize(std::min(size, nCandidates));
           J[k] = rightIndicesFromColumns(candidates, dims[k]);
         }
         return J;

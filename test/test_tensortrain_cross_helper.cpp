@@ -8,7 +8,9 @@
 #include "pitts_tensor3_unfold.hpp"
 #include "eigen_test_helper.hpp"
 #include <algorithm>
+#include <set>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 using PITTS::internal::tt_cross::NestedIndices;
@@ -33,6 +35,29 @@ namespace
       i++;
     }
     return result;
+  }
+
+  // check that J is a valid right-nested family of sets for the given dimensions and sizes (links and indices in range, no duplicates)
+  void checkRightNested(const std::vector<NestedIndices>& J, const std::vector<int>& dims, const std::vector<int>& sizes)
+  {
+    const int nDim = dims.size();
+    ASSERT_EQ(nDim, J.size());
+    EXPECT_EQ(0, J[0].size());
+    for(int k = 1; k < nDim; k++)
+    {
+      ASSERT_EQ(sizes[k], J[k].size());
+      const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
+      std::set<std::pair<int,int>> unique;
+      for(int b = 0; b < J[k].size(); b++)
+      {
+        EXPECT_LE(0, J[k].link[b]);
+        EXPECT_LT(J[k].link[b], childSize);
+        EXPECT_LE(0, J[k].idx[b]);
+        EXPECT_LT(J[k].idx[b], dims[k]);
+        unique.emplace(J[k].link[b], J[k].idx[b]);
+      }
+      EXPECT_EQ(J[k].size(), unique.size());
+    }
   }
 }
 
@@ -145,29 +170,12 @@ TEST(PITTS_TensorTrain_cross_helper, randomRightIndexSets)
   const int nDim = dims.size();
   const int size = 4;
   const std::vector<NestedIndices> J = randomRightIndexSets(dims, size);
-  ASSERT_EQ(nDim, J.size());
-  EXPECT_EQ(0, J[0].size());   // unused
 
-  // sizes are limited by the number of candidates |S_k x J_{k+1}|: 2, 4 (of 3*2=6), 4 (of 5*4=20)
-  EXPECT_EQ(2, J[3].size());
-  EXPECT_EQ(4, J[2].size());
-  EXPECT_EQ(4, J[1].size());
+  // the sets are valid and nested; their sizes are limited by the number of candidates |S_k x J_{k+1}|
+  checkRightNested(J, dims, {0, 4, 4, 2});
 
   for(int k = 1; k < nDim; k++)
   {
-    // valid, nested and distinct multi-indices
-    const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
-    std::vector<int> seen;
-    for(int b = 0; b < J[k].size(); b++)
-    {
-      EXPECT_GE(J[k].idx[b], 0);
-      EXPECT_LT(J[k].idx[b], dims[k]);
-      EXPECT_GE(J[k].link[b], 0);
-      EXPECT_LT(J[k].link[b], childSize);
-      seen.push_back(J[k].idx[b] + J[k].link[b]*dims[k]);
-    }
-    std::sort(seen.begin(), seen.end());
-    EXPECT_EQ(seen.end(), std::adjacent_find(seen.begin(), seen.end()));
     // the full multi-indices are consistent
     const Eigen::MatrixXi full = expandRight(J, k, nDim);
     EXPECT_EQ(J[k].size(), full.rows());
@@ -182,6 +190,7 @@ TEST(PITTS_TensorTrain_cross_helper, randomRightIndexSets)
 
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensor3_random.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
@@ -195,22 +204,13 @@ using PITTS::internal::defineSweepData;
 
 namespace
 {
-  // reference: evaluate a tensor train at one multi-index by multiplying the core slices
+  // evaluate a tensor train at one multi-index: the scalar product with the corresponding unit tensor
   template<typename T>
   T evaluate(const PITTS::TensorTrain<T>& TT, const Eigen::RowVectorXi& multiIndex)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    mat v = mat::Identity(1, 1);
-    for(int k = 0; k < multiIndex.size(); k++)
-    {
-      const auto& X = TT.subTensor(k);
-      mat slice(X.r1(), X.r2());
-      for(int i = 0; i < X.r1(); i++)
-        for(int j = 0; j < X.r2(); j++)
-          slice(i, j) = X(i, multiIndex(k), j);
-      v = v * slice;
-    }
-    return v(0, 0);
+    PITTS::TensorTrain<T> unit(TT.dimensions());
+    unit.setUnit(std::vector<int>(multiIndex.begin(), multiIndex.end()));
+    return dot(unit, TT);
   }
 
   // random nested left index sets I[k] of the given sizes for the given dimensions
@@ -869,29 +869,6 @@ using PITTS::internal::tt_cross::initialRightIndexSets;
 
 namespace
 {
-  // check that J is a valid right-nested family of sets for the given dimensions and sizes (links and indices in range, no duplicates)
-  void checkRightNested(const std::vector<NestedIndices>& J, const std::vector<int>& dims, const std::vector<int>& sizes)
-  {
-    const int nDim = dims.size();
-    ASSERT_EQ(nDim, J.size());
-    EXPECT_EQ(0, J[0].size());
-    for(int k = 1; k < nDim; k++)
-    {
-      ASSERT_EQ(sizes[k], J[k].size());
-      const int childSize = (k == nDim-1) ? 1 : J[k+1].size();
-      std::set<std::pair<int,int>> unique;
-      for(int b = 0; b < J[k].size(); b++)
-      {
-        EXPECT_LE(0, J[k].link[b]);
-        EXPECT_LT(J[k].link[b], childSize);
-        EXPECT_LE(0, J[k].idx[b]);
-        EXPECT_LT(J[k].idx[b], dims[k]);
-        unique.emplace(J[k].link[b], J[k].idx[b]);
-      }
-      EXPECT_EQ(J[k].size(), unique.size());
-    }
-  }
-
   // max |A^H (A(:,cols))^-H| for the right unfolding A = unfold_right(X_k * R_{k+1}): the dominance of the selected columns
   template<typename T>
   auto columnDominance(const PITTS::Tensor3<T>& XR, const NestedIndices& Jk)

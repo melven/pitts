@@ -7,6 +7,7 @@
 #include "pitts_tensortrain_cross.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"
+#include "pitts_tensortrain_dot.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
@@ -50,22 +51,13 @@ namespace
     return ConstEigenMap(mv).col(0);
   }
 
-  // evaluate a TT at one multi-index (core slice products), for the interpolation property
+  // evaluate a tensor train at one multi-index: the scalar product with the corresponding unit tensor
   template<typename T>
   T evaluate(const PITTS::TensorTrain<T>& TT, const Eigen::RowVectorXi& multiIndex)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    mat v = mat::Identity(1, 1);
-    for(int k = 0; k < multiIndex.size(); k++)
-    {
-      const auto& X = TT.subTensor(k);
-      mat slice(X.r1(), X.r2());
-      for(int i = 0; i < X.r1(); i++)
-        for(int j = 0; j < X.r2(); j++)
-          slice(i, j) = X(i, multiIndex(k), j);
-      v = v * slice;
-    }
-    return v(0, 0);
+    PITTS::TensorTrain<T> unit(TT.dimensions());
+    unit.setUnit(std::vector<int>(multiIndex.begin(), multiIndex.end()));
+    return dot(unit, TT);
   }
 
   template<typename T>
