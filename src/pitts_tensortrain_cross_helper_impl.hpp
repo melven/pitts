@@ -38,35 +38,38 @@ namespace PITTS
     //! dedicated helper functionality for TT-cross algorithms
     namespace tt_cross
     {
-      //! helper: orthonormal directions of E not yet contained in the orthonormal columns (leftOrthog) or rows of Q
+      //! enrich the two factors of a truncated SVD by new directions of E, leaving their product unchanged
       //!
-      //! Returns Q_E (m x rho' for leftOrthog, rho' x m otherwise) with rho' <= rho; directions that are
-      //! (numerically) in the span of Q are dropped. Same sequence as in the enrichSubspace lambda of
-      //! solveMALS: project out, then a rank-revealing QR of the remainder with the rank limited to the
-      //! dimension of the orthogonal complement of Q.
+      //! For leftOrthog, Q (m x r) has orthonormal columns and B (r x l) the remainder, Q*B is the truncated
+      //! block, and the columns of E (m x rho) are candidate directions: the part of E outside the span of Q is
+      //! orthonormalized and appended to Q, B is padded with rho' zero rows. Mirrored for the transposed case.
+      //! Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
+      //! complement of Q is added (rho' <= min(rho, m-r)); with a rank-deficient remainder the QR below would
+      //! otherwise return noise directions, and the maxvol that follows fails because its matrix is not tall.
+      //!
+      //! Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
+      //! remainder with an absolute tolerance, concatenate with zero padding.
+      //!
+      //! @param Q   orthogonal factor, extended in place
+      //! @param B   remainder, padded with zeros in place
+      //! @param E   candidate directions
+      //! @param leftOrthog  true: columns of Q, Q*B with B below; false: rows of Q, B*Q with B to the left
       //!
       template<typename T>
-      Tensor2<T> newDirections(const Tensor2<T>& Q, const Tensor2<T>& E, bool leftOrthog)
+      void enrichFactors(Tensor2<T>& Q, Tensor2<T>& B, const Tensor2<T>& E, bool leftOrthog)
       {
-        using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
         using RealType = decltype(std::abs(T()));
 
         const auto mapQ = ConstEigenMap(Q);
         const auto mapE = ConstEigenMap(E);
-        if( leftOrthog && mapE.rows() != mapQ.rows() )
-          throw std::invalid_argument("TT-cross enrichment: wrong number of rows!");
-        if( !leftOrthog && mapE.cols() != mapQ.cols() )
-          throw std::invalid_argument("TT-cross enrichment: wrong number of columns!");
+        if( leftOrthog ? mapE.rows() != mapQ.rows() : mapE.cols() != mapQ.cols() )
+          throw std::invalid_argument("TT-cross enrichment: dimension mismatch!");
 
-        // the complement of span(Q) has dimension m - r: never return more directions than that
-        // (with a rank-deficient remainder the QR below only sees round-off there and would otherwise
-        // happily return noise directions; the following maxvol then fails because the matrix is not tall)
         const int m = leftOrthog ? Q.r1() : Q.r2();
         const int r = leftOrthog ? Q.r2() : Q.r1();
         const int rho = std::min<int>(leftOrthog ? E.r2() : E.r1(), m - r);
-        Tensor2<T> empty(leftOrthog ? m : 0, leftOrthog ? 0 : m);
         if( rho <= 0 )
-          return empty;
+          return;
 
         // project out the known directions (one pass is enough: Q is orthonormal up to round-off,
         // and small remaining components are removed by the tolerance below)
@@ -80,13 +83,30 @@ namespace PITTS
         // sqrt(eps) * ||E|| is dropped. It would not enlarge the space in any useful way (the block SVD
         // truncates at rankTolerance >= sqrt(eps) by default anyway), and the projection remainder of the
         // factors from normalize_svd/normalize_qb is well above eps * ||E|| (observed ~1e-12 for double).
-        const RealType scaleE = mapE.norm();
-        const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * scaleE;
+        const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * mapE.norm();
         if( ConstEigenMap(Ep).norm() <= tolerance )
-          return empty;
+          return;
 
         auto [QE, RE] = normalize_qb(Ep, leftOrthog, T(tolerance), rho, true);
-        return leftOrthog ? std::move(QE) : std::move(RE);
+        const Tensor2<T>& newDirections = leftOrthog ? QE : RE;
+        const int rhoNew = leftOrthog ? newDirections.r2() : newDirections.r1();
+        if( rhoNew == 0 )
+          return;
+
+        Tensor2<T> Qext(leftOrthog ? Q.r1() : Q.r1() + rhoNew, leftOrthog ? Q.r2() + rhoNew : Q.r2());
+        Tensor2<T> Bext(leftOrthog ? B.r1() + rhoNew : B.r1(), leftOrthog ? B.r2() : B.r2() + rhoNew);
+        if( leftOrthog )
+        {
+          concatLeftRight<T>(Q, newDirections, Qext);
+          concatTopBottom<T>(B, std::nullopt, Bext);
+        }
+        else
+        {
+          concatTopBottom<T>(Q, newDirections, Qext);
+          concatLeftRight<T>(B, std::nullopt, Bext);
+        }
+        Q = std::move(Qext);
+        B = std::move(Bext);
       }
 
 
@@ -131,19 +151,8 @@ namespace PITTS
 
         // 2. enrichment: append new orthonormal directions to U and zero rows to SVt
         //    (this does not change U*SVt, it only enlarges the space the next core can use)
-        if( enrichment && enrichment->get().r2() > 0 )
-        {
-          const Tensor2<T> QE = newDirections(U, enrichment->get(), true);
-          if( QE.r2() > 0 )
-          {
-            Tensor2<T> Uext(U.r1(), U.r2() + QE.r2());
-            concatLeftRight<T>(U, QE, Uext);
-            Tensor2<T> SVtext(SVt.r1() + QE.r2(), r2);
-            concatTopBottom<T>(SVt, std::nullopt, SVtext);
-            U = std::move(Uext);
-            SVt = std::move(SVtext);
-          }
-        }
+        if( enrichment )
+          enrichFactors(U, SVt, enrichment->get(), true);
         const int r = U.r2();
 
         // 3.+4. maxvol selects the rows I_k and returns the core in interpolation gauge, U * U(rows,:)^{-1}
@@ -183,19 +192,8 @@ namespace PITTS
         result.truncatedRank = Vt.r1();
 
         // 2. enrichment: append new orthonormal rows to Vt and zero columns to US
-        if( enrichment && enrichment->get().r1() > 0 )
-        {
-          const Tensor2<T> QE = newDirections(Vt, enrichment->get(), false);
-          if( QE.r1() > 0 )
-          {
-            Tensor2<T> Vtext(Vt.r1() + QE.r1(), Vt.r2());
-            concatTopBottom<T>(Vt, QE, Vtext);
-            Tensor2<T> USext(r1, US.r2() + QE.r1());
-            concatLeftRight<T>(US, std::nullopt, USext);
-            Vt = std::move(Vtext);
-            US = std::move(USext);
-          }
-        }
+        if( enrichment )
+          enrichFactors(Vt, US, enrichment->get(), false);
         const int r = Vt.r1();
 
         // 3.+4. maxvol selects the columns J_k of Vt and returns the core in interpolation gauge, Vt(:,cols)^{-1} Vt
