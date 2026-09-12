@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 
   using Type = double;
 
-  int n = 0, d = 0, r = 0, nMALS = 1, maxRank = 50, nSweeps = 10;
+  int n = 0, d = 0, r = 0, nMALS = 1, maxRank = 1000, nSweeps = 10;
   Type tolerance = std::sqrt(std::numeric_limits<Type>::epsilon());
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], d);
