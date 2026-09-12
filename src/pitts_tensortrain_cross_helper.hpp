@@ -503,8 +503,9 @@ namespace PITTS
       //! Local core update for a left-to-right sweep
       //!
       //! Given the evaluated block B (r1 x n x r2) of f(x) on the cross (I_{k-1}, S_k, J_{k+1}):
-      //!  1. truncated SVD of the left unfolding of B: B ~ U * SVt with U (r1 n x r'), relative tolerance
-      //!     rankTolerance on the singular values and maximal rank maxRank (internal::normalize_svd);
+      //!  1. truncated SVD of the left unfolding of B: B ~ U * SVt with U (r1 n x r'), truncation in the
+      //!     Frobenius norm with relative tolerance rankTolerance and maximal rank maxRank
+      //!     (internal::normalize_svd, same criterion as PITTS::normalize);
       //!  2. optional enrichment: the block E (r1 x n x rho, e.g. error directions from the AMEn-style
       //!     residual) is orthogonalized against U and appended, U' = [U, Q_E] (r1 n x r'+rho'), and SVt is
       //!     padded with zero rows (rho' <= rho: directions in the span of U and those beyond the dimension
@@ -521,7 +522,7 @@ namespace PITTS
       //! and core * carry = U * SVt (= B up to the truncation error).
       //!
       //! @param B                  evaluated block (r1 x n x r2)
-      //! @param rankTolerance      relative truncation tolerance for the singular values of B
+      //! @param rankTolerance      relative truncation tolerance for B (in the Frobenius norm)
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
       //! @param enrichment         directions to append (r1 x n x rho), an empty block for none; consumed,

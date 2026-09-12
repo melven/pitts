@@ -107,7 +107,7 @@ namespace PITTS
   template<typename T>
   struct TTCrossOptions
   {
-    //! relative truncation tolerance for the singular values of each local block (rank adaptation)
+    //! relative truncation tolerance for each local block in the Frobenius norm (rank adaptation)
     //!
     //! Applied as rankTolerance/sqrt(d-1) per block, like the truncation in leftNormalize/rightNormalize.
     //! Note that the blocks are truncated in the interpolation gauge, so unlike for an orthogonalized TT
