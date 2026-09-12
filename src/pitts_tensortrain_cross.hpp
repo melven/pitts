@@ -69,12 +69,12 @@
 *       -- the sweep formulation used here, and the remark that a nested index set becomes invalid when
 *          the neighboring set it refers to is replaced (Remark 5, see NestedIndices).
 *   [4] Nunez Fernandez et al.: "Learning tensor networks with tensor cross interpolation: new algorithms
-*       and libraries", arXiv:2407.02454, doi 10.48550/arXiv.2407.02454
+*       and libraries", SciPost Phys. 18, 104 (2025), doi 10.21468/SciPostPhys.18.3.104 (arXiv:2407.02454)
 *       -- review of tensor cross interpolation: the CI-canonical (interpolation) gauge and the
 *          classification into 1-site and 2-site sweeps with their pivot handling.
-*   [5] Ritter et al.: "Quantics Tensor Cross Interpolation for High-Resolution, Parsimonious
-*       Representations of Multivariate Functions in Physics and Beyond", arXiv:2303.11819,
-*       doi 10.48550/arXiv.2303.11819
+*   [5] Ritter et al.: "Quantics Tensor Cross Interpolation for High-Resolution Parsimonious
+*       Representations of Multivariate Functions", Phys. Rev. Lett. 132, 056501 (2024),
+*       doi 10.1103/PhysRevLett.132.056501 (arXiv:2303.11819)
 *       -- the quantics (QTT) setting with many small dimensions, where rank growth during the sweeps
 *          matters most (see the qtt test case).
 *   [6] Goreinov, Oseledets, Savostyanov, Tyrtyshnikov, Zamarashkin: "How to find a good submatrix", in:
