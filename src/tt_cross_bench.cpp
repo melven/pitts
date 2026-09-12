@@ -15,6 +15,7 @@
 #include <charconv>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <random>
 #include <stdexcept>
 #include <vector>
@@ -42,12 +43,16 @@ int main(int argc, char* argv[])
 {
   PITTS::initialize(&argc, &argv);
 
-  if( argc < 4 || argc > 6 )
-    throw std::invalid_argument("Requires 3 to 5 arguments (n d r [nMALS] [maxRank])!\n"
+  if( argc < 4 || argc > 7 )
+    throw std::invalid_argument("Requires 3 to 6 arguments (n d r [nMALS] [maxRank] [tolerance])!\n"
                                 "  n: dimension of each tensor index, d: number of dimensions,\n"
-                                "  r: TT rank of the input, nMALS: 1 (ALS-cross) or 2 (DMRG-cross), maxRank: max. TT rank of the result");
+                                "  r: TT rank of the input, nMALS: 1 (ALS-cross) or 2 (DMRG-cross), maxRank: max. TT rank of the result,\n"
+                                "  tolerance: truncation and convergence tolerance of the TT-cross");
+
+  using Type = double;
 
   int n = 0, d = 0, r = 0, nMALS = 1, maxRank = 50;
+  Type tolerance = std::sqrt(std::numeric_limits<Type>::epsilon());
   std::from_chars(argv[1], argv[2], n);
   std::from_chars(argv[2], argv[3], d);
   std::from_chars(argv[3], argv[4], r);
@@ -55,8 +60,8 @@ int main(int argc, char* argv[])
     std::from_chars(argv[4], argv[5], nMALS);
   if( argc > 5 )
     std::from_chars(argv[5], argv[6], maxRank);
-
-  using Type = double;
+  if( argc > 6 )
+    std::from_chars(argv[6], argv[7], tolerance);
 
   // random input with only positive entries, so sqrt(x*x) == x (round-trip check below);
   // the 1/r scaling of the core entries keeps the tensor entries in the order of 1/r
@@ -76,6 +81,8 @@ int main(int argc, char* argv[])
   PITTS::TTCrossOptions<Type> options;
   options.nMALS = nMALS;
   options.maxRank = maxRank;
+  options.rankTolerance = tolerance;
+  options.convergenceTolerance = tolerance;
   options.verbose = true;
 
   PITTS::TensorTrain<Type> TTy(TTx.dimensions()), TTz(TTx.dimensions());
