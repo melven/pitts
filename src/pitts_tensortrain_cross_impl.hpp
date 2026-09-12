@@ -166,7 +166,7 @@ namespace PITTS
           change = std::max(change, internal::t3_nrm(residual) / normB);
         }
         // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors
-        E = internal::normalize_svd(unfold_left(std::move(residual)), true, T(0), options.enrichmentRank).first;
+        E = internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first;
         enrichment = std::cref(E);
       }
 
