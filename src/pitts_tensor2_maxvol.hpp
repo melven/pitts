@@ -9,7 +9,8 @@
 * @date 2026-09-11
 *
 * Reference: Goreinov, Oseledets, Savostyanov, Tyrtyshnikov, Zamarashkin: "How to find a good submatrix",
-* in: Matrix Methods: Theory, Algorithms, Applications, World Scientific, 2010, pp. 247-256.
+* in: Matrix Methods: Theory, Algorithms, Applications, World Scientific, 2010, pp. 247-256,
+* doi 10.1142/9789812836021_0015.
 * Its use in cross approximation of tensor trains: Oseledets, Tyrtyshnikov: "TT-cross approximation for
 * multidimensional arrays", Linear Algebra Appl. 432 (1) (2010) 70-88, doi 10.1016/j.laa.2009.07.024.
 *

@@ -78,7 +78,8 @@
 *       -- the quantics (QTT) setting with many small dimensions, where rank growth during the sweeps
 *          matters most (see the qtt test case).
 *   [6] Goreinov, Oseledets, Savostyanov, Tyrtyshnikov, Zamarashkin: "How to find a good submatrix", in:
-*       Matrix Methods: Theory, Algorithms, Applications, World Scientific, 2010, pp. 247-256
+*       Matrix Methods: Theory, Algorithms, Applications, World Scientific, 2010, pp. 247-256,
+*       doi 10.1142/9789812836021_0015
 *       -- the maxvol algorithm, see pitts_tensor2_maxvol.hpp.
 *   The AMEn-style enrichment by a separate low-rank approximation of the error follows the amen_cross
 *   algorithm of the TT-Toolbox and the subspace enrichment of PITTS::solveMALS (nAMEnEnrichment).
