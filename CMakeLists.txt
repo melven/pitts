@@ -121,7 +121,7 @@ find_package(LAPACK REQUIRED)
 link_libraries(LAPACK::LAPACK)
 
 # Eigen 3 library (for linear algebra calculations)
-find_package (Eigen3 3.3.7 REQUIRED NO_MODULE)
+find_package (Eigen3 REQUIRED NO_MODULE)
 link_libraries(Eigen3::Eigen)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_NO_AUTOMATIC_RESIZING -DEIGEN_USE_BLAS")
 # Option for possibly faster/parallel SVD algorithm with MKL, not enabled per default as it seems to cause problems sometimes...
