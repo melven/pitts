@@ -12,6 +12,7 @@
 #include "pitts_tensortrain_axpby.hpp"
 #include "pitts_tensortrain_cross.hpp"
 #include "pitts_tensortrain_norm.hpp"
+#include "pitts_tensortrain_random.hpp"
 #include <charconv>
 #include <cmath>
 #include <iostream>
@@ -70,16 +71,24 @@ int main(int argc, char* argv[])
   // the 1/r scaling of the core entries keeps the tensor entries in the order of 1/r
   // (the contraction over each bond sums up r terms)
   PITTS::TensorTrain<Type> TTx(d, n);
-  TTx.setTTranks(r);
-  std::uniform_real_distribution<Type> distribution(Type(0.5)/r, Type(1.5)/r);
-  for(int k = 0; k < d; k++)
-    TTx.editSubTensor(k, [&](PITTS::Tensor3<Type>& X)
-    {
-      for(int i = 0; i < X.r1(); i++)
+  TTx.setZero();
+  std::uniform_real_distribution<Type> distribution(Type(0.5), Type(1.5));
+  for(int k = 0; k < r; k++)
+  {
+    PITTS::TensorTrain<Type> TTtmp(d, n);
+    TTtmp.setTTranks(1);
+
+    for(int iDim = 0; iDim < d; iDim++)
+      TTtmp.editSubTensor(iDim, [&](PITTS::Tensor3<Type>& X)
+      {
         for(int j = 0; j < X.n(); j++)
-          for(int l = 0; l < X.r2(); l++)
-            X(i,j,l) = distribution(PITTS::internal::randomGenerator);
-    });
+          X(0,j,0) = distribution(PITTS::internal::randomGenerator);
+      });
+    normalize(TTtmp, Type(0));
+
+    // k^4 decay of singular values
+    axpby(Type(1), TTtmp, Type(k)*k*k*k, TTx, Type(0));
+  }
 
   PITTS::TTCrossOptions<Type> options;
   options.nMALS = nMALS;
@@ -88,8 +97,16 @@ int main(int argc, char* argv[])
   options.nSweeps = nSweeps;
   // the error of the low-rank approximation has at most the rank of the input, so enrich by r directions
   // (with a slightly larger rank for the error approximation itself)
-  options.enrichmentRank = r + 5;
-  options.errorRank = 2 * r;
+  if( nMALS == 1 )
+  {
+    options.enrichmentRank = r;
+    options.errorRank = int(1.2*r);
+  }
+  else
+  {
+    options.enrichmentRank = 0;
+    options.errorRank = 0;
+  }
   options.convergenceTolerance = tolerance;
   options.verbose = true;
 
@@ -98,22 +115,22 @@ int main(int argc, char* argv[])
   PITTS::performance::clearStatistics();
 
   // y ~ x*x (exact TT ranks r*r) ...
-  const auto infoSquare = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
-  std::cout << "\n### timings for the element-wise square ###\n";
-  PITTS::performance::printStatistics();
-
-  // ... and back: z ~ sqrt(y) = x (only approximately low-rank)
-  const auto infoSqrt = applyElementwise([](Type v){return std::sqrt(v);}, TTy, TTz, options);
+  const auto infoSquare = applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTy, options);
   std::cout << "\n### timings for the element-wise sqrt ###\n";
   PITTS::performance::printStatistics();
 
-  printInfo("x*x", infoSquare, TTy);
-  printInfo("sqrt(x*x)", infoSqrt, TTz);
+  // ... and back: z ~ sqrt(y) = x (only approximately low-rank)
+  const auto infoSqrt = applyElementwise([](Type v){return v*v;}, TTy, TTz, options);
+  std::cout << "\n### timings for the element-wise square ###\n";
+  PITTS::performance::printStatistics();
+
+  printInfo("sqrt(x)", infoSquare, TTy);
+  printInfo("sqrt(x)*sqrt(x)", infoSqrt, TTz);
 
   // real error of the round-trip (no truncation in the axpby, so this is the exact difference)
   const auto xNorm = norm2(TTx);
   const auto errNorm = axpby(Type(-1), TTx, Type(1), TTz, Type(0));
-  std::cout << "relative round-trip error ||sqrt(x*x) - x|| / ||x||: " << errNorm/xNorm << "\n";
+  std::cout << "relative round-trip error ||sqrt(x)*sqrt(x) - x|| / ||x||: " << errNorm/xNorm << "\n";
 
   // don't print the statistics of the error calculation above
   PITTS::finalize(false);
