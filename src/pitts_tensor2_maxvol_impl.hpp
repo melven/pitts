@@ -79,8 +79,22 @@ namespace PITTS
       for(int iter = 0; iter < maxIter; iter++)
       {
         // find the largest entry of B
-        Eigen::Index i, j;
-        const RealType maxB = B.array().abs().maxCoeff(&i, &j);
+        // (plain loop instead of B.array().abs().maxCoeff(&i,&j): the index-returning maxCoeff uses
+        //  Eigen's visitor implementation, which returned a too small maximum with some combinations
+        //  of Eigen version and optimization flags -- the iteration then stopped too early)
+        int i = 0, j = 0;
+        RealType maxB = 0;
+        for(int jj = 0; jj < r; jj++)
+          for(int ii = 0; ii < m; ii++)
+          {
+            const RealType absB = std::abs(B(ii,jj));
+            if( absB > maxB )
+            {
+              maxB = absB;
+              i = ii;
+              j = jj;
+            }
+          }
         if( maxB <= threshold )
           break;
 

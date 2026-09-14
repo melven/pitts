@@ -17,6 +17,7 @@
 #include <jlcxx/array.hpp>
 #include <string>
 #include <stdexcept>
+#include <vector>
 #include "pitts_multivector.hpp"
 #include "pitts_multivector_random.hpp"
 #include "pitts_multivector_cdist.hpp"
@@ -58,11 +59,20 @@ namespace PITTS
           wrapped.module().unset_override_module();
 
           wrapped.template method("data", [](MultiVector_type& mv){return &mv(0,0);});
-          wrapped.template method("copy", static_cast<void (*)(const MultiVector_type&, MultiVector_type&)>(&copy));
-          wrapped.template method("randomize!", static_cast<void (*)(MultiVector_type&)>(&randomize));
-          wrapped.template method("centroids", &centroids<Type>);
-          wrapped.template method("cdist2", &cdist2<Type>);
-          wrapped.template method("block_TSQR", &block_TSQR<Type>);
+          // (jlcxx's TypeWrapper::method only accepts member function pointers and callable objects,
+          //  so wrap free functions in a lambda instead of passing a function pointer;
+          //  the default arguments of block_TSQR are not visible in Julia anyway, so list all arguments)
+          wrapped.template method("copy", [](const MultiVector_type& src, MultiVector_type& dst){copy(src, dst);});
+          wrapped.template method("randomize!", [](MultiVector_type& mv){randomize(mv);});
+          wrapped.template method("centroids", [](const MultiVector_type& X, const std::vector<long long>& idx, const std::vector<Type>& w, MultiVector_type& Y)
+          {
+            centroids(X, idx, w, Y);
+          });
+          wrapped.template method("cdist2", [](const MultiVector_type& X, const MultiVector_type& Y, Tensor2<Type>& D){cdist2(X, Y, D);});
+          wrapped.template method("block_TSQR", [](const MultiVector_type& M, Tensor2<Type>& R, int reductionFactor, bool mpiGlobal, int colBlockingSize)
+          {
+            block_TSQR(M, R, reductionFactor, mpiGlobal, colBlockingSize);
+          });
           wrapped.template method("transform", [](const MultiVector_type& X, const ConstTensor2View<Type>& M, MultiVector_type& Y, long long rows, long long cols)
           {
             transform(X, M, Y, {rows, cols});

@@ -77,8 +77,20 @@ namespace
     const mat B = interpolationCoefficients(A, I);
 
     // largest entry of B and its position: if this is larger than 1+tol, maxvol stopped too early
-    Eigen::Index iMax = 0, jMax = 0;
-    const auto maxB = B.array().abs().maxCoeff(&iMax, &jMax);
+    // (plain loop, Eigen's maxCoeff with indices uses the visitor implementation and returned
+    //  wrong results in the CI of the internal server, so print all three variants here)
+    int iMax = 0, jMax = 0;
+    decltype(std::abs(T())) maxB = 0;
+    for(int j = 0; j < A.r2(); j++)
+      for(int i = 0; i < A.r1(); i++)
+        if( std::abs(B(i,j)) > maxB )
+        {
+          maxB = std::abs(B(i,j));
+          iMax = i;
+          jMax = j;
+        }
+    Eigen::Index iVisitor = 0, jVisitor = 0;
+    const auto maxBvisitor = B.array().abs().maxCoeff(&iVisitor, &jVisitor);
 
     // the same measure with an explicit inverse (less accurate, just for comparison)
     const mat Binv = mapA * Ahat.inverse();
@@ -90,6 +102,8 @@ namespace
     std::cout << "[maxvol] " << testName << ", T=" << PITTS::internal::TypeName::name<T>()
               << ", m=" << A.r1() << ", r=" << A.r2() << ", tol=" << std::abs(tol) << "\n"
               << "         max|A*A(I,:)^-1| = " << maxB << " at (" << iMax << "," << jMax << ")"
+              << ", maxCoeff: " << B.array().abs().maxCoeff()
+              << ", maxCoeff with indices: " << maxBvisitor << " at (" << iVisitor << "," << jVisitor << ")"
               << ", with explicit inverse: " << Binv.array().abs().maxCoeff() << "\n"
               << "         cond(A) = " << condA << ", cond(A(I,:)) = " << condAhat
               << ", |det A(I,:)| = " << std::abs(Ahat.determinant()) << "\n"
