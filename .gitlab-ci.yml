@@ -23,17 +23,19 @@ build_release:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:10:00"
   needs: []
   script:
-    - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
+    - export MODULEPATH="/scratch/spack-26.1/share/spack/modules/linux-ubuntu24.04-x86_64_v3/"
     - export CTEST_PARALLEL_LEVEL=2
-    - module load PrgEnv/gcc13-openmpi-python
+    - module load PrgEnv/gcc15-openmpi-python
     # unload itensor as it has problems compiling this way...
     - module unload -f --no-auto itensor
+    - module load py-opt-einsum
     # bug fixed/improved Eigen version
     - module unload -f --no-auto eigen
-    - module load eigen/eigen-master-2023-11-28
+    - module load eigen/5.0.1-gcc-13.3.0-cgsuhqh
     # allow to load julia
     - module unload -f --no-auto t8code parmetis metis llvm
     - module load libcxxwrap-julia
+    - export LD_LIBRARY_PATH=/scratch/spack-26.1/opt/spack/linux-x86_64_v3/intel-oneapi-mkl-2026.0.0-r5fnijp2vjkpnqmecnnamcksnhy2ms2l/compiler/2026.0/lib/:$LD_LIBRARY_PATH
     - module load libwhich
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_release/"
     - ccache -z
@@ -42,7 +44,7 @@ build_release:
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DPITTS_DIRECT_MKL_GEMM=On -DOpenMP_gomp_LIBRARY=$(libwhich -p libiomp5.so)
     - cmake --build . -- -j 15
     # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
-    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15 &> test.log
+    - LD_PRELOAD=/scratch/spack-26.1/opt/spack/linux-x86_64_v3/gcc-15.2.0-f22zr7sngmxt22rxcnexmjbrqwoel53e/lib64/libstdc++.so.6 cmake --build . --target check -j 15 &> test.log
     - ccache -s
   artifacts:
     reports:
@@ -96,25 +98,27 @@ build_debug:
     SCHEDULER_PARAMETERS: "-p cpu -N 1 -n 3 -c 5 -t 00:15:00"
   needs: []
   script:
-    - export MODULEPATH="/scratch/spack-23.3/share/spack/modules/linux-ubuntu20.04-x86_64_v3"
+    - export MODULEPATH="/scratch/spack-26.1/share/spack/modules/linux-ubuntu24.04-x86_64_v3/"
     - export CTEST_PARALLEL_LEVEL=2
-    - module load PrgEnv/gcc13-openmpi-python
+    - module load PrgEnv/gcc15-openmpi-python
     # unload itensor as it has problems compiling this way...
     - module unload -f --no-auto itensor
+    - module load py-opt-einsum
     # bug fixed/improved Eigen version
     - module unload -f --no-auto eigen
-    - module load eigen/eigen-master-2023-11-28
+    - module load eigen/5.0.1-gcc-13.3.0-cgsuhqh
     # allow to load julia
     - module unload -f --no-auto t8code parmetis metis llvm
     - module load libcxxwrap-julia
     - module load libwhich
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug/"
+    - export LD_LIBRARY_PATH=/scratch/spack-26.1/opt/spack/linux-x86_64_v3/intel-oneapi-mkl-2026.0.0-r5fnijp2vjkpnqmecnnamcksnhy2ms2l/compiler/2026.0/lib/:$LD_LIBRARY_PATH
     - ccache -z
     - mkdir build_debug && cd build_debug
     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=g++ -DPITTS_EIGEN_USE_LAPACKE=On -DOpenMP_gomp_LIBRARY=$(libwhich -p libiomp5.so)
     - cmake --build . -- -j 15
     # LD_PRELOAD for julia tests as it picks the wrong libstdc++ otherwise
-    - LD_PRELOAD=/scratch/spack-23.3/opt/spack/linux-ubuntu20.04-x86_64_v3/gcc-9.4.0/gcc-13.2.0-om3dxfyyledibvz55dvqmxbpvjoqm26r/lib64/libstdc++.so.6 cmake --build . --target check -j 15 &> test.log
+    - LD_PRELOAD=/scratch/spack-26.1/opt/spack/linux-x86_64_v3/gcc-15.2.0-f22zr7sngmxt22rxcnexmjbrqwoel53e/lib64/libstdc++.so.6 cmake --build . --target check -j 15 &> test.log
     - ccache -s
   artifacts:
     reports:
