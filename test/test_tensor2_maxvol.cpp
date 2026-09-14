@@ -7,12 +7,14 @@
 #include "test_complex_helper.hpp"
 #include "pitts_tensor2_maxvol.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
+#include "pitts_type_name.hpp"
 #include "eigen_test_helper.hpp"
 #include <complex>
 #include <set>
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <iostream>
 #include <stdexcept>
 
 namespace
@@ -30,9 +32,9 @@ namespace
     }
   }
 
-  // helper: max |A * A(I,:)^-1| (the "dominance" measure of the selected submatrix)
+  // helper: the selected submatrix A(I,:)
   template<typename T>
-  auto dominance(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
+  auto subMatrix(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
   {
     using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     const auto mapA = ConstEigenMap(A);
@@ -40,21 +42,68 @@ namespace
     mat Ahat(r, r);
     for(int i = 0; i < r; i++)
       Ahat.row(i) = mapA.row(I[i]);
-    const mat B = mapA * Ahat.inverse();
-    return B.array().abs().maxCoeff();
+    return Ahat;
+  }
+
+  // helper: B = A * A(I,:)^-1 (the interpolation coefficients of the cross approximation)
+  //
+  // Calculated with a linear solve, not with an explicit inverse: forming A(I,:)^-1 and multiplying
+  // is less accurate (and Eigen's dense inverse() is just a LU solve with the identity anyway).
+  template<typename T>
+  auto interpolationCoefficients(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const auto mapA = ConstEigenMap(A);
+    const mat Ahat = subMatrix(A, I);
+    // B = A * A(I,:)^-1  <=>  A(I,:)^H B^H = A^H
+    const mat B = Eigen::PartialPivLU<mat>(Ahat.adjoint()).solve(mapA.adjoint()).adjoint();
+    return B;
+  }
+
+  // helper: max |A * A(I,:)^-1| (the "dominance" measure of the selected submatrix)
+  template<typename T>
+  auto dominance(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
+  {
+    return interpolationCoefficients(A, I).array().abs().maxCoeff();
+  }
+
+  // helper: print diagnostic data of a maxvol result (plain cout, for debugging sporadic CI failures)
+  template<typename T>
+  void printDiagnostics(const char* testName, const PITTS::Tensor2<T>& A, const std::vector<int>& I, T tol)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const auto mapA = ConstEigenMap(A);
+    const mat Ahat = subMatrix(A, I);
+    const mat B = interpolationCoefficients(A, I);
+
+    // largest entry of B and its position: if this is larger than 1+tol, maxvol stopped too early
+    Eigen::Index iMax = 0, jMax = 0;
+    const auto maxB = B.array().abs().maxCoeff(&iMax, &jMax);
+
+    // the same measure with an explicit inverse (less accurate, just for comparison)
+    const mat Binv = mapA * Ahat.inverse();
+
+    const Eigen::JacobiSVD<mat> svdA(mapA), svdAhat(Ahat);
+    const auto condA = svdA.singularValues()(0) / svdA.singularValues()(A.r2()-1);
+    const auto condAhat = svdAhat.singularValues()(0) / svdAhat.singularValues()(A.r2()-1);
+
+    std::cout << "[maxvol] " << testName << ", T=" << PITTS::internal::TypeName::name<T>()
+              << ", m=" << A.r1() << ", r=" << A.r2() << ", tol=" << std::abs(tol) << "\n"
+              << "         max|A*A(I,:)^-1| = " << maxB << " at (" << iMax << "," << jMax << ")"
+              << ", with explicit inverse: " << Binv.array().abs().maxCoeff() << "\n"
+              << "         cond(A) = " << condA << ", cond(A(I,:)) = " << condAhat
+              << ", |det A(I,:)| = " << std::abs(Ahat.determinant()) << "\n"
+              << "         I =";
+    for(int i: I)
+      std::cout << " " << i;
+    std::cout << std::endl;
   }
 
   // helper: |det A(I,:)|
   template<typename T>
   auto volume(const PITTS::Tensor2<T>& A, const std::vector<int>& I)
   {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto mapA = ConstEigenMap(A);
-    const int r = I.size();
-    mat Ahat(r, r);
-    for(int i = 0; i < r; i++)
-      Ahat.row(i) = mapA.row(I[i]);
-    return std::abs(Ahat.determinant());
+    return std::abs(subMatrix(A, I).determinant());
   }
 }
 
@@ -154,6 +203,8 @@ TYPED_TEST(PITTS_Tensor2_maxvol, random_tall_is_dominant)
   const std::vector<int> I = PITTS::internal::maxvol(A, tol);
   checkValidIndices(I, m, r);
 
+  printDiagnostics("random_tall_is_dominant", A, I, tol);
+
   // all entries of A * A(I,:)^-1 must be bounded by 1+tol (up to round-off)
   EXPECT_LE(dominance(A, I), 1 + std::abs(tol) + 10*eps);
 }
@@ -171,6 +222,8 @@ TYPED_TEST(PITTS_Tensor2_maxvol, random_tall_small_tolerance_is_dominant)
   const Type tol = Type(1.e-4);
   const std::vector<int> I = PITTS::internal::maxvol(A, tol, 1000);
   checkValidIndices(I, m, r);
+
+  printDiagnostics("random_tall_small_tolerance_is_dominant", A, I, tol);
 
   EXPECT_LE(dominance(A, I), 1 + std::abs(tol) + 10*eps);
 }
