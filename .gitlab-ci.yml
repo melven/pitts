@@ -33,7 +33,7 @@ build_release:
     - module unload -f --no-auto eigen
     - module load eigen/5.0.1-gcc-13.3.0-cgsuhqh
     # allow to load julia
-    - module unload -f --no-auto t8code parmetis metis llvm
+    - module unload -f --no-auto t8code parmetis metis llvm curl
     - module load libcxxwrap-julia
     - export LD_LIBRARY_PATH=/scratch/spack-26.1/opt/spack/linux-x86_64_v3/intel-oneapi-mkl-2026.0.0-r5fnijp2vjkpnqmecnnamcksnhy2ms2l/compiler/2026.0/lib/:$LD_LIBRARY_PATH
     - module load libwhich
@@ -108,7 +108,7 @@ build_debug:
     - module unload -f --no-auto eigen
     - module load eigen/5.0.1-gcc-13.3.0-cgsuhqh
     # allow to load julia
-    - module unload -f --no-auto t8code parmetis metis llvm
+    - module unload -f --no-auto t8code parmetis metis llvm curl
     - module load libcxxwrap-julia
     - module load libwhich
     - export CCACHE_DIR="/var/tmp/gitlab-runner/ccache_PITTS_debug/"
