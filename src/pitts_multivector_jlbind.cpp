@@ -38,9 +38,8 @@ namespace PITTS
     // create jlcxx-wrapper for PITTS::TensorTrain
     void define_MultiVector(jlcxx::Module& m)
     {
-      // add code for std::vector of std::complex
-      jlcxx::stl::apply_stl<std::complex<float>>(m);
-      jlcxx::stl::apply_stl<std::complex<double>>(m);
+      // (std::vector of std::complex is wrapped automatically: since libcxxwrap-julia 0.14 the STL
+      //  container types are created on demand from jlcxx/stl.hpp, jlcxx::stl::apply_stl was removed)
 
       m.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("MultiVector", jlcxx::julia_type("DenseMatrix"))
         .apply<PITTS::MultiVector<float>, PITTS::MultiVector<double>, PITTS::MultiVector<std::complex<float>>, PITTS::MultiVector<std::complex<double>>>([](auto wrapped)
