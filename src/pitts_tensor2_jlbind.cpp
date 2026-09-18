@@ -72,7 +72,9 @@ namespace PITTS
           wrapped.template method("setindex!", [](Tensor2View_type& t2, Type val, jlcxx::cxxint_t i, jlcxx::cxxint_t j){t2(i-1,j-1) = val;});
           wrapped.module().unset_override_module();
 
-          wrapped.template method("randomize!", static_cast<void (*)(Tensor2View_type&)>(&randomize));
+          // (jlcxx's TypeWrapper::method only accepts member function pointers and callable objects,
+          //  so wrap free functions in a lambda instead of passing a function pointer)
+          wrapped.template method("randomize!", [](Tensor2View_type& t2){randomize(t2);});
           wrapped.template method("data", [](Tensor2View_type& t2){return &t2(0,0);});
         });
 
@@ -88,7 +90,7 @@ namespace PITTS
           wrapped.template method("resize!", &Tensor2_type::resize);
           wrapped.module().unset_override_module();
 
-          wrapped.template method("copy", static_cast<void (*)(const Tensor2_type&, Tensor2_type&)>(&copy));
+          wrapped.template method("copy", [](const Tensor2_type& src, Tensor2_type& dst){copy(src, dst);});
         });
 
       m.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("Tensor2Pair")
@@ -109,8 +111,15 @@ namespace PITTS
           });
           wrapped.module().unset_override_module();
 
-          wrapped.template method("split_normalize_qb", &PITTS::internal::normalize_qb<Type>);
-          wrapped.template method("split_normalize_svd", &PITTS::internal::normalize_svd<Type>);
+          // (the default arguments are not visible in Julia anyway, so all arguments are listed here)
+          wrapped.template method("split_normalize_qb", [](const ConstTensor2View<Type>& M, bool leftOrthog, Type rankTolerance, int maxRank, bool absoluteTolerance)
+          {
+            return PITTS::internal::normalize_qb<Type>(M, leftOrthog, rankTolerance, maxRank, absoluteTolerance);
+          });
+          wrapped.template method("split_normalize_svd", [](const ConstTensor2View<Type>& M, bool leftOrthog, Type rankTolerance, int maxRank, bool absoluteTolerance, bool useFrobeniusNorm, Type* oldFrobeniusNorm)
+          {
+            return PITTS::internal::normalize_svd<Type>(M, leftOrthog, rankTolerance, maxRank, absoluteTolerance, useFrobeniusNorm, oldFrobeniusNorm);
+          });
         });
     }
   }
