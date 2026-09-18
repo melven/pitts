@@ -37,6 +37,8 @@ target_sources(pitts INTERFACE
   pitts_tensor2_eigen_adaptor.hpp
   pitts_tensor2_qb_decomposition.hpp
   pitts_tensor2_qb_decomposition_impl.hpp
+  pitts_tensor2_maxvol.hpp
+  pitts_tensor2_maxvol_impl.hpp
   pitts_tensor3.hpp
   pitts_tensor3_impl.hpp
   pitts_tensor3_random.hpp
@@ -190,6 +192,7 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensor2_random.cpp
     pitts_tensor2_concat.cpp
     pitts_tensor2_qb_decomposition.cpp
+    pitts_tensor2_maxvol.cpp
     pitts_tensor3.cpp
     pitts_tensor3_combine.cpp
     pitts_tensor3_random.cpp
