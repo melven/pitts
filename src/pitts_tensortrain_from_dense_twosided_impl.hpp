@@ -26,6 +26,7 @@
 #include "pitts_tensor2.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensor3_split.hpp"
+#include "pitts_tensor3_fold.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -34,50 +35,72 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
-    //! helper namespace for high-order SVD functionality (e.g. TensorTrain_fromDense)
-    namespace HOSVD
+    //! helper namespace for two-sided TT-SVD functionality
+    namespace TTSVD_twoSided
     {
+      //! small wrapper around SVD only with data size
+      template<typename T, class TensorType>
+      auto split_svd_only(const TensorType& M)
+      {
+        auto n = ConstEigenMap(M).rows();
+        const auto m = ConstEigenMap(M).cols();
+
+        constexpr auto pow3 = [](double x){return x*x*x;};
+
+        const auto timer = PITTS::performance::createScopedTimer<TensorType>(
+          {{"n", "m"},{n, m}}, // arguments
+          {{(4.*n*m*std::min(n,m)+2*pow3(std::min(n,m))/3)*kernel_info::FMA<T>()}, // flops
+           {(n*m)*kernel_info::Load<T>() + ((n+m+1)*std::min(n,m))*kernel_info::Store<T>()}} // data transfers
+          );
+
+        using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+        const auto mapM = ConstEigenMap(M);
+
+#if EIGEN_VERSION_AT_LEAST(3,4,90)
+        auto svd = Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinV | Eigen::ComputeThinU>(mapM);
+#else
+        auto svd = Eigen::BDCSVD<EigenMatrix>(mapM, Eigen::ComputeThinV | Eigen::ComputeThinU);
+#endif
+
+        assert(!std::isnan(svd.singularValues()(0)));
+
+        return svd;
+      }
+
       template<typename T>
       void split(const MultiVector<T>& X, MultiVector<T>& Y, Tensor2<T>& M, int nextDim, T rankTolerance, int maxRank, T& initialFrobeniusNorm)
       {
-        using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-#if EIGEN_VERSION_AT_LEAST(3,4,90)
-        Eigen::BDCSVD<EigenMatrix, Eigen::ComputeThinU | Eigen::ComputeThinV> svd;
-#else
-        Eigen::BDCSVD<EigenMatrix> svd;
-#endif
-std::cout << "HOSVD::split  matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
-        if( X.rows() > 10*X.cols() )
-        {
-          // calculate QR decomposition (QR-trick: X=QR,SVD(R))
-          block_TSQR(X, M, 0, false);
-#if EIGEN_VERSION_AT_LEAST(3,4,90)
-          svd.compute(ConstEigenMap(M));
-#else
-          svd.compute(ConstEigenMap(M), Eigen::ComputeThinU | Eigen::ComputeThinV);
-#endif
-        }
-        else
-        {
-#if EIGEN_VERSION_AT_LEAST(3,4,90)
-          svd.compute(ConstEigenMap(X));
-#else
-          svd.compute(ConstEigenMap(X), Eigen::ComputeThinU | Eigen::ComputeThinV);
-#endif
-        }
+        // timer
+        const auto timer = PITTS::timing::createScopedTimer<MultiVector<T>>();
+
+        std::cout << "TT-SVD::split  matrix dimensions: " << X.rows() << " x " << X.cols() << "\n";
+        auto svd = [&](){
+          if( X.rows() > 10*X.cols() )
+          {
+            // calculate QR decomposition (QR-trick: X=QR,SVD(R))
+            block_TSQR(X, M, 0, false);
+            return split_svd_only<T>(M);
+          }
+          else
+          {
+            return split_svd_only<T>(X);
+          }
+        }();
 
         if( initialFrobeniusNorm == 0 )
           initialFrobeniusNorm = svd.singularValues().norm();
 
-        int rank = internal::rankInFrobeniusNorm(svd, rankTolerance);
+        int rank = internal::rankInFrobeniusNorm(svd, rankTolerance*initialFrobeniusNorm);
+        std::cout << "n: " << svd.singularValues().size() << ", rank: " << rank << ", maxRank: " << maxRank << ", rankTol*initialFrobeniusNorm: " << rankTolerance * initialFrobeniusNorm << "\n";
         if( maxRank >= 0 )
           rank = std::min(rank, maxRank);
 
-        std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
+        //std::cout << "singular values: " << svd.singularValues().transpose()/initialFrobeniusNorm << "\n";
 
         // copy right singular vectors
         M.resize(X.cols(), rank);
-        EigenMap(M) = svd.matrixV().leftCols(rank);
+        EigenMap(M).noalias() = svd.matrixV().leftCols(rank);
 
         // transform input, s.t. Y \approx X M
         transform(X, M, Y, {X.rows()/nextDim, rank*nextDim});
@@ -126,21 +149,14 @@ std::cout << "HOSVD::split  matrix dimensions: " << X.rows() << " x " << X.cols(
         }
         if( ii != nDim-1 )
         {
-          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank, initialFrobeniusNorm);
+          internal::TTSVD_twoSided::split(X, work, M, 1, rankTol, maxRank, initialFrobeniusNorm);
+          fold_right(ConstEigenMap(M).transpose(), dimensions[iDim], subTensors[iDim]);
         }
         else
         {
-          M.resize(X.cols(), X.rows());
-          EigenMap(M) = ConstEigenMap(X).transpose();
+          fold_right(X, dimensions[iDim], subTensors[iDim]);
         }
 
-        auto& subT = subTensors[iDim];
-        const int rank = M.r2();
-        subT.resize(rank, dimensions[iDim], X.cols()/dimensions[iDim]);
-        for(int i = 0; i < rank; i++)
-          for(int j = 0; j < subT.n(); j++)
-            for(int k = 0; k < subT.r2(); k++)
-              subT(i,j,k) = M(j+subT.n()*k, i);
       }
       else
       {
@@ -153,21 +169,13 @@ std::cout << "HOSVD::split  matrix dimensions: " << X.rows() << " x " << X.cols(
         }
         if( ii != nDim - 1 )
         {
-          internal::HOSVD::split(X, work, M, 1, rankTolerance, maxRank, initialFrobeniusNorm);
+          internal::TTSVD_twoSided::split(X, work, M, 1, rankTol, maxRank, initialFrobeniusNorm);
+          fold_left(M, dimensions[iDim], subTensors[iDim]);
         }
         else
         {
-          M.resize(X.cols(), X.rows());
-          EigenMap(M) = ConstEigenMap(X).transpose();
+          fold_left(ConstEigenMap(X).transpose(), dimensions[iDim], subTensors[iDim]);
         }
-
-        auto& subT = subTensors[iDim];
-        const int rank = M.r2();
-        subT.resize(X.cols()/dimensions[iDim], dimensions[iDim], rank);
-        for(int i = 0; i < rank; i++)
-          for(int j = 0; j < subT.n(); j++)
-            for(int k = 0; k < subT.r1(); k++)
-              subT(k,j,i) = M(k+j*subT.r1(), i);
       }
     }
 
