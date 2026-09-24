@@ -109,10 +109,12 @@ namespace PITTS
       if( iDim == nDim-1 )
         initialFrobeniusNorm = svd.singularValues().norm();
       int rank = internal::rankInFrobeniusNorm(svd, rankTol * initialFrobeniusNorm);
+      if( root )
+        std::cout << "n: " << svd.singularValues().size() << ", rank: " << rank << ", maxRank: " << maxRank << ", rankTol*initialFrobeniusNorm: " << rankTol * initialFrobeniusNorm << "\n";
       if( maxRank >= 0 )
         rank = std::min(rank, maxRank);
-      if( root )
-        std::cout << "singular values: " << svd.singularValues().transpose() << "\n";
+      //if( root )
+      //  std::cout << "relative singular values: " << svd.singularValues().transpose()/initialFrobeniusNorm << "\n";
 
       // copy V to the TT sub-tensor
       fold_right(svd.matrixV().leftCols(rank).transpose(), dimensions[iDim], subTensors[iDim]);
