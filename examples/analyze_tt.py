@@ -36,6 +36,7 @@ if __name__ == '__main__':
     print(Xtt)
     reorder = np.load('Xtt_reorder.npz')['reorder_features']
     discreteCosineTransform = True
+    normalize = True
 
     X = pitts_py.toDense(Xtt)
     if reorder is not None:
@@ -59,9 +60,16 @@ if __name__ == '__main__':
         #print('min', sample.min(), 'max', sample.max())
         sample = np.maximum(sample, 0)
         sample = np.minimum(sample, 1)
-        cv2.imwrite('sample%d.png' % iFrame, sample*255)
+        if normalize:
+            cv2.imwrite('sample%d_normalized.png' % iFrame, sample*255)
+
         img_ref = cv2.imread('/scratch/zoel_ml/ATEK_COPY/combustion{:06d}.jpg'.format(iFrame))
         img_ref = img_ref / 255
+        if normalize:
+            sample *= np.linalg.norm(img_ref)
+            sample = np.maximum(sample, 0)
+            sample = np.minimum(sample, 1)
+        cv2.imwrite('sample%d.png' % iFrame, sample*255)
         cv2.imwrite('ref%d.png' % iFrame, img_ref*255)
         diff = (1 + sample - img_ref)/2
         cv2.imwrite('diff%d.png' % iFrame, diff*255)
