@@ -1118,7 +1118,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim6_nonsymmetric_least_squares)
   TensorTrainOperator_double TTOpI(6,5,4);
   TTOpI.setEye();
   const double Inrm = normalize(TTOpI);
-  axpby(Inrm, TTOpI, Inrm/100, TTOpA);
+  axpby(Inrm, TTOpI, Inrm/200, TTOpA);
   
 
   TensorTrain_double TTx(6,4), TTb(6,5);
