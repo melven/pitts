@@ -20,3 +20,10 @@ path = "**.gitignore"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2019 German Aerospace Center (DLR), Institute for Software Technology, Germany"
 SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["examples/Interactive_DeepArc_examples.ipynb", "examples/Interactive_DeepArc_thesis.ipynb"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 German Aerospace Center (DLR), Institute for Software Technology, Germany"
+SPDX-License-Identifier = "BSD-3-Clause"
+SPDX-FileContributor = "Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>"
