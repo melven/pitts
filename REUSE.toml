@@ -1,0 +1,22 @@
+version = 1
+SPDX-PackageName = "pitts"
+SPDX-PackageSupplier = "Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>"
+SPDX-PackageDownloadLocation = "https://github.com/melven/pitts"
+
+[[annotations]]
+path = ["bench/**.out", "bench/**.log", "bench/**.out.dat"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 German Aerospace Center (DLR), Institute for Software Technology, Germany"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "bench/**.sh"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 German Aerospace Center (DLR), Institute for Software Technology, Germany"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "**.gitignore"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 German Aerospace Center (DLR), Institute for Software Technology, Germany"
+SPDX-License-Identifier = "BSD-3-Clause"
