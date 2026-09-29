@@ -24,7 +24,7 @@ Each main directory has its own `CLAUDE.md` with per-file summaries; read it bef
 | `CMakeLists.txt` | Root build: compiler flags (`-march=native`, GCC inliner params), options `PITTS_DEVELOP_BUILD`, `PITTS_OPTIMIZE_FOR_HOST`, `PITTS_EIGEN_USE_LAPACKE`, `PITTS_DIRECT_MKL_GEMM`, algorithm-variant switches (`PITTS_TENSORTRAIN_*`), required/optional dependency lookup. |
 | `.gitlab-ci.yml` | CI jobs: release/debug/coverage/clang builds with ccache and MKL modules, REUSE lint, GitLab pages publishing the coverage report. |
 | `CITATION.cff`, `README.md`, `LICENSE` | Citation metadata (Zenodo DOI), project description, license. |
-| `DESIGN.md` | Design goals and conventions (API shape, kernels, TT specifics, testing). Read before adding or changing library code. Coding style is in `src/CLAUDE.md`. |
+| `DESIGN.md` | Design goals and conventions (API shape, kernels, TT specifics, testing). Read before adding or changing library code. Coding style is in `src/CLAUDE.md`, including the rule to check the existing `pitts_<type>_*.hpp` headers for available functionality before writing new helpers. |
 | `.claude/` | `settings.json` registers `hooks/session-start.sh` (environment setup below, Claude Code on the web) and `hooks/stop-check-claude-md.sh` (blocks ending a turn while the `CLAUDE.md` files are out of sync). |
 | `scripts/` | `check_claude_md.sh`: consistency check between the directory contents and the `CLAUDE.md` tables (used by the Stop hook; run it manually any time). |
 
@@ -47,6 +47,13 @@ the author, both in the SPDX header and in the Doxygen `@author` line:
 
 Do not add this line to existing hand-written files when editing them; the git history records
 those changes (commit messages carry the `Co-Authored-By` trailer).
+
+**Commit messages:** first line in the form `<topic>: <short description>` (lower-case topic,
+imperative, no trailing period), as in the existing history:
+`triangular_mult: use dtrmm for compute-bound cases`, `bench: update benchmark results`,
+`machine_info: fix datatype`. The topic is the affected component (file name without the
+`pitts_` prefix, e.g. `tensor2_maxvol`, `tt_axpby`, `bench`, `ci`, `claude_md`); a longer
+explanation goes into the body after a blank line. Keep one topic per commit.
 
 ## Environment setup (Ubuntu 24.04, apt only)
 

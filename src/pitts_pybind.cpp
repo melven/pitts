@@ -16,6 +16,7 @@
 #include "pitts_tensortrain_pybind.hpp"
 #include "pitts_tensortrain_operator_pybind.hpp"
 #include "pitts_tensortrain_solve_pybind.hpp"
+#include "pitts_tensortrain_cross_pybind.hpp"
 #include "pitts_multivector_pybind.hpp"
 #include "pitts_common_pybind.hpp"
 #ifdef PITTS_HAVE_ITENSOR
@@ -31,6 +32,7 @@ PYBIND11_MODULE(pitts_py, m)
   PITTS::pybind::init_TensorTrain(m);
   PITTS::pybind::init_TensorTrainOperator(m);
   PITTS::pybind::init_TensorTrain_solve(m);
+  PITTS::pybind::init_TensorTrain_cross(m);
 #ifdef PITTS_HAVE_ITENSOR
   PITTS::pybind::init_TensorTrainOperator_itensor_autompo(m);
 #endif
