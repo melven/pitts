@@ -63,7 +63,13 @@ int main(int argc, char* argv[])
   if( argc > 5 )
     std::from_chars(argv[5], argv[6], maxRank);
   if( argc > 6 )
+  {
+#ifdef __clang__
+    throw std::invalid_argument("std::from_chars with double not supported by clang++!");
+#else
     std::from_chars(argv[6], argv[7], tolerance);
+#endif
+  }
   if( argc > 7 )
     std::from_chars(argv[7], argv[8], nSweeps);
 

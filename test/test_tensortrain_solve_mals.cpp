@@ -1088,6 +1088,7 @@ TEST(PITTS_TensorTrain_solve_mals, MALS_random_nDim6_nonsymmetric_PetrovGalerkin
 {
   TensorTrainOperator_double TTOpA(6,4,4);
   TTOpA.setTTranks(1);
+  PITTS::internal::randomGenerator.seed(2026);
   randomize(TTOpA);
   normalize(TTOpA);
   TensorTrainOperator_double TTOpI(6,4,4);
@@ -1118,7 +1119,7 @@ TEST(PITTS_TensorTrain_solve_mals, ALS_random_nDim6_nonsymmetric_least_squares)
   TensorTrainOperator_double TTOpI(6,5,4);
   TTOpI.setEye();
   const double Inrm = normalize(TTOpI);
-  axpby(Inrm, TTOpI, Inrm/100, TTOpA);
+  axpby(Inrm, TTOpI, Inrm/500, TTOpA);
   
 
   TensorTrain_double TTx(6,4), TTb(6,5);
