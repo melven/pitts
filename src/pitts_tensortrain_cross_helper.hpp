@@ -462,23 +462,34 @@ namespace PITTS
       }
 
 
-      //! relative Frobenius-norm difference ||A - B||_F / ||B||_F of two blocks of equal shape (convergence measure)
+      //! root-mean-square size of a block: ||A||_F / sqrt(number of entries)
       //!
-      //! Returns the absolute difference ||A - B||_F if B is zero.
+      //! The blocks of a TT-cross sweep sample the tensor on crosses of different (and growing) size, so
+      //! only this scaling makes their magnitudes comparable (a Frobenius norm grows with the TT rank).
+      //!
+      template<typename T>
+      auto t3_rms(const Tensor3<T>& A)
+      {
+        using RealType = decltype(std::abs(T()));
+        const auto nEntries = A.r1()*A.n()*A.r2();
+        return nEntries > 0 ? t3_nrm(A) / std::sqrt(RealType(nEntries)) : RealType(0);
+      }
+
+
+      //! root-mean-square difference t3_rms(A - B) of two blocks of equal shape
       //!
       //! @throws std::invalid_argument for different shapes
       //!
       template<typename T>
-      auto relativeDifference(const Tensor3<T>& A, const Tensor3<T>& B)
+      auto rmsDifference(const Tensor3<T>& A, const Tensor3<T>& B)
       {
         if( A.r1() != B.r1() || A.n() != B.n() || A.r2() != B.r2() )
-          throw std::invalid_argument("relativeDifference: blocks have different shapes!");
+          throw std::invalid_argument("rmsDifference: blocks have different shapes!");
 
         Tensor3<T> diff;
         copy(A, diff);
         t3_axpy(T(-1), B, diff);
-        const auto normB = t3_nrm(B);
-        return normB > 0 ? t3_nrm(diff) / normB : t3_nrm(diff);
+        return t3_rms(diff);
       }
 
 
