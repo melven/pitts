@@ -144,6 +144,17 @@ namespace PITTS
     //! tolerance for the dominance criterion of the maxvol row/column selection (see internal::maxvol)
     T maxvolTolerance = T(0.05);
 
+    //! number of randomly drawn tensor entries used as an independent error check (0 = off)
+    //!
+    //! Costs this many additional function evaluations per sweep (plus the evaluation of x and y there).
+    //! The entries are drawn once, so the resulting TTCrossInfo::lastSampleError is comparable between
+    //! sweeps. Unlike the other two measures, which only see the crosses the algorithm itself selected,
+    //! this is an unbiased estimate of the global error - it does not enter the convergence check,
+    //! because its statistical error (roughly 1/sqrt(2*controlSampleSize)) is usually larger than
+    //! convergenceTolerance.
+    //!
+    int controlSampleSize = 0;
+
     //! print convergence information per sweep
     bool verbose = false;
   };
@@ -177,8 +188,16 @@ namespace PITTS
     //!
     //! Measured on the (independent) crosses of the error approximation z, so unlike lastChange this also
     //! detects a rank that is too low: y can be exact on its own crosses and still be a bad approximation.
+    //! Still only an indicator: a rank-errorRank cross cannot see an error outside the fibers it samples.
     //!
     T lastError = T(0);
+
+    //! relative error ||f(x) - y||_F / ||f(x)||_F estimated on controlSampleSize random entries (0 if off)
+    //!
+    //! The only measure that does not depend on the crosses chosen by the algorithm, hence unbiased - but
+    //! with a statistical error of roughly 1/sqrt(2*controlSampleSize), see TTCrossOptions.
+    //!
+    T lastSampleError = T(0);
 
     //! total number of evaluated tensor entries (calls of the element-wise function)
     long long nEvaluations = 0;

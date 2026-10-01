@@ -462,6 +462,64 @@ namespace PITTS
       }
 
 
+      //! uniformly distributed random multi-indices of the whole tensor, one per row
+      //!
+      //! In contrast to randomRightIndexSets these are independent: no nesting, so the entries sampled
+      //! with them are uncorrelated (needed for an unbiased error estimate, see TTCrossOptions).
+      //!
+      inline Eigen::MatrixXi randomIndices(const std::vector<int>& dims, int nSamples)
+      {
+        Eigen::MatrixXi indices(nSamples, dims.size());
+        for(int k = 0; k < int(dims.size()); k++)
+        {
+          std::uniform_int_distribution<int> distribution(0, dims[k]-1);
+          for(int s = 0; s < nSamples; s++)
+            indices(s, k) = distribution(randomGenerator);
+        }
+        return indices;
+      }
+
+
+      //! evaluate a tensor train at the given multi-indices (one per row), as a block of shape (nSamples,1,1)
+      //!
+      //! This is just a batched variant of the scalar products with the corresponding unit tensors
+      //! (setUnit + dot), touching only the slice of each core that the index selects. The block shape
+      //! allows reusing applyToBlock and rmsDifference on the result.
+      //!
+      //! @todo Move this to a dedicated top-level function (with a better implementation: group the
+      //!       samples by index value into GEMMs, parallelize) as soon as it is needed somewhere else.
+      //!
+      template<typename T>
+      void evaluateAt(const TensorTrain<T>& TT, const Eigen::MatrixXi& indices, Tensor3<T>& values)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+        const int nSamples = indices.rows();
+
+        EigenMatrix v = EigenMatrix::Ones(nSamples, 1);
+        for(int k = 0; k < indices.cols(); k++)
+        {
+          const auto& core = TT.subTensor(k);
+          // slice core(:,j,:) as an r1 x r2 matrix (the Tensor3 memory is i1 + j*r1 + i2*r1*n)
+          const auto slice = [&core](int j)
+          {
+            return Eigen::Map<const EigenMatrix, Eigen::Unaligned, Eigen::OuterStride<>>(
+                &core(0, j, 0), core.r1(), core.r2(), Eigen::OuterStride<>(core.r1()*core.n()));
+          };
+
+          EigenMatrix vNext(nSamples, core.r2());
+          for(int s = 0; s < nSamples; s++)
+            vNext.row(s) = v.row(s) * slice(indices(s, k));
+          v = std::move(vNext);
+        }
+
+        values.resize(nSamples, 1, 1);
+        for(int s = 0; s < nSamples; s++)
+          values(s, 0, 0) = v(s, 0);
+      }
+
+
       //! root-mean-square size of a block: ||A||_F / sqrt(number of entries)
       //!
       //! The blocks of a TT-cross sweep sample the tensor on crosses of different (and growing) size, so

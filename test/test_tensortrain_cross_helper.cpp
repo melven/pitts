@@ -530,6 +530,42 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_i
 using PITTS::internal::tt_cross::applyToBlock;
 using PITTS::internal::tt_cross::t3_rms;
 using PITTS::internal::tt_cross::rmsDifference;
+using PITTS::internal::tt_cross::randomIndices;
+using PITTS::internal::tt_cross::evaluateAt;
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, randomIndices_and_evaluateAt)
+{
+  using Type = typename TestFixture::Type;
+  const auto eps = 1.e-6;
+
+  const std::vector<int> dims = {3, 4, 2, 5, 3};
+  PITTS::TensorTrain<Type> TT(dims);
+  TT.setTTranks({2, 3, 2, 4});
+  randomize(TT);
+
+  const int nSamples = 20;
+  const Eigen::MatrixXi indices = randomIndices(dims, nSamples);
+  ASSERT_EQ(nSamples, indices.rows());
+  ASSERT_EQ(dims.size(), indices.cols());
+  for(int k = 0; k < int(dims.size()); k++)
+  {
+    EXPECT_GE(indices.col(k).minCoeff(), 0);
+    EXPECT_LT(indices.col(k).maxCoeff(), dims[k]);
+  }
+
+  // same as the scalar products with the corresponding unit tensors
+  PITTS::Tensor3<Type> values;
+  evaluateAt(TT, indices, values);
+  ASSERT_EQ(nSamples, values.r1());
+  ASSERT_EQ(1, values.n());
+  ASSERT_EQ(1, values.r2());
+  for(int s = 0; s < nSamples; s++)
+  {
+    PITTS::TensorTrain<Type> unit(dims);
+    unit.setUnit(std::vector<int>(indices.row(s).begin(), indices.row(s).end()));
+    EXPECT_NEAR(dot(unit, TT), values(s, 0, 0), eps);
+  }
+}
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock)
 {

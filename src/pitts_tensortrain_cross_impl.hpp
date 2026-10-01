@@ -290,9 +290,29 @@ namespace PITTS
     };
 
     // ---- sweeps ----
+    // independent control sample: random entries, drawn once so that the estimate is comparable between
+    // sweeps; it does not enter the convergence check, see TTCrossOptions::controlSampleSize
+    const Eigen::MatrixXi sampleIndices = options.controlSampleSize > 0 ?
+        randomIndices(dims, options.controlSampleSize) : Eigen::MatrixXi(0, nDim);
+
+    const auto sampleError = [&]() -> RealType
+    {
+      if( sampleIndices.rows() == 0 )
+        return 0;
+      Tensor3<T> fx, yOnSample;
+      evaluateAt(TTx, sampleIndices, fx);
+      info.nEvaluations += applyToBlock(f, fx);
+      evaluateAt(TTy, sampleIndices, yOnSample);
+      const RealType rmsfx = t3_rms(fx);
+      return rmsDifference(fx, yOnSample) / (rmsfx > 0 ? rmsfx : 1);
+    };
+
     const auto printProgress = [&](double sweep, RealType change, RealType error)
     {
-      std::cout << "TT-cross sweep " << sweep << ": change " << change << ", error estimate " << error << ", ranks:";
+      std::cout << "TT-cross sweep " << sweep << ": change " << change << ", error estimate " << error;
+      if( options.controlSampleSize > 0 )
+        std::cout << ", sampled error " << info.lastSampleError;
+      std::cout << ", ranks:";
       for(int r: TTy.getTTranks())
         std::cout << " " << r;
       std::cout << "\n";
@@ -330,6 +350,7 @@ namespace PITTS
       info.nSweeps = iSweep+1;
       info.lastChange = maxChange;
       info.lastError = maxError;
+      info.lastSampleError = sampleError();
       if( options.verbose )
         printProgress(iSweep+1, maxChange, maxError);
 
