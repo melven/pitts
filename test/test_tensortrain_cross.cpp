@@ -276,6 +276,53 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
   }
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  // mode dimensions and ranks vary strongly over the dimensions, so the blocks differ a lot in size:
+  // the measures must still be comparable (rms scaling, one global reference)
+  const std::vector<int> dims = {20, 2, 2, 2, 20};
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, {3, 2, 2, 3}, 23);
+
+  TensorTrain TTy(dims);
+  PITTS::TTCrossOptions<Type> options;
+  options.rankTolerance = Type(1.e-8);
+  options.nSweeps = 20;
+  const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
+
+  EXPECT_TRUE(info.converged);
+  EXPECT_LT(info.lastChange, options.convergenceTolerance);
+  EXPECT_LT(info.lastError, options.convergenceTolerance);
+  // converged means in particular that the ranks did not grow in the last sweep
+  const auto ranks = TTy.getTTranks();
+  const auto infoAgain = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
+  EXPECT_EQ(ranks, TTy.getTTranks());
+  EXPECT_TRUE(infoAgain.converged);
+
+  // scale invariance: scaling the function scales all blocks, the measures must not change
+  TensorTrain TTscaled(dims);
+  const auto infoScaled = applyElementwise([](Type v){return Type(1000)*v*v;}, TTx, TTscaled, options);
+  EXPECT_NEAR(info.lastChange, infoScaled.lastChange, 10*tolerance<Type>());
+  EXPECT_NEAR(info.lastError, infoScaled.lastError, 10*tolerance<Type>());
+
+  // without enrichment there is no error estimate
+  options.errorRank = 0;
+  options.enrichmentRank = 0;
+  TensorTrain TTnoEnrich(dims);
+  const auto infoNoEnrich = applyElementwise([](Type v){return v*v;}, TTx, TTnoEnrich, options);
+  EXPECT_EQ(Type(0), infoNoEnrich.lastError);
+
+  // a run that is stopped while the ranks still grow is not converged
+  options.errorRank = 3;
+  options.enrichmentRank = 2;
+  options.nSweeps = 1;
+  TensorTrain TTshort(dims);
+  const auto infoShort = applyElementwise([](Type v){return v*v;}, TTx, TTshort, options);
+  EXPECT_FALSE(infoShort.converged);
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
 {
   using Type = typename TestFixture::Type;
