@@ -21,9 +21,7 @@
 // includes
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <iostream>
-#include <numeric>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -301,7 +299,12 @@ namespace PITTS
     };
 
     const SweepIndex firstIdx(nDim, nMALS, nMALS-1, 0);
-    std::vector<int> ranks = TTy.getTTranks();
+    // Rank growth as a second convergence criterion: only the left-to-right sweep enriches, the
+    // right-to-left sweep truncates, so the ranks after a full sweep are always the truncated ones and
+    // comparing them between full sweeps tells whether the approximation is still growing. The maximal
+    // rank is used rather than each individual one: single bonds may still change by +-1 near convergence.
+    const auto maxRankOf = [](const std::vector<int>& ranks){return ranks.empty() ? 0 : *std::max_element(ranks.begin(), ranks.end());};
+    int largestRank = maxRankOf(TTy.getTTranks());
     for(int iSweep = 0; iSweep < options.nSweeps; iSweep++)
     {
       // left to right (the very first one builds y from scratch, its change measure is meaningless)
@@ -331,10 +334,8 @@ namespace PITTS
         printProgress(iSweep+1, maxChange, maxError);
 
       // a rank that still grows means the algorithm itself is not done, whatever the measures say
-      const std::vector<int> previousRanks = std::exchange(ranks, TTy.getTTranks());
-      const bool ranksGrew = std::inner_product(ranks.begin(), ranks.end(), previousRanks.begin(), false,
-                                                std::logical_or<>(), std::greater<>());
-      if( maxChange < options.convergenceTolerance && maxError < options.convergenceTolerance && !ranksGrew )
+      const int previousRank = std::exchange(largestRank, maxRankOf(TTy.getTTranks()));
+      if( maxChange < options.convergenceTolerance && maxError < options.convergenceTolerance && largestRank <= previousRank )
       {
         info.converged = true;
         break;
