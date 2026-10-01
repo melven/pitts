@@ -30,3 +30,7 @@ Stand-alone scripts using the `pitts_py` module (run with `PYTHONPATH=build/src`
 | `spectral_clustering.py` | Spectral clustering example using a low-rank (TT) approximation of the data. |
 | `big_data_tt.py` | Reads large data, reorders indices hierarchically and compresses it to TT format. |
 | `analyze_tt.py` | Reads TT data stored as `.npz` dicts (from `big_data_tt.py`), rebuilds the TT and analyzes samples. |
+| `numpy_to_tt_DeepArc.py` | Reads the DeepArc flow-field data (numpy arrays, video frames via OpenCV), converts it to TT format and reports runtime and memory usage per step. |
+| `numpy_to_tt_DeepArc.log`, `numpy_to_tt_DeepArc_.log` | Output logs of two runs of `numpy_to_tt_DeepArc.py` on a cluster node (timings, memory, TT ranks). |
+| `Interactive_DeepArc_examples.ipynb` | Jupyter notebook: interactive TT compression of the DeepArc data with video output (OpenCV/matplotlib) for comparing the original and the reconstruction. |
+| `Interactive_DeepArc_thesis.ipynb` | Variant of the above with the plots and comparisons used in the thesis. |
