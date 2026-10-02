@@ -36,11 +36,17 @@ namespace PITTS
       m.def("finalize",
           &PITTS::finalize,
           py::arg("verbose")=true,
+          // the statistics can be large, see printPerformanceStatistics
+          py::call_guard<py::gil_scoped_release>(),
           "Call MPI_Finalize if needed and print some statistics");
       m.def("printPerformanceStatistics",
           [](bool clear, bool mpiGlobal){PITTS::performance::printStatistics(clear, std::cout, mpiGlobal);},
           //py::arg("clear")=true,// py::arg("out")=std::cout, py::arg("mpiGlobal")=true, // std::cout not supported as default argument?
           py::arg("clear")=true, py::arg("mpiGlobal")=true,
+          // Release the GIL while writing to std::cout: jupyter captures the raw file descriptors and
+          // drains the pipe in a python thread, which needs the GIL. Writing more than the pipe buffer
+          // (64 KiB, easily reached by these statistics) while holding the GIL deadlocks the kernel.
+          py::call_guard<py::gil_scoped_release>(),
           "Print nice statistics using globalPerformanceStatisticsMap");
       m.def("clearPerformanceStatistics",
           &PITTS::performance::clearStatistics,
