@@ -558,6 +558,88 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, error_cross_contraction_vs
   }
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inputs_vs_direct_evaluation)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using PITTS::internal::tt_cross::randomIndices;
+  constexpr auto eps = 1.e-4;
+
+  // f(x^(1), x^(2)) of two tensor trains with different ranks; not symmetric, so the order of the arguments matters
+  const std::vector<int> dims = {3, 4, 2, 5, 3};
+  const int nDim = dims.size();
+  TensorTrain TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2, 4});
+  TTb.setTTranks({3, 1, 2, 2});
+  randomize(TTa);
+  randomize(TTb);
+  const auto f = [](Type a, Type b){return a*b + Type(2)*b;};
+  using Evaluator = PITTS::internal::tt_cross::FunctionOnCrosses<Type, decltype(f), 2>;
+  const typename Evaluator::Inputs inputs = {std::cref(TTa), std::cref(TTb)};
+
+  // index sets of y and (different) index sets of the error approximation
+  std::mt19937 gen(17);
+  const auto I = randomLeftIndexSets(dims, {2, 3, 2, 3}, gen);
+  const auto J = randomRightIndexSets(dims, {0, 3, 2, 3, 2}, gen);
+  const auto Iz = randomLeftIndexSets(dims, {1, 2, 2, 2}, gen);
+  const auto Jz = randomRightIndexSets(dims, {0, 2, 3, 2, 1}, gen);
+
+  // compare a block with f evaluated directly on the cross (L, modes of the cores k..k+nModes-1, R)
+  long long nEntries = 0;
+  const auto checkBlock = [&](const PITTS::Tensor3<Type>& B, const Eigen::MatrixXi& L, int k, int nModes, const Eigen::MatrixXi& R)
+  {
+    ASSERT_EQ(L.rows(), B.r1());
+    ASSERT_EQ(R.rows(), B.r2());
+    ASSERT_EQ(nModes == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
+    nEntries += B.r1()*B.n()*B.r2();
+    for(int a = 0; a < B.r1(); a++)
+      for(int b = 0; b < B.r2(); b++)
+        for(int j = 0; j < B.n(); j++)
+        {
+          Eigen::RowVectorXi multiIndex(nDim);
+          if( nModes == 2 )
+            multiIndex << L.row(a), j % dims[k], j / dims[k], R.row(b);
+          else
+            multiIndex << L.row(a), j, R.row(b);
+          const Type ref = f(evaluate(TTa, multiIndex), evaluate(TTb, multiIndex));
+          EXPECT_NEAR(ref, B(a, j, b), eps*(1 + std::abs(ref)));
+        }
+  };
+
+  for(int nMALS: {1, 2})
+    for(int k = 0; k + nMALS <= nDim; k++)
+    {
+      // left-to-right step: block, then the enrichment crosses (as in the driver)
+      Evaluator fromLeft(f, inputs, I, J, Iz, Jz);
+      nEntries = 0;
+      checkBlock(fromLeft.blockFromLeft(k, nMALS), expandLeft(I, k-1), k, nMALS, expandRight(J, k+nMALS, nDim));
+      if( nMALS == 1 )
+      {
+        checkBlock(fromLeft.mixedBlock(k), expandLeft(I, k-1), k, 1, expandRight(Jz, k+1, nDim));
+        checkBlock(fromLeft.errorBlockFromLeft(k), expandLeft(Iz, k-1), k, 1, expandRight(Jz, k+1, nDim));
+      }
+      EXPECT_EQ(nEntries, fromLeft.nEvaluations());
+
+      // right-to-left step: the same crosses with the contractions from the other side
+      Evaluator fromRight(f, inputs, I, J, Iz, Jz);
+      checkBlock(fromRight.blockFromRight(k, nMALS), expandLeft(I, k-1), k, nMALS, expandRight(J, k+nMALS, nDim));
+      if( nMALS == 1 )
+        checkBlock(fromRight.errorBlockFromRight(k), expandLeft(Iz, k-1), k, 1, expandRight(Jz, k+1, nDim));
+    }
+
+  // random entries (control sample)
+  Evaluator samples(f, inputs, I, J, Iz, Jz);
+  const Eigen::MatrixXi indices = randomIndices(dims, 10);
+  const PITTS::Tensor3<Type> values = samples.atIndices(indices);
+  ASSERT_EQ(10, values.r1());
+  for(int s = 0; s < 10; s++)
+  {
+    const Type ref = f(evaluate(TTa, indices.row(s)), evaluate(TTb, indices.row(s)));
+    EXPECT_NEAR(ref, values(s, 0, 0), eps*(1 + std::abs(ref)));
+  }
+  EXPECT_EQ(10, samples.nEvaluations());
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_index_set_change)
 {
   using Type = typename TestFixture::Type;
@@ -716,6 +798,51 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock_multivector)
   // the array function must not change the dimensions of the block
   PITTS::Tensor3<Type> D(2, 3, 2);
   EXPECT_THROW(applyToBlock([](PITTS::MultiVector<Type>& mv){mv.resize(7, 1);}, D), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock_two_arguments)
+{
+  using Type = typename TestFixture::Type;
+  constexpr auto eps = 1.e-6;
+
+  // entries a(i,j,k) and b(i,j,k) of two blocks, small (serial) and large (parallel path)
+  for(const auto [r1, n, r2]: {std::array<int,3>{3, 4, 2}, std::array<int,3>{5, 40, 7}})
+  {
+    const auto a = [](int i, int j, int k){return Type(1 + i + 3*j + 12*k);};
+    const auto b = [](int i, int j, int k){return Type(2 + 5*i + j + k);};
+    PITTS::Tensor3<Type> A(r1, n, r2), Aarray(r1, n, r2), B(r1, n, r2), Barray(r1, n, r2);
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+        {
+          A(i, j, k) = Aarray(i, j, k) = a(i, j, k);
+          B(i, j, k) = Barray(i, j, k) = b(i, j, k);
+        }
+
+    // scalar function f(a, b): the arguments in the order of the blocks
+    EXPECT_EQ(r1*n*r2, applyToBlock([](Type x, Type y){return x - Type(2)*y;}, A, std::move(B)));
+
+    // array function f(a, b): the second argument sees the entries of the second block in the Tensor3 memory order
+    EXPECT_EQ(r1*n*r2, applyToBlock([](PITTS::MultiVector<Type>& x, const PITTS::MultiVector<Type>& y)
+    {
+      ASSERT_EQ(x.rows(), y.rows());
+      ASSERT_EQ(1, y.cols());
+      for(long long i = 0; i < x.rows(); i++)
+        x(i, 0) = x(i, 0) - Type(2)*y(i, 0);
+    }, Aarray, std::move(Barray)));
+
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+        {
+          EXPECT_NEAR(a(i, j, k) - Type(2)*b(i, j, k), A(i, j, k), eps);
+          EXPECT_NEAR(a(i, j, k) - Type(2)*b(i, j, k), Aarray(i, j, k), eps);
+        }
+  }
+
+  // the blocks must have the same shape
+  PITTS::Tensor3<Type> C(2, 3, 2), D(2, 3, 3);
+  EXPECT_THROW(applyToBlock([](Type x, Type y){return x*y;}, C, std::move(D)), std::invalid_argument);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, t3_rms_and_rmsDifference)
@@ -1092,4 +1219,104 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_inva
   TensorTrain TT(std::move(cores));
   randomize(TT);
   EXPECT_THROW(initialRightIndexSets(TT, Type(0.05)), std::invalid_argument);
+}
+
+namespace
+{
+  // smallest singular value of the right interface R_k (r_{k-1} x |J_k|) of a TT relative to the largest one, for k = 1..d-1:
+  // a positive value means that the cross determines the right part of the TT
+  template<typename T>
+  std::vector<T> relativeSmallestSingularValuesOfRightInterfaces(const PITTS::TensorTrain<T>& TT, const std::vector<NestedIndices>& J)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const int nDim = TT.dimensions().size();
+    std::vector<NestedIndices> noLeft(nDim);
+    auto Rx = defineSweepData<PITTS::Tensor3<T>>(nDim, contraction_loop_from_left<T>(TT, noLeft), contraction_loop_from_right<T>(TT, J));
+    Rx.update(-1, 1);
+    std::vector<T> result(nDim, T(0));
+    for(int k = 1; k < nDim; k++)
+    {
+      const PITTS::Tensor2<T> R = interfaceRight(Rx.subTensor(k), J[k]);
+      const Eigen::JacobiSVD<mat> svd(mat(ConstEigenMap(R)));
+      const auto& sigma = svd.singularValues();
+      result[k] = sigma(sigma.size()-1) / sigma(0);
+    }
+    return result;
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_two_TTs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  const std::vector<int> dims = {3, 4, 2, 5};
+  TensorTrain TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2});
+  TTb.setTTranks({1, 2, 3});
+  PITTS::internal::randomGenerator.seed(4712);   // same data on all MPI processes (PITTS::initialize seeds them differently)
+  randomize(TTa);
+  randomize(TTb);
+  const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
+
+  // |J_k| = min(r^a_{k-1} + r^b_{k-1}, n_k |J_{k+1}|)
+  const std::vector<NestedIndices> J = initialRightIndexSets(inputs, maxvolTol);
+  checkRightNested(J, dims, {0, 3, 5, 5});
+
+  // the crosses determine the right parts of both tensor trains: R_k has full row rank for both
+  for(const TensorTrain& TT: {std::cref(TTa), std::cref(TTb)})
+    for(int k = 1; k < int(dims.size()); k++)
+      EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TT, J)[k], Type(1.e-3));
+
+  // maxRank limits the size of the sets
+  checkRightNested(initialRightIndexSets(inputs, maxvolTol, 2), dims, {0, 2, 2, 2});
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_dependent_TTs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  // x and -2x have the same right parts: the stacked unfoldings are rank-deficient, the sets get the size of a single input
+  const std::vector<int> dims = {3, 4, 2, 5};
+  TensorTrain TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2});
+  PITTS::internal::randomGenerator.seed(4713);   // same data on all MPI processes (PITTS::initialize seeds them differently)
+  randomize(TTa);
+  copy(TTa, TTb);
+  TTb.editSubTensor(1, [](PITTS::Tensor3<Type>& X){PITTS::internal::t3_scale(Type(-2), X);});
+  const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
+
+  const std::vector<NestedIndices> J = initialRightIndexSets(inputs, maxvolTol);
+  checkRightNested(J, dims, {0, 2, 3, 2});
+  for(int k = 1; k < int(dims.size()); k++)
+    EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TTa, J)[k], Type(1.e-3));
+
+  // a single input in the vector: the same sets as from the single-input overload (SVD skipped);
+  // with maxRank below the ranks (SVD path) the sets have the requested size
+  const std::vector<std::reference_wrapper<const TensorTrain>> single = {std::cref(TTa)};
+  const std::vector<NestedIndices> Jsingle = initialRightIndexSets(TTa, maxvolTol);
+  const std::vector<NestedIndices> Jvector = initialRightIndexSets(single, maxvolTol);
+  for(int k = 1; k < int(dims.size()); k++)
+  {
+    EXPECT_EQ(Jsingle[k].idx, Jvector[k].idx);
+    EXPECT_EQ(Jsingle[k].link, Jvector[k].link);
+  }
+  checkRightNested(initialRightIndexSets(single, maxvolTol, 1), dims, {0, 1, 1, 1});
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_invalid_inputs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  TensorTrain TTa({3, 4, 2}, 2), TTb({3, 4, 3}, 2);
+  randomize(TTa);
+  randomize(TTb);
+  using Inputs = std::vector<std::reference_wrapper<const TensorTrain>>;
+  EXPECT_THROW(initialRightIndexSets(Inputs{}, Type(0.05)), std::invalid_argument);
+  EXPECT_THROW(initialRightIndexSets(Inputs{std::cref(TTa), std::cref(TTb)}, Type(0.05)), std::invalid_argument);
+  EXPECT_THROW(initialRightIndexSets(Inputs{std::cref(TTa)}, Type(0.05), 0), std::invalid_argument);
 }

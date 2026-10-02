@@ -4,11 +4,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 /*! @file pitts_tensortrain_cross.hpp
-* @brief TT-cross approximation: apply a function element-wise to a tensor in TT format
+* @brief TT-cross approximation: apply a function element-wise to one or two tensors in TT format
 * @author Claude Code (Anthropic AI model), prompted by Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2026-09-11
 *
 * Computes y ~ f(x) entry-wise for a tensor x given in TT format, without forming the dense tensor.
+* Also for a function of two tensors, y ~ f(x1, x2), e.g. the element-wise product: then every block of
+* x below is a pair of blocks of x1 and x2 on the same cross, and f combines them entry by entry.
 *
 * Algorithm (cross interpolation, see [1]-[4] below and the amen_cross algorithm of the TT-Toolbox):
 *
@@ -46,7 +48,8 @@
 *   error approximation but costs O(n^2) instead of O(n) entries per core.
 *
 *   Initialization: index sets from a maxvol sweep over the orthogonalized cores of x itself (no
-*   function evaluations), initial y = f applied to the corresponding slices of x.
+*   function evaluations; for two inputs on their stacked right unfoldings), and a zero y with these ranks that
+*   the first left-to-right sweep replaces core by core.
 *
 *   Cost per full sweep (nMALS = 1, ranks r of y, r_x of x, error rank rho, enrichment rank rho'):
 *     function evaluations  sum_k 2 (r_{k-1} + rho') n_k r_k  (blocks)
@@ -247,6 +250,37 @@ namespace PITTS
   //!
   template<typename T, typename Function>
   TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy,
+                                  const TTCrossOptions<T>& options = TTCrossOptions<T>());
+
+
+  //! Apply a function element-wise to two tensors in TT format using TT-cross approximation
+  //!
+  //! Computes TTy ~ f(TTx1, TTx2) entry-wise, i.e. y(i_0,...,i_{d-1}) = f(x1(i_0,...,i_{d-1}), x2(i_0,...,i_{d-1})),
+  //! e.g. the element-wise (Hadamard) product with f(a,b) = a*b. Same algorithm and options as for a single input
+  //! (see the file documentation): the inputs only enter through their entries on the crosses of y, so their exact
+  //! combination (for the Hadamard product a tensor train with the ranks r^(1) r^(2)) is never formed; the cost
+  //! of the contractions grows linearly with the number of inputs.
+  //!
+  //! The initial crosses are selected from the joint right parts of both inputs (initial rank at most
+  //! r^(1) + r^(2)). If the result needs a much larger rank, it grows by at most enrichmentRank per sweep
+  //! (nMALS = 1), so increase enrichmentRank / nSweeps or use nMALS = 2 in that case.
+  //!
+  //! @tparam T               underlying data type (double, complex, ...)
+  //! @tparam Function        scalar functor T f(T, T), e.g. [](double a, double b){return a*b;}, or array functor
+  //!                         f(MultiVector<T>& a, const MultiVector<T>& b) that stores the result in a, see the
+  //!                         single-input variant
+  //!
+  //! @param f                the element-wise function
+  //! @param TTx1             first input tensor in TT format (boundary ranks 1)
+  //! @param TTx2             second input tensor in TT format (same dimensions, boundary ranks 1, ranks may differ)
+  //! @param TTy              result f(TTx1, TTx2) in TT format, see the single-input variant
+  //! @param options          algorithm parameters, see TTCrossOptions
+  //! @return                 convergence information, see TTCrossInfo
+  //!
+  //! @throws std::invalid_argument for mismatching dimensions, boundary ranks != 1 or inconsistent options
+  //!
+  template<typename T, typename Function>
+  TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx1, const TensorTrain<T>& TTx2, TensorTrain<T>& TTy,
                                   const TTCrossOptions<T>& options = TTCrossOptions<T>());
 }
 

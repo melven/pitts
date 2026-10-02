@@ -90,6 +90,33 @@ class TestTensorTrainCross(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             pitts_py.applyElementwise(failing, tt_x, tt_y)
 
+    def test_two_inputs_product(self):
+        """element-wise product of two tensor trains with a numpy ufunc of two arguments"""
+        tt_x1 = positive_random_tt([4, 3, 5, 3], [2, 3, 2], 23)
+        tt_x2 = positive_random_tt([4, 3, 5, 3], [3, 1, 2], 29)
+        tt_y = pitts_py.TensorTrain_double([4, 3, 5, 3])
+        pitts_py.applyElementwise(np.multiply, tt_x1, tt_x2, tt_y, rankTolerance=1.e-8, nSweeps=20)
+        np.testing.assert_array_almost_equal(pitts_py.toDense(tt_x1)*pitts_py.toDense(tt_x2), pitts_py.toDense(tt_y))
+
+    def test_two_inputs_order_and_keywords(self):
+        """the arrays are passed in the order of the tensors, also as keyword arguments; in-place result in the first one"""
+        tt_x1 = positive_random_tt([3, 4, 3], [2, 2], 31, dtype=np.float32)
+        tt_x2 = positive_random_tt([3, 4, 3], [2, 1], 37, dtype=np.float32)
+        tt_y = pitts_py.TensorTrain_float([3, 4, 3])
+
+        def divide_inplace(a, b):
+            self.assertEqual(a.shape, b.shape)
+            np.divide(a, b, out=a)
+
+        pitts_py.applyElementwise(divide_inplace, TTx1=tt_x1, TTx2=tt_x2, TTy=tt_y, rankTolerance=1.e-6, nSweeps=20, nMALS=2)
+        np.testing.assert_allclose(pitts_py.toDense(tt_x1)/pitts_py.toDense(tt_x2), pitts_py.toDense(tt_y), rtol=1.e-3)
+
+    def test_two_inputs_mismatching_dimensions(self):
+        tt_x1 = positive_random_tt([3, 4, 3], [2, 2], 41)
+        tt_x2 = positive_random_tt([3, 4, 2], [2, 2], 43)
+        tt_y = pitts_py.TensorTrain_double([3, 4, 3])
+        with self.assertRaises(ValueError):
+            pitts_py.applyElementwise(np.multiply, tt_x1, tt_x2, tt_y)
 
 if __name__ == '__main__':
     unittest.main()
