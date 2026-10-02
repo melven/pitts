@@ -122,10 +122,9 @@ namespace PITTS
     //! maximal number of full sweeps (left-to-right + right-to-left)
     int nSweeps = 10;
 
-    //! convergence: stop after a full sweep if max_k ||B_k - Y_k||_F / ||B_k||_F < convergenceTolerance
-    //! (B_k: newly evaluated block, Y_k: previous core, both on the cross of core k). With enrichment the
-    //! relative error ||f(x) - y||_F / ||B_k||_F on the error crosses of core k is included in the maximum
-    //! (the change of y on its own crosses alone cannot detect a rank that is too low).
+    //! convergence: stop after a full sweep if both measures of TTCrossInfo (change of y on its own crosses
+    //! and, with enrichment, the error on the error crosses) are below this tolerance and no TT rank grew in
+    //! that sweep (a growing rank means the algorithm itself is not done yet)
     T convergenceTolerance = std::sqrt(std::numeric_limits<T>::epsilon());
 
     //! number of cores treated together per step: 1 = ALS-cross with error-based enrichment,
@@ -145,6 +144,17 @@ namespace PITTS
     //! tolerance for the dominance criterion of the maxvol row/column selection (see internal::maxvol)
     T maxvolTolerance = T(0.05);
 
+    //! number of randomly drawn tensor entries used as an independent error check (0 = off)
+    //!
+    //! Costs this many additional function evaluations per sweep (plus the evaluation of x and y there).
+    //! The entries are drawn once, so the resulting TTCrossInfo::lastSampleError is comparable between
+    //! sweeps. Unlike the other two measures, which only see the crosses the algorithm itself selected,
+    //! this is an unbiased estimate of the global error - it does not enter the convergence check,
+    //! because its statistical error (roughly 1/sqrt(2*controlSampleSize)) is usually larger than
+    //! convergenceTolerance.
+    //!
+    int controlSampleSize = 0;
+
     //! print convergence information per sweep
     bool verbose = false;
   };
@@ -160,8 +170,34 @@ namespace PITTS
     //! number of full sweeps performed
     int nSweeps = 0;
 
-    //! maximal relative change of a local block (and relative error on the error crosses) in the last sweep, see convergenceTolerance
+    //! maximal change of y on its own crosses in the last sweep: max_k rms(B_k - Y_k) / rmsRef
+    //!
+    //! B_k is the newly evaluated block and Y_k the current core on the cross of core k (both are samples
+    //! of f(x) resp. y at the cross indices), rms(.) = ||.||_F / sqrt(number of entries) and rmsRef the
+    //! largest rms(B_k) seen so far. The rms scaling makes blocks of different size comparable (the crosses
+    //! grow with the TT ranks, the error crosses have a different fixed size), the global reference prevents
+    //! a bond whose cross only samples small values from dominating the maximum.
+    //!
+    //! Note that this is an average over the cross entries and that the crosses change between sweeps (new
+    //! maxvol pivots are picked where the approximation is worst), so it is an indicator, not a monotone
+    //! error bound: it typically increases in the sweeps where the ranks grow.
+    //!
     T lastChange = T(0);
+
+    //! maximal error estimate on the error crosses in the last sweep: max_k rms(f(x) - y) / rmsRef (0 without enrichment)
+    //!
+    //! Measured on the (independent) crosses of the error approximation z, so unlike lastChange this also
+    //! detects a rank that is too low: y can be exact on its own crosses and still be a bad approximation.
+    //! Still only an indicator: a rank-errorRank cross cannot see an error outside the fibers it samples.
+    //!
+    T lastError = T(0);
+
+    //! relative error ||f(x) - y||_F / ||f(x)||_F estimated on controlSampleSize random entries (0 if off)
+    //!
+    //! The only measure that does not depend on the crosses chosen by the algorithm, hence unbiased - but
+    //! with a statistical error of roughly 1/sqrt(2*controlSampleSize), see TTCrossOptions.
+    //!
+    T lastSampleError = T(0);
 
     //! total number of evaluated tensor entries (calls of the element-wise function)
     long long nEvaluations = 0;

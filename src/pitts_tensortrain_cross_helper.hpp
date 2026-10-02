@@ -462,23 +462,92 @@ namespace PITTS
       }
 
 
-      //! relative Frobenius-norm difference ||A - B||_F / ||B||_F of two blocks of equal shape (convergence measure)
+      //! uniformly distributed random multi-indices of the whole tensor, one per row
       //!
-      //! Returns the absolute difference ||A - B||_F if B is zero.
+      //! In contrast to randomRightIndexSets these are independent: no nesting, so the entries sampled
+      //! with them are uncorrelated (needed for an unbiased error estimate, see TTCrossOptions).
+      //!
+      inline Eigen::MatrixXi randomIndices(const std::vector<int>& dims, int nSamples)
+      {
+        Eigen::MatrixXi indices(nSamples, dims.size());
+        for(int k = 0; k < int(dims.size()); k++)
+        {
+          std::uniform_int_distribution<int> distribution(0, dims[k]-1);
+          for(int s = 0; s < nSamples; s++)
+            indices(s, k) = distribution(randomGenerator);
+        }
+        return indices;
+      }
+
+
+      //! evaluate a tensor train at the given multi-indices (one per row), as a block of shape (nSamples,1,1)
+      //!
+      //! This is just a batched variant of the scalar products with the corresponding unit tensors
+      //! (setUnit + dot), touching only the slice of each core that the index selects. The block shape
+      //! allows reusing applyToBlock and rmsDifference on the result.
+      //!
+      //! @todo Move this to a dedicated top-level function (with a better implementation: group the
+      //!       samples by index value into GEMMs, parallelize) as soon as it is needed somewhere else.
+      //!
+      template<typename T>
+      void evaluateAt(const TensorTrain<T>& TT, const Eigen::MatrixXi& indices, Tensor3<T>& values)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        using EigenMatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+        const int nSamples = indices.rows();
+
+        EigenMatrix v = EigenMatrix::Ones(nSamples, 1);
+        for(int k = 0; k < indices.cols(); k++)
+        {
+          const auto& core = TT.subTensor(k);
+          // slice core(:,j,:) as an r1 x r2 matrix (the Tensor3 memory is i1 + j*r1 + i2*r1*n)
+          const auto slice = [&core](int j)
+          {
+            return Eigen::Map<const EigenMatrix, Eigen::Unaligned, Eigen::OuterStride<>>(
+                &core(0, j, 0), core.r1(), core.r2(), Eigen::OuterStride<>(core.r1()*core.n()));
+          };
+
+          EigenMatrix vNext(nSamples, core.r2());
+          for(int s = 0; s < nSamples; s++)
+            vNext.row(s) = v.row(s) * slice(indices(s, k));
+          v = std::move(vNext);
+        }
+
+        values.resize(nSamples, 1, 1);
+        for(int s = 0; s < nSamples; s++)
+          values(s, 0, 0) = v(s, 0);
+      }
+
+
+      //! root-mean-square size of a block: ||A||_F / sqrt(number of entries)
+      //!
+      //! The blocks of a TT-cross sweep sample the tensor on crosses of different (and growing) size, so
+      //! only this scaling makes their magnitudes comparable (a Frobenius norm grows with the TT rank).
+      //!
+      template<typename T>
+      auto t3_rms(const Tensor3<T>& A)
+      {
+        using RealType = decltype(std::abs(T()));
+        const auto nEntries = A.r1()*A.n()*A.r2();
+        return nEntries > 0 ? t3_nrm(A) / std::sqrt(RealType(nEntries)) : RealType(0);
+      }
+
+
+      //! root-mean-square difference t3_rms(A - B) of two blocks of equal shape
       //!
       //! @throws std::invalid_argument for different shapes
       //!
       template<typename T>
-      auto relativeDifference(const Tensor3<T>& A, const Tensor3<T>& B)
+      auto rmsDifference(const Tensor3<T>& A, const Tensor3<T>& B)
       {
         if( A.r1() != B.r1() || A.n() != B.n() || A.r2() != B.r2() )
-          throw std::invalid_argument("relativeDifference: blocks have different shapes!");
+          throw std::invalid_argument("rmsDifference: blocks have different shapes!");
 
         Tensor3<T> diff;
         copy(A, diff);
         t3_axpy(T(-1), B, diff);
-        const auto normB = t3_nrm(B);
-        return normB > 0 ? t3_nrm(diff) / normB : t3_nrm(diff);
+        return t3_rms(diff);
       }
 
 

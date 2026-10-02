@@ -118,15 +118,21 @@ namespace PITTS
       return zeroCores;
     }());
 
-    // Convergence measure of a step: the relative change of y on its own cross (block vs. current core)
-    // and, with enrichment, the relative error f(x) - y on the error crosses, both scaled by the norm of
-    // the block. The change alone is blind when the crosses of y are too small but y is exact on them
-    // (e.g. a rank that is too low at some bond); the error on the (different) error crosses detects this
-    // and prevents an early stop.
+    // Convergence measures of a step, both returned separately: the change of y on its own cross (block
+    // vs. current core) and, with enrichment, the error f(x) - y on the error crosses. The change alone is
+    // blind when the crosses of y are too small but y is exact on them (e.g. a rank that is too low at some
+    // bond); the error on the (different) error crosses detects this and prevents an early stop.
+    //
+    // Both are root-mean-square sizes (t3_rms) divided by rmsRef, the largest block rms seen so far:
+    //  * rms instead of the Frobenius norm, because the crosses grow with the TT ranks and the error crosses
+    //    have a different (fixed) size - Frobenius norms of differently sized blocks are not comparable;
+    //  * one global reference instead of the norm of each block, because a bond whose cross samples a region
+    //    with small values would otherwise dominate the maximum over the sweep with a large relative value.
+    RealType rmsRef = 0;
 
     // ---- one step of a left-to-right sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() ----
-    // returns the convergence measure of the step
-    const auto stepLeftToRight = [&](const SweepIndex& swpIdx) -> RealType
+    // returns the convergence measures (change, error) of the step
+    const auto stepLeftToRight = [&](const SweepIndex& swpIdx) -> std::pair<RealType, RealType>
     {
       const int k = swpIdx.leftDim();
       const int kRight = swpIdx.rightDim();
@@ -138,19 +144,19 @@ namespace PITTS
       Tensor3<T> B;
       localBlockFromLeft<T>(LX, TTx, k, nMALS, Lx.right(), J, B);
       info.nEvaluations += applyToBlock(f, B);
-      RealType normB = internal::t3_nrm(B);
-      if( normB == 0 )
-        normB = 1;   // zero block: the measures below become absolute
+      rmsRef = std::max(rmsRef, t3_rms(B));
+      const RealType scale = rmsRef > 0 ? rmsRef : 1;   // zero blocks only: the measures become absolute
 
       // convergence measure: the current y on the same cross is exactly the current core(s)
-      RealType change = relativeDifference(B, combineCores(TTy, k, nMALS));
+      RealType change = rmsDifference(B, combineCores(TTy, k, nMALS)) / scale;
+      RealType error = 0;
 
       // last core of the 1-site sweep: the block is the core, nothing to select
       if( nMALS == 1 && k == nDim-1 )
       {
         TTy.setSubTensor(k, std::move(B));
         Lyz.invalidate(k);   // the core of y changed
-        return change;
+        return {change, error};
       }
 
       // enrichment: dominant directions of the error f(x) - y on the cross (I_{k-1}, S_k, J^z_{k+1}),
@@ -167,7 +173,7 @@ namespace PITTS
         Tensor3<T> yOnCross;
         contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
-        change = std::max(change, internal::t3_nrm(residual) / normB);
+        error = std::max(error, t3_rms(residual) / scale);
         // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors,
         // as a core of the same shape as the block (folding the unfolding back is a move)
         E = fold_left(internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first, dims[k]);
@@ -204,7 +210,7 @@ namespace PITTS
         Tensor3<T> yOnCross;
         contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
-        change = std::max(change, internal::t3_nrm(residual) / normB);
+        error = std::max(error, t3_rms(residual) / scale);
         const int rPrevZ = residual.r1();
         const CoreUpdate<T> updz = updateCoreLeft<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Iz[k] = leftIndicesFromRows(updz.selected, rPrevZ);
@@ -212,11 +218,11 @@ namespace PITTS
         Lyz.invalidate(k+1);
       }
 
-      return change;
+      return {change, error};
     };
 
     // ---- one step of a right-to-left sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() (mirror image) ----
-    const auto stepRightToLeft = [&](const SweepIndex& swpIdx) -> RealType
+    const auto stepRightToLeft = [&](const SweepIndex& swpIdx) -> std::pair<RealType, RealType>
     {
       const int k = swpIdx.rightDim();
       const int kLeft = swpIdx.leftDim();
@@ -227,18 +233,18 @@ namespace PITTS
       Tensor3<T> B;
       localBlockFromRight<T>(Lx.left(), I, TTx, kLeft, nMALS, XR, B);
       info.nEvaluations += applyToBlock(f, B);
-      RealType normB = internal::t3_nrm(B);
-      if( normB == 0 )
-        normB = 1;   // zero block: the measures below become absolute
+      rmsRef = std::max(rmsRef, t3_rms(B));
+      const RealType scale = rmsRef > 0 ? rmsRef : 1;
 
-      RealType change = relativeDifference(B, combineCores(TTy, kLeft, nMALS));
+      RealType change = rmsDifference(B, combineCores(TTy, kLeft, nMALS)) / scale;
+      RealType error = 0;
 
       // first core of the 1-site sweep: the block is the core
       if( nMALS == 1 && k == 0 )
       {
         TTy.setSubTensor(k, std::move(B));
         Lyz.invalidate(k);
-        return change;
+        return {change, error};
       }
 
       // No enrichment in this direction: the right-to-left sweep only truncates, so that after each full
@@ -273,45 +279,84 @@ namespace PITTS
         Tensor3<T> yOnCross;
         contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
-        change = std::max(change, internal::t3_nrm(residual) / normB);
+        error = std::max(error, t3_rms(residual) / scale);
         const CoreUpdate<T> updz = updateCoreRight<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Jz[k] = rightIndicesFromColumns(updz.selected, dims[k]);
         Lxz.invalidate(k-1);
         Lyz.invalidate(k-1);
       }
 
-      return change;
+      return {change, error};
     };
 
     // ---- sweeps ----
-    const auto printProgress = [&](double sweep, RealType maxChange)
+    // independent control sample: random entries, drawn once so that the estimate is comparable between
+    // sweeps; it does not enter the convergence check, see TTCrossOptions::controlSampleSize
+    const Eigen::MatrixXi sampleIndices = options.controlSampleSize > 0 ?
+        randomIndices(dims, options.controlSampleSize) : Eigen::MatrixXi(0, nDim);
+
+    const auto sampleError = [&]() -> RealType
     {
-      std::cout << "TT-cross sweep " << sweep << ": max. relative change " << maxChange << ", ranks:";
+      if( sampleIndices.rows() == 0 )
+        return 0;
+      Tensor3<T> fx, yOnSample;
+      evaluateAt(TTx, sampleIndices, fx);
+      info.nEvaluations += applyToBlock(f, fx);
+      evaluateAt(TTy, sampleIndices, yOnSample);
+      const RealType rmsfx = t3_rms(fx);
+      return rmsDifference(fx, yOnSample) / (rmsfx > 0 ? rmsfx : 1);
+    };
+
+    const auto printProgress = [&](double sweep, RealType change, RealType error)
+    {
+      std::cout << "TT-cross sweep " << sweep << ": change " << change << ", error estimate " << error;
+      if( options.controlSampleSize > 0 )
+        std::cout << ", sampled error " << info.lastSampleError;
+      std::cout << ", ranks:";
       for(int r: TTy.getTTranks())
         std::cout << " " << r;
       std::cout << "\n";
     };
 
     const SweepIndex firstIdx(nDim, nMALS, nMALS-1, 0);
+    // Rank growth as a second convergence criterion: only the left-to-right sweep enriches, the
+    // right-to-left sweep truncates, so the ranks after a full sweep are always the truncated ones and
+    // comparing them between full sweeps tells whether the approximation is still growing. The maximal
+    // rank is used rather than each individual one: single bonds may still change by +-1 near convergence.
+    const auto maxRankOf = [](const std::vector<int>& ranks){return ranks.empty() ? 0 : *std::max_element(ranks.begin(), ranks.end());};
+    int largestRank = maxRankOf(TTy.getTTranks());
     for(int iSweep = 0; iSweep < options.nSweeps; iSweep++)
     {
       // left to right (the very first one builds y from scratch, its change measure is meaningless)
-      RealType maxChange = 0;
+      RealType maxChange = 0, maxError = 0;
       for(SweepIndex swpIdx = firstIdx.first(); swpIdx; swpIdx = swpIdx.next())
-        maxChange = std::max(maxChange, stepLeftToRight(swpIdx));
+      {
+        const auto [change, error] = stepLeftToRight(swpIdx);
+        maxChange = std::max(maxChange, change);
+        maxError = std::max(maxError, error);
+      }
       if( options.verbose )
-        printProgress(iSweep+0.5, maxChange);
+        printProgress(iSweep+0.5, maxChange, maxError);
 
       // right to left (this also truncates the enrichment of the left-to-right sweep, so the convergence
       // check only makes sense on the ranks after the full sweep)
-      maxChange = 0;
+      maxChange = maxError = 0;
       for(SweepIndex swpIdx = firstIdx.last(); swpIdx; swpIdx = swpIdx.previous())
-        maxChange = std::max(maxChange, stepRightToLeft(swpIdx));
+      {
+        const auto [change, error] = stepRightToLeft(swpIdx);
+        maxChange = std::max(maxChange, change);
+        maxError = std::max(maxError, error);
+      }
       info.nSweeps = iSweep+1;
       info.lastChange = maxChange;
+      info.lastError = maxError;
+      info.lastSampleError = sampleError();
       if( options.verbose )
-        printProgress(iSweep+1, maxChange);
-      if( maxChange < options.convergenceTolerance )
+        printProgress(iSweep+1, maxChange, maxError);
+
+      // a rank that still grows means the algorithm itself is not done, whatever the measures say
+      const int previousRank = std::exchange(largestRank, maxRankOf(TTy.getTTranks()));
+      if( maxChange < options.convergenceTolerance && maxError < options.convergenceTolerance && largestRank <= previousRank )
       {
         info.converged = true;
         break;
