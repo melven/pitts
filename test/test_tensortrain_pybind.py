@@ -12,6 +12,8 @@ __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2020-06-26'
 import pitts_py
 import numpy as np
+import threading
+import time
 import unittest
 
 
@@ -342,6 +344,46 @@ class TestTensorTrain(unittest.TestCase):
         np.testing.assert_array_almost_equal(X, QH)
 
     
+    def test_normalize_releases_gil(self):
+        """Long-running calls must release the GIL
+
+        Otherwise other python threads are blocked - which deadlocks jupyter as soon as the C++ code
+        writes more than the pipe buffer to stdout (ipykernel drains the captured file descriptors in
+        a python thread), see test_common_pybind.py.
+        """
+        tt = pitts_py.TensorTrain_double([20]*10)
+        tt.setTTranks(100)
+        pitts_py.randomize(tt)
+
+        counter = 0
+        stop = threading.Event()
+
+        def count():
+            nonlocal counter
+            while not stop.is_set():
+                counter += 1
+
+        thread = threading.Thread(target=count)
+        thread.start()
+        try:
+            before = counter
+            startTime = time.time()
+            pitts_py.normalize(tt, 1.e-8)
+            runtime = time.time() - startTime
+            during = counter - before
+
+            # reference: how far the other thread gets in the same time with the GIL available
+            before = counter
+            time.sleep(runtime)
+            reference = counter - before
+        finally:
+            stop.set()
+            thread.join()
+
+        # without the GIL release the other thread only runs in the short windows before and after
+        self.assertGreater(during, 0.2*reference)
+
+
 if __name__ == '__main__':
     unittest.main()
 
