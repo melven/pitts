@@ -379,6 +379,15 @@ namespace PITTS
 
     return internal::tt_cross::crossSweeps<T, Function, 1>(f, {std::cref(TTx)}, TTy, options);
   }
+
+  // implement applyElementwise for two inputs
+  template<typename T, typename Function>
+  TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx1, const TensorTrain<T>& TTx2, TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
+  {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+    return internal::tt_cross::crossSweeps<T, Function, 2>(f, {std::cref(TTx1), std::cref(TTx2)}, TTy, options);
+  }
 }
 
 

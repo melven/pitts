@@ -402,3 +402,159 @@ TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
     EXPECT_NEAR(ref, dense(TTy), eps*ref.norm());
   }
 }
+
+
+// ---- functions of two tensor trains ----
+
+TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_invalid_arguments)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  const std::vector<int> dims = {3, 4, 2};
+  TensorTrain TTx1(dims, 2), TTx2(dims, 3), TTwrong({3, 4, 3}, 2), TTy(dims);
+  randomize(TTx1);
+  randomize(TTx2);
+  randomize(TTwrong);
+  const auto mult = [](Type a, Type b){return a*b;};
+
+  EXPECT_THROW(applyElementwise(mult, TTx1, TTwrong, TTy), std::invalid_argument);
+  EXPECT_THROW(applyElementwise(mult, TTwrong, TTx2, TTy), std::invalid_argument);
+
+  // boundary ranks != 1 of the second input
+  std::vector<PITTS::Tensor3<Type>> cores(2);
+  cores[0].resize(1, 3, 2);
+  cores[1].resize(2, 4, 2);
+  const std::vector<int> dims2 = {3, 4};
+  TensorTrain TTboundary(std::move(cores)), TTx3(dims2, 2), TTy2(dims2);
+  randomize(TTboundary);
+  randomize(TTx3);
+  EXPECT_THROW(applyElementwise(mult, TTx3, TTboundary, TTy2), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_product_and_quotient_vs_dense)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = tolerance<Type>();
+
+  // different ranks of the inputs
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {2, 3, 2}, 42);
+  const TensorTrain TTx2 = positiveRandomTT<Type>(dims, {3, 1, 2}, 43);
+  const auto x1Dense = dense(TTx1);
+  const auto x2Dense = dense(TTx2);
+
+  for(int nMALS: {1, 2})
+  {
+    PITTS::TTCrossOptions<Type> options;
+    options.nMALS = nMALS;
+    options.rankTolerance = Type(1.e-7);
+    options.nSweeps = 20;
+
+    // the element-wise (Hadamard) product has exact TT ranks <= r^(1) r^(2), so it is recovered exactly
+    TensorTrain TTy(dims);
+    const auto infoProduct = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
+    EXPECT_TRUE(infoProduct.converged);
+    const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = x1Dense.array() * x2Dense.array();
+    EXPECT_NEAR(productDense, dense(TTy), eps*productDense.norm());
+    for(int k = 0; k < dims.size()-1; k++)
+      EXPECT_LE(TTy.getTTranks()[k], TTx1.getTTranks()[k]*TTx2.getTTranks()[k]);
+
+    // the quotient is not exactly low-rank, but well approximable for entries in a moderate range;
+    // f is not symmetric, so this also checks the order of the arguments
+    TensorTrain TTz(dims);
+    applyElementwise([](Type a, Type b){return a/b;}, TTx1, TTx2, TTz, options);
+    const Eigen::Matrix<Type, Eigen::Dynamic, 1> quotientDense = x1Dense.array() / x2Dense.array();
+    EXPECT_NEAR(quotientDense, dense(TTz), 100*eps*quotientDense.norm());
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_same_tensor_as_single_input)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = tolerance<Type>();
+
+  // f(x, x) = x*x with the same tensor twice: the stacked right unfoldings are rank-deficient, so the
+  // initial crosses are the same as for a single input, and the result is x^2 as with the single-input variant
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 7);
+  const auto xDense = dense(TTx);
+  const Eigen::Matrix<Type, Eigen::Dynamic, 1> squareDense = xDense.array().square();
+
+  PITTS::TTCrossOptions<Type> options;
+  options.rankTolerance = Type(1.e-7);
+  options.nSweeps = 20;
+  TensorTrain TTy(dims), TTyRef(dims);
+  PITTS::internal::randomGenerator.seed(77);
+  const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx, TTx, TTy, options);
+  PITTS::internal::randomGenerator.seed(77);
+  const auto infoRef = applyElementwise([](Type v){return v*v;}, TTx, TTyRef, options);
+
+  EXPECT_TRUE(info.converged);
+  EXPECT_NEAR(squareDense, dense(TTy), eps*squareDense.norm());
+  // same crosses, same number of function evaluations
+  EXPECT_EQ(infoRef.nSweeps, info.nSweeps);
+  EXPECT_EQ(infoRef.nEvaluations, info.nEvaluations);
+  EXPECT_EQ(TTyRef.getTTranks(), TTy.getTTranks());
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_rank_growth)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = tolerance<Type>();
+
+  // the product of two random rank-3 tensors has rank 9 in the middle, the initial crosses only 3 + 3:
+  // the enrichment must increase the ranks (general random cores: with positive ones the product is
+  // dominated by a rank-1 part and well approximated with lower ranks)
+  const std::vector<int> dims = {4, 4, 4, 4, 4};
+  TensorTrain TTx1(dims, 3), TTx2(dims, 3);
+  randomize(TTx1);
+  randomize(TTx2);
+  const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = dense(TTx1).array() * dense(TTx2).array();
+
+  PITTS::TTCrossOptions<Type> options;
+  options.rankTolerance = Type(1.e-7);
+  options.nSweeps = 20;
+  TensorTrain TTy(dims);
+  const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
+  EXPECT_TRUE(info.converged);
+  EXPECT_NEAR(productDense, dense(TTy), eps*productDense.norm());
+  EXPECT_EQ(9, TTy.getTTranks()[1]);
+  EXPECT_EQ(9, TTy.getTTranks()[2]);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {2, 3, 2}, 5);
+  const TensorTrain TTx2 = positiveRandomTT<Type>(dims, {2, 2, 2}, 6);
+
+  // the array variant f(a, b) with the result in a must give the same result as the scalar function
+  for(int nMALS: {1, 2})
+  {
+    PITTS::TTCrossOptions<Type> options;
+    options.nMALS = nMALS;
+
+    TensorTrain TTy(dims), TTyRef(dims);
+    PITTS::internal::randomGenerator.seed(2026);
+    const auto info = applyElementwise([](PITTS::MultiVector<Type>& a, const PITTS::MultiVector<Type>& b)
+    {
+      for(long long i = 0; i < a.rows(); i++)
+        a(i, 0) = a(i, 0) / b(i, 0);
+    }, TTx1, TTx2, TTy, options);
+    PITTS::internal::randomGenerator.seed(2026);
+    const auto infoRef = applyElementwise([](Type a, Type b){return a/b;}, TTx1, TTx2, TTyRef, options);
+
+    EXPECT_EQ(infoRef.nEvaluations, info.nEvaluations);
+    EXPECT_EQ(infoRef.nSweeps, info.nSweeps);
+    ASSERT_EQ(TTyRef.getTTranks(), TTy.getTTranks());
+    const auto yRef = dense(TTyRef);
+    EXPECT_NEAR(yRef, dense(TTy), tolerance<Type>()*yRef.norm());
+  }
+}
