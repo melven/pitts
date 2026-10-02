@@ -1255,6 +1255,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_two_
   TensorTrain TTa(dims), TTb(dims);
   TTa.setTTranks({2, 3, 2});
   TTb.setTTranks({1, 2, 3});
+  PITTS::internal::randomGenerator.seed(4712);   // same data on all MPI processes (PITTS::initialize seeds them differently)
   randomize(TTa);
   randomize(TTb);
   const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
@@ -1282,6 +1283,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_depe
   const std::vector<int> dims = {3, 4, 2, 5};
   TensorTrain TTa(dims), TTb(dims);
   TTa.setTTranks({2, 3, 2});
+  PITTS::internal::randomGenerator.seed(4713);   // same data on all MPI processes (PITTS::initialize seeds them differently)
   randomize(TTa);
   copy(TTa, TTb);
   TTb.editSubTensor(1, [](PITTS::Tensor3<Type>& X){PITTS::internal::t3_scale(Type(-2), X);});
