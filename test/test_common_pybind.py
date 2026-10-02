@@ -10,6 +10,7 @@
 __all__ = ['TestCommon']
 __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2020-06-26'
+import os
 import pitts_py
 import subprocess
 import sys
@@ -40,11 +41,15 @@ class TestCommon(unittest.TestCase):
         python thread, which needs the GIL. Writing more than the pipe buffer (64 KiB, easily reached
         by these statistics) while holding the GIL would deadlock the kernel, so the binding has to
         release it. Run in a subprocess: a regression hangs instead of failing.
+
+        The subprocess must not use MPI: the python tests themselves run under mpiexec, so the child
+        inherits the PMI environment of the parent without having a PMI connection of its own and
+        MPI_Init fails there. It therefore skips initialize/finalize and asks for the local statistics
+        (mpiGlobal=False); the operations below only use TSQR with mpiGlobal=false internally.
         """
         script = textwrap.dedent("""
             import os, sys, threading
             import pitts_py
-            pitts_py.initialize(verbose=False)
 
             # enough different kernel arguments to exceed the pipe buffer
             for n in range(4, 30):
@@ -68,15 +73,18 @@ class TestCommon(unittest.TestCase):
             reader = threading.Thread(target=drain, daemon=True)
             reader.start()
 
-            pitts_py.printPerformanceStatistics()
+            pitts_py.printPerformanceStatistics(mpiGlobal=False)
 
             os.dup2(savedStdout, 1)
             os.close(writeEnd)
             reader.join(timeout=10)
-            pitts_py.finalize(verbose=False)
             print(nBytes, file=sys.stderr)
             """)
-        result = subprocess.run([sys.executable, '-c', script], timeout=120, capture_output=True, text=True)
+        # also hide the inherited MPI environment, so that an accidental MPI_Init would at least
+        # start a singleton instead of trying to connect to the PMI server of the parent
+        env = {key: value for key, value in os.environ.items()
+               if not key.startswith(('PMI', 'MPI', 'OMPI', 'HYDRA', 'I_MPI'))}
+        result = subprocess.run([sys.executable, '-c', script], timeout=120, capture_output=True, text=True, env=env)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertGreater(int(result.stderr.split()[-1]), 65536)
 
