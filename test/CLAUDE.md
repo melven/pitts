@@ -72,7 +72,7 @@ TensorTrain and TensorTrainOperator:
 
 | File | Tests |
 |---|---|
-| `test_common_pybind.py` | `initialize`/`finalize`, statistics printing, large statistics output into a pipe drained by a python thread (jupyter-style fd capture: the binding must release the GIL, a regression hangs - therefore run in a subprocess with a timeout). |
+| `test_common_pybind.py` | `initialize`/`finalize` (once per process in `setUpClass`/`tearDownClass`), statistics printing, large statistics output into a pipe drained by a python thread (jupyter-style fd capture: the binding must release the GIL, a regression hangs until the ctest timeout). |
 | `test_multivector_pybind.py` | Creation, resize, numpy buffer protocol, copy, randomize, `cdist2`. |
 | `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt, GIL release during a long call (a counting thread must make progress). |
 | `test_tensortrain_operator_pybind.py` | Creation, `setEye`, apply/applyT, axpby, operator product, toDense, toQtt. |
