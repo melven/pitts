@@ -64,7 +64,7 @@ namespace PITTS
       void TensorTrain_applyElementwise(const py::object& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy,
                                         T rankTolerance, int maxRank, int nSweeps, T convergenceTolerance,
                                         int nMALS, int errorRank, int enrichmentRank, bool randomErrorIndexSets,
-                                        T maxvolTolerance, bool verbose)
+                                        T maxvolTolerance, int controlSampleSize, bool verbose)
       {
         // release the GIL for the (possibly OpenMP/MPI parallel) parts of the algorithm,
         // applyPythonFunction acquires it again for each block
@@ -75,7 +75,8 @@ namespace PITTS
                                            .convergenceTolerance = convergenceTolerance, .nMALS = nMALS,
                                            .errorRank = errorRank, .enrichmentRank = enrichmentRank,
                                            .randomErrorIndexSets = randomErrorIndexSets,
-                                           .maxvolTolerance = maxvolTolerance, .verbose = verbose});
+                                           .maxvolTolerance = maxvolTolerance,
+                                           .controlSampleSize = controlSampleSize, .verbose = verbose});
       }
 
       //! provide the TT-cross functions for one data type
@@ -92,7 +93,8 @@ namespace PITTS
             py::arg("nMALS") = defaults.nMALS, py::arg("errorRank") = defaults.errorRank,
             py::arg("enrichmentRank") = defaults.enrichmentRank,
             py::arg("randomErrorIndexSets") = defaults.randomErrorIndexSets,
-            py::arg("maxvolTolerance") = defaults.maxvolTolerance, py::arg("verbose") = defaults.verbose,
+            py::arg("maxvolTolerance") = defaults.maxvolTolerance,
+            py::arg("controlSampleSize") = defaults.controlSampleSize, py::arg("verbose") = defaults.verbose,
             "Calculate TTy ~ f(TTx) element-wise using the TT-cross approximation\n\n"
             "f is called with a 1d numpy array of tensor entries (a small part of the tensor) and must return\n"
             "an array of the same size, or None if it modified its argument in-place. So f must be a\n"

@@ -323,6 +323,46 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
   EXPECT_FALSE(infoShort.converged);
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 31);
+  const auto f = [](Type v){return v*v;};
+
+  PITTS::TTCrossOptions<Type> options;
+  options.rankTolerance = Type(1.e-8);
+  options.nSweeps = 20;
+
+  // same seed for both runs: the random error index sets (and thus the sweeps) are then identical,
+  // so the difference in the number of evaluations is exactly the control sample
+  PITTS::internal::randomGenerator.seed(31);
+  TensorTrain TTy(dims);
+  const auto info = applyElementwise(f, TTx, TTy, options);
+  EXPECT_EQ(Type(0), info.lastSampleError);   // off by default
+
+  // x^2 is recovered exactly, so the sampled error is at round-off level
+  options.controlSampleSize = 50;
+  PITTS::internal::randomGenerator.seed(31);
+  TensorTrain TTsampled(dims);
+  const auto infoSampled = applyElementwise(f, TTx, TTsampled, options);
+  EXPECT_TRUE(infoSampled.converged);
+  EXPECT_LT(infoSampled.lastSampleError, tolerance<Type>());
+  // the control sample costs one function evaluation per sample and sweep
+  EXPECT_EQ(info.nEvaluations + infoSampled.nSweeps*options.controlSampleSize, infoSampled.nEvaluations);
+
+  // a deliberately bad approximation (rank 1, one sweep) must show up in the sampled error
+  options.nSweeps = 1;
+  options.maxRank = 1;
+  options.errorRank = 0;
+  options.enrichmentRank = 0;
+  TensorTrain TTbad(dims);
+  const auto infoBad = applyElementwise(f, TTx, TTbad, options);
+  EXPECT_GT(infoBad.lastSampleError, Type(0.01));
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
 {
   using Type = typename TestFixture::Type;
