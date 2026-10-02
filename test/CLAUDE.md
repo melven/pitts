@@ -10,6 +10,7 @@ See the root `CLAUDE.md` for how to build and run them (`ctest` in `build/test`,
 ## Structure
 
 - **C++ tests** (`test_*.cpp`) use googletest 1.8.0 with an MPI patch (`third-party/gtest-1.8.0-mpi.tar.gz`, unpacked by `cmake/GTest.cmake`). All `.cpp` files are globbed into one executable `pitts_tests` (target is `EXCLUDE_FROM_ALL`, so build it explicitly). It is run with 1 and 3 MPI processes (`PITTS_TEST_NPROCS`) and `PITTS_TEST_NTHREADS` OpenMP threads; some tests assert `omp_get_max_threads() >= 4` or run only on a given process count.
+- In the MPI-patched googletest **every assertion is a collective operation** (`AssertionResult::boolIdenticalOnMPIprocs` does two `MPI_Allreduce`, it also verifies that the outcome is the same on all processes). A test must therefore execute the same number of assertions on every process - make the *arguments* rank-dependent, never the control flow around `EXPECT_*`, otherwise the test deadlocks with `PITTS_TEST_NPROCS > 1`.
 - Test suite names follow `PITTS_<Class>_<topic>`, typed tests iterate over float/double/complex. There is roughly one `test_<x>.cpp` per `src/pitts_<x>.hpp`.
 - **Python tests** (`test_*_pybind.py`, `unittest`) test the `pitts_py` module and are only registered when pybind11 was found. They run through `mpiexec -n 1` with `PYTHONPATH` pointing to the built module.
 - **Julia tests** (`test_*_jlbind.jl`) are only registered when JlCxx is found (not available here).
@@ -56,7 +57,7 @@ TensorTrain and TensorTrainOperator:
 | `test_tensortrain_from_dense.cpp`, `test_tensortrain_from_dense_classical.cpp`, `test_tensortrain_from_dense_twosided.cpp`, `test_tensortrain_to_dense.cpp` | TT-SVD variants and reconstruction, incl. MPI-distributed input and rank/tolerance options. |
 | `test_tensortrain_gram_schmidt.cpp` | Gram-Schmidt orthogonalization of TT vectors. |
 | `test_tensortrain_cross.cpp` | `applyElementwise` (TT-cross driver): argument checks, exact recovery of the identity and of x^2, sqrt / 1/x against the dense reference (1-site and 2-site variants, QTT-like dimensions with rank growth), interpolation property on the returned index sets, enrichment options (random and derived error index sets), array functor vs. scalar functor, convergence measures (scale invariance, no convergence while the ranks grow, error estimate only with enrichment), control sample (off by default, extra evaluations, detects a deliberately bad approximation). |
-| `test_tensortrain_cross_helper.cpp` | Building blocks of TT-cross: nested index sets (decoding, expansion, consistency with the Tensor3 unfoldings), partial contractions and interface matrices via `SweepData` against direct evaluation of a random TT, local block assembly (1-site and 2-site) and block helpers, local core updates (identity on the selected rows/columns, reconstruction, truncation, enrichment). |
+| `test_tensortrain_cross_helper.cpp` | Building blocks of TT-cross: nested index sets (decoding, expansion, consistency with the Tensor3 unfoldings), partial contractions and interface matrices via `SweepData` against direct evaluation of a random TT, local block assembly (1-site and 2-site) and block helpers, mixed crosses of two index set families with changing sets (the error crosses of the driver) against a direct evaluation, local core updates (identity on the selected rows/columns, reconstruction, truncation, enrichment). |
 | `test_tensortrain_laplace_operator.cpp` | Laplace stencil application. |
 | `test_tensortrain_operator.cpp`, `test_tensortrain_operator_debug.cpp` | TTOp construction, `setEye`, sub-tensors, debug operators. |
 | `test_tensortrain_operator_apply.cpp`, `test_tensortrain_operator_apply_transposed.cpp`, `test_tensortrain_operator_apply_op.cpp`, `test_tensortrain_operator_apply_transposed_op.cpp`, `test_tensortrain_operator_apply_dense.cpp`, `test_tensortrain_operator_apply_transposed_dense.cpp` | All apply variants vs dense reference. |
@@ -71,9 +72,9 @@ TensorTrain and TensorTrainOperator:
 
 | File | Tests |
 |---|---|
-| `test_common_pybind.py` | `initialize`/`finalize`, statistics printing. |
+| `test_common_pybind.py` | `initialize`/`finalize` (once per process in `setUpClass`/`tearDownClass`), statistics printing, large statistics output into a pipe drained by a python thread (jupyter-style fd capture: the binding must release the GIL, a regression hangs until the ctest timeout). |
 | `test_multivector_pybind.py` | Creation, resize, numpy buffer protocol, copy, randomize, `cdist2`. |
-| `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt. |
+| `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt, GIL release during a long call (a counting thread must make progress). |
 | `test_tensortrain_operator_pybind.py` | Creation, `setEye`, apply/applyT, axpby, operator product, toDense, toQtt. |
 | `test_tensortrain_solve_pybind.py` | `solveMALS` and `solveGMRES` on identity systems. |
 | `test_tensortrain_cross_pybind.py` | `applyElementwise`: numpy ufuncs, in-place functions, `numpy.vectorize`d scalar functions, float/double, options as keyword arguments, errors (wrong result size, exception in the function). |

@@ -169,6 +169,15 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 
 ## Bindings
 
+**Release the GIL for everything that takes noticeable time** (`py::call_guard<py::gil_scoped_release>()` as
+the last argument of `m.def`): a C++ call holding the GIL blocks all python threads, and in jupyter that
+deadlocks the kernel as soon as the C++ code writes more than the pipe buffer (64 KiB) to `std::cout`
+(ipykernel captures the file descriptors and drains them in a python thread, which needs the GIL).
+Only for functions whose body does not touch python objects - check the wrapper, not the `m.def` line:
+`gramSchmidt` (a `py::list`), the `getSubTensor`/`setSubTensor`/`fromDense_classical`/`toDense` helpers and
+`cdist2`/`block_TSQR`/`ttn_local_gradient_contraction` (they create numpy arrays) release the GIL inside,
+around the calculation only. A python callback needs `py::gil_scoped_acquire` (see `applyElementwise`).
+
 | File | Content |
 |---|---|
 | `pitts_pybind.cpp` | Defines module `pitts_py`; pulls in `*_pybind.cpp` for QubitSimulator, TensorTrain, TensorTrainOperator, solvers, MultiVector, common. Python class names carry the type suffix, e.g. `TensorTrain_double`, `MultiVector_float`. |
