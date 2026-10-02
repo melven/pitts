@@ -718,6 +718,51 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock_multivector)
   EXPECT_THROW(applyToBlock([](PITTS::MultiVector<Type>& mv){mv.resize(7, 1);}, D), std::invalid_argument);
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, applyToBlock_two_arguments)
+{
+  using Type = typename TestFixture::Type;
+  constexpr auto eps = 1.e-6;
+
+  // entries a(i,j,k) and b(i,j,k) of two blocks, small (serial) and large (parallel path)
+  for(const auto [r1, n, r2]: {std::array<int,3>{3, 4, 2}, std::array<int,3>{5, 40, 7}})
+  {
+    const auto a = [](int i, int j, int k){return Type(1 + i + 3*j + 12*k);};
+    const auto b = [](int i, int j, int k){return Type(2 + 5*i + j + k);};
+    PITTS::Tensor3<Type> A(r1, n, r2), Aarray(r1, n, r2), B(r1, n, r2), Barray(r1, n, r2);
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+        {
+          A(i, j, k) = Aarray(i, j, k) = a(i, j, k);
+          B(i, j, k) = Barray(i, j, k) = b(i, j, k);
+        }
+
+    // scalar function f(a, b): the arguments in the order of the blocks
+    EXPECT_EQ(r1*n*r2, applyToBlock([](Type x, Type y){return x - Type(2)*y;}, A, std::move(B)));
+
+    // array function f(a, b): the second argument sees the entries of the second block in the Tensor3 memory order
+    EXPECT_EQ(r1*n*r2, applyToBlock([](PITTS::MultiVector<Type>& x, const PITTS::MultiVector<Type>& y)
+    {
+      ASSERT_EQ(x.rows(), y.rows());
+      ASSERT_EQ(1, y.cols());
+      for(long long i = 0; i < x.rows(); i++)
+        x(i, 0) = x(i, 0) - Type(2)*y(i, 0);
+    }, Aarray, std::move(Barray)));
+
+    for(int i = 0; i < r1; i++)
+      for(int j = 0; j < n; j++)
+        for(int k = 0; k < r2; k++)
+        {
+          EXPECT_NEAR(a(i, j, k) - Type(2)*b(i, j, k), A(i, j, k), eps);
+          EXPECT_NEAR(a(i, j, k) - Type(2)*b(i, j, k), Aarray(i, j, k), eps);
+        }
+  }
+
+  // the blocks must have the same shape
+  PITTS::Tensor3<Type> C(2, 3, 2), D(2, 3, 3);
+  EXPECT_THROW(applyToBlock([](Type x, Type y){return x*y;}, C, std::move(D)), std::invalid_argument);
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, t3_rms_and_rmsDifference)
 {
   using Type = typename TestFixture::Type;

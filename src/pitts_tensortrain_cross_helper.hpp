@@ -426,24 +426,34 @@ namespace PITTS
       //!    is itself responsible for any parallelization.
       //! A functor that accepts both signatures (e.g. a generic lambda) is used as an array function.
       //!
-      //! @tparam Function  scalar functor T f(T) or array functor f(MultiVector<T>&)
+      //! For a function of several tensors, the blocks of the further arguments are passed after B (same
+      //! shape, same entries of the respective tensors) and become additional arguments of f:
+      //! T f(T, T, ...) resp. f(MultiVector<T>& B, const MultiVector<T>& other, ...) with the result in B.
+      //!
+      //! @tparam Function  scalar functor T f(T, ...) or array functor f(MultiVector<T>&, const MultiVector<T>&...)
+      //! @param f          the element-wise function
+      //! @param B          block of the first argument of f, overwritten with the result
+      //! @param others     blocks of the further arguments of f (consumed: pass them with std::move)
       //! @return           number of function evaluations (= number of entries)
       //!
-      //! @throws std::invalid_argument if an array function changes the dimensions of the block
+      //! @throws std::invalid_argument if the blocks have different shapes or an array function changes the dimensions of the block
       //!
-      template<typename T, typename Function>
-      long long applyToBlock(const Function& f, Tensor3<T>& B)
+      template<typename T, typename Function, typename... Others>
+        requires (std::same_as<Others, Tensor3<T>> && ...)
+      long long applyToBlock(const Function& f, Tensor3<T>& B, Others&&... others)
       {
         const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
         const auto r1 = B.r1();
         const auto n = B.n();
         const auto r2 = B.r2();
+        if( ((others.r1() != r1 || others.n() != n || others.r2() != r2) || ...) )
+          throw std::invalid_argument("TT-cross: the blocks of the function arguments have different shapes!");
 
-        if constexpr( std::invocable<const Function&, MultiVector<T>&> )
+        if constexpr( std::invocable<const Function&, MultiVector<T>&, std::conditional_t<true, const MultiVector<T>&, Others>...> )
         {
           MultiVector<T> entries = unfold(std::move(B));
-          f(entries);
+          f(entries, unfold(std::move(others))...);
           if( entries.rows() != r1*n*r2 || entries.cols() != 1 )
             throw std::invalid_argument("TT-cross: the array function must not change the dimensions of the block!");
           B = fold(std::move(entries), r1, n, r2);
@@ -455,7 +465,7 @@ namespace PITTS
           for(long long k = 0; k < r2; k++)
             for(long long j = 0; j < n; j++)
               for(long long i = 0; i < r1; i++)
-                B(i, j, k) = f(B(i, j, k));
+                B(i, j, k) = f(B(i, j, k), others(i, j, k)...);
         }
 
         return r1*n*r2;
