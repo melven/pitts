@@ -11,6 +11,8 @@
 * Sweep driver on top of the building blocks in pitts_tensortrain_cross_helper.hpp. Templated on the
 * function type, so this file is always included by pitts_tensortrain_cross.hpp (also in the development
 * build); the heavy parts (contractions, SVD, maxvol) are the explicitly instantiated helpers.
+* The driver is written for a function of N tensor trains: everything that depends on the inputs is
+* encapsulated in internal::tt_cross::FunctionOnCrosses, the public functions only select N.
 *
 **/
 
@@ -20,7 +22,9 @@
 
 // includes
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
@@ -40,27 +44,28 @@
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
 {
-  // implement applyElementwise
-  template<typename T, typename Function>
-  TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
+  //! dedicated helper functionality for TT-cross algorithms
+  namespace internal::tt_cross
   {
-    using namespace internal::tt_cross;
-    using internal::optional_cref;
-    using internal::defineSweepData;
-    using internal::SweepIndex;
+  //! TT-cross sweeps for TTy ~ f(TTx[0], ..., TTx[N-1]) element-wise, see applyElementwise
+  template<typename T, typename Function, std::size_t N>
+  TTCrossInfo<T> crossSweeps(const Function& f, const std::array<std::reference_wrapper<const TensorTrain<T>>, N>& TTx,
+                             TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
+  {
     using RealType = decltype(std::abs(T()));
 
-    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
-
     // check arguments
-    const std::vector<int>& dims = TTx.dimensions();
+    const std::vector<int>& dims = TTy.dimensions();
     const int nDim = dims.size();
     if( nDim < 1 )
       throw std::invalid_argument("applyElementwise: empty tensor train!");
-    if( TTy.dimensions() != dims )
-      throw std::invalid_argument("applyElementwise: dimensions of TTx and TTy differ!");
-    if( TTx.subTensor(0).r1() != 1 || TTx.subTensor(nDim-1).r2() != 1 )
-      throw std::invalid_argument("applyElementwise: boundary ranks of TTx must be 1!");
+    for(const TensorTrain<T>& TT: TTx)
+    {
+      if( TT.dimensions() != dims )
+        throw std::invalid_argument("applyElementwise: dimensions of TTx and TTy differ!");
+      if( TT.subTensor(0).r1() != 1 || TT.subTensor(nDim-1).r2() != 1 )
+        throw std::invalid_argument("applyElementwise: boundary ranks of TTx must be 1!");
+    }
     if( options.nMALS < 1 || options.nMALS > 2 )
       throw std::invalid_argument("applyElementwise: nMALS must be 1 or 2!");
     if( options.errorRank < 0 || options.enrichmentRank < 0 || options.enrichmentRank > options.errorRank )
@@ -77,12 +82,11 @@ namespace PITTS
 
     TTCrossInfo<T> info;
 
-    // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused); partial contractions of x on them
+    // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused)
     std::vector<NestedIndices> I(nDim);
-    std::vector<NestedIndices> J = initialRightIndexSets(TTx, maxvolTolerance);
-    auto Lx = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTx, I), contraction_loop_from_right<T>(TTx, J));
+    std::vector<NestedIndices> J = initialRightIndexSets(std::vector<std::reference_wrapper<const TensorTrain<T>>>(TTx.begin(), TTx.end()), maxvolTolerance);
 
-    // index sets of the error approximation z (no cores needed, only the crosses), partial contractions of x and y on them
+    // index sets of the error approximation z (no cores needed, only the crosses)
     std::vector<NestedIndices> Iz(nDim), Jz(nDim);
     if( enrich )
     {
@@ -91,13 +95,19 @@ namespace PITTS
       else
       {
         // maxvol sets of a rank-errorRank truncation of x: well-conditioned crosses of the dominant part of x
-        TensorTrain<T> TTxTrunc(dims);
-        copy(TTx, TTxTrunc);
-        normalize(TTxTrunc, T(0), options.errorRank);
-        Jz = initialRightIndexSets(TTxTrunc, maxvolTolerance);
+        std::vector<TensorTrain<T>> TTxTrunc;
+        TTxTrunc.reserve(N);
+        for(const TensorTrain<T>& TT: TTx)
+        {
+          copy(TT, TTxTrunc.emplace_back(dims));
+          normalize(TTxTrunc.back(), T(0), options.errorRank);
+        }
+        Jz = initialRightIndexSets(std::vector<std::reference_wrapper<const TensorTrain<T>>>(TTxTrunc.begin(), TTxTrunc.end()), maxvolTolerance, options.errorRank);
       }
     }
-    auto Lxz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTx, Iz), contraction_loop_from_right<T>(TTx, Jz));
+
+    // f(x) on the crosses of y and z (with the partial contractions of x on them), partial contractions of y on the crosses of z
+    FunctionOnCrosses<T, Function, N> fx(f, TTx, I, J, Iz, Jz);
     auto Lyz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, Iz), contraction_loop_from_right<T>(TTy, Jz));
 
     // Start with a zero y of the initial cross ranks (|J_{k+1}| at bond k): a sweep replaces the cores one
@@ -137,13 +147,9 @@ namespace PITTS
       const int k = swpIdx.leftDim();
       const int kRight = swpIdx.rightDim();
 
-      // block B = f( x(I_{k-1}, S_k [x S_{k+1}], J_{kRight+1}) ) = LX_k [X_{k+1}] R_{kRight+1};
+      // block B = f( x(I_{k-1}, S_k [x S_{k+1}], J_{kRight+1}) ) = f( LX_k [X_{k+1}] R_{kRight+1} );
       // LX_k = L_{k-1} X_k is cached: it is reused for the enrichment residual and for the next interface L_k
-      Lx.update(k, kRight+1);
-      const Tensor3<T>& LX = Lx.left()->get();
-      Tensor3<T> B;
-      localBlockFromLeft<T>(LX, TTx, k, nMALS, Lx.right(), J, B);
-      info.nEvaluations += applyToBlock(f, B);
+      Tensor3<T> B = fx.blockFromLeft(k, nMALS);
       rmsRef = std::max(rmsRef, t3_rms(B));
       const RealType scale = rmsRef > 0 ? rmsRef : 1;   // zero blocks only: the measures become absolute
 
@@ -164,10 +170,7 @@ namespace PITTS
       Tensor3<T> E;   // empty unless this step enriches
       if( enrich )
       {
-        Lxz.update(k, k+1);
-        Tensor3<T> residual;
-        contractRightInterface<T>(LX, Lxz.right(), Jz, k+1, residual);
-        info.nEvaluations += applyToBlock(f, residual);
+        Tensor3<T> residual = fx.mixedBlock(k);
         // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
         Lyz.update(k-1, k+1);
         Tensor3<T> yOnCross;
@@ -187,7 +190,7 @@ namespace PITTS
       const int rPrev = B.r1();
       CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, std::move(E));
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
-      Lx.invalidate(k+1);
+      fx.invalidate(k+1);
 
       // new core(s); the carry keeps y consistent as a tensor until the next core is rebuilt
       std::vector<Tensor3<T>> newCores(2);
@@ -203,9 +206,7 @@ namespace PITTS
       if( enrich )
       {
         Lyz.invalidate(k, 2);
-        Tensor3<T> residual;
-        contractRightInterface<T>(Lxz.left()->get(), Lxz.right(), Jz, k+1, residual);
-        info.nEvaluations += applyToBlock(f, residual);
+        Tensor3<T> residual = fx.errorBlockFromLeft(k);
         Lyz.update(k, k+1);
         Tensor3<T> yOnCross;
         contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
@@ -214,7 +215,7 @@ namespace PITTS
         const int rPrevZ = residual.r1();
         const CoreUpdate<T> updz = updateCoreLeft<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Iz[k] = leftIndicesFromRows(updz.selected, rPrevZ);
-        Lxz.invalidate(k+1);
+        fx.invalidateError(k+1);
         Lyz.invalidate(k+1);
       }
 
@@ -227,12 +228,8 @@ namespace PITTS
       const int k = swpIdx.rightDim();
       const int kLeft = swpIdx.leftDim();
 
-      // block B = f( x(I_{kLeft-1}, [S_{k-1} x] S_k, J_{k+1}) ) = L_{kLeft-1} [X_{k-1}] XR_k with the cached XR_k = X_k R_{k+1}
-      Lx.update(kLeft-1, k);
-      const Tensor3<T>& XR = Lx.right()->get();
-      Tensor3<T> B;
-      localBlockFromRight<T>(Lx.left(), I, TTx, kLeft, nMALS, XR, B);
-      info.nEvaluations += applyToBlock(f, B);
+      // block B = f( x(I_{kLeft-1}, [S_{k-1} x] S_k, J_{k+1}) ) = f( L_{kLeft-1} [X_{k-1}] XR_k ) with the cached XR_k = X_k R_{k+1}
+      Tensor3<T> B = fx.blockFromRight(kLeft, nMALS);
       rmsRef = std::max(rmsRef, t3_rms(B));
       const RealType scale = rmsRef > 0 ? rmsRef : 1;
 
@@ -256,7 +253,7 @@ namespace PITTS
         B = fold_left(unfold_left(std::move(B)), dims[k]);
       CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRank, maxvolTolerance);
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
-      Lx.invalidate(k-1);
+      fx.invalidate(k-1);
 
       std::vector<Tensor3<T>> newCores(2);
       if( nMALS == 2 )
@@ -271,10 +268,7 @@ namespace PITTS
       if( enrich )
       {
         Lyz.invalidate(k-1, 2);
-        Lxz.update(k-1, k);
-        Tensor3<T> residual;
-        contractLeftInterface<T>(Lxz.left(), Iz, k-1, Lxz.right()->get(), residual);
-        info.nEvaluations += applyToBlock(f, residual);
+        Tensor3<T> residual = fx.errorBlockFromRight(k);
         Lyz.update(k-1, k);
         Tensor3<T> yOnCross;
         contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
@@ -282,7 +276,7 @@ namespace PITTS
         error = std::max(error, t3_rms(residual) / scale);
         const CoreUpdate<T> updz = updateCoreRight<T>(residual, localTolerance, options.errorRank, maxvolTolerance);
         Jz[k] = rightIndicesFromColumns(updz.selected, dims[k]);
-        Lxz.invalidate(k-1);
+        fx.invalidateError(k-1);
         Lyz.invalidate(k-1);
       }
 
@@ -299,12 +293,11 @@ namespace PITTS
     {
       if( sampleIndices.rows() == 0 )
         return 0;
-      Tensor3<T> fx, yOnSample;
-      evaluateAt(TTx, sampleIndices, fx);
-      info.nEvaluations += applyToBlock(f, fx);
+      const Tensor3<T> fOnSample = fx.atIndices(sampleIndices);
+      Tensor3<T> yOnSample;
       evaluateAt(TTy, sampleIndices, yOnSample);
-      const RealType rmsfx = t3_rms(fx);
-      return rmsDifference(fx, yOnSample) / (rmsfx > 0 ? rmsfx : 1);
+      const RealType rmsf = t3_rms(fOnSample);
+      return rmsDifference(fOnSample, yOnSample) / (rmsf > 0 ? rmsf : 1);
     };
 
     const auto printProgress = [&](double sweep, RealType change, RealType error)
@@ -363,6 +356,8 @@ namespace PITTS
       }
     }
 
+    info.nEvaluations = fx.nEvaluations();
+
     // final index sets as full multi-indices
     info.leftIndices.resize(std::max(nDim-1, 0));
     for(int k = 0; k < nDim-1; k++)
@@ -372,6 +367,26 @@ namespace PITTS
       info.rightIndices[k] = expandRight(J, k, nDim);
 
     return info;
+  }
+  }
+
+
+  // implement applyElementwise
+  template<typename T, typename Function>
+  TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
+  {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+    return internal::tt_cross::crossSweeps<T, Function, 1>(f, {std::cref(TTx)}, TTy, options);
+  }
+
+  // implement applyElementwise for two inputs
+  template<typename T, typename Function>
+  TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx1, const TensorTrain<T>& TTx2, TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
+  {
+    const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+    return internal::tt_cross::crossSweeps<T, Function, 2>(f, {std::cref(TTx1), std::cref(TTx2)}, TTy, options);
   }
 }
 
