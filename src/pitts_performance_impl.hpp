@@ -168,7 +168,7 @@ namespace PITTS
       if( clear )
       {
         timing::globalTimingStatisticsMap += combineTimingsPerFunction(globalPerformanceStatisticsMap);
-        timing::printStatistics(true, out);
+        timing::printStatistics(true, out, mpiGlobal);
 
         globalPerformanceStatisticsMap.clear();
       }
@@ -179,7 +179,7 @@ namespace PITTS
 
         timing::globalTimingStatisticsMap += combineTimingsPerFunction(globalPerformanceStatisticsMap);
 
-        timing::printStatistics(false, out);
+        timing::printStatistics(false, out, mpiGlobal);
         std::swap(timingStatisticsMap, timing::globalTimingStatisticsMap);
       }
     }

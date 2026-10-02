@@ -130,41 +130,49 @@ namespace PITTS
         m.def("copy",
             py::overload_cast< const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&copy<T>),
             py::arg("source"), py::arg("destination"),
+            py::call_guard<py::gil_scoped_release>(),
             "explicitly copy a TensorTrainOperator object");
 
         m.def("axpby",
             py::overload_cast< T, const TensorTrainOperator<T>&, T, TensorTrainOperator<T>&, T>(&axpby<T>),
             py::arg("alpha"), py::arg("TTOpx"), py::arg("beta"), py::arg("TTOpy"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()),
+            py::call_guard<py::gil_scoped_release>(),
             "Scale and add one tensor train operator to another\n\nCalculate TTOpy <- alpha*TTOpx + beta*TTOpy\n\nBoth tensors must be leftNormalized");
 
         m.def("randomize",
             py::overload_cast< TensorTrainOperator<T>& >(&randomize<T>),
             py::arg("TT"),
+            py::call_guard<py::gil_scoped_release>(),
             "fill a tensor train operator format with random values (keeping current TT-ranks)");
 
         m.def("normalize",
             py::overload_cast< TensorTrainOperator<T>&, T, int >(&normalize<T>),
             py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::call_guard<py::gil_scoped_release>(),
             "TT-rounting: truncate tensor train by two normalization sweeps (first right to left, then left to right)");
 
         m.def("apply",
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrain<T>&, TensorTrain<T>& >(&apply<T>),
             py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),
+            py::call_guard<py::gil_scoped_release>(),
             "Apply a tensor train operator\n\nCalculate TTy <- TTOp * TTx");
 
         m.def("apply",
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&apply<T>),
             py::arg("TTOpA"), py::arg("TTOpB"), py::arg("TTOpC"),
+            py::call_guard<py::gil_scoped_release>(),
             "Apply a TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA * TTOpB");
 
         m.def("applyT",
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrain<T>&, TensorTrain<T>& >(&applyT<T>),
             py::arg("TTOp"), py::arg("TTx"), py::arg("TTy"),
+            py::call_guard<py::gil_scoped_release>(),
             "Apply a transposed tensor train operator\n\nCalculate TTy <- TTOp^T * TTx");
 
         m.def("applyT",
             py::overload_cast< const TensorTrainOperator<T>&, const TensorTrainOperator<T>&, TensorTrainOperator<T>& >(&applyT<T>),
             py::arg("TTOpA"), py::arg("TTOpB"), py::arg("TTOpC"),
+            py::call_guard<py::gil_scoped_release>(),
             "Apply a transposed TT operator to another TT operator\n\nCalculate TTOpC <- TTOpA^T * TTOpB");
         
         m.def("toDense",
@@ -175,10 +183,12 @@ namespace PITTS
               return ConstEigenMap(op);
             },
             py::arg("TTOp"),
+            py::call_guard<py::gil_scoped_release>(),
             "calculate fully dense matrix from a tensor-train operator decomposition");
         m.def("toQtt",
             py::overload_cast<const TensorTrainOperator<T>&>(&toQtt<T>),
             py::arg("TTOp"),
+            py::call_guard<py::gil_scoped_release>(),
             "calculate quantized tensor-train (QTT) format from a given tensor-train operator");
       }
     }

@@ -4,6 +4,9 @@
 
 #include <gtest/gtest.h>
 #include "pitts_performance.hpp"
+#include "pitts_parallel.hpp"
+#include <sstream>
+#include <string>
 
 namespace
 {
@@ -169,3 +172,29 @@ TEST(PITTS_Performance, combineTimingsPerFunction_subScope)
   }
 }
 
+
+TEST(PITTS_Performance, printStatistics_mpiGlobal)
+{
+  PITTS::performance::globalPerformanceStatisticsMap.clear();
+  PITTS::timing::globalTimingStatisticsMap.clear();
+
+  simpleFunctionWithType(5, 7);
+
+  const auto& [iProc,nProcs] = PITTS::internal::parallel::mpiProcInfo();
+
+  // mpiGlobal = false: local statistics, so every process prints both sections (the performance
+  // statistics and the timing statistics derived from them)
+  std::ostringstream local;
+  PITTS::performance::printStatistics(false, local, false);
+  EXPECT_NE(std::string::npos, local.str().find("Performance statistics:"));
+  EXPECT_NE(std::string::npos, local.str().find("Timing statistics:"));
+
+  // mpiGlobal = true: the statistics are combined over all processes, only the root prints them
+  // (in the MPI-patched googletest every assertion is a collective operation, so the number of
+  //  assertions must not depend on the process - only their arguments may)
+  std::ostringstream global;
+  PITTS::performance::printStatistics(false, global, true);
+  const bool rootProcess = iProc == 0;
+  EXPECT_EQ(rootProcess, global.str().find("Performance statistics:") != std::string::npos);
+  EXPECT_EQ(rootProcess, global.str().find("Timing statistics:") != std::string::npos);
+}

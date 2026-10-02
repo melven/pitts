@@ -484,6 +484,80 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, local_block_vs_direct_eval
   }
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, error_cross_contraction_vs_direct_evaluation)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using PITTS::internal::tt_cross::contractLeftInterface;
+  using PITTS::internal::tt_cross::contractRightInterface;
+  using PITTS::internal::tt_cross::evaluateAt;
+  constexpr auto eps = 1.e-4;
+
+  // The error crosses of the driver mix two families of nested index sets (the left part may come from
+  // the index sets of y, the right part from those of the error approximation z) and both families change
+  // during a sweep. This checks the cached contractions used there against a direct evaluation.
+  const std::vector<int> dims = {3, 4, 2, 5, 3};
+  const int nDim = dims.size();
+  TensorTrain TT(dims);
+  TT.setTTranks({2, 3, 2, 4});
+  randomize(TT);
+
+  std::mt19937 gen(5);
+  std::vector<NestedIndices> I = randomLeftIndexSets(dims, {2, 3, 2, 3}, gen);
+  std::vector<NestedIndices> Jz = randomRightIndexSets(dims, {0, 3, 2, 3, 2}, gen);
+
+  // block on the cross (I_{k-1}, S_k, Jz_{k+1}) resp. (I_{kLeft-1}, S_k, Jz_{k+1}) vs. direct evaluation
+  const auto checkBlock = [&](const PITTS::Tensor3<Type>& block, const Eigen::MatrixXi& left, int firstDim,
+                              const Eigen::MatrixXi& right)
+  {
+    ASSERT_EQ(left.rows(), block.r1());
+    ASSERT_EQ(dims[firstDim], block.n());
+    ASSERT_EQ(right.rows(), block.r2());
+
+    Eigen::MatrixXi multiIndices(block.r1()*block.n()*block.r2(), nDim);
+    int row = 0;
+    for(int b = 0; b < block.r2(); b++)
+      for(int j = 0; j < block.n(); j++)
+        for(int a = 0; a < block.r1(); a++)
+          multiIndices.row(row++) << left.row(a), j, right.row(b);
+
+    PITTS::Tensor3<Type> reference;
+    evaluateAt(TT, multiIndices, reference);
+    row = 0;
+    for(int b = 0; b < block.r2(); b++)
+      for(int j = 0; j < block.n(); j++)
+        for(int a = 0; a < block.r1(); a++, row++)
+          EXPECT_NEAR(reference(row, 0, 0), block(a, j, b), eps);
+  };
+
+  // left-to-right: left interface from I, right interface from Jz, with I changing as in the driver
+  auto L = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TT, I), contraction_loop_from_right<Type>(TT, Jz));
+  for(int k = 0; k < nDim-1; k++)
+  {
+    L.update(k, k+1);
+    PITTS::Tensor3<Type> block;
+    contractRightInterface<Type>(L.left()->get(), L.right(), Jz, k+1, block);
+    checkBlock(block, expandLeft(I, k-1), k, expandRight(Jz, k+1, nDim));
+
+    // the sweep selects a new index set I_k here, which invalidates the contraction of the next dimension
+    I[k] = randomLeftIndexSets(dims, std::vector<int>(k+1, 2), gen)[k];
+    L.invalidate(k+1);
+  }
+
+  // right-to-left: left interface from I, right interface from Jz, with Jz changing
+  auto R = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TT, I), contraction_loop_from_right<Type>(TT, Jz));
+  for(int k = nDim-1; k > 0; k--)
+  {
+    R.update(k-1, k);
+    PITTS::Tensor3<Type> block;
+    contractLeftInterface<Type>(R.left(), I, k-1, R.right()->get(), block);
+    checkBlock(block, expandLeft(I, k-1), k, expandRight(Jz, k+1, nDim));
+
+    Jz[k] = randomRightIndexSets(dims, std::vector<int>(nDim, 2), gen)[k];
+    R.invalidate(k-1);
+  }
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_index_set_change)
 {
   using Type = typename TestFixture::Type;
