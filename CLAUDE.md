@@ -55,6 +55,9 @@ imperative, no trailing period), as in the existing history:
 `pitts_` prefix, e.g. `tensor2_maxvol`, `tt_axpby`, `bench`, `ci`, `claude_md`); a longer
 explanation goes into the body after a blank line. Keep one topic per commit.
 
+**Pull requests:** title like a commit message; the description is 1-3 short sentences on what changes
+and why (no file lists, test summaries or implementation details; those are in the commits).
+
 ## Environment setup (Ubuntu 24.04, apt only)
 
 In Claude Code on the web the SessionStart hook (`.claude/hooks/session-start.sh`) already did
