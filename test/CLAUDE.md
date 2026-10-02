@@ -10,6 +10,7 @@ See the root `CLAUDE.md` for how to build and run them (`ctest` in `build/test`,
 ## Structure
 
 - **C++ tests** (`test_*.cpp`) use googletest 1.8.0 with an MPI patch (`third-party/gtest-1.8.0-mpi.tar.gz`, unpacked by `cmake/GTest.cmake`). All `.cpp` files are globbed into one executable `pitts_tests` (target is `EXCLUDE_FROM_ALL`, so build it explicitly). It is run with 1 and 3 MPI processes (`PITTS_TEST_NPROCS`) and `PITTS_TEST_NTHREADS` OpenMP threads; some tests assert `omp_get_max_threads() >= 4` or run only on a given process count.
+- In the MPI-patched googletest **every assertion is a collective operation** (`AssertionResult::boolIdenticalOnMPIprocs` does two `MPI_Allreduce`, it also verifies that the outcome is the same on all processes). A test must therefore execute the same number of assertions on every process - make the *arguments* rank-dependent, never the control flow around `EXPECT_*`, otherwise the test deadlocks with `PITTS_TEST_NPROCS > 1`.
 - Test suite names follow `PITTS_<Class>_<topic>`, typed tests iterate over float/double/complex. There is roughly one `test_<x>.cpp` per `src/pitts_<x>.hpp`.
 - **Python tests** (`test_*_pybind.py`, `unittest`) test the `pitts_py` module and are only registered when pybind11 was found. They run through `mpiexec -n 1` with `PYTHONPATH` pointing to the built module.
 - **Julia tests** (`test_*_jlbind.jl`) are only registered when JlCxx is found (not available here).
