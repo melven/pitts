@@ -558,6 +558,88 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, error_cross_contraction_vs
   }
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inputs_vs_direct_evaluation)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using PITTS::internal::tt_cross::randomIndices;
+  constexpr auto eps = 1.e-4;
+
+  // f(x^(1), x^(2)) of two tensor trains with different ranks; not symmetric, so the order of the arguments matters
+  const std::vector<int> dims = {3, 4, 2, 5, 3};
+  const int nDim = dims.size();
+  TensorTrain TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2, 4});
+  TTb.setTTranks({3, 1, 2, 2});
+  randomize(TTa);
+  randomize(TTb);
+  const auto f = [](Type a, Type b){return a*b + Type(2)*b;};
+  using Evaluator = PITTS::internal::tt_cross::FunctionOnCrosses<Type, decltype(f), 2>;
+  const typename Evaluator::Inputs inputs = {std::cref(TTa), std::cref(TTb)};
+
+  // index sets of y and (different) index sets of the error approximation
+  std::mt19937 gen(17);
+  const auto I = randomLeftIndexSets(dims, {2, 3, 2, 3}, gen);
+  const auto J = randomRightIndexSets(dims, {0, 3, 2, 3, 2}, gen);
+  const auto Iz = randomLeftIndexSets(dims, {1, 2, 2, 2}, gen);
+  const auto Jz = randomRightIndexSets(dims, {0, 2, 3, 2, 1}, gen);
+
+  // compare a block with f evaluated directly on the cross (L, modes of the cores k..k+nModes-1, R)
+  long long nEntries = 0;
+  const auto checkBlock = [&](const PITTS::Tensor3<Type>& B, const Eigen::MatrixXi& L, int k, int nModes, const Eigen::MatrixXi& R)
+  {
+    ASSERT_EQ(L.rows(), B.r1());
+    ASSERT_EQ(R.rows(), B.r2());
+    ASSERT_EQ(nModes == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
+    nEntries += B.r1()*B.n()*B.r2();
+    for(int a = 0; a < B.r1(); a++)
+      for(int b = 0; b < B.r2(); b++)
+        for(int j = 0; j < B.n(); j++)
+        {
+          Eigen::RowVectorXi multiIndex(nDim);
+          if( nModes == 2 )
+            multiIndex << L.row(a), j % dims[k], j / dims[k], R.row(b);
+          else
+            multiIndex << L.row(a), j, R.row(b);
+          const Type ref = f(evaluate(TTa, multiIndex), evaluate(TTb, multiIndex));
+          EXPECT_NEAR(ref, B(a, j, b), eps*(1 + std::abs(ref)));
+        }
+  };
+
+  for(int nMALS: {1, 2})
+    for(int k = 0; k + nMALS <= nDim; k++)
+    {
+      // left-to-right step: block, then the enrichment crosses (as in the driver)
+      Evaluator fromLeft(f, inputs, I, J, Iz, Jz);
+      nEntries = 0;
+      checkBlock(fromLeft.blockFromLeft(k, nMALS), expandLeft(I, k-1), k, nMALS, expandRight(J, k+nMALS, nDim));
+      if( nMALS == 1 )
+      {
+        checkBlock(fromLeft.mixedBlock(k), expandLeft(I, k-1), k, 1, expandRight(Jz, k+1, nDim));
+        checkBlock(fromLeft.errorBlockFromLeft(k), expandLeft(Iz, k-1), k, 1, expandRight(Jz, k+1, nDim));
+      }
+      EXPECT_EQ(nEntries, fromLeft.nEvaluations());
+
+      // right-to-left step: the same crosses with the contractions from the other side
+      Evaluator fromRight(f, inputs, I, J, Iz, Jz);
+      checkBlock(fromRight.blockFromRight(k, nMALS), expandLeft(I, k-1), k, nMALS, expandRight(J, k+nMALS, nDim));
+      if( nMALS == 1 )
+        checkBlock(fromRight.errorBlockFromRight(k), expandLeft(Iz, k-1), k, 1, expandRight(Jz, k+1, nDim));
+    }
+
+  // random entries (control sample)
+  Evaluator samples(f, inputs, I, J, Iz, Jz);
+  const Eigen::MatrixXi indices = randomIndices(dims, 10);
+  const PITTS::Tensor3<Type> values = samples.atIndices(indices);
+  ASSERT_EQ(10, values.r1());
+  for(int s = 0; s < 10; s++)
+  {
+    const Type ref = f(evaluate(TTa, indices.row(s)), evaluate(TTb, indices.row(s)));
+    EXPECT_NEAR(ref, values(s, 0, 0), eps*(1 + std::abs(ref)));
+  }
+  EXPECT_EQ(10, samples.nEvaluations());
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, incremental_update_after_index_set_change)
 {
   using Type = typename TestFixture::Type;

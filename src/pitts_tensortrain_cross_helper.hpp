@@ -42,7 +42,9 @@
 
 // includes
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstddef>
 #include <concepts>
 #include <functional>
 #include <limits>
@@ -530,6 +532,155 @@ namespace PITTS
         for(int s = 0; s < nSamples; s++)
           values(s, 0, 0) = v(s, 0);
       }
+
+
+      //! Element-wise function f(x^(1), ..., x^(N)) of N tensor trains, evaluated on the crosses of a TT-cross sweep
+      //!
+      //! Bundles everything of the TT-cross driver that depends on the input tensors: for each input the cached
+      //! partial contractions (SweepData) on the index sets of y (I, J) and on those of the error approximation
+      //! (Iz, Jz), the assembly of the block of each input on a cross, and the call of f (applyToBlock). So the
+      //! driver itself (index sets, core updates, enrichment, convergence) is the same for any number of inputs.
+      //!
+      //! All block functions return f on the cross of core k (or of the cores k..k+nMALS-1) as a block of shape
+      //! |left set| x n_k... x |right set|. They differ in the sets of the cross and in the side the cached
+      //! contractions are taken from, which matters for the cost only (the same choices as in the single-input
+      //! sketch at the top of this file). Each block function updates the contractions it needs itself.
+      //!
+      //! The index sets are owned by the caller and captured by reference: after changing a set, the caller must
+      //! invalidate the affected contractions (invalidate / invalidateError, with the same rules as for
+      //! contraction_loop_from_left: invalidate(k+1) after I_k changed, invalidate(k-1) after J_k changed).
+      //!
+      //! @tparam T         underlying data type
+      //! @tparam Function  element-wise function with N arguments, see applyToBlock
+      //! @tparam N         number of input tensor trains
+      //!
+      template<typename T, typename Function, std::size_t N>
+      class FunctionOnCrosses final
+      {
+        public:
+          //! the input tensor trains (all of the same dimensions)
+          using Inputs = std::array<std::reference_wrapper<const TensorTrain<T>>, N>;
+
+          //! setup without any calculation; f, the inputs and the index sets must outlive this object
+          FunctionOnCrosses(const Function& f, const Inputs& TTx,
+                            const std::vector<NestedIndices>& I, const std::vector<NestedIndices>& J,
+                            const std::vector<NestedIndices>& Iz, const std::vector<NestedIndices>& Jz) :
+            f_(f), TTx_(TTx), I_(I), J_(J), Iz_(Iz), Jz_(Jz)
+          {
+            for(const TensorTrain<T>& TT: TTx)
+            {
+              const int nDim = TT.dimensions().size();
+              Lx_.push_back(defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TT, I), contraction_loop_from_right<T>(TT, J)));
+              Lxz_.push_back(defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TT, Iz), contraction_loop_from_right<T>(TT, Jz)));
+            }
+          }
+
+          //! f on the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) with the cached LX_k (left-to-right step)
+          Tensor3<T> blockFromLeft(int k, int nMALS)
+          {
+            return evaluate([&](int i, Tensor3<T>& B)
+            {
+              Lx_[i].update(k, k+nMALS);
+              localBlockFromLeft<T>(Lx_[i].left()->get(), TTx_[i].get(), k, nMALS, Lx_[i].right(), J_, B);
+            });
+          }
+
+          //! f on the cross (I_{kLeft-1}, S_kLeft x ... x S_{kLeft+nMALS-1}, J_{kLeft+nMALS}) with the cached XR (right-to-left step)
+          Tensor3<T> blockFromRight(int kLeft, int nMALS)
+          {
+            return evaluate([&](int i, Tensor3<T>& B)
+            {
+              Lx_[i].update(kLeft-1, kLeft+nMALS-1);
+              localBlockFromRight<T>(Lx_[i].left(), I_, TTx_[i].get(), kLeft, nMALS, Lx_[i].right()->get(), B);
+            });
+          }
+
+          //! f on the mixed cross (I_{k-1}, S_k, J^z_{k+1}): left sets of y, right sets of the error approximation (enrichment)
+          Tensor3<T> mixedBlock(int k)
+          {
+            return evaluate([&](int i, Tensor3<T>& B)
+            {
+              Lx_[i].update(k, k+1);
+              Lxz_[i].update(k, k+1);
+              contractRightInterface<T>(Lx_[i].left()->get(), Lxz_[i].right(), Jz_, k+1, B);
+            });
+          }
+
+          //! f on the error cross (I^z_{k-1}, S_k, J^z_{k+1}) with the cached LX^z_k (left-to-right step)
+          Tensor3<T> errorBlockFromLeft(int k)
+          {
+            return evaluate([&](int i, Tensor3<T>& B)
+            {
+              Lxz_[i].update(k, k+1);
+              contractRightInterface<T>(Lxz_[i].left()->get(), Lxz_[i].right(), Jz_, k+1, B);
+            });
+          }
+
+          //! f on the error cross (I^z_{k-1}, S_k, J^z_{k+1}) with the cached XR^z_k (right-to-left step)
+          Tensor3<T> errorBlockFromRight(int k)
+          {
+            return evaluate([&](int i, Tensor3<T>& B)
+            {
+              Lxz_[i].update(k-1, k);
+              contractLeftInterface<T>(Lxz_[i].left(), Iz_, k-1, Lxz_[i].right()->get(), B);
+            });
+          }
+
+          //! f at the given multi-indices (one per row) as a block of shape (nSamples,1,1), see evaluateAt
+          Tensor3<T> atIndices(const Eigen::MatrixXi& indices)
+          {
+            return evaluate([&](int i, Tensor3<T>& B){evaluateAt(TTx_[i].get(), indices, B);});
+          }
+
+          //! the contractions on the sets of y at dimension k are invalid (I or J changed)
+          void invalidate(int k)
+          {
+            for(auto& L: Lx_)
+              L.invalidate(k);
+          }
+
+          //! the contractions on the sets of the error approximation at dimension k are invalid (Iz or Jz changed)
+          void invalidateError(int k)
+          {
+            for(auto& L: Lxz_)
+              L.invalidate(k);
+          }
+
+          //! total number of evaluated entries (calls of a scalar f)
+          [[nodiscard]] long long nEvaluations() const {return nEvaluations_;}
+
+        private:
+          //! assemble the block of every input with blockOfInput(i, B), then apply f to all of them
+          template<typename BlockOfInput>
+          Tensor3<T> evaluate(const BlockOfInput& blockOfInput)
+          {
+            std::array<Tensor3<T>, N> B;
+            for(int i = 0; i < N; i++)
+              blockOfInput(i, B[i]);
+            nEvaluations_ += [&]<std::size_t... i>(std::index_sequence<i...>)
+            {
+              return applyToBlock(f_, B[0], std::move(B[i+1])...);
+            }(std::make_index_sequence<N-1>{});
+            return std::move(B[0]);
+          }
+
+          //! type of the cached partial contractions of one input
+          using Contractions = decltype(defineSweepData<Tensor3<T>>(0,
+              contraction_loop_from_left<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>()),
+              contraction_loop_from_right<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>())));
+
+          const Function& f_;
+          Inputs TTx_;
+          const std::vector<NestedIndices>& I_;
+          const std::vector<NestedIndices>& J_;
+          const std::vector<NestedIndices>& Iz_;
+          const std::vector<NestedIndices>& Jz_;
+          //! partial contractions of each input on the sets of y
+          std::vector<Contractions> Lx_;
+          //! partial contractions of each input on the sets of the error approximation
+          std::vector<Contractions> Lxz_;
+          long long nEvaluations_ = 0;
+      };
 
 
       //! root-mean-square size of a block: ||A||_F / sqrt(number of entries)
