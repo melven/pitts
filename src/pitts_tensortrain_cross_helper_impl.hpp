@@ -219,13 +219,24 @@ namespace PITTS
 
       // implement initialRightIndexSets
       template<typename T>
-      std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance)
+      std::vector<NestedIndices> initialRightIndexSets(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx,
+                                                       T maxvolTolerance, int maxRank)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const int nDim = TTx.dimensions().size();
-        if( nDim < 1 || TTx.subTensor(0).r1() != 1 || TTx.subTensor(nDim-1).r2() != 1 )
-          throw std::invalid_argument("initialRightIndexSets: boundary ranks must be 1!");
+        if( TTx.empty() )
+          throw std::invalid_argument("initialRightIndexSets: no tensor train!");
+        if( maxRank < 1 )
+          throw std::invalid_argument("initialRightIndexSets: maxRank must be positive!");
+        const std::vector<int>& dims = TTx.front().get().dimensions();
+        const int nDim = dims.size();
+        for(const TensorTrain<T>& TT: TTx)
+        {
+          if( TT.dimensions() != dims )
+            throw std::invalid_argument("initialRightIndexSets: dimensions of the tensor trains differ!");
+          if( nDim < 1 || TT.subTensor(0).r1() != 1 || TT.subTensor(nDim-1).r2() != 1 )
+            throw std::invalid_argument("initialRightIndexSets: boundary ranks must be 1!");
+        }
 
         // Work on a right-orthogonalized copy: maxvol needs full column rank, and the right unfolding of a
         // right-orthogonal core has orthonormal rows, so X_k * R_{k+1} keeps full row rank as long as R_{k+1}
@@ -236,24 +247,54 @@ namespace PITTS
         // do not depend on the gauge of the cores.
         // A right sweep alone does not reveal rank deficiencies that sit in the left unfoldings (e.g. a zero
         // slice in X_0), so the copy is first left-normalized (minimal ranks) and then right-normalized.
-        TensorTrain<T> TTortho(TTx.dimensions());
-        copy(TTx, TTortho);
-        leftNormalize(TTortho, T(0));
-        rightNormalize(TTortho, T(0));
+        std::vector<TensorTrain<T>> TTortho;
+        TTortho.reserve(TTx.size());    // no reallocation: the sweep data below refers to the elements
+        for(const TensorTrain<T>& TT: TTx)
+        {
+          copy(TT, TTortho.emplace_back(dims));
+          leftNormalize(TTortho.back(), T(0));
+          rightNormalize(TTortho.back(), T(0));
+        }
 
-        // right-to-left sweep of the partial contractions XR_k = X_k R_{k+1}; J[k+1] is set before XR_k is
-        // computed, so the same recursion (and boundary handling) as in the cross sweeps can be used
+        // right-to-left sweep of the partial contractions XR_k = X_k R_{k+1} (one per input, all on the same
+        // sets J); J[k+1] is set before XR_k is computed, so the same recursion (and boundary handling) as in
+        // the cross sweeps can be used
         std::vector<NestedIndices> J(nDim);
         const auto neverFromTheLeft = [](int, optional_cref<Tensor3<T>>, Tensor3<T>&) { assert(false); };
-        auto Rx = defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TTortho, J));
+        using RightContractions = decltype(defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TTortho.front(), J)));
+        std::vector<RightContractions> Rx;
+        for(const TensorTrain<T>& TT: TTortho)
+          Rx.push_back(defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TT, J)));
 
         for(int k = nDim-1; k >= 1; k--)
         {
-          Rx.update(-1, k);
-          const Tensor3<T>& XR = Rx.subTensor(k);
+          int nRows = 0;
+          for(auto& R: Rx)
+          {
+            R.update(-1, k);
+            nRows += R.subTensor(k).r1();
+          }
 
-          // the right unfolding (r_{k-1} x n |J_{k+1}|) is wide, maxvolColumns selects the columns J_k
-          J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(XR), maxvolTolerance), XR.n());
+          // single input: the right unfolding (r_{k-1} x n |J_{k+1}|) is wide with full row rank,
+          // maxvolColumns selects the columns J_k
+          if( Rx.size() == 1 && nRows <= maxRank )
+          {
+            J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(Rx.front().subTensor(k)), maxvolTolerance), dims[k]);
+            continue;
+          }
+
+          // several inputs: the stacked right unfoldings may be rank-deficient or even tall, so select the
+          // columns in an orthonormal basis of their joint row space
+          Tensor2<T> stacked(nRows, Rx.front().subTensor(k).n() * Rx.front().subTensor(k).r2());
+          int offset = 0;
+          for(const auto& R: Rx)
+          {
+            const auto XR = unfold_right(R.subTensor(k));
+            EigenMap(stacked).middleRows(offset, XR.r1()) = ConstEigenMap(XR);
+            offset += XR.r1();
+          }
+          const Tensor2<T> Vt = normalize_svd(stacked, false, T(0), maxRank).second;
+          J[k] = rightIndicesFromColumns(maxvolColumns<T>(Vt, maxvolTolerance), dims[k]);
         }
 
         return J;

@@ -1138,3 +1138,101 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_inva
   randomize(TT);
   EXPECT_THROW(initialRightIndexSets(TT, Type(0.05)), std::invalid_argument);
 }
+
+namespace
+{
+  // smallest singular value of the right interface R_k (r_{k-1} x |J_k|) of a TT relative to the largest one, for k = 1..d-1:
+  // a positive value means that the cross determines the right part of the TT
+  template<typename T>
+  std::vector<T> relativeSmallestSingularValuesOfRightInterfaces(const PITTS::TensorTrain<T>& TT, const std::vector<NestedIndices>& J)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const int nDim = TT.dimensions().size();
+    std::vector<NestedIndices> noLeft(nDim);
+    auto Rx = defineSweepData<PITTS::Tensor3<T>>(nDim, contraction_loop_from_left<T>(TT, noLeft), contraction_loop_from_right<T>(TT, J));
+    Rx.update(-1, 1);
+    std::vector<T> result(nDim, T(0));
+    for(int k = 1; k < nDim; k++)
+    {
+      const PITTS::Tensor2<T> R = interfaceRight(Rx.subTensor(k), J[k]);
+      const Eigen::JacobiSVD<mat> svd(mat(ConstEigenMap(R)));
+      const auto& sigma = svd.singularValues();
+      result[k] = sigma(sigma.size()-1) / sigma(0);
+    }
+    return result;
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_two_TTs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  const std::vector<int> dims = {3, 4, 2, 5};
+  TensorTrain TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2});
+  TTb.setTTranks({1, 2, 3});
+  randomize(TTa);
+  randomize(TTb);
+  const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
+
+  // |J_k| = min(r^a_{k-1} + r^b_{k-1}, n_k |J_{k+1}|)
+  const std::vector<NestedIndices> J = initialRightIndexSets(inputs, maxvolTol);
+  checkRightNested(J, dims, {0, 3, 5, 5});
+
+  // the crosses determine the right parts of both tensor trains: R_k has full row rank for both
+  for(const TensorTrain& TT: {std::cref(TTa), std::cref(TTb)})
+    for(int k = 1; k < int(dims.size()); k++)
+      EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TT, J)[k], Type(1.e-3));
+
+  // maxRank limits the size of the sets
+  checkRightNested(initialRightIndexSets(inputs, maxvolTol, 2), dims, {0, 2, 2, 2});
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_dependent_TTs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  // x and -2x have the same right parts: the stacked unfoldings are rank-deficient, the sets get the size of a single input
+  const std::vector<int> dims = {3, 4, 2, 5};
+  TensorTrain TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2});
+  randomize(TTa);
+  copy(TTa, TTb);
+  TTb.editSubTensor(1, [](PITTS::Tensor3<Type>& X){PITTS::internal::t3_scale(Type(-2), X);});
+  const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
+
+  const std::vector<NestedIndices> J = initialRightIndexSets(inputs, maxvolTol);
+  checkRightNested(J, dims, {0, 2, 3, 2});
+  for(int k = 1; k < int(dims.size()); k++)
+    EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TTa, J)[k], Type(1.e-3));
+
+  // a single input in the vector: the same sets as from the single-input overload (SVD skipped);
+  // with maxRank below the ranks (SVD path) the sets have the requested size
+  const std::vector<std::reference_wrapper<const TensorTrain>> single = {std::cref(TTa)};
+  const std::vector<NestedIndices> Jsingle = initialRightIndexSets(TTa, maxvolTol);
+  const std::vector<NestedIndices> Jvector = initialRightIndexSets(single, maxvolTol);
+  for(int k = 1; k < int(dims.size()); k++)
+  {
+    EXPECT_EQ(Jsingle[k].idx, Jvector[k].idx);
+    EXPECT_EQ(Jsingle[k].link, Jvector[k].link);
+  }
+  checkRightNested(initialRightIndexSets(single, maxvolTol, 1), dims, {0, 1, 1, 1});
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_invalid_inputs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  TensorTrain TTa({3, 4, 2}, 2), TTb({3, 4, 3}, 2);
+  randomize(TTa);
+  randomize(TTb);
+  using Inputs = std::vector<std::reference_wrapper<const TensorTrain>>;
+  EXPECT_THROW(initialRightIndexSets(Inputs{}, Type(0.05)), std::invalid_argument);
+  EXPECT_THROW(initialRightIndexSets(Inputs{std::cref(TTa), std::cref(TTb)}, Type(0.05)), std::invalid_argument);
+  EXPECT_THROW(initialRightIndexSets(Inputs{std::cref(TTa)}, Type(0.05), 0), std::invalid_argument);
+}

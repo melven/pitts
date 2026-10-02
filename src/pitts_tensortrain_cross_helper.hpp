@@ -44,6 +44,8 @@
 #include <algorithm>
 #include <cassert>
 #include <concepts>
+#include <functional>
+#include <limits>
 #include <numeric>
 #include <stdexcept>
 #include <utility>
@@ -668,13 +670,33 @@ namespace PITTS
       //! ranks) and the columns of R_k form a dominant submatrix in the orthogonalized TT, so the first
       //! left-to-right sweep starts from well-conditioned crosses. No function evaluations are needed.
       //!
-      //! @param TTx                input tensor train (boundary ranks 1)
+      //! For a function of several tensor trains x^(1), ..., x^(N) (same dimensions, any ranks) the sets must
+      //! capture the right parts of all of them: the right unfoldings of all inputs are stacked
+      //! ((sum_i r^(i)_{k-1}) x n |J_{k+1}|), a truncated SVD (tolerance 0, i.e. only numerically dependent rows
+      //! are removed, and at most maxRank directions) gives an orthonormal basis of their joint row space, and
+      //! maxvolColumns selects the columns J_k of this basis, so |J_k| <= min(sum_i r^(i)_{k-1}, maxRank).
+      //! For a single input with ranks <= maxRank the SVD is skipped (the right unfolding has full row rank
+      //! already), so the result is the same as with the single-input overload.
+      //!
+      //! @param TTx                input tensor trains (same dimensions, boundary ranks 1)
       //! @param maxvolTolerance    dominance tolerance for maxvol
+      //! @param maxRank            maximal size of the index sets
       //! @return                   right index sets, J[k] for k = 1..d-1 (J[0] empty); the interfaces are then
       //!                           obtained with a SweepData built from contraction_loop_from_right
       //!
+      //! @throws std::invalid_argument for no input, different dimensions, boundary ranks != 1 or maxRank < 1
+      //!
       template<typename T>
-      std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance);
+      std::vector<NestedIndices> initialRightIndexSets(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx,
+                                                       T maxvolTolerance, int maxRank = std::numeric_limits<int>::max());
+
+      //! Initial right index sets from a single tensor train, see above
+      template<typename T>
+      std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance)
+      {
+        const std::vector<std::reference_wrapper<const TensorTrain<T>>> inputs = {std::cref(TTx)};
+        return initialRightIndexSets(inputs, maxvolTolerance);
+      }
     }
   }
 }
