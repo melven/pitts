@@ -74,7 +74,7 @@ TensorTrain and TensorTrainOperator:
 |---|---|
 | `test_common_pybind.py` | `initialize`/`finalize`, statistics printing, large statistics output into a pipe drained by a python thread (jupyter-style fd capture: the binding must release the GIL, a regression hangs - therefore run in a subprocess with a timeout). |
 | `test_multivector_pybind.py` | Creation, resize, numpy buffer protocol, copy, randomize, `cdist2`. |
-| `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt. |
+| `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt, GIL release during a long call (a counting thread must make progress). |
 | `test_tensortrain_operator_pybind.py` | Creation, `setEye`, apply/applyT, axpby, operator product, toDense, toQtt. |
 | `test_tensortrain_solve_pybind.py` | `solveMALS` and `solveGMRES` on identity systems. |
 | `test_tensortrain_cross_pybind.py` | `applyElementwise`: numpy ufuncs, in-place functions, `numpy.vectorize`d scalar functions, float/double, options as keyword arguments, errors (wrong result size, exception in the function). |

@@ -76,7 +76,11 @@ namespace PITTS
               optTensor_t3(i1,j,i2) = *optTensor.data(i1,j,i2);
 
         Tensor3<T> gradOptTensor_t3(optTensor.shape(0), optTensor.shape(1), optTensor.shape(2));
-        PITTS::ttn_local_gradient_contract(optTensor_t3, envLeft, envRight, envTop, gradOptTensor_t3, mpiParallel);
+        {
+          // the data is copied to/from the numpy arrays outside of this block, see init_MultiVector_helper
+          const py::gil_scoped_release releaseGil;
+          PITTS::ttn_local_gradient_contract(optTensor_t3, envLeft, envRight, envTop, gradOptTensor_t3, mpiParallel);
+        }
 
         py::array_t<T> result({gradOptTensor_t3.r1(), gradOptTensor_t3.n(), gradOptTensor_t3.r2()});
         for(long long i2 = 0; i2 < gradOptTensor_t3.r2(); i2++)
@@ -106,22 +110,29 @@ namespace PITTS
         m.def("copy",
             py::overload_cast< const MultiVector<T>&, MultiVector<T>& >(&PITTS::copy<T>),
             py::arg("source"), py::arg("destination"),
+            py::call_guard<py::gil_scoped_release>(),
             "explicitly copy a MultiVector object");
 
         m.def("randomize",
             py::overload_cast< MultiVector<T>& >(&randomize<T>),
             py::arg("mv"),
+            py::call_guard<py::gil_scoped_release>(),
             "fill a multi-vector with random values (keeping current dimensions)");
 
         m.def("centroids",
             py::overload_cast< const MultiVector<T>&, const std::vector<long long>&, const std::vector<T>&, MultiVector<T>& >(&centroids<T>),
             py::arg("X"), py::arg("idx"), py::arg("weights"), py::arg("Y"),
+            py::call_guard<py::gil_scoped_release>(),
             "Calculate weighted sum of columns of X and store the result in Y: (sums up Y with Y(idx_i) += weights_i*X_i)");
 
         m.def("cdist2",
             [](const MultiVector<T>& X, const MultiVector<T>& Y) {
               Tensor2<T> buff;
-              cdist2(X, Y, buff);
+              {
+                // copy() below creates a numpy array, so release the GIL only for the calculation
+                const py::gil_scoped_release releaseGil;
+                cdist2(X, Y, buff);
+              }
               return copy(buff);
               },
             py::arg("X"), py::arg("Y"),
@@ -130,7 +141,11 @@ namespace PITTS
         m.def("block_TSQR",
             [](const MultiVector<T>& M, int reductionFactor, bool mpiGlobal) {
               Tensor2<T> buff;
-              block_TSQR(M, buff, reductionFactor, mpiGlobal);
+              {
+                // copy() below creates a numpy array, so release the GIL only for the calculation
+                const py::gil_scoped_release releaseGil;
+                block_TSQR(M, buff, reductionFactor, mpiGlobal);
+              }
               return copy(buff);
               },
             py::arg("M"), py::arg("reductionFactor")=0, py::arg("mpiGlobal")=true,
@@ -139,11 +154,13 @@ namespace PITTS
         m.def("transform",
             py::overload_cast< const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long,2> >(&PITTS::transform<T>),
             py::arg("X"), py::arg("M"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0},
+            py::call_guard<py::gil_scoped_release>(),
             "Calculate the matrix-matrix product of a tall-skinny matrix (multivector) with a small matrix (Y <- X*M)");
 
         m.def("transpose",
             py::overload_cast< const MultiVector<T>&, MultiVector<T>&, std::array<long long,2>, bool >(&PITTS::transpose<T>),
             py::arg("X"), py::arg("Y"), py::arg("reshape")=std::array<long long,2>{0,0}, py::arg("reverse")=false,
+            py::call_guard<py::gil_scoped_release>(),
             "Reshape and transpose a tall-skinny matrix");
 
         m.def("ttn_local_gradient_contraction",

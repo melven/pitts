@@ -98,6 +98,8 @@ namespace PITTS
         const auto first = static_cast<const T*>(array.data());
         const auto last = first + array.size();
         auto shape = std::vector<int>{array.shape(), array.shape()+array.ndim()};
+        // only the raw data of the numpy array is used from here on, so the GIL can be released
+        const py::gil_scoped_release releaseGil;
         return fromDense_classical(first, last, shape, rankTolerance, maxRank);
       }
 
@@ -109,7 +111,11 @@ namespace PITTS
         auto first = static_cast<T*>(array.mutable_data());
         auto last = first + array.size();
 
-        toDense(TT, first, last);
+        {
+          // the numpy array is already allocated, only its raw data is written
+          const py::gil_scoped_release releaseGil;
+          toDense(TT, first, last);
+        }
 
         return array;
       }
@@ -140,7 +146,12 @@ namespace PITTS
         for(int i = 0; i < V.size(); i++)
           Vtmp.emplace_back(std::move(V[i].cast<TensorTrain<T>&>()));
         V.attr("clear")();
-        auto result = PITTS::gramSchmidt(Vtmp, w, rankTolerance, maxRank, symmetric, outputPrefix, verbose, nIter, pivoting, modified, skipDirs);
+        // the python list is only accessed outside of this call, so the GIL can be released for it
+        auto result = [&]()
+        {
+          const py::gil_scoped_release releaseGil;
+          return PITTS::gramSchmidt(Vtmp, w, rankTolerance, maxRank, symmetric, outputPrefix, verbose, nIter, pivoting, modified, skipDirs);
+        }();
         for(int i = 0; i < Vtmp.size(); i++)
           V.append(std::move(Vtmp[i]));
         return result;
@@ -169,41 +180,49 @@ namespace PITTS
         m.def("copy",
             py::overload_cast< const TensorTrain<T>&, TensorTrain<T>& >(&copy<T>),
             py::arg("source"), py::arg("destination"),
+            py::call_guard<py::gil_scoped_release>(),
             "explicitly copy a TensorTrain object");
 
         m.def("axpby",
             py::overload_cast< T, const TensorTrain<T>&, T, TensorTrain<T>&, T, int>(&axpby<T>),
             py::arg("alpha"), py::arg("TTx"), py::arg("beta"), py::arg("TTy"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::call_guard<py::gil_scoped_release>(),
             "Scale and add one tensor train to another\n\nCalculate gamma*TTy <- alpha*TTx + beta*TTy\n\nBoth tensors must be leftNormalized, gamma is returned");
 
         m.def("dot",
             py::overload_cast< const TensorTrain<T>&, const TensorTrain<T>& >(&dot<T>),
             py::arg("TTx"), py::arg("TTy"),
+            py::call_guard<py::gil_scoped_release>(),
             "calculate the inner product of two vectors in tensor train format");
 
         m.def("norm2",
             py::overload_cast< const TensorTrain<T>& >(&norm2<T>),
             py::arg("TT"),
+            py::call_guard<py::gil_scoped_release>(),
             "calculate the 2-norm for a vector in tensor train format");
 
         m.def("normalize",
             py::overload_cast< TensorTrain<T>&, T, int >(&normalize<T>),
             py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::call_guard<py::gil_scoped_release>(),
             "TT-rounting: truncate tensor train by two normalization sweeps (first right to left, then left to right)");
 
         m.def("leftNormalize",
             py::overload_cast< TensorTrain<T>&, T, int >(&leftNormalize<T>),
             py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::call_guard<py::gil_scoped_release>(),
             "Make all sub-tensors orthogonal sweeping left to right");
 
         m.def("rightNormalize",
             py::overload_cast< TensorTrain<T>&, T, int >(&rightNormalize<T>),
             py::arg("TT"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=std::numeric_limits<int>::max(),
+            py::call_guard<py::gil_scoped_release>(),
             "Make all sub-tensors orthogonal sweeping right to left");
 
         m.def("randomize",
             py::overload_cast< TensorTrain<T>& >(&randomize<T>),
             py::arg("TT"),
+            py::call_guard<py::gil_scoped_release>(),
             "fill a tensor train format with random values (keeping current TT-ranks)");
 
         m.def("fromDense_classical",
@@ -214,11 +233,13 @@ namespace PITTS
         m.def("fromDense",
             &fromDense<T>,
             py::arg("X"), py::arg("work"), py::arg("dimensions"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1, py::arg("mpiGlobal")=false, py::arg("r0")=1, py::arg("rd")=1,
+            py::call_guard<py::gil_scoped_release>(),
             "calculate tensor-train decomposition of a tensor stored in fully dense format (using a PITTS::MultiVector as buffer);\nWARNING: X is overwritten with temporary data to reduce memory consumption!");
 
         m.def("fromDense_twoSided",
             &fromDense_twoSided<T>,
             py::arg("X"), py::arg("work"), py::arg("dimensions"), py::arg("rankTolerance")=std::sqrt(std::numeric_limits<T>::epsilon()), py::arg("maxRank")=-1,
+            py::call_guard<py::gil_scoped_release>(),
             "calculate tensor-train decomposition of a tensor stored in fully dense format (using a PITTS::MultiVector as buffer);\nWARNING: X is overwritten with temporary data to reduce memory consumption!");
 
         m.def("toDense",
