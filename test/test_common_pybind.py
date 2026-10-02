@@ -12,6 +12,8 @@ __authors__ = ['Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>']
 __date__ = '2020-06-26'
 import os
 import pitts_py
+# only needed for correctly resolving BLAS/LAPACK functionality in my setup
+import numpy
 import threading
 import unittest
 
