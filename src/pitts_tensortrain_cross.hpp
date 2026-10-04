@@ -38,6 +38,13 @@
 *        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep).
 *     4. maxvol on the resulting orthogonal factor U selects the new nested index set I_k;
 *        Y_k = U * U(I_k,:)^{-1} (interpolation gauge), the remainder is multiplied into Y_{k+1}.
+*     (With oversampling > 0, step 4 selects more rows than directions (rectangular maxvol [9]) and
+*      Y_k = U * U(I_k,:)^+ with the pseudo-inverse of the tall matrix U(I_k,:): the cross is
+*      interpolated in the least-squares sense instead of exactly [8]. The interpolation error of a square
+*      cross exceeds the best low-rank error by a rank dependent factor [7], which can make the error grow with
+*      the rank when the ranks are too low. The identity property of the gauge is then lost, y on its cross is
+*      obtained by contracting the interfaces of y, and the TT ranks of y during the sweeps are the sizes of the
+*      index sets; the final y is truncated.)
 *   The right-to-left sweep is the mirror image (right unfoldings, column selection, J_k) but without
 *   step 3: it only truncates, so after every full sweep the ranks of y are the truncated ranks. The
 *   enlarged left sets I_{k-1} of the preceding left-to-right sweep still allow the rank r_k to grow in
@@ -84,6 +91,18 @@
 *       Matrix Methods: Theory, Algorithms, Applications, World Scientific, 2010, pp. 247-256,
 *       doi 10.1142/9789812836021_0015
 *       -- the maxvol algorithm, see pitts_tensor2_maxvol.hpp.
+*   [7] Savostyanov: "Quasioptimality of maximum-volume cross interpolation of tensors", Linear Algebra Appl.
+*       458 (2014) 217-244 (arXiv:1305.1818)
+*       -- the accuracy of the maximum-volume cross compared to the best approximation (factors (r+1)^2 per
+*          bond in the Chebyshev norm, compounding over the dimension tree).
+*   [8] Qin, Lidiak, Gong, Tang, Wakin, Zhu: "Error Analysis of Tensor-Train Cross Approximation", Advances in
+*       Neural Information Processing Systems 35 (NeurIPS 2022), arXiv:2207.04327
+*       -- error bound in the Frobenius norm for any selection of rows and columns, in terms of the
+*          pseudo-inverses of the pivot matrices; with more rows/columns than the rank and a truncated
+*          pseudo-inverse the cross approximation stays stable (basis of the oversampling option).
+*   [9] Mikhalev, Oseledets: "Rectangular maximum-volume submatrices and their applications", Linear Algebra
+*       Appl. 538 (2018) 187-211, arXiv:1502.07838
+*       -- maximum-volume selection of more rows than columns, see internal::maxvol (nRows).
 *   The AMEn-style enrichment by a separate low-rank approximation of the error follows the amen_cross
 *   algorithm of the TT-Toolbox and the subspace enrichment of PITTS::solveMALS (nAMEnEnrichment).
 *
@@ -146,6 +165,25 @@ namespace PITTS
 
     //! tolerance for the dominance criterion of the maxvol row/column selection (see internal::maxvol)
     T maxvolTolerance = T(0.05);
+
+    //! oversampling of the interpolation sets relative to the local rank r (0 = none)
+    //!
+    //! Without oversampling a bond has exactly r rows/columns and y interpolates f(x) exactly on the cross
+    //! (collocation). Compared to the best rank-r approximation, the error of such a cross is amplified by a
+    //! factor that grows with r (up to about sqrt(r m) per bond for the maximum-volume choice) and compounds
+    //! over the bonds. For ranks that are still far below the numerical rank of f(x) this can make the error
+    //! larger with every enrichment step, and the estimated error as well as the sampled error then grow with
+    //! the rank. With oversampling > 0 the rows (columns) are chosen by the oversampled maxvol,
+    //! |I_k| = r + ceil(oversampling r), and the cores are the least-squares interpolation with the
+    //! pseudo-inverse of the tall pivot matrix (cf. Qin et al., NeurIPS 2022): y only fits f(x) on the cross
+    //! in the least-squares sense, and the amplification is much smaller (the norm of the pseudo-inverse
+    //! decreases with the number of rows). In the sweeps the TT ranks
+    //! of y are the sizes of the sets |I_k|, |J_k| (the extra directions carry no information), after the last
+    //! sweep y is truncated with rankTolerance and maxRank. The blocks that are evaluated grow with the
+    //! sets in both dimensions, so the number of function evaluations and the cost per sweep grow by up to
+    //! (1 + oversampling)^2. Typical values are 0.1 to 1.
+    //!
+    T oversampling = T(0);
 
     //! number of randomly drawn tensor entries used as an independent error check (0 = off)
     //!

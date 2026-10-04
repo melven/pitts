@@ -73,6 +73,16 @@ class TestTensorTrainCross(unittest.TestCase):
         pitts_py.applyElementwise(np.reciprocal, tt_x, tt_y, nMALS=2, rankTolerance=1.e-8, maxRank=20, nSweeps=20)
         np.testing.assert_array_almost_equal(1/pitts_py.toDense(tt_x), pitts_py.toDense(tt_y))
 
+    def test_oversampling(self):
+        """oversampling (least-squares interpolation) is an option, the result has the truncated ranks"""
+        tt_x = positive_random_tt([3, 4, 3, 2], [2, 2, 2], 13)
+        tt_y = pitts_py.TensorTrain_double([3, 4, 3, 2])
+        pitts_py.applyElementwise(np.reciprocal, tt_x, tt_y, oversampling=0.3, rankTolerance=1.e-8, maxRank=20, nSweeps=20)
+        np.testing.assert_array_almost_equal(1/pitts_py.toDense(tt_x), pitts_py.toDense(tt_y))
+        self.assertLessEqual(max(tt_y.getTTranks()), 20)
+        with self.assertRaises(ValueError):
+            pitts_py.applyElementwise(np.reciprocal, tt_x, tt_y, oversampling=-1.0)
+
     def test_wrong_result_size(self):
         tt_x = positive_random_tt([3, 4, 3], [2, 2], 17)
         tt_y = pitts_py.TensorTrain_double([3, 4, 3])
