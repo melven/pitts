@@ -110,7 +110,7 @@ namespace PITTS
 
       // implement maxvolColumns
       template<typename T>
-      std::vector<int> maxvolColumns(const ConstTensor2View<T>& Vt, T maxvolTolerance, Tensor2<T>* coefficients)
+      std::vector<int> maxvolColumns(const ConstTensor2View<T>& Vt, T maxvolTolerance, Tensor2<T>* coefficients, int nColumns)
       {
         const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -118,12 +118,12 @@ namespace PITTS
         EigenMap(VtH) = ConstEigenMap(Vt).adjoint();
 
         Tensor2<T> coefficientsH;
-        const std::vector<int> columns = maxvol(VtH, maxvolTolerance, 100, coefficients ? &coefficientsH : nullptr);
+        const std::vector<int> columns = maxvol(VtH, maxvolTolerance, 100, coefficients ? &coefficientsH : nullptr, nColumns);
 
         if( coefficients )
         {
-          // (Vt^H(columns,:)^{-1} Vt^H)^H = Vt(:,columns)^{-1} Vt
-          coefficients->resize(Vt.r1(), Vt.r2());
+          // (Vt^H Vt^H(columns,:)^+)^H = Vt(:,columns)^+ Vt (the inverse without oversampling)
+          coefficients->resize(coefficientsH.r2(), coefficientsH.r1());
           EigenMap(*coefficients) = ConstEigenMap(coefficientsH).adjoint();
         }
         return columns;
@@ -133,7 +133,7 @@ namespace PITTS
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   Tensor3<T> enrichment)
+                                   Tensor3<T> enrichment, T oversampling)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -164,17 +164,20 @@ namespace PITTS
         }
         const int r = U.r2();
 
-        // 3.+4. maxvol selects the rows I_k and returns the core in interpolation gauge, U * U(rows,:)^{-1}
+        // 3.+4. maxvol selects the rows I_k (with oversampling more than r) and returns the core in interpolation
+        //       gauge, U * U(rows,:)^{-1} (U * U(rows,:)^+ with oversampling)
+        const int nRows = r + static_cast<int>(std::ceil(std::real(oversampling) * r));
         Tensor2<T> coefficients;
-        result.selected = maxvol(U, maxvolTolerance, 100, &coefficients);
+        result.selected = maxvol(U, maxvolTolerance, 100, &coefficients, nRows);
         result.core = fold_left(std::move(coefficients), n);
 
         // carry = U(rows,:) * SVt, so that core * carry = U * SVt
         // (the row selection as an explicit loop: an Eigen indexed view triggers -Warray-bounds false positives with GCC 13)
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uhat(r, r);
-        for(int j = 0; j < r; j++)
+        const int q = result.selected.size();
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uhat(q, r);
+        for(int j = 0; j < q; j++)
           Uhat.row(j) = ConstEigenMap(U).row(result.selected[j]);
-        result.carry.resize(r, r2);
+        result.carry.resize(q, r2);
         EigenMap(result.carry).noalias() = Uhat * ConstEigenMap(SVt);
 
         return result;
@@ -183,7 +186,7 @@ namespace PITTS
 
       // implement updateCoreRight
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance)
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -201,16 +204,19 @@ namespace PITTS
         const int r = Vt.r1();
         result.truncatedRank = r;
 
-        // 2. maxvol selects the columns J_k of Vt and returns the core in interpolation gauge, Vt(:,cols)^{-1} Vt
+        // 2. maxvol selects the columns J_k of Vt (with oversampling more than r) and returns the core in
+        //    interpolation gauge, Vt(:,cols)^{-1} Vt (Vt(:,cols)^+ Vt with oversampling)
+        const int nColumns = r + static_cast<int>(std::ceil(std::real(oversampling) * r));
         Tensor2<T> coefficients;
-        result.selected = maxvolColumns<T>(Vt, maxvolTolerance, &coefficients);
+        result.selected = maxvolColumns<T>(Vt, maxvolTolerance, &coefficients, nColumns);
         result.core = fold_right(std::move(coefficients), n);
 
         // carry = US * Vt(:,cols), so that carry * core = US * Vt (explicit loop, see updateCoreLeft)
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Vhat(r, r);
-        for(int j = 0; j < r; j++)
+        const int q = result.selected.size();
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Vhat(r, q);
+        for(int j = 0; j < q; j++)
           Vhat.col(j) = ConstEigenMap(Vt).col(result.selected[j]);
-        result.carry.resize(r1, r);
+        result.carry.resize(r1, q);
         EigenMap(result.carry).noalias() = ConstEigenMap(US) * Vhat;
 
         return result;

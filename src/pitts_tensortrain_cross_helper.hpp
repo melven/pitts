@@ -764,12 +764,17 @@ namespace PITTS
       //!  3. maxvol(U', maxvolTolerance) selects the rows I_k;
       //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}) (returned by maxvol), carry = U'(rows,:) * SVt'.
       //!
+      //! With oversampling > 0, maxvol selects q = r' + ceil(oversampling * r') rows (at most r1 n) and returns the
+      //! least-squares coefficients: core = fold_left(U' * U'(rows,:)^+) (r1 x n x q), carry = U'(rows,:) * SVt'
+      //! (q x r2), see TTCrossOptions::oversampling. core * carry = U' * SVt' still holds, but core(rows,:) is only
+      //! an orthogonal projector of rank r' instead of the identity.
+      //!
       //! Compared to solveMALS this replaces "solve the local problem, then orthogonalize" by "evaluate the
       //! block, then select interpolation rows": the orthogonal gauge and the setSubTensors orthogonality
       //! flags of MALS are not used, y is in the interpolation gauge instead (see pitts_tensortrain_cross.hpp).
       //!
-      //! Invariants: unfold_left(core)(rows,:) = identity, |entries of core| <= 1 + maxvolTolerance,
-      //! and core * carry = U * SVt (= B up to the truncation error).
+      //! Invariants without oversampling: unfold_left(core)(rows,:) = identity, |entries of core| <= 1 + maxvolTolerance,
+      //! and core * carry = U * SVt (= B up to the truncation error); the last one also holds with oversampling.
       //!
       //! @param B                  evaluated block (r1 x n x r2)
       //! @param rankTolerance      relative truncation tolerance for B (in the Frobenius norm)
@@ -777,11 +782,12 @@ namespace PITTS
       //! @param maxvolTolerance    dominance tolerance for maxvol
       //! @param enrichment         directions to append (r1 x n x rho), an empty block for none; consumed,
       //!                           so pass it with std::move
-      //! @return                   new core, carry, selected rows and truncated rank, see CoreUpdate
+      //! @param oversampling       relative number of additional rows (0 = square selection, see above)
+      //! @return                   new core (r1 x n x q), carry (q x r2), selected rows (q) and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   Tensor3<T> enrichment = Tensor3<T>());
+                                   Tensor3<T> enrichment = Tensor3<T>(), T oversampling = T(0));
 
       //! maxvol column selection of a wide matrix (r x m with m >= r)
       //!
@@ -791,12 +797,14 @@ namespace PITTS
       //! @param Vt              wide matrix (r x m)
       //! @param maxvolTolerance dominance tolerance for maxvol
       //! @param coefficients    optional output Vt(:,columns)^{-1} Vt (r x m), the identity on the selected columns
-      //! @return                selected columns (size r)
+      //!                        (with oversampling Vt(:,columns)^+ Vt, nColumns x m)
+      //! @param nColumns        number of columns to select, at least r (0 = r: no oversampling), see maxvol
+      //! @return                selected columns (size r or nColumns)
       //!
       //! @throws std::invalid_argument if Vt has more rows than columns or is rank-deficient (see maxvol)
       //!
       template<typename T>
-      std::vector<int> maxvolColumns(const ConstTensor2View<T>& Vt, T maxvolTolerance, Tensor2<T>* coefficients = nullptr);
+      std::vector<int> maxvolColumns(const ConstTensor2View<T>& Vt, T maxvolTolerance, Tensor2<T>* coefficients = nullptr, int nColumns = 0);
 
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
@@ -806,11 +814,14 @@ namespace PITTS
       //!
       //! There is no enrichment here: only the left-to-right sweeps enrich (see pitts_tensortrain_cross.hpp).
       //!
-      //! Invariants: unfold_right(core)(:,columns) = identity, |entries of core| <= 1 + maxvolTolerance,
-      //! and carry * core = US * Vt.
+      //! With oversampling > 0: q = r' + ceil(oversampling * r') columns, core = fold_right(Vt(:,columns)^+ * Vt),
+      //! carry = US * Vt(:,columns) (r1 x q), see updateCoreLeft.
+      //!
+      //! Invariants without oversampling: unfold_right(core)(:,columns) = identity, |entries of core| <= 1 + maxvolTolerance,
+      //! and carry * core = US * Vt (the last one also holds with oversampling).
       //!
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance);
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling = T(0));
 
 
       //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)

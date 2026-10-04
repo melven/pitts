@@ -1141,6 +1141,137 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_low_rank_a
 }
 
 
+// ---- oversampled (least-squares) core updates ----
+
+namespace
+{
+  // invariants of an oversampled left update: shapes, distinct rows, core * carry reconstructs B
+  template<typename T>
+  void checkOversampledLeftUpdate(const PITTS::Tensor3<T>& B, const CoreUpdate<T>& upd, int nExpectedRows)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const auto eps = blockTolerance<T>();
+    ASSERT_EQ(nExpectedRows, upd.selected.size());
+    ASSERT_EQ(B.r1(), upd.core.r1());
+    ASSERT_EQ(B.n(), upd.core.n());
+    ASSERT_EQ(nExpectedRows, upd.core.r2());
+    ASSERT_EQ(nExpectedRows, upd.carry.r1());
+    ASSERT_EQ(B.r2(), upd.carry.r2());
+    const std::set<int> unique(upd.selected.begin(), upd.selected.end());
+    EXPECT_EQ(nExpectedRows, unique.size());
+    for(int i: upd.selected)
+    {
+      EXPECT_LE(0, i);
+      EXPECT_LT(i, B.r1()*B.n());
+    }
+    EXPECT_NEAR(ConstEigenMap(unfold_left(B)), mat(ConstEigenMap(unfold_left(upd.core)) * ConstEigenMap(upd.carry)), eps);
+    // the selected rows of the core form an orthogonal projector (the identity without oversampling)
+    mat P(nExpectedRows, nExpectedRows);
+    for(int j = 0; j < nExpectedRows; j++)
+      P.row(j) = ConstEigenMap(unfold_left(upd.core)).row(upd.selected[j]);
+    EXPECT_NEAR(P, mat(P * P), eps);
+    EXPECT_NEAR(P, mat(P.adjoint()), eps);
+  }
+
+  template<typename T>
+  void checkOversampledRightUpdate(const PITTS::Tensor3<T>& B, const CoreUpdate<T>& upd, int nExpectedColumns)
+  {
+    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+    const auto eps = blockTolerance<T>();
+    ASSERT_EQ(nExpectedColumns, upd.selected.size());
+    ASSERT_EQ(nExpectedColumns, upd.core.r1());
+    ASSERT_EQ(B.n(), upd.core.n());
+    ASSERT_EQ(B.r2(), upd.core.r2());
+    ASSERT_EQ(B.r1(), upd.carry.r1());
+    ASSERT_EQ(nExpectedColumns, upd.carry.r2());
+    const std::set<int> unique(upd.selected.begin(), upd.selected.end());
+    EXPECT_EQ(nExpectedColumns, unique.size());
+    for(int j: upd.selected)
+    {
+      EXPECT_LE(0, j);
+      EXPECT_LT(j, B.n()*B.r2());
+    }
+    EXPECT_NEAR(ConstEigenMap(unfold_right(B)), mat(ConstEigenMap(upd.carry) * ConstEigenMap(unfold_right(upd.core))), eps);
+    mat P(nExpectedColumns, nExpectedColumns);
+    for(int j = 0; j < nExpectedColumns; j++)
+      P.col(j) = ConstEigenMap(unfold_right(upd.core)).col(upd.selected[j]);
+    EXPECT_NEAR(P, mat(P * P), eps);
+    EXPECT_NEAR(P, mat(P.adjoint()), eps);
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_oversampling)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const Type maxvolTol = Type(0.05);
+
+  // exact rank 3 block (r1*n = 24, r2 = 6): oversampling 1 selects 3 + 3 rows
+  PITTS::Tensor3<Type> B(3, 8, 6);
+  EigenMap(unfold_left(B)) = mat::Random(24, 3) * mat::Random(3, 6);
+  const CoreUpdate<Type> square = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
+  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(1));
+  EXPECT_EQ(3, upd.truncatedRank);
+  checkOversampledLeftUpdate(B, upd, 6);
+  // the first rows are the square maxvol rows
+  EXPECT_EQ(square.selected, std::vector<int>(upd.selected.begin(), upd.selected.begin() + 3));
+
+  // fractional oversampling is rounded up: 3 + ceil(0.1 * 3) = 4 rows
+  checkOversampledLeftUpdate(B, updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(0.1)), 4);
+
+  // limited by the number of rows of the block
+  checkOversampledLeftUpdate(B, updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(100)), 24);
+
+  // the interpolation operator core = U U(rows,:)^+ is better conditioned than the collocation U U(rows,:)^{-1}
+  const mat coreSquare = ConstEigenMap(unfold_left(square.core));
+  const mat coreOver = ConstEigenMap(unfold_left(upd.core));
+  const Type normSquare = Eigen::JacobiSVD<mat>(coreSquare).singularValues()(0);
+  const Type normOver = Eigen::JacobiSVD<mat>(coreOver).singularValues()(0);
+  EXPECT_LE(normOver, normSquare * (1 + blockTolerance<Type>()));
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_oversampling_with_enrichment)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const Type maxvolTol = Type(0.05);
+
+  PITTS::Tensor3<Type> B(3, 8, 6);
+  EigenMap(unfold_left(B)) = mat::Random(24, 2) * mat::Random(2, 6);
+  PITTS::Tensor3<Type> E = randomBlock<Type>(3, 8, 2);
+
+  // 2 directions of B + 2 enrichment directions, 4 + 2 selected rows; the enrichment does not change core * carry
+  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, std::move(E), Type(0.5));
+  EXPECT_EQ(2, upd.truncatedRank);
+  checkOversampledLeftUpdate(B, upd, 6);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_oversampling)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const Type maxvolTol = Type(0.05);
+
+  // exact rank 3 block (r1 = 6, n*r2 = 24)
+  PITTS::Tensor3<Type> B(6, 8, 3);
+  EigenMap(unfold_right(B)) = mat::Random(6, 3) * mat::Random(3, 24);
+  const CoreUpdate<Type> square = updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
+  const CoreUpdate<Type> upd = updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(1));
+  EXPECT_EQ(3, upd.truncatedRank);
+  checkOversampledRightUpdate(B, upd, 6);
+  EXPECT_EQ(square.selected, std::vector<int>(upd.selected.begin(), upd.selected.begin() + 3));
+
+  checkOversampledRightUpdate(B, updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(0.1)), 4);
+  checkOversampledRightUpdate(B, updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(100)), 24);
+
+  const mat coreSquare = ConstEigenMap(unfold_right(square.core));
+  const mat coreOver = ConstEigenMap(unfold_right(upd.core));
+  const Type normSquare = Eigen::JacobiSVD<mat>(coreSquare).singularValues()(0);
+  const Type normOver = Eigen::JacobiSVD<mat>(coreOver).singularValues()(0);
+  EXPECT_LE(normOver, normSquare * (1 + blockTolerance<Type>()));
+}
+
+
 // ---- initial index sets from the input tensor train ----
 
 #include "pitts_tensortrain_normalize.hpp"
