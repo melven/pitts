@@ -72,6 +72,8 @@ namespace PITTS
       throw std::invalid_argument("applyElementwise: need 0 <= enrichmentRank <= errorRank!");
     if( options.nSweeps < 1 || options.maxRank < 1 )
       throw std::invalid_argument("applyElementwise: nSweeps and maxRank must be positive!");
+    if( !(std::real(options.oversampling) >= 0) )
+      throw std::invalid_argument("applyElementwise: oversampling must not be negative!");
 
     const int nMALS = std::min(options.nMALS, nDim);
     // enrichment only for the 1-site variant (the 2-site variant adapts the ranks through the SVD)
@@ -79,6 +81,8 @@ namespace PITTS
     const T localTolerance = options.rankTolerance / (2*std::sqrt(T(std::max(nDim-1, 1))));     // factor 2 heuristic, like tt_amen in ttpy
     const T maxvolTolerance = options.maxvolTolerance;
     const int maxRank = options.maxRank;
+    const T oversampling = options.oversampling;
+    const bool oversample = std::real(oversampling) > 0;
 
     TTCrossInfo<T> info;
 
@@ -109,6 +113,24 @@ namespace PITTS
     // f(x) on the crosses of y and z (with the partial contractions of x on them), partial contractions of y on the crosses of z
     FunctionOnCrosses<T, Function, N> fx(f, TTx, I, J, Iz, Jz);
     auto Lyz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, Iz), contraction_loop_from_right<T>(TTy, Jz));
+    // partial contractions of y on its own crosses; only needed with oversampling, see yOnOwnCross
+    auto Ly = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, I), contraction_loop_from_right<T>(TTy, J));
+
+    // y on the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) of the block starting at core k.
+    // Without oversampling y is in the interpolation gauge: the selected rows (columns) of the cores on the left
+    // (right) are the identity, so y on its own cross is just the (combined) core. With oversampling the cores only
+    // reproduce f(x) in the least-squares sense and both interfaces have to be contracted.
+    const auto yOnOwnCross = [&](int k) -> Tensor3<T>
+    {
+      Tensor3<T> core = combineCores(TTy, k, nMALS);
+      if( !oversample )
+        return core;
+      Ly.update(k-1, k+nMALS);
+      Tensor3<T> withLeft, result;
+      contractLeftInterface<T>(Ly.left(), I, k-1, core, withLeft);
+      contractRightInterface<T>(withLeft, Ly.right(), J, k+nMALS, result);
+      return result;
+    };
 
     // Start with a zero y of the initial cross ranks (|J_{k+1}| at bond k): a sweep replaces the cores one
     // by one and multiplies the remainder of each local update into the next core, so y must be a tensor
@@ -153,8 +175,8 @@ namespace PITTS
       rmsRef = std::max(rmsRef, t3_rms(B));
       const RealType scale = rmsRef > 0 ? rmsRef : 1;   // zero blocks only: the measures become absolute
 
-      // convergence measure: the current y on the same cross is exactly the current core(s)
-      RealType change = rmsDifference(B, combineCores(TTy, k, nMALS)) / scale;
+      // convergence measure: the current y on the same cross (the current core(s) without oversampling)
+      RealType change = rmsDifference(B, yOnOwnCross(k)) / scale;
       RealType error = 0;
 
       // last core of the 1-site sweep: the block is the core, nothing to select
@@ -162,6 +184,7 @@ namespace PITTS
       {
         TTy.setSubTensor(k, std::move(B));
         Lyz.invalidate(k);   // the core of y changed
+        Ly.invalidate(k);
         return {change, error};
       }
 
@@ -173,9 +196,18 @@ namespace PITTS
         Tensor3<T> residual = fx.mixedBlock(k);
         // y on the cross: the left interface of y at I_{k-1} is the identity (interpolation gauge), so only the right part remains
         Lyz.update(k-1, k+1);
-        Tensor3<T> yOnCross;
-        contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnCross);
-        internal::t3_axpy(T(-1), yOnCross, residual);
+        Tensor3<T> yOnMixedCross;
+        if( oversample )
+        {
+          // the left interface of y at I_{k-1} is not the identity
+          Ly.update(k-1, k+nMALS);
+          Tensor3<T> withLeft;
+          contractLeftInterface<T>(Ly.left(), I, k-1, TTy.subTensor(k), withLeft);
+          contractRightInterface<T>(withLeft, Lyz.right(), Jz, k+1, yOnMixedCross);
+        }
+        else
+          contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnMixedCross);
+        internal::t3_axpy(T(-1), yOnMixedCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
         // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors,
         // as a core of the same shape as the block (folding the unfolding back is a move)
@@ -188,7 +220,7 @@ namespace PITTS
       if( nMALS == 2 )
         B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
-      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, std::move(E));
+      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, std::move(E), oversampling);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
       fx.invalidate(k+1);
 
@@ -200,6 +232,7 @@ namespace PITTS
       else
         internal::normalize_contract1(upd.carry, TTy.subTensor(k+1), newCores[1]);
       TTy.setSubTensors(k, std::move(newCores));
+      Ly.invalidate(k, 2);
 
       // update of the error crosses: I^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
       // i.e. of f(LX^z_k R^z_{k+1}) - LY^z_k R^{yz}_{k+1}
@@ -233,7 +266,7 @@ namespace PITTS
       rmsRef = std::max(rmsRef, t3_rms(B));
       const RealType scale = rmsRef > 0 ? rmsRef : 1;
 
-      RealType change = rmsDifference(B, combineCores(TTy, kLeft, nMALS)) / scale;
+      RealType change = rmsDifference(B, yOnOwnCross(kLeft)) / scale;
       RealType error = 0;
 
       // first core of the 1-site sweep: the block is the core
@@ -241,6 +274,7 @@ namespace PITTS
       {
         TTy.setSubTensor(k, std::move(B));
         Lyz.invalidate(k);
+        Ly.invalidate(k);
         return {change, error};
       }
 
@@ -251,7 +285,7 @@ namespace PITTS
       // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
       if( nMALS == 2 )
         B = fold_left(unfold_left(std::move(B)), dims[k]);
-      CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRank, maxvolTolerance);
+      CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRank, maxvolTolerance, oversampling);
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
       fx.invalidate(k-1);
 
@@ -262,6 +296,7 @@ namespace PITTS
         internal::normalize_contract2(TTy.subTensor(k-1), upd.carry, newCores[0]);
       newCores[1] = std::move(upd.core);
       TTy.setSubTensors(k-1, std::move(newCores));
+      Ly.invalidate(k-1, 2);
 
       // update of the error crosses: J^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
       // i.e. of f(L^z_{k-1} XR^z_k) - L^{yz}_{k-1} YR^z_k
@@ -354,6 +389,15 @@ namespace PITTS
         info.converged = true;
         break;
       }
+    }
+
+    // with oversampling the bonds of y have the sizes of the index sets, which exceed the ranks:
+    // truncate (normalize also scales y to norm 1 and returns the norm, which is put back into the core with the norm)
+    if( oversample )
+    {
+      const T nrm = normalize(TTy, options.rankTolerance, maxRank);
+      const int idxNorm = (TTy.isOrthogonal() & TT_Orthogonality::left) != TT_Orthogonality::none ? nDim-1 : 0;
+      TTy.editSubTensor(idxNorm, [nrm](Tensor3<T>& subT){internal::t3_scale(nrm, subT);});
     }
 
     info.nEvaluations = fx.nEvaluations();
