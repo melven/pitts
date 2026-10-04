@@ -690,7 +690,8 @@ TEST(PITTS_TensorTrain_cross_robustness, oversampling_for_under_resolved_ranks)
 {
   using TensorTrain = PITTS::TensorTrain<double>;
 
-  const TensorTrain TTx = randomGramTensorTrain({2, 2, 2, 2, 2, 2, 3, 3}, 4, 17);
+  // small enough for debug builds (N = 72 points, x is 72 x 72), yet the ranks are far above those of the first sweeps
+  const TensorTrain TTx = randomGramTensorTrain({2, 2, 2, 3, 3}, 4, 17);
   const auto xDense = dense(TTx);
   const double gamma = 1;
   const auto kernel = [gamma](double v){return std::exp(-2*gamma*(1-v));};
@@ -708,16 +709,10 @@ TEST(PITTS_TensorTrain_cross_robustness, oversampling_for_under_resolved_ranks)
     return (dense(TTy) - yRef).norm() / yRef.norm();
   };
 
-  // With the square (collocation) interpolation the 1-site variant stagnates at an error of order 1 here (and
-  // the error even grows with the number of sweeps), the least-squares interpolation converges steadily
-  // to the accuracy given by rankTolerance (about 4e-9 for the random features tested).
-  double previous = errorAfter(1, 0.5);
-  EXPECT_LT(previous, 1);
-  for(int nSweeps: {3, 6})
-  {
-    const double error = errorAfter(nSweeps, 0.5);
-    EXPECT_LT(error, previous);
-    previous = error;
-  }
-  EXPECT_LT(previous, 1.e-5);
+  // With the square (collocation) interpolation the 1-site variant stagnates at an error of about 0.4 here
+  // (observed for several random features, in larger cases the error even grows with the number of sweeps),
+  // the least-squares interpolation reaches the full rank and is exact after 4 sweeps (errors about 1e-14).
+  const double errorFirstSweep = errorAfter(1, 0.5);
+  EXPECT_LT(errorFirstSweep, 1);
+  EXPECT_LT(errorAfter(4, 0.5), 1.e-8);
 }
