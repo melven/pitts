@@ -42,21 +42,33 @@ namespace PITTS
     //! B = A * A(I,:)^{-1}; while max |B_ij| > 1+tol, swap row i into the selection (replacing the j-th
     //! selected row, the volume grows by |B_ij|) and update B with a rank-1 update.
     //!
-    //! Complexity: O(m r^2) for the initialization plus O(m r) per swap.
+    //! Oversampling (nRows > r, rectangular maxvol, cf. Mikhalev and Oseledets, Linear Algebra Appl. 538 (2018)
+    //! 187-211): afterwards, nRows-r further rows are added greedily, each time the row u that increases the volume
+    //! sqrt(det(A(I,:)^H A(I,:))) most, i.e. the one with the largest leverage score u (A(I,:)^H A(I,:))^{-1} u^H.
+    //! With C = A L, L L^H = (A(I,:)^H A(I,:))^{-1} (initially C = B), the scores are the squared row norms of C, and
+    //! adding the row c = C(i,:) is the symmetric rank-1 update C <- C - beta (C c^H) c with
+    //! beta = 1 / (sqrt(1+|c|^2) (1+sqrt(1+|c|^2))) (no inverse or Gram matrix is formed). The interpolation
+    //! coefficients are then A A(I,:)^+ = C C(I,:)^H (least squares instead of collocation): their norm, the norm of
+    //! the pseudo-inverse of A(I,:) for orthonormal columns of A, only decreases with more rows.
+    //!
+    //! Complexity: O(m r^2) for the initialization plus O(m r) per swap and per additional row.
     //!
     //! @tparam T         underlying data type (double, complex, ...)
     //!
     //! @param A          tall matrix (m x r, m >= r) with full column rank, e.g. the left unfolding (r1*n x r2) of an orthogonal TT core
     //! @param tol        stop swapping when max |A * A(I,:)^{-1}| <= 1+tol (only the real part is used, must be >= 0)
     //! @param maxIter    maximal number of row swaps (the result is a valid selection even if this limit is hit)
-    //! @param AAinv      optional output: the interpolation coefficients A * A(I,:)^{-1} (m x r, rows I are the identity),
-    //!                   which the algorithm maintains anyway; in TT-cross this is directly the core in interpolation gauge
-    //! @return           indices of the selected rows I (size r, arbitrary order, no duplicates)
+    //! @param AAinv      optional output: the interpolation coefficients A * A(I,:)^+ (m x nRows, A * A(I,:)^{-1} without
+    //!                   oversampling, rows I are then the identity), which the algorithm maintains anyway; in TT-cross
+    //!                   this is directly the core in interpolation gauge
+    //! @param nRows      number of rows to select, at least r (0 = r: no oversampling); limited to m
+    //! @return           indices of the selected rows I (size min(nRows, m) or r, no duplicates; the first r rows are the
+    //!                   square maxvol selection, the additional ones follow in the order they were added)
     //!
-    //! @throws std::invalid_argument if m < r, r == 0, or A is (numerically) rank-deficient
+    //! @throws std::invalid_argument if m < r, r == 0, 0 < nRows < r, or A is (numerically) rank-deficient
     //!
     template<typename T>
-    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol = T(0.05), int maxIter = 100, Tensor2<T>* AAinv = nullptr);
+    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol = T(0.05), int maxIter = 100, Tensor2<T>* AAinv = nullptr, int nRows = 0);
   }
 }
 

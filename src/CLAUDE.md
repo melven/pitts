@@ -77,7 +77,7 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_tensor2_random.hpp` | `randomize(Tensor2&)`. |
 | `pitts_tensor2_concat.hpp` | Concatenate two matrices into a block matrix. |
 | `pitts_tensor2_qb_decomposition.hpp` | QB part of the SVQB orthogonalization (Stathopoulos/Wu), used for rank-revealing normalization. |
-| `pitts_tensor2_maxvol.hpp` | `internal::maxvol`: quasi-maximum-volume row selection of a tall matrix (Goreinov et al.), building block for TT-cross. |
+| `pitts_tensor2_maxvol.hpp` | `internal::maxvol`: quasi-maximum-volume row selection of a tall matrix (Goreinov et al.), building block for TT-cross; optionally oversampled (more rows than columns, greedy volume growth, least-squares coefficients). |
 | `pitts_tensor3_random.hpp` | `randomize(Tensor3&)`. |
 | `pitts_tensor3_combine.hpp` | Contract two cores along r2/r1 into one larger core (MALS merging). |
 | `pitts_tensor3_split.hpp` | Split a core into two by QR/SVD with rank truncation (`normalize_qb`, `normalize_svd`, ...); central truncation routine. |
