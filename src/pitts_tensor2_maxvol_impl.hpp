@@ -15,6 +15,7 @@
 #define PITTS_TENSOR2_MAXVOL_IMPL_HPP
 
 // includes
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -131,9 +132,56 @@ namespace PITTS
       EigenMap(AAinv) = B;
     }
 
+    //! add row i to an oversampled selection: C <- C - beta (C c^H) c with c = C(i,:), and new scores |C(j,:)|^2 (just for timings)
+    template<typename T, typename RealType>
+    void maxvol_addRow(Eigen::Index i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& C, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores)
+    {
+      const auto m = C.rows();
+      const auto r = C.cols();
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"m", "r"},{m, r}}, // arguments
+        {{(3.*m*r)*kernel_info::FMA<T>()}, // flops
+         {(m*r)*kernel_info::Update<T>() + (m*r)*kernel_info::Load<T>()}} // data transfers
+        );
+
+      using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+
+      // C = A L is replaced by A L' with L' = L (I - beta c^H c), where (I - beta c^H c)^2 = I - c^H c / (1 + |c|^2), so that
+      // L' L'^H = (G + u^H u)^{-1} for the Gram matrix G of the selection and the new row u (Sherman-Morrison);
+      // beta = (1 - 1/sqrt(1+a))/a = 1/(sqrt(1+a) (1+sqrt(1+a))) with a = |c|^2, the second form is stable for small a
+      const Eigen::Matrix<T, 1, Eigen::Dynamic> c = C.row(i);
+      const RealType sqrt1a = std::sqrt(1 + c.squaredNorm());
+      const RealType beta = 1 / (sqrt1a * (1 + sqrt1a));
+      const vec Cc = C * c.adjoint();
+      C.noalias() -= (beta * Cc) * c;
+      scores = C.rowwise().squaredNorm();
+    }
+
+    //! interpolation coefficients C C(I,:)^H = A A(I,:)^+ of an oversampled selection (just for timings)
+    template<typename T>
+    void maxvol_coefficients(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& C, const std::vector<int>& I, Tensor2<T>& AAinv)
+    {
+      const auto m = C.rows();
+      const auto r = C.cols();
+      const long long q = I.size();
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"m", "r", "q"},{m, r, q}}, // arguments
+        {{(1.*m*r*q)*kernel_info::FMA<T>()}, // flops
+         {(m*r)*kernel_info::Load<T>() + (m*q)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      // the selected rows as an explicit loop (an Eigen indexed view triggers -Warray-bounds false positives with GCC 13)
+      mat CI(q, r);
+      for(int k = 0; k < q; k++)
+        CI.row(k) = C.row(I[k]);
+      AAinv.resize(m, q);
+      EigenMap(AAinv).noalias() = C * CI.adjoint();
+    }
+
     // implement maxvol
     template<typename T>
-    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol, int maxIter, Tensor2<T>* AAinv)
+    std::vector<int> maxvol(const ConstTensor2View<T>& A, T tol, int maxIter, Tensor2<T>* AAinv, int nRows)
     {
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
@@ -144,6 +192,9 @@ namespace PITTS
       const int r = A.r2();
       if( r < 1 || m < r )
         throw std::invalid_argument("maxvol: requires a tall matrix (m x r) with m >= r >= 1!");
+      if( nRows != 0 && nRows < r )
+        throw std::invalid_argument("maxvol: requires at least as many rows to select as columns!");
+      nRows = nRows == 0 ? r : std::min(nRows, m);
 
       const RealType threshold = 1 + std::real(tol);
 
@@ -196,6 +247,24 @@ namespace PITTS
         // swap row i into the selection, replacing the j-th selected row
         maxvol_swapRow(i, j, B);
         I[j] = i;
+      }
+
+      // oversampling: add the rows with the largest scores |B(i,:)|^2, B is updated to C = A L with L L^H = (A(I,:)^H A(I,:))^{-1}
+      if( nRows > r )
+      {
+        Eigen::Matrix<RealType, Eigen::Dynamic, 1> scores = B.rowwise().squaredNorm();
+        for(int nSelected = r; nSelected < nRows; nSelected++)
+        {
+          for(const int i: I)
+            scores(i) = -std::numeric_limits<RealType>::infinity();
+          Eigen::Index i;
+          scores.maxCoeff(&i);
+          I.push_back(i);
+          maxvol_addRow(i, B, scores);
+        }
+        if( AAinv != nullptr )
+          maxvol_coefficients(B, I, *AAinv);
+        return I;
       }
 
       // B is kept consistent with the final selection by the rank-1 updates, so it can be returned as is

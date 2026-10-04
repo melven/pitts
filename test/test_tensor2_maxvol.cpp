@@ -266,3 +266,139 @@ TYPED_TEST(PITTS_Tensor2_maxvol, returns_interpolation_coefficients)
   checkValidIndices(Isq, r, r);
   EXPECT_NEAR(mat::Identity(r, r), ConstEigenMap(AAinv), eps);
 }
+
+
+TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_invalid_arguments)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+
+  Tensor2 A(10, 3);
+  EigenMap(A).setRandom();
+  EXPECT_THROW(PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, 2), std::invalid_argument);
+
+  // rank-deficient input is rejected before the oversampling
+  for(int i = 0; i < 10; i++)
+    A(i, 2) = A(i, 0);
+  EXPECT_THROW(PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, 5), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_contains_square_rows_and_is_limited_by_m)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+
+  const int m = 20, r = 4;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+  const std::vector<int> Isquare = PITTS::internal::maxvol(A);
+  EXPECT_EQ(Isquare, PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, r));
+
+  const std::vector<int> I = PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, 9);
+  checkValidIndices(I, m, 9);
+  EXPECT_EQ(Isquare, std::vector<int>(I.begin(), I.begin() + r));
+
+  // all rows are selected at most once, a larger request is limited to m rows
+  const std::vector<int> Iall = PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, 3*m);
+  checkValidIndices(Iall, m, m);
+}
+
+TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_adds_the_row_with_the_largest_volume)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using RealType = decltype(std::abs(Type()));
+
+  const int m = 30, r = 3, nRows = 8;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+  // badly scaled rows: a naive choice of the first rows would be poor
+  for(int i = 0; i < m; i++)
+    for(int j = 0; j < r; j++)
+      A(i, j) *= RealType(1) / (1 + i % 7);
+
+  const std::vector<int> I = PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, nRows);
+  checkValidIndices(I, m, nRows);
+
+  // greedy criterion at every step: det(A(I,:)^H A(I,:)) is maximal among the unselected candidates
+  const auto gramDet = [&](const std::vector<int>& rows)
+  {
+    const mat Asub = submatrix(A, rows);
+    return std::real((Asub.adjoint() * Asub).determinant());
+  };
+  for(int n = r; n < nRows; n++)
+  {
+    const std::vector<int> rows(I.begin(), I.begin() + n);
+    auto chosenRows = rows;
+    chosenRows.push_back(I[n]);
+    const RealType chosen = gramDet(chosenRows);
+    for(int i = 0; i < m; i++)
+    {
+      if( std::find(rows.begin(), rows.end(), i) != rows.end() )
+        continue;
+      auto rows1 = rows;
+      rows1.push_back(i);
+      EXPECT_LE(gramDet(rows1), chosen * (1 + RealType(100)*std::sqrt(std::numeric_limits<RealType>::epsilon())));
+    }
+  }
+}
+
+TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_returns_least_squares_coefficients)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const auto eps = 100*std::sqrt(std::numeric_limits<decltype(std::abs(Type()))>::epsilon());
+
+  const int m = 50, r = 4, nRows = 7;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+
+  Tensor2 AApinv;
+  const std::vector<int> I = PITTS::internal::maxvol(A, Type(0.01), 100, &AApinv, nRows);
+  checkValidIndices(I, m, nRows);
+  ASSERT_EQ(m, AApinv.r1());
+  ASSERT_EQ(nRows, AApinv.r2());
+
+  // reference: A * A(I,:)^+ with the pseudo-inverse from an SVD
+  const mat AI = submatrix(A, I);
+  const Eigen::JacobiSVD<mat> svd(AI, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  const mat AIpinv = svd.matrixV() * svd.singularValues().cwiseInverse().asDiagonal() * svd.matrixU().adjoint();
+  EXPECT_NEAR(mat(ConstEigenMap(A) * AIpinv), ConstEigenMap(AApinv), eps);
+
+  // the selected rows form an orthogonal projector of rank r (instead of the identity without oversampling)
+  const mat P = submatrix(AApinv, I);
+  EXPECT_NEAR(P, mat(P * P), eps);
+  EXPECT_NEAR(P, mat(P.adjoint()), eps);
+  EXPECT_NEAR(Type(r), P.trace(), eps);
+}
+
+TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_improves_the_pseudo_inverse)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using RealType = decltype(std::abs(Type()));
+
+  // orthonormal columns with a strongly localized part: the square selection needs a large inverse
+  const int m = 200, r = 20;
+  mat G = mat::Random(m, r);
+  G.topRows(5) *= RealType(20);
+  Tensor2 A(m, r);
+  EigenMap(A) = Eigen::HouseholderQR<mat>(G).householderQ() * mat::Identity(m, r);
+
+  RealType smin = 0, previous = 0;
+  for(int nRows: {r, 2*r, 4*r})
+  {
+    const std::vector<int> I = PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, nRows);
+    smin = Eigen::JacobiSVD<mat>(submatrix(A, I)).singularValues().minCoeff();
+    // more rows can only increase the smallest singular value (the Gram matrix grows)
+    EXPECT_GE(smin, previous * (1 - RealType(100)*std::numeric_limits<RealType>::epsilon()));
+    previous = smin;
+  }
+  const std::vector<int> Isquare = PITTS::internal::maxvol(A);
+  const RealType sminSquare = Eigen::JacobiSVD<mat>(submatrix(A, Isquare)).singularValues().minCoeff();
+  // oversampling by a factor of 4 improves the conditioning clearly
+  EXPECT_GT(smin, 2 * sminSquare);
+}

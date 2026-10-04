@@ -17,11 +17,11 @@ using namespace PITTS::internal::tt_cross;
 // only float and double: the underlying TT contractions (normalize_contract*, normalize_svd, ...) are instantiated for these
 template void PITTS::internal::tt_cross::enrichFactors<double>(Tensor3<double>& Q, Tensor2<double>& B, Tensor3<double>&& E);
 template void PITTS::internal::tt_cross::enrichFactors<float>(Tensor3<float>& Q, Tensor2<float>& B, Tensor3<float>&& E);
-template std::vector<int> PITTS::internal::tt_cross::maxvolColumns<double>(const ConstTensor2View<double>& Vt, double maxvolTolerance, Tensor2<double>* coefficients);
-template std::vector<int> PITTS::internal::tt_cross::maxvolColumns<float>(const ConstTensor2View<float>& Vt, float maxvolTolerance, Tensor2<float>* coefficients);
-template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreLeft<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance, Tensor3<double> enrichment);
-template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreLeft<float>(const Tensor3<float>& B, float rankTolerance, int maxRank, float maxvolTolerance, Tensor3<float> enrichment);
-template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreRight<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance);
-template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreRight<float>(const Tensor3<float>& B, float rankTolerance, int maxRank, float maxvolTolerance);
+template std::vector<int> PITTS::internal::tt_cross::maxvolColumns<double>(const ConstTensor2View<double>& Vt, double maxvolTolerance, Tensor2<double>* coefficients, int nColumns);
+template std::vector<int> PITTS::internal::tt_cross::maxvolColumns<float>(const ConstTensor2View<float>& Vt, float maxvolTolerance, Tensor2<float>* coefficients, int nColumns);
+template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreLeft<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance, Tensor3<double> enrichment, double oversampling);
+template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreLeft<float>(const Tensor3<float>& B, float rankTolerance, int maxRank, float maxvolTolerance, Tensor3<float> enrichment, float oversampling);
+template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreRight<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance, double oversampling);
+template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreRight<float>(const Tensor3<float>& B, float rankTolerance, int maxRank, float maxvolTolerance, float oversampling);
 template std::vector<NestedIndices> PITTS::internal::tt_cross::initialRightIndexSets<double>(const std::vector<std::reference_wrapper<const TensorTrain<double>>>& TTx, double maxvolTolerance, int maxRank);
 template std::vector<NestedIndices> PITTS::internal::tt_cross::initialRightIndexSets<float>(const std::vector<std::reference_wrapper<const TensorTrain<float>>>& TTx, float maxvolTolerance, int maxRank);

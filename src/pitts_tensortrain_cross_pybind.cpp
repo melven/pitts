@@ -71,7 +71,7 @@ namespace PITTS
       void TensorTrain_applyElementwise(const py::object& f, const Inputs&... TTx, TensorTrain<T>& TTy,
                                         T rankTolerance, int maxRank, int nSweeps, T convergenceTolerance,
                                         int nMALS, int errorRank, int enrichmentRank, bool randomErrorIndexSets,
-                                        T maxvolTolerance, int controlSampleSize, bool verbose)
+                                        T maxvolTolerance, T oversampling, int controlSampleSize, bool verbose)
       {
         // release the GIL for the (possibly OpenMP/MPI parallel) parts of the algorithm,
         // applyPythonFunction acquires it again for each block
@@ -87,7 +87,7 @@ namespace PITTS
                                            .convergenceTolerance = convergenceTolerance, .nMALS = nMALS,
                                            .errorRank = errorRank, .enrichmentRank = enrichmentRank,
                                            .randomErrorIndexSets = randomErrorIndexSets,
-                                           .maxvolTolerance = maxvolTolerance,
+                                           .maxvolTolerance = maxvolTolerance, .oversampling = oversampling,
                                            .controlSampleSize = controlSampleSize, .verbose = verbose});
       }
 
@@ -107,7 +107,7 @@ namespace PITTS
             py::arg("nMALS") = defaults.nMALS, py::arg("errorRank") = defaults.errorRank,
             py::arg("enrichmentRank") = defaults.enrichmentRank,
             py::arg("randomErrorIndexSets") = defaults.randomErrorIndexSets,
-            py::arg("maxvolTolerance") = defaults.maxvolTolerance,
+            py::arg("maxvolTolerance") = defaults.maxvolTolerance, py::arg("oversampling") = defaults.oversampling,
             py::arg("controlSampleSize") = defaults.controlSampleSize, py::arg("verbose") = defaults.verbose,
             doc);
         }(std::index_sequence_for<Inputs...>{});
