@@ -8,6 +8,7 @@
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_random.hpp"
 #include "pitts_tensortrain_dot.hpp"
+#include "pitts_tensortrain_from_dense_classical.hpp"
 #include "pitts_tensortrain_to_dense.hpp"
 #include "pitts_multivector.hpp"
 #include "pitts_random.hpp"
@@ -554,4 +555,164 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
     const auto yRef = dense(TTyRef);
     EXPECT_NEAR(yRef, dense(TTy), tolerance<Type>()*yRef.norm());
   }
+}
+
+
+TYPED_TEST(PITTS_TensorTrain_cross, oversampling_invalid)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  const std::vector<int> dims = {3, 4, 2};
+  TensorTrain TTx(dims, 2), TTy(dims);
+  randomize(TTx);
+
+  PITTS::TTCrossOptions<Type> options;
+  options.oversampling = Type(-0.1);
+  EXPECT_THROW(applyElementwise([](Type v){return v;}, TTx, TTy, options), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, oversampling_vs_dense)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = tolerance<Type>();
+
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 42);
+  const auto xDense = dense(TTx);
+
+  for(int nMALS: {1, 2})
+    for(Type oversampling: {Type(0.1), Type(1)})
+    {
+      PITTS::TTCrossOptions<Type> options;
+      options.nMALS = nMALS;
+      options.oversampling = oversampling;
+      options.rankTolerance = Type(1.e-7);
+      options.nSweeps = 20;
+
+      // x^2 has exact TT ranks <= r^2: recovered exactly, and the ranks of y are the truncated ones
+      // (not the sizes of the oversampled index sets)
+      TensorTrain TTy(dims);
+      const auto infoSquare = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
+      EXPECT_TRUE(infoSquare.converged);
+      const Eigen::Matrix<Type, Eigen::Dynamic, 1> squareDense = xDense.array().square();
+      EXPECT_NEAR(squareDense, dense(TTy), eps*squareDense.norm());
+      for(int k = 0; k < dims.size()-1; k++)
+        EXPECT_LE(TTy.getTTranks()[k], TTx.getTTranks()[k]*TTx.getTTranks()[k]);
+
+      TensorTrain TTz(dims);
+      applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTz, options);
+      const Eigen::Matrix<Type, Eigen::Dynamic, 1> sqrtDense = xDense.array().sqrt();
+      EXPECT_NEAR(sqrtDense, dense(TTz), 100*eps*sqrtDense.norm());
+    }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, oversampling_two_inputs_vs_dense)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = tolerance<Type>();
+
+  const std::vector<int> dims = {4, 3, 5, 3};
+  const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {2, 3, 2}, 42);
+  const TensorTrain TTx2 = positiveRandomTT<Type>(dims, {3, 1, 2}, 43);
+  const auto x1Dense = dense(TTx1);
+  const auto x2Dense = dense(TTx2);
+
+  for(int nMALS: {1, 2})
+  {
+    PITTS::TTCrossOptions<Type> options;
+    options.nMALS = nMALS;
+    options.oversampling = Type(0.3);
+    options.rankTolerance = Type(1.e-7);
+    options.nSweeps = 20;
+
+    TensorTrain TTy(dims);
+    const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
+    EXPECT_TRUE(info.converged);
+    const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = x1Dense.array() * x2Dense.array();
+    EXPECT_NEAR(productDense, dense(TTy), eps*productDense.norm());
+  }
+}
+
+namespace
+{
+  // x = Phi Phi^T for unit-norm random features Phi (N x R) as a TT with the layout (i_1, ..., i_k, j_k, ..., j_1),
+  // the digits of the row index i and the column index j (first digit fastest) are unstructured.
+  // The kernel exp(-2 gamma (1 - x)) = exp(-gamma |phi_i - phi_j|^2) of such a Gram matrix has high ranks in the TT,
+  // far above the ranks the first sweeps can reach with enrichment: an under-resolved approximation.
+  PITTS::TensorTrain<double> randomGramTensorTrain(const std::vector<int>& digits, int R, unsigned seed)
+  {
+    const int k = digits.size();
+    long long N = 1;
+    for(int n: digits)
+      N *= n;
+
+    std::mt19937 gen(seed);
+    std::normal_distribution<double> dist;
+    Eigen::MatrixXd Phi(N, R);
+    for(long long i = 0; i < N; i++)
+      for(int r = 0; r < R; r++)
+        Phi(i, r) = dist(gen);
+    Phi.rowwise().normalize();
+    const Eigen::MatrixXd gram = Phi * Phi.transpose();
+
+    std::vector<int> dims = digits;
+    dims.insert(dims.end(), digits.rbegin(), digits.rend());
+    std::vector<long long> stride(2*k, 1);
+    for(int m = 1; m < 2*k; m++)
+      stride[m] = stride[m-1] * dims[m-1];
+
+    std::vector<double> data(N*N);
+    for(long long I = 0; I < N; I++)
+      for(long long J = 0; J < N; J++)
+      {
+        long long position = 0, rest = I;
+        for(int m = 0; m < k; m++)
+        {
+          position += (rest % digits[m]) * stride[m];
+          rest /= digits[m];
+        }
+        rest = J;
+        for(int m = 0; m < k; m++)
+        {
+          position += (rest % digits[m]) * stride[2*k-1-m];
+          rest /= digits[m];
+        }
+        data[position] = gram(I, J);
+      }
+    return PITTS::fromDense_classical(data.cbegin(), data.cend(), dims, 1.e-14);
+  }
+}
+
+TEST(PITTS_TensorTrain_cross_robustness, oversampling_for_under_resolved_ranks)
+{
+  using TensorTrain = PITTS::TensorTrain<double>;
+
+  // small enough for debug builds (N = 72 points, x is 72 x 72), yet the ranks are far above those of the first sweeps
+  const TensorTrain TTx = randomGramTensorTrain({2, 2, 2, 3, 3}, 4, 17);
+  const auto xDense = dense(TTx);
+  const double gamma = 1;
+  const auto kernel = [gamma](double v){return std::exp(-2*gamma*(1-v));};
+  const Eigen::VectorXd yRef = xDense.unaryExpr(kernel);
+
+  // the error of y with respect to the exact kernel (all entries) after a given number of sweeps
+  const auto errorAfter = [&](int nSweeps, double oversampling)
+  {
+    PITTS::TTCrossOptions<double> options;
+    options.nSweeps = nSweeps;
+    options.oversampling = oversampling;
+    PITTS::internal::randomGenerator.seed(2026);
+    TensorTrain TTy(TTx.dimensions());
+    applyElementwise(kernel, TTx, TTy, options);
+    return (dense(TTy) - yRef).norm() / yRef.norm();
+  };
+
+  // With the square (collocation) interpolation the 1-site variant stagnates at an error of about 0.4 here
+  // (observed for several random features, in larger cases the error even grows with the number of sweeps),
+  // the least-squares interpolation reaches the full rank and is exact after 4 sweeps (errors about 1e-14).
+  const double errorFirstSweep = errorAfter(1, 0.5);
+  EXPECT_LT(errorFirstSweep, 1);
+  EXPECT_LT(errorAfter(4, 0.5), 1.e-8);
 }
