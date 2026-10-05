@@ -178,7 +178,8 @@ namespace PITTS
     //! pseudo-inverse of the tall pivot matrix (cf. Qin et al., NeurIPS 2022): y only fits f(x) on the cross
     //! in the least-squares sense, and the amplification is much smaller (the norm of the pseudo-inverse
     //! decreases with the number of rows). In the sweeps the TT ranks
-    //! of y are the sizes of the sets |I_k|, |J_k| (the extra directions carry no information), after the last
+    //! of y are the sizes of the sets |I_k|, |J_k| (the extra directions carry no information; the rank itself only
+    //! grows by the enrichment as without oversampling, nMALS = 1), after the last
     //! sweep y is truncated with rankTolerance and maxRank. The blocks that are evaluated grow with the
     //! sets in both dimensions, so the number of function evaluations and the cost per sweep grow by up to
     //! (1 + oversampling)^2. Typical values are 0.1 to 1.

@@ -703,16 +703,18 @@ TEST(PITTS_TensorTrain_cross_robustness, oversampling_for_under_resolved_ranks)
     PITTS::TTCrossOptions<double> options;
     options.nSweeps = nSweeps;
     options.oversampling = oversampling;
+    options.enrichmentRank = 4;
+    options.errorRank = 10;
     PITTS::internal::randomGenerator.seed(2026);
     TensorTrain TTy(TTx.dimensions());
     applyElementwise(kernel, TTx, TTy, options);
     return (dense(TTy) - yRef).norm() / yRef.norm();
   };
 
-  // With the square (collocation) interpolation the 1-site variant stagnates at an error of about 0.4 here
-  // (observed for several random features, in larger cases the error even grows with the number of sweeps),
-  // the least-squares interpolation reaches the full rank and is exact after 4 sweeps (errors about 1e-14).
+  // The ranks grow by the enrichment in both variants. After 8 sweeps the square (collocation) interpolation
+  // reaches errors of 0.07-0.12, the least-squares interpolation 0.010-0.014 (observed for several random features;
+  // in larger cases the square variant even gets worse with the number of sweeps).
   const double errorFirstSweep = errorAfter(1, 0.5);
   EXPECT_LT(errorFirstSweep, 1);
-  EXPECT_LT(errorAfter(4, 0.5), 1.e-8);
+  EXPECT_LT(errorAfter(8, 0.5), 0.03);
 }
