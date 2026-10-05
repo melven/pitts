@@ -35,7 +35,9 @@
 *        one call of f per entry (or a single call of f for the whole block for an array function).
 *     2. Truncated SVD of the left unfolding of B (|I_{k-1}| n_k x |J_{k+1}|) with rankTolerance / maxRank.
 *     3. Optional AMEn-style enrichment (nMALS = 1 only): append directions of the current error
-*        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep).
+*        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep):
+*        the error of the block is projected onto the complement of U, then its dominant (at most enrichmentRank)
+*        directions are appended (as in PITTS::solveMALS).
 *     4. maxvol on the resulting orthogonal factor U selects the new nested index set I_k;
 *        Y_k = U * U(I_k,:)^{-1} (interpolation gauge), the remainder is multiplied into Y_{k+1}.
 *     (With oversampling > 0, step 4 selects more rows than directions (rectangular maxvol [9]) and
