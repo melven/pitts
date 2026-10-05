@@ -188,9 +188,9 @@ namespace PITTS
 
     //! number of randomly drawn tensor entries used as an independent error check (0 = off)
     //!
-    //! Costs this many additional function evaluations per sweep (plus the evaluation of x and y there).
-    //! The entries are drawn once, so the resulting TTCrossInfo::lastSampleError is comparable between
-    //! sweeps. Unlike the other two measures, which only see the crosses the algorithm itself selected,
+    //! Costs this many additional function evaluations (once, the entries are fixed) and an evaluation of y
+    //! at these entries after every half sweep (also printed with verbose). The entries are drawn once, so the
+    //! resulting TTCrossInfo::lastSampleError is comparable between sweeps. Unlike the other two measures, which only see the crosses the algorithm itself selected,
     //! this is an unbiased estimate of the global error - it does not enter the convergence check,
     //! because its statistical error (roughly 1/sqrt(2*controlSampleSize)) is usually larger than
     //! convergenceTolerance.
