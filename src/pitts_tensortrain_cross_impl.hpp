@@ -219,9 +219,9 @@ namespace PITTS
           contractRightInterface<T>(TTy.subTensor(k), Lyz.right(), Jz, k+1, yOnMixedCross);
         internal::t3_axpy(T(-1), yOnMixedCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        // dominant directions of the error: its leading (at most enrichmentRank) left singular vectors,
-        // as a core of the same shape as the block (folding the unfolding back is a move)
-        E = fold_left(internal::normalize_svd(unfold_left(residual), true, T(0), options.enrichmentRank).first, dims[k]);
+        // as in solveMALS, updateCoreLeft first projects out the current directions and then appends the
+        // dominant (at most enrichmentRank) new directions of the error
+        E = std::move(residual);
       }
 
       // local update: truncated SVD, enrichment, maxvol, interpolation gauge
@@ -231,7 +231,7 @@ namespace PITTS
         B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
       const int maxRankLeft = limitGrowth ? std::min(maxRank, bondRank[k]) : maxRank;
-      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRankLeft, maxvolTolerance, std::move(E), oversampling);
+      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRankLeft, maxvolTolerance, std::move(E), oversampling, options.enrichmentRank);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
       fx.invalidate(k+1);
 
