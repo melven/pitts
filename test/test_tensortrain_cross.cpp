@@ -351,8 +351,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
   const auto infoSampled = applyElementwise(f, TTx, TTsampled, options);
   EXPECT_TRUE(infoSampled.converged);
   EXPECT_LT(infoSampled.lastSampleError, tolerance<Type>());
-  // the control sample costs one function evaluation per sample and sweep
-  EXPECT_EQ(info.nEvaluations + infoSampled.nSweeps*options.controlSampleSize, infoSampled.nEvaluations);
+  // the control sample costs one function evaluation per sample (only once, the entries are fixed)
+  EXPECT_EQ(info.nEvaluations + options.controlSampleSize, infoSampled.nEvaluations);
 
   // a deliberately bad approximation (rank 1, one sweep) must show up in the sampled error
   options.nSweeps = 1;
