@@ -337,15 +337,16 @@ namespace PITTS
     const Eigen::MatrixXi sampleIndices = options.controlSampleSize > 0 ?
         randomIndices(dims, options.controlSampleSize) : Eigen::MatrixXi(0, nDim);
 
+    // f(x) on the sample does not change (fixed entries), so it is evaluated only once; y after every half sweep
+    const Tensor3<T> fOnSample = sampleIndices.rows() > 0 ? fx.atIndices(sampleIndices) : Tensor3<T>();
+    const RealType rmsfOnSample = sampleIndices.rows() > 0 ? t3_rms(fOnSample) : RealType(0);
     const auto sampleError = [&]() -> RealType
     {
       if( sampleIndices.rows() == 0 )
         return 0;
-      const Tensor3<T> fOnSample = fx.atIndices(sampleIndices);
       Tensor3<T> yOnSample;
       evaluateAt(TTy, sampleIndices, yOnSample);
-      const RealType rmsf = t3_rms(fOnSample);
-      return rmsDifference(fOnSample, yOnSample) / (rmsf > 0 ? rmsf : 1);
+      return rmsDifference(fOnSample, yOnSample) / (rmsfOnSample > 0 ? rmsfOnSample : 1);
     };
 
     const auto printProgress = [&](double sweep, RealType change, RealType error)
@@ -376,6 +377,7 @@ namespace PITTS
         maxChange = std::max(maxChange, change);
         maxError = std::max(maxError, error);
       }
+      info.lastSampleError = sampleError();
       if( options.verbose )
         printProgress(iSweep+0.5, maxChange, maxError);
 
