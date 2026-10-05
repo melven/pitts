@@ -51,7 +51,7 @@ namespace PITTS
       // remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
       // for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
       template<typename T>
-      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E)
+      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E, int maxDirections, T relativeTolerance)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -60,16 +60,16 @@ namespace PITTS
         if( Q.r1() != E.r1() || Q.n() != E.n() )
           throw std::invalid_argument("TT-cross enrichment: dimension mismatch!");
 
-        const int rho = std::min<int>(E.r2(), Q.r1()*Q.n() - Q.r2());
+        const int rho = std::min<int>({E.r2(), maxDirections, Q.r1()*Q.n() - Q.r2()});
         if( rho <= 0 )
           return;
 
         // Absolute tolerance relative to the size of E: a direction whose component outside span(Q) is below
-        // sqrt(eps) * ||E|| is dropped. It would not enlarge the space in any useful way (the block SVD
-        // truncates at rankTolerance >= sqrt(eps) by default anyway), and the projection remainder of the
-        // factors from normalize_svd/normalize_qb is well above eps * ||E|| (observed ~1e-12 for double).
+        // relativeTolerance * ||E|| is dropped. It would not enlarge the space in any useful way (the block SVD
+        // truncates at a similar tolerance), and the projection remainder of the factors from
+        // normalize_svd/normalize_qb is well above eps * ||E|| (observed ~1e-12 for double).
         // Computed before the projection overwrites E.
-        const RealType tolerance = std::sqrt(std::numeric_limits<RealType>::epsilon()) * t3_nrm(E);
+        const RealType tolerance = std::real(relativeTolerance) * t3_nrm(E);
 
         // Project out the known directions, in place: E := E - Q (Q^H Q)^{-1} (Q^H E).
         // Q is only orthogonal up to round-off (internal::normalize_svd does not compute its orthogonal
@@ -82,18 +82,34 @@ namespace PITTS
         // is almost the identity) makes this the exact projection onto the orthogonal complement of Q,
         // independent of the orthogonality error -- the same fix as in the residual calculation of
         // PITTS::solveMALS.
-        Tensor2<T> QtE;
-        reverse_dot_contract2(Q, E, QtE);       // QtE = Q(*,*,:) * E(*,*,:)
         Eigen::MatrixX<T> QtQ = ConstEigenMap(unfold_left(Q)).adjoint() * ConstEigenMap(unfold_left(Q));
         const Eigen::LLT<Eigen::Ref<Eigen::MatrixX<T>>> llt(QtQ);   // in-place decomposition
-        if( llt.info() == Eigen::Success )
-          llt.solveInPlace(EigenMap(QtE));
-        Tensor3<T> QQtE;
-        normalize_contract2(Q, QtE, QQtE);      // QQtE = Q(:,:,*) * QtE(*,:)
-        t3_axpy(T(-1), QQtE, E);
+        const auto projectOut = [&](Tensor3<T>& X)
+        {
+          Tensor2<T> QtX;
+          reverse_dot_contract2(Q, X, QtX);     // QtX = Q(*,*,:) * X(*,*,:)
+          if( llt.info() == Eigen::Success )
+            llt.solveInPlace(EigenMap(QtX));
+          Tensor3<T> QQtX;
+          normalize_contract2(Q, QtX, QQtX);    // QQtX = Q(:,:,*) * QtX(*,:)
+          t3_axpy(T(-1), QQtX, X);
+        };
+        projectOut(E);
 
         if( t3_nrm(E) <= tolerance )
           return;
+
+        // More candidates than wanted (as in solveMALS): keep the dominant directions of the projected E (SVD),
+        // scaled by their singular values, and project them once more (the SVD only reconstructs its orthogonal
+        // factor, see above). The QR below then orthonormalizes them.
+        if( rho < E.r2() )
+        {
+          auto [QE, SVt] = normalize_svd(unfold_left(E), true, T(tolerance), rho, true);
+          for(int j = 0; j < QE.r2(); j++)
+            EigenMap(QE).col(j) *= ConstEigenMap(SVt).row(j).norm();
+          E = fold_left(std::move(QE), Q.n());
+          projectOut(E);
+        }
 
         const auto [QE, RE] = normalize_qb(unfold_left(E), true, T(tolerance), rho, true);
         if( QE.r2() == 0 )
@@ -133,7 +149,7 @@ namespace PITTS
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   Tensor3<T> enrichment, T oversampling)
+                                   Tensor3<T> enrichment, T oversampling, int maxEnrichment)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -159,7 +175,11 @@ namespace PITTS
         if( enrichment.r2() > 0 )
         {
           Tensor3<T> U3 = fold_left(std::move(U), n);
-          enrichFactors(U3, SVt, std::move(enrichment));
+          // directions below the truncation tolerance of the block are irrelevant (rankTolerance 0: only drop noise)
+          using RealType = decltype(std::abs(T()));
+          const RealType sqrtEps = std::sqrt(std::numeric_limits<RealType>::epsilon());
+          const RealType relTol = std::real(rankTolerance) > 0 ? std::min(sqrtEps, RealType(std::real(rankTolerance))) : sqrtEps;
+          enrichFactors(U3, SVt, std::move(enrichment), maxEnrichment, T(relTol));
           U = unfold_left(std::move(U3));
         }
         const int r = U.r2();

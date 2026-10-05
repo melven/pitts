@@ -724,12 +724,16 @@ namespace PITTS
       //! which the projection takes into account, see the implementation. Used by updateCoreLeft; declared
       //! here so that the projection can be tested with a Q of a prescribed orthogonality error.
       //!
-      //! @param Q   orthogonal factor as a core, extended in place
-      //! @param B   remainder, padded with zero rows in place
-      //! @param E   candidate directions as a core, consumed (the projection overwrites it)
+      //! @param Q              orthogonal factor as a core, extended in place
+      //! @param B              remainder, padded with zero rows in place
+      //! @param E              candidate directions as a core, consumed (the projection overwrites it)
+      //! @param maxDirections  maximal number of appended directions; if E has more columns, the dominant
+      //!                       directions of the projected E are chosen (SVD), as in solveMALS
+      //! @param relativeTolerance  directions with a part outside span(Q) below relativeTolerance * ||E|| are dropped
       //!
       template<typename T>
-      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E);
+      void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E, int maxDirections = std::numeric_limits<int>::max(),
+                         T relativeTolerance = T(std::sqrt(std::numeric_limits<decltype(std::abs(T()))>::epsilon())));
 
 
       //! Result of a local core update (updateCoreLeft / updateCoreRight)
@@ -783,11 +787,13 @@ namespace PITTS
       //! @param enrichment         directions to append (r1 x n x rho), an empty block for none; consumed,
       //!                           so pass it with std::move
       //! @param oversampling       relative number of additional rows (0 = square selection, see above)
+      //! @param maxEnrichment      maximal number of appended enrichment directions, see enrichFactors
       //! @return                   new core (r1 x n x q), carry (q x r2), selected rows (q) and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   Tensor3<T> enrichment = Tensor3<T>(), T oversampling = T(0));
+                                   Tensor3<T> enrichment = Tensor3<T>(), T oversampling = T(0),
+                                   int maxEnrichment = std::numeric_limits<int>::max());
 
       //! maxvol column selection of a wide matrix (r x m with m >= r)
       //!
