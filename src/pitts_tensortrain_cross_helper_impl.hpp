@@ -60,7 +60,7 @@ namespace PITTS
         if( Q.r1() != E.r1() || Q.n() != E.n() )
           throw std::invalid_argument("TT-cross enrichment: dimension mismatch!");
 
-        const int rho = std::min<int>({E.r2(), maxDirections, Q.r1()*Q.n() - Q.r2()});
+        const int rho = std::min<long long>({E.r2(), maxDirections, Q.r1()*Q.n() - Q.r2()});
         if( rho <= 0 )
           return;
 
