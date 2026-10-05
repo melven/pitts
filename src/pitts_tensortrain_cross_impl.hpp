@@ -150,6 +150,16 @@ namespace PITTS
       return zeroCores;
     }());
 
+    // With oversampling (1-site), the extra rows/columns of a cross would also count as rank in the next block,
+    // so the ranks would grow by a factor (1+oversampling)^2 per sweep (whenever f(x) is not resolved yet).
+    // Of the possible ways to limit this, the growth is left to the enrichment here: a left-to-right step keeps
+    // at most the truncated rank of the bond from the last right-to-left sweep (new directions only from the
+    // enrichment), a right-to-left step at most that rank + enrichmentRank (the dominant directions of the block).
+    std::vector<int> bondRank(nDim);
+    for(int k = 0; k+1 < nDim; k++)
+      bondRank[k] = J[k+1].size();
+    const bool limitGrowth = oversample && nMALS == 1;
+
     // Convergence measures of a step, both returned separately: the change of y on its own cross (block
     // vs. current core) and, with enrichment, the error f(x) - y on the error crosses. The change alone is
     // blind when the crosses of y are too small but y is exact on them (e.g. a rank that is too low at some
@@ -220,7 +230,8 @@ namespace PITTS
       if( nMALS == 2 )
         B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
-      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRank, maxvolTolerance, std::move(E), oversampling);
+      const int maxRankLeft = limitGrowth ? std::min(maxRank, bondRank[k]) : maxRank;
+      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRankLeft, maxvolTolerance, std::move(E), oversampling);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
       fx.invalidate(k+1);
 
@@ -285,7 +296,9 @@ namespace PITTS
       // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
       if( nMALS == 2 )
         B = fold_left(unfold_left(std::move(B)), dims[k]);
-      CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRank, maxvolTolerance, oversampling);
+      const int maxRankRight = limitGrowth ? std::min(maxRank, bondRank[k-1] + options.enrichmentRank) : maxRank;
+      CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRankRight, maxvolTolerance, oversampling);
+      bondRank[k-1] = upd.truncatedRank;
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
       fx.invalidate(k-1);
 
