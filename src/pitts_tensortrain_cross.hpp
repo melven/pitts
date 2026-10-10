@@ -17,36 +17,40 @@
 *   The result y is built only from entries of f(x) on "crosses", defined by nested index sets
 *     I_k  = { (i_0,...,i_k) }        left multi-indices for bond k   (I_k subset of I_{k-1} x S_k),
 *     J_k  = { (i_k,...,i_{d-1}) }    right multi-indices for bond k-1 (J_k subset of S_k x J_{k+1}),
-*   with I_{-1} = J_d = {()}. The TT rank of y at bond k is r_k = |J_{k+1}|; |I_k| = r_k as well, except
-*   directly after a left-to-right sweep with enrichment, where I_k holds up to enrichmentRank more
-*   multi-indices than the current rank (see TTCrossInfo::leftIndices).
+*   with I_{-1} = J_d = {()}. Without oversampling the TT rank of y at bond k is r_k = |J_{k+1}|, and
+*   |I_k| = r_k as well, except directly after a left-to-right sweep with enrichment, where I_k holds up to
+*   enrichmentRank more multi-indices than the current rank (see TTCrossInfo::leftIndices). With oversampling
+*   the sets contain more multi-indices than the rank.
 *
-*   y is kept in the interpolation ("CI-canonical" in [4]) gauge: in a left-to-right sweep every processed
-*   core Y_k restricted to the rows I_k of its left unfolding (|I_{k-1}| n_k x r_k) is the identity, in a
-*   right-to-left sweep every processed core restricted to the columns J_k of its right unfolding is the
-*   identity. Then y evaluated on the cross (I_{k-1}, S_k, J_{k+1}) is simply the core Y_k, and the
-*   difference between the newly evaluated block f(x)(I_{k-1}, S_k, J_{k+1}) and Y_k is the current
-*   approximation error on the cross (used for the convergence check).
+*   y is kept in the orthogonal gauge, like the solution in PITTS::solveMALS: in a sweep, the cores left of the
+*   current core k are left-orthonormal and the cores right of it right-orthonormal. The values of these
+*   orthonormal left/right parts on the index sets are the interface matrices L^y_{k-1} (|I_{k-1}| x r_{k-1}) and
+*   R^y_{k+1} (r_k x |J_{k+1}|); they have full rank by the maxvol selection. So y on the cross
+*   (I_{k-1}, S_k, J_{k+1}) is L^y_{k-1} Y_k R^y_{k+1}, and a block sampled on the cross is converted into the
+*   coordinates of y by the (least-squares) inverses of the interface matrices. The truncation of the local core
+*   is then the truncation of y itself in the Frobenius norm (in the interpolation ("CI-canonical" in [4])
+*   gauge it would only be a truncation of the samples, amplified by the norms of the interpolating left/right
+*   parts, which grow with the dimension).
 *
 *   One step of a left-to-right sweep at core k:
 *     1. Evaluate the block B = f( x(I_{k-1}, S_k, J_{k+1}) ) of shape |I_{k-1}| x n_k x |J_{k+1}|.
 *        The entries of x come from cached partial contractions of the cores of x on the nested index
 *        sets (see pitts_tensortrain_cross_helper.hpp), so the block costs one small contraction plus
 *        one call of f per entry (or a single call of f for the whole block for an array function).
-*     2. Truncated SVD of the left unfolding of B (|I_{k-1}| n_k x |J_{k+1}|) with rankTolerance / maxRank.
+*     2. Convert B into the coordinates of y, C = (L^y_{k-1}^+ x I) B R^y_{k+1}^{+T} (r_{k-1} x n_k x r_k), and
+*        truncate the left unfolding of C by an SVD with rankTolerance / maxRank: C ~ U S V^T.
 *     3. Optional AMEn-style enrichment (nMALS = 1 only): append directions of the current error
 *        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep):
 *        the error of the block is projected onto the complement of U, then its dominant (at most enrichmentRank)
 *        directions are appended (as in PITTS::solveMALS).
-*     4. maxvol on the resulting orthogonal factor U selects the new nested index set I_k;
-*        Y_k = U * U(I_k,:)^{-1} (interpolation gauge), the remainder is multiplied into Y_{k+1}.
-*     (With oversampling > 0, step 4 selects more rows than directions (rectangular maxvol [9]) and
-*      Y_k = U * U(I_k,:)^+ with the pseudo-inverse of the tall matrix U(I_k,:): the cross is
-*      interpolated in the least-squares sense instead of exactly [8]. The interpolation error of a square
-*      cross exceeds the best low-rank error by a rank dependent factor [7], which can make the error grow with
-*      the rank when the ranks are too low. The identity property of the gauge is then lost, y on its cross is
-*      obtained by contracting the interfaces of y, and the TT ranks of y during the sweeps are the sizes of the
-*      index sets; the final y is truncated.)
+*     4. Y_k = U (left-orthonormal), S V^T is multiplied into Y_{k+1}; maxvol on (L^y_{k-1} x I) U, the values
+*        of the new left part of y on I_{k-1} x S_k, selects the new nested index set I_k, and its selected rows
+*        are the next interface L^y_k.
+*     (With oversampling > 0, step 4 selects more rows than directions (rectangular maxvol [9]), and the
+*      conversion in step 2 is a least-squares fit on the cross instead of an exact interpolation [8]. The
+*      interpolation error of a square cross exceeds the best low-rank error by a rank dependent factor [7],
+*      which can make the error grow with the rank when the ranks are too low. The TT ranks of y stay the
+*      truncated ranks, the additional multi-indices only enlarge the interface matrices.)
 *   The right-to-left sweep is the mirror image (right unfoldings, column selection, J_k) but without
 *   step 3: it only truncates, so after every full sweep the ranks of y are the truncated ranks. The
 *   enlarged left sets I_{k-1} of the preceding left-to-right sweep still allow the rank r_k to grow in
@@ -56,9 +60,9 @@
 *   f( x(I_{k-1}, S_k, S_{k+1}, J_{k+2}) ) and step 2 splits it, which adapts the rank without an
 *   error approximation but costs O(n^2) instead of O(n) entries per core.
 *
-*   Initialization: index sets from a maxvol sweep over the orthogonalized cores of x itself (no
-*   function evaluations; for two inputs on their stacked right unfoldings), and a zero y with these ranks that
-*   the first left-to-right sweep replaces core by core.
+*   Initialization: a zero y whose right-orthonormal cores are those of the orthogonalized x (for two inputs of
+*   their direct sum), and right index sets from a maxvol sweep over these cores (no function evaluations);
+*   the first left-to-right sweep replaces the cores one by one.
 *
 *   Cost per full sweep (nMALS = 1, ranks r of y, r_x of x, error rank rho, enrichment rank rho'):
 *     function evaluations  sum_k 2 (r_{k-1} + rho') n_k r_k  (blocks)
@@ -82,8 +86,8 @@
 *          the neighboring set it refers to is replaced (Remark 5, see NestedIndices).
 *   [4] Nunez Fernandez et al.: "Learning tensor networks with tensor cross interpolation: new algorithms
 *       and libraries", SciPost Phys. 18, 104 (2025), doi 10.21468/SciPostPhys.18.3.104 (arXiv:2407.02454)
-*       -- review of tensor cross interpolation: the CI-canonical (interpolation) gauge and the
-*          classification into 1-site and 2-site sweeps with their pivot handling.
+*       -- review of tensor cross interpolation: the CI-canonical (interpolation) and the orthogonal gauges and
+*          the classification into 1-site and 2-site sweeps with their pivot handling.
 *   [5] Ritter et al.: "Quantics Tensor Cross Interpolation for High-Resolution Parsimonious
 *       Representations of Multivariate Functions", Phys. Rev. Lett. 132, 056501 (2024),
 *       doi 10.1103/PhysRevLett.132.056501 (arXiv:2303.11819)
@@ -106,7 +110,8 @@
 *       Appl. 538 (2018) 187-211, arXiv:1502.07838
 *       -- maximum-volume selection of more rows than columns, see internal::maxvol (nRows).
 *   The AMEn-style enrichment by a separate low-rank approximation of the error follows the amen_cross
-*   algorithm of the TT-Toolbox and the subspace enrichment of PITTS::solveMALS (nAMEnEnrichment).
+*   algorithm of the TT-Toolbox and the subspace enrichment of PITTS::solveMALS (nAMEnEnrichment); the
+*   orthogonal gauge with interface matrices follows multifuncrs2 of ttpy (Oseledets et al.).
 *
 **/
 
@@ -133,10 +138,8 @@ namespace PITTS
   {
     //! relative truncation tolerance for each local block in the Frobenius norm (rank adaptation)
     //!
-    //! Applied as rankTolerance/sqrt(d-1) per block, like the truncation in leftNormalize/rightNormalize.
-    //! Note that the blocks are truncated in the interpolation gauge, so unlike for an orthogonalized TT
-    //! this is a heuristic and not a rigorous bound on the global error (the left/right parts of y are
-    //! not orthonormal, their entries are only bounded by the maxvol dominance criterion).
+    //! Applied as rankTolerance/(2 sqrt(d-1)) per block. y is kept in the orthogonal gauge, so the truncation
+    //! of a block is a truncation of y itself, like in leftNormalize/rightNormalize (relative to the norm of y).
     //!
     T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon());
 
@@ -144,7 +147,8 @@ namespace PITTS
     //!
     //! Also limits the rank after the enrichment. The algorithm reduces it per bond to the maximal useful rank:
     //! at bond k at most n_k times the limit at bond k-1 and n_{k+1} times the limit at bond k+1 (so a small
-    //! bond also limits its neighbors). With oversampling the index sets are limited in the same way.
+    //! bond also limits its neighbors). With oversampling the index sets are limited in the same way (but they
+    //! always contain at least the rank).
     //!
     int maxRank = std::numeric_limits<int>::max();
 
@@ -187,10 +191,8 @@ namespace PITTS
     //! |I_k| = r + ceil(oversampling r) (limited per bond, see maxRank), and the cores are the least-squares interpolation with the
     //! pseudo-inverse of the tall pivot matrix (cf. Qin et al., NeurIPS 2022): y only fits f(x) on the cross
     //! in the least-squares sense, and the amplification is much smaller (the norm of the pseudo-inverse
-    //! decreases with the number of rows). In the sweeps the TT ranks
-    //! of y are the sizes of the sets |I_k|, |J_k| (the extra directions carry no information; the rank itself only
-    //! grows by the enrichment as without oversampling, nMALS = 1), after the last
-    //! sweep y is truncated with rankTolerance and maxRank. The blocks that are evaluated grow with the
+    //! decreases with the number of rows). The TT ranks of y are not affected (the rank only grows by the
+    //! enrichment as without oversampling, nMALS = 1). The blocks that are evaluated grow with the
     //! sets in both dimensions, so the number of function evaluations and the cost per sweep grow by up to
     //! (1 + oversampling)^2. Typical values are 0.1 to 1.
     //!
@@ -224,7 +226,7 @@ namespace PITTS
 
     //! maximal change of y on its own crosses in the last sweep: max_k rms(B_k - Y_k) / rmsRef
     //!
-    //! B_k is the newly evaluated block and Y_k the current core on the cross of core k (both are samples
+    //! B_k is the newly evaluated block and Y_k the current y on the cross of core k (both are samples
     //! of f(x) resp. y at the cross indices), rms(.) = ||.||_F / sqrt(number of entries) and rmsRef the
     //! largest rms(B_k) seen so far. The rms scaling makes blocks of different size comparable (the crosses
     //! grow with the TT ranks, the error crosses have a different fixed size), the global reference prevents
@@ -268,8 +270,8 @@ namespace PITTS
     std::vector<Eigen::MatrixXi> leftIndices;
 
     //! final right index sets: rightIndices[k] holds the multi-indices (i_k,...,i_{d-1}) of J_k for k = 1..d-1, one per row
-    //! (these are the pivot sets of the final cores: |J_k| = r_{k-1}, and Y_k restricted to the columns J_k is the
-    //! identity); the vector has d entries, rightIndices[0] is empty because J_0 does not exist
+    //! (these are the pivot sets of the final cores: |J_k| = r_{k-1} without oversampling, more with oversampling);
+    //! the vector has d entries, rightIndices[0] is empty because J_0 does not exist
     std::vector<Eigen::MatrixXi> rightIndices;
   };
 

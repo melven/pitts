@@ -29,10 +29,13 @@
 *   Lx.update(k, k+1);                              // LX_k = L_{k-1} X_k and XR_{k+1} = X_{k+1} R_{k+2} valid
 *   localBlockFromLeft(*Lx.left(), x, k, 1, Lx.right(), J, B);   // B = LX_k * R_{k+1}  (|I_{k-1}| x n_k x |J_{k+1}|)
 *   applyToBlock(f, B);                             // B  = f(x) on the cross
-*   auto upd = updateCoreLeft(B, tol, maxRank, maxvolTol, enrichment);
+*   // y in the orthogonal gauge, Ly its partial contractions on I, J (Ly.update(k-1, k+1)):
+*   solveLeftInterface(Ly.left(), I, k-1, B, C);    // core coordinates: C = L^y_{k-1}^+ B R^y_{k+1}^{+T}
+*   solveRightInterface(C, Ly.right(), J, k+1, C);
+*   auto upd = updateCoreLeft(C, L^y_{k-1}, tol, maxRank, maxvolTol, enrichment);
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
 *   Lx.invalidate(k+1);                             // LX_{k+1} depends on the new I_k, recomputed on the next update
-*   Y_k = upd.core;  Y_{k+1} = upd.carry * Y_{k+1};
+*   Y_k = upd.core (left-orthonormal);  Y_{k+1} = upd.carry * Y_{k+1};
 *
 **/
 
@@ -261,6 +264,37 @@ namespace PITTS
           copy(B, C);
       }
 
+      //! C = L_k^+ * B: least-squares solution of L_k * C = B with the left interface L_k of the cached contraction LX
+      //!
+      //! Inverse operation of contractLeftInterface: converts a block sampled on the rows I_k into the coordinates of
+      //! the TT (y in the orthogonal gauge, see pitts_tensortrain_cross.hpp). L_k (|I_k| x r_k, |I_k| >= r_k) must have
+      //! full column rank, which the maxvol selection of I_k guarantees; with |I_k| > r_k (oversampling) this is
+      //! the least-squares fit on the rows I_k. At the left boundary (nullopt) C = B.
+      //!
+      //! @param LX    cached contraction LX_k, nullopt at the left boundary
+      //! @param I     the left index sets
+      //! @param k     dimension of LX, see contractLeftInterface
+      //! @param B     block (|I_k| x n x m)
+      //! @param C     result (r_k x n x m), may not alias B
+      //!
+      template<typename T>
+      void solveLeftInterface(optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& I, int k,
+                              const Tensor3<T>& B, Tensor3<T>& C);
+
+      //! C = B * R_k^+: least-squares solution of C * R_k = B with the right interface R_k of the cached contraction XR
+      //!
+      //! Mirror image of solveLeftInterface (R_k is r_{k-1} x |J_k| with full row rank; nullopt at the right boundary: C = B).
+      //!
+      //! @param B     block (m x n x |J_k|)
+      //! @param XR    cached contraction XR_k, nullopt at the right boundary
+      //! @param J     the right index sets
+      //! @param k     dimension of XR, see contractRightInterface
+      //! @param C     result (m x n x r_{k-1}), may not alias B
+      //!
+      template<typename T>
+      void solveRightInterface(const Tensor3<T>& B, optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, int k,
+                               Tensor3<T>& C);
+
       //! full multi-indices of the left set I_k as a matrix with one row (i_0,...,i_k) per element (I[0] is the set of bond 0)
       //!
       //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()} (a 1 x 0 matrix).
@@ -361,8 +395,6 @@ namespace PITTS
 
 
       //! the cores iDim..iDim+nMALS-1 of a tensor train combined into a single block (modes combined as in combine)
-      //!
-      //! For y in the interpolation gauge this is y on its own cross (both interfaces are the identity there).
       //!
       template<typename T>
       Tensor3<T> combineCores(const TensorTrain<T>& TT, int iDim, int nMALS)
@@ -723,6 +755,7 @@ namespace PITTS
       //! Q is only orthogonal up to round-off (internal::normalize_svd reconstructs it as Q = M V S^{-1}),
       //! which the projection takes into account, see the implementation. Used by updateCoreLeft; declared
       //! here so that the projection can be tested with a Q of a prescribed orthogonality error.
+      //! (This is the enrichSubspace step of solveMALS as a function.)
       //!
       //! @param Q              orthogonal factor as a core, extended in place
       //! @param B              remainder, padded with zero rows in place
@@ -740,60 +773,54 @@ namespace PITTS
       template<typename T>
       struct CoreUpdate
       {
-        //! new core in interpolation gauge: r1 x n x r' (left) or r' x n x r2 (right)
+        //! new core, orthonormal: left-orthonormal r1 x n x r' (left) or right-orthonormal r' x n x r2 (right)
         Tensor3<T> core;
 
         //! remainder to be multiplied into the neighboring core: r' x r2 (left, Y_{k+1} <- carry * Y_{k+1})
         //! or r1 x r' (right, Y_{k-1} <- Y_{k-1} * carry)
         Tensor2<T> carry;
 
-        //! selected rows of the left unfolding (left) or columns of the right unfolding (right), size r'
+        //! selected rows of (interface x I) * core (left) or columns of core * interface (right), size q >= r'
         std::vector<int> selected;
 
         //! rank r' after truncation (without enrichment) -- for convergence/rank reporting
         int truncatedRank = 0;
       };
 
-      //! Local core update for a left-to-right sweep
+      //! Local core update for a left-to-right sweep (y in the orthogonal gauge)
       //!
-      //! Given the evaluated block B (r1 x n x r2) of f(x) on the cross (I_{k-1}, S_k, J_{k+1}):
-      //!  1. truncated SVD of the left unfolding of B: B ~ U * SVt with U (r1 n x r'), truncation in the
-      //!     Frobenius norm with relative tolerance rankTolerance and maximal rank maxRank
-      //!     (internal::normalize_svd, same criterion as PITTS::normalize);
-      //!  2. optional enrichment: the block E (r1 x n x rho, e.g. error directions from the AMEn-style
-      //!     residual) is orthogonalized against U and appended, U' = [U, Q_E] (r1 n x r'+rho'), and SVt is
-      //!     padded with zero rows (rho' <= rho: directions in the span of U and those beyond the dimension
-      //!     of its orthogonal complement are dropped, see enrichFactors). This is the same sequence as in
-      //!     the enrichSubspace lambda of solveMALS and reuses the same contraction kernels;
-      //!  3. maxvol(U', maxvolTolerance) selects the rows I_k;
-      //!  4. interpolation gauge: core = fold_left(U' * U'(rows,:)^{-1}) (returned by maxvol), carry = U'(rows,:) * SVt'.
+      //! Given the block C (r1 x n x r2) of f(x) on the cross (I_{k-1}, S_k, J_{k+1}) in the coordinates of y
+      //! (converted with solveLeftInterface / solveRightInterface, so that L^y_{k-1} C R^y_{k+1} fits f(x) on the
+      //! cross), with the cores left of k left-orthonormal and the cores right of k right-orthonormal:
+      //!  1. truncated SVD of the left unfolding: C ~ U * SVt with orthonormal U (r1 n x r'), truncation in the
+      //!     Frobenius norm with relative tolerance rankTolerance and maximal rank maxRank (internal::normalize_svd).
+      //!     Because of the orthonormal frames this is the truncation of y itself, as in PITTS::normalize;
+      //!  2. optional enrichment: the block E (r1 x n x rho, error directions in the same coordinates) is
+      //!     orthogonalized against U and appended, U' = [U, Q_E], and SVt is padded with zero rows (see
+      //!     enrichFactors, the enrichSubspace step of solveMALS);
+      //!  3. maxvol on M = (L^y_{k-1} x I_n) U' (the values of the new left part of y on I_{k-1} x S_k) selects
+      //!     the rows I_k, q = r' + ceil(oversampling r') of them (at most maxRows and the number of rows of M).
       //!
-      //! With oversampling > 0, maxvol selects q = r' + ceil(oversampling * r') rows (at most r1 n) and returns the
-      //! least-squares coefficients: core = fold_left(U' * U'(rows,:)^+) (r1 x n x q), carry = U'(rows,:) * SVt'
-      //! (q x r2), see TTCrossOptions::oversampling. core * carry = U' * SVt' still holds, but core(rows,:) is only
-      //! an orthogonal projector of rank r' instead of the identity.
+      //! The new core is U' (left-orthonormal) and the carry SVt', so core * carry = U' SVt' (= C up to the
+      //! truncation error). The interface of the next step, L^y_k = M(rows,:), has full column rank.
+      //! Without leftInterface (nullopt: left boundary, or the error approximation, which has no cores),
+      //! M = U'.
       //!
-      //! Compared to solveMALS this replaces "solve the local problem, then orthogonalize" by "evaluate the
-      //! block, then select interpolation rows": the orthogonal gauge and the setSubTensors orthogonality
-      //! flags of MALS are not used, y is in the interpolation gauge instead (see pitts_tensortrain_cross.hpp).
-      //!
-      //! Invariants without oversampling: unfold_left(core)(rows,:) = identity, |entries of core| <= 1 + maxvolTolerance,
-      //! and core * carry = U * SVt (= B up to the truncation error); the last one also holds with oversampling.
-      //!
-      //! @param B                  evaluated block (r1 x n x r2)
-      //! @param rankTolerance      relative truncation tolerance for B (in the Frobenius norm)
+      //! @param C                  block in the coordinates of y (r1 x n x r2)
+      //! @param leftInterface      L^y_{k-1} (|I_{k-1}| x r1), nullopt at the left boundary
+      //! @param rankTolerance      relative truncation tolerance for C (in the Frobenius norm)
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
       //! @param enrichment         directions to append (r1 x n x rho), an empty block for none; consumed,
       //!                           so pass it with std::move
-      //! @param oversampling       relative number of additional rows (0 = square selection, see above)
+      //! @param oversampling       relative number of additional rows (0 = square selection)
       //! @param maxEnrichment      maximal number of appended enrichment directions, see enrichFactors
       //! @param maxEnrichedRank    maximal rank r'+rho' after the enrichment (the enrichment is limited accordingly)
       //! @param maxRows            maximal number of selected rows q with oversampling (at least r'+rho' are selected)
-      //! @return                   new core (r1 x n x q), carry (q x r2), selected rows (q) and truncated rank, see CoreUpdate
+      //! @return                   new core (r1 x n x r'+rho'), carry (r'+rho' x r2), selected rows (q) and truncated rank
       //!
       template<typename T>
-      CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
+      CoreUpdate<T> updateCoreLeft(const Tensor3<T>& C, optional_cref<Tensor2<T>> leftInterface, T rankTolerance, int maxRank, T maxvolTolerance,
                                    Tensor3<T> enrichment = Tensor3<T>(), T oversampling = T(0),
                                    int maxEnrichment = std::numeric_limits<int>::max(),
                                    int maxEnrichedRank = std::numeric_limits<int>::max(),
@@ -818,21 +845,32 @@ namespace PITTS
 
       //! Local core update for a right-to-left sweep (mirror image of updateCoreLeft)
       //!
-      //! Truncated SVD of the right unfolding of B (r1 x n r2): B ~ US * Vt with Vt (r' x n r2);
-      //! maxvolColumns(Vt) selects the columns J_k; core = fold_right(Vt(:,columns)^{-1} * Vt),
-      //! carry = US * Vt(:,columns) (r1 x r').
+      //! Truncated SVD of the right unfolding of C (r1 x n r2): C ~ US * Vt with orthonormal rows of Vt (r' x n r2);
+      //! maxvolColumns on M = Vt (I_n x R^y_{k+1}) selects the columns J_k, q = r' + ceil(oversampling r') of them
+      //! (at most maxColumns); core = fold_right(Vt) (right-orthonormal), carry = US (r1 x r').
       //!
       //! There is no enrichment here: only the left-to-right sweeps enrich (see pitts_tensortrain_cross.hpp).
       //!
-      //! With oversampling > 0: q = r' + ceil(oversampling * r') columns (at most maxColumns, but at least r'),
-      //! core = fold_right(Vt(:,columns)^+ * Vt), carry = US * Vt(:,columns) (r1 x q), see updateCoreLeft.
-      //!
-      //! Invariants without oversampling: unfold_right(core)(:,columns) = identity, |entries of core| <= 1 + maxvolTolerance,
-      //! and carry * core = US * Vt (the last one also holds with oversampling).
+      //! @param C                  block in the coordinates of y (r1 x n x r2)
+      //! @param rightInterface     R^y_{k+1} (r2 x |J_{k+1}|), nullopt at the right boundary (or for the error approximation)
       //!
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling = T(0),
-                                    int maxColumns = std::numeric_limits<int>::max());
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& C, optional_cref<Tensor2<T>> rightInterface, T rankTolerance, int maxRank,
+                                    T maxvolTolerance, T oversampling = T(0), int maxColumns = std::numeric_limits<int>::max());
+
+
+      //! Initial y for TT-cross in the orthogonal gauge: zero, but with an orthonormal right frame from the inputs
+      //!
+      //! The cores 1..d-1 of y are the right-orthonormal cores of the (left- and then right-normalized, tolerance 0)
+      //! direct sum of the inputs (block-diagonal cores), so the right parts of y span the right parts of all
+      //! inputs; core 0 is set to zero. Then a maxvol sweep over these cores (see initialRightIndexSets) gives
+      //! well-conditioned initial right index sets with full-rank interfaces, as needed by solveRightInterface.
+      //!
+      //! @param TTx    input tensor trains (same dimensions as TTy, boundary ranks 1)
+      //! @param TTy    result, dimensions unchanged
+      //!
+      template<typename T>
+      void initialRightFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& TTy);
 
 
       //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)
