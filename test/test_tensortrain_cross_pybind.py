@@ -83,6 +83,15 @@ class TestTensorTrainCross(unittest.TestCase):
         with self.assertRaises(ValueError):
             pitts_py.applyElementwise(np.reciprocal, tt_x, tt_y, oversampling=-1.0)
 
+    def test_maxRanks(self):
+        """maxRanks limits the rank of each bond individually (and replaces maxRank)"""
+        tt_x = positive_random_tt([3, 4, 3, 2], [2, 2, 2], 13)
+        tt_y = pitts_py.TensorTrain_double([3, 4, 3, 2])
+        pitts_py.applyElementwise(np.sqrt, tt_x, tt_y, maxRank=1, maxRanks=[3, 2, 2])
+        self.assertEqual([3, 2, 2], tt_y.getTTranks())
+        with self.assertRaises(ValueError):
+            pitts_py.applyElementwise(np.sqrt, tt_x, tt_y, maxRanks=[3, 2])
+
     def test_wrong_result_size(self):
         tt_x = positive_random_tt([3, 4, 3], [2, 2], 17)
         tt_y = pitts_py.TensorTrain_double([3, 4, 3])
