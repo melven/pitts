@@ -72,6 +72,8 @@ namespace PITTS
       throw std::invalid_argument("applyElementwise: need 0 <= enrichmentRank <= errorRank!");
     if( options.nSweeps < 1 || options.maxRank < 1 )
       throw std::invalid_argument("applyElementwise: nSweeps and maxRank must be positive!");
+    if( !options.maxRanks.empty() && (std::ssize(options.maxRanks) != nDim-1 || *std::min_element(options.maxRanks.begin(), options.maxRanks.end()) < 1) )
+      throw std::invalid_argument("applyElementwise: maxRanks needs one positive entry per bond!");
     if( !(std::real(options.oversampling) >= 0) )
       throw std::invalid_argument("applyElementwise: oversampling must not be negative!");
 
@@ -80,7 +82,8 @@ namespace PITTS
     const bool enrich = nMALS == 1 && nDim > 1 && options.errorRank > 0 && options.enrichmentRank > 0;
     const T localTolerance = options.rankTolerance / (2*std::sqrt(T(std::max(nDim-1, 1))));     // factor 2 heuristic, like tt_amen in ttpy
     const T maxvolTolerance = options.maxvolTolerance;
-    const int maxRank = options.maxRank;
+    // maximal rank per bond k (between cores k and k+1)
+    const std::vector<int> maxRanks = options.maxRanks.empty() ? std::vector<int>(std::max(nDim-1, 0), options.maxRank) : options.maxRanks;
     const T oversampling = options.oversampling;
     const bool oversample = std::real(oversampling) > 0;
 
@@ -230,7 +233,7 @@ namespace PITTS
       if( nMALS == 2 )
         B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
-      const int maxRankLeft = limitGrowth ? std::min(maxRank, bondRank[k]) : maxRank;
+      const int maxRankLeft = limitGrowth ? std::min(maxRanks[k], bondRank[k]) : maxRanks[k];
       CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRankLeft, maxvolTolerance, std::move(E), oversampling, options.enrichmentRank);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
       fx.invalidate(k+1);
@@ -296,7 +299,7 @@ namespace PITTS
       // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
       if( nMALS == 2 )
         B = fold_left(unfold_left(std::move(B)), dims[k]);
-      const int maxRankRight = limitGrowth ? std::min(maxRank, bondRank[k-1] + options.enrichmentRank) : maxRank;
+      const int maxRankRight = limitGrowth ? std::min(maxRanks[k-1], bondRank[k-1] + options.enrichmentRank) : maxRanks[k-1];
       CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRankRight, maxvolTolerance, oversampling);
       bondRank[k-1] = upd.truncatedRank;
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
@@ -407,10 +410,12 @@ namespace PITTS
     }
 
     // with oversampling the bonds of y have the sizes of the index sets, which exceed the ranks:
-    // truncate (normalize also scales y to norm 1 and returns the norm, which is put back into the core with the norm)
-    if( oversample )
+    // truncate (normalize also scales y to norm 1 and returns the norm, which is put back into the core with the norm).
+    // The largest per-bond limit suffices: the actual rank of y at bond k is already at most maxRanks[k] (after the
+    // last right-to-left sweep, the right unfolding of core k+1 has the truncated rank), only the bond size is larger.
+    if( oversample && nDim > 1 )
     {
-      const T nrm = normalize(TTy, options.rankTolerance, maxRank);
+      const T nrm = normalize(TTy, options.rankTolerance, *std::max_element(maxRanks.begin(), maxRanks.end()));
       const int idxNorm = (TTy.isOrthogonal() & TT_Orthogonality::left) != TT_Orthogonality::none ? nDim-1 : 0;
       TTy.editSubTensor(idxNorm, [nrm](Tensor3<T>& subT){internal::t3_scale(nrm, subT);});
     }

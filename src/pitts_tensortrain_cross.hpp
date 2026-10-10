@@ -143,6 +143,9 @@ namespace PITTS
     //! maximal TT rank of the result, enforced even if this violates rankTolerance
     int maxRank = std::numeric_limits<int>::max();
 
+    //! maximal TT rank per bond (d-1 entries, bond k between cores k and k+1); if given, it replaces maxRank
+    std::vector<int> maxRanks = {};
+
     //! maximal number of full sweeps (left-to-right + right-to-left)
     int nSweeps = 10;
 

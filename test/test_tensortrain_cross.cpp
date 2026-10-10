@@ -242,6 +242,35 @@ TYPED_TEST(PITTS_TensorTrain_cross, qtt_sqrt_with_rank_growth)
   }
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross, maxRanks_per_bond)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  const std::vector<int> dims = {3, 4, 4, 3};
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 11);
+  const auto f = [](Type v){return v*v*v;};
+
+  PITTS::TTCrossOptions<Type> options;
+  options.rankTolerance = Type(0);  // only maxRanks truncates
+  options.maxRank = 1;              // replaced by maxRanks
+  options.maxRanks = {3, 2, 3};
+  for(Type oversampling: {Type(0), Type(0.3)})
+  {
+    options.oversampling = oversampling;
+    TensorTrain TTy(dims);
+    applyElementwise(f, TTx, TTy, options);
+    // x^3 has the full ranks (3, 12, 3) (Hadamard product: at most r^3): only the middle bond is limited
+    EXPECT_EQ(std::vector<int>({3, 2, 3}), TTy.getTTranks());
+  }
+
+  TensorTrain TTy(dims);
+  options.maxRanks = {3, 2};
+  EXPECT_THROW(applyElementwise(f, TTx, TTy, options), std::invalid_argument);
+  options.maxRanks = {3, 0, 3};
+  EXPECT_THROW(applyElementwise(f, TTx, TTy, options), std::invalid_argument);
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross, array_function)
 {
   using Type = typename TestFixture::Type;
