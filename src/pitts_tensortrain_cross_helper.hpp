@@ -788,12 +788,16 @@ namespace PITTS
       //!                           so pass it with std::move
       //! @param oversampling       relative number of additional rows (0 = square selection, see above)
       //! @param maxEnrichment      maximal number of appended enrichment directions, see enrichFactors
+      //! @param maxEnrichedRank    maximal rank r'+rho' after the enrichment (the enrichment is limited accordingly)
+      //! @param maxRows            maximal number of selected rows q with oversampling (at least r'+rho' are selected)
       //! @return                   new core (r1 x n x q), carry (q x r2), selected rows (q) and truncated rank, see CoreUpdate
       //!
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
                                    Tensor3<T> enrichment = Tensor3<T>(), T oversampling = T(0),
-                                   int maxEnrichment = std::numeric_limits<int>::max());
+                                   int maxEnrichment = std::numeric_limits<int>::max(),
+                                   int maxEnrichedRank = std::numeric_limits<int>::max(),
+                                   int maxRows = std::numeric_limits<int>::max());
 
       //! maxvol column selection of a wide matrix (r x m with m >= r)
       //!
@@ -820,14 +824,15 @@ namespace PITTS
       //!
       //! There is no enrichment here: only the left-to-right sweeps enrich (see pitts_tensortrain_cross.hpp).
       //!
-      //! With oversampling > 0: q = r' + ceil(oversampling * r') columns, core = fold_right(Vt(:,columns)^+ * Vt),
-      //! carry = US * Vt(:,columns) (r1 x q), see updateCoreLeft.
+      //! With oversampling > 0: q = r' + ceil(oversampling * r') columns (at most maxColumns, but at least r'),
+      //! core = fold_right(Vt(:,columns)^+ * Vt), carry = US * Vt(:,columns) (r1 x q), see updateCoreLeft.
       //!
       //! Invariants without oversampling: unfold_right(core)(:,columns) = identity, |entries of core| <= 1 + maxvolTolerance,
       //! and carry * core = US * Vt (the last one also holds with oversampling).
       //!
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling = T(0));
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling = T(0),
+                                    int maxColumns = std::numeric_limits<int>::max());
 
 
       //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)

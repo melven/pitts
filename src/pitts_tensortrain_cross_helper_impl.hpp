@@ -149,7 +149,7 @@ namespace PITTS
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
-                                   Tensor3<T> enrichment, T oversampling, int maxEnrichment)
+                                   Tensor3<T> enrichment, T oversampling, int maxEnrichment, int maxEnrichedRank, int maxRows)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -179,14 +179,14 @@ namespace PITTS
           using RealType = decltype(std::abs(T()));
           const RealType sqrtEps = std::sqrt(std::numeric_limits<RealType>::epsilon());
           const RealType relTol = std::real(rankTolerance) > 0 ? std::min(sqrtEps, RealType(std::real(rankTolerance))) : sqrtEps;
-          enrichFactors(U3, SVt, std::move(enrichment), maxEnrichment, T(relTol));
+          enrichFactors(U3, SVt, std::move(enrichment), std::min<long long>(maxEnrichment, maxEnrichedRank - U3.r2()), T(relTol));
           U = unfold_left(std::move(U3));
         }
         const int r = U.r2();
 
         // 3.+4. maxvol selects the rows I_k (with oversampling more than r) and returns the core in interpolation
         //       gauge, U * U(rows,:)^{-1} (U * U(rows,:)^+ with oversampling)
-        const int nRows = r + static_cast<int>(std::ceil(std::real(oversampling) * r));
+        const int nRows = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows));
         Tensor2<T> coefficients;
         result.selected = maxvol(U, maxvolTolerance, 100, &coefficients, nRows);
         result.core = fold_left(std::move(coefficients), n);
@@ -206,7 +206,7 @@ namespace PITTS
 
       // implement updateCoreRight
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling)
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling, int maxColumns)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -226,7 +226,7 @@ namespace PITTS
 
         // 2. maxvol selects the columns J_k of Vt (with oversampling more than r) and returns the core in
         //    interpolation gauge, Vt(:,cols)^{-1} Vt (Vt(:,cols)^+ Vt with oversampling)
-        const int nColumns = r + static_cast<int>(std::ceil(std::real(oversampling) * r));
+        const int nColumns = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxColumns));
         Tensor2<T> coefficients;
         result.selected = maxvolColumns<T>(Vt, maxvolTolerance, &coefficients, nColumns);
         result.core = fold_right(std::move(coefficients), n);
