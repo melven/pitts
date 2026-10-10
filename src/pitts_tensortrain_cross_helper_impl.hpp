@@ -50,6 +50,9 @@ namespace PITTS
       // Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
       // remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
       // for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
+      // Possible deduplication: enrichSubspace in solveMALS could call this function (it differs in the Gram
+      // correction, the drop tolerance and the second projection). Not done for now, because it would change
+      // solveMALS, which is used for performance measurements and has been tested extensively in its current form.
       template<typename T>
       void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E, int maxDirections, T relativeTolerance)
       {
