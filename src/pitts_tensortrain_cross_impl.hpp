@@ -82,8 +82,24 @@ namespace PITTS
     const bool enrich = nMALS == 1 && nDim > 1 && options.errorRank > 0 && options.enrichmentRank > 0;
     const T localTolerance = options.rankTolerance / (2*std::sqrt(T(std::max(nDim-1, 1))));     // factor 2 heuristic, like tt_amen in ttpy
     const T maxvolTolerance = options.maxvolTolerance;
-    // maximal rank per bond k (between cores k and k+1)
-    const std::vector<int> maxRanks = options.maxRanks.empty() ? std::vector<int>(std::max(nDim-1, 0), options.maxRank) : options.maxRanks;
+    // Limits per bond k (between cores k and k+1): a TT rank at bond k is at most n_k times the rank at bond k-1 and
+    // n_{k+1} times the rank at bond k+1, so a small bond also limits its neighbors (one pass in each direction suffices).
+    const auto limitByNeighbors = [&dims, nDim](std::vector<long long> limit)
+    {
+      for(int k = 0; k < nDim-1; k++)
+        limit[k] = std::min(limit[k], dims[k] * (k == 0 ? 1 : limit[k-1]));
+      for(int k = nDim-2; k >= 0; k--)
+        limit[k] = std::min(limit[k], dims[k+1] * (k == nDim-2 ? 1 : limit[k+1]));
+      return std::vector<int>(limit.begin(), limit.end());
+    };
+    // maximal useful rank per bond (also after the enrichment)
+    const std::vector<int> maxRanks = limitByNeighbors(options.maxRanks.empty() ?
+      std::vector<long long>(std::max(nDim-1, 0), options.maxRank) : std::vector<long long>(options.maxRanks.begin(), options.maxRanks.end()));
+    // maximal size of the index sets per bond: the oversampled maximal rank, again limited by the neighbors
+    std::vector<long long> oversampledRanks(maxRanks.begin(), maxRanks.end());
+    for(long long& q: oversampledRanks)
+      q += static_cast<long long>(std::ceil(std::real(options.oversampling) * q));
+    const std::vector<int> maxIndices = limitByNeighbors(std::move(oversampledRanks));
     const T oversampling = options.oversampling;
     const bool oversample = std::real(oversampling) > 0;
 
@@ -234,7 +250,7 @@ namespace PITTS
         B = fold_right(unfold_right(std::move(B)), dims[k]);
       const int rPrev = B.r1();
       const int maxRankLeft = limitGrowth ? std::min(maxRanks[k], bondRank[k]) : maxRanks[k];
-      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRankLeft, maxvolTolerance, std::move(E), oversampling, options.enrichmentRank);
+      CoreUpdate<T> upd = updateCoreLeft<T>(B, localTolerance, maxRankLeft, maxvolTolerance, std::move(E), oversampling, options.enrichmentRank, maxRanks[k], maxIndices[k]);
       I[k] = leftIndicesFromRows(upd.selected, rPrev);
       fx.invalidate(k+1);
 
@@ -300,7 +316,7 @@ namespace PITTS
       if( nMALS == 2 )
         B = fold_left(unfold_left(std::move(B)), dims[k]);
       const int maxRankRight = limitGrowth ? std::min(maxRanks[k-1], bondRank[k-1] + options.enrichmentRank) : maxRanks[k-1];
-      CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRankRight, maxvolTolerance, oversampling);
+      CoreUpdate<T> upd = updateCoreRight<T>(B, localTolerance, maxRankRight, maxvolTolerance, oversampling, maxIndices[k-1]);
       bondRank[k-1] = upd.truncatedRank;
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
       fx.invalidate(k-1);
