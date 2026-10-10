@@ -29,10 +29,11 @@
 *   Lx.update(k, k+1);                              // LX_k = L_{k-1} X_k and XR_{k+1} = X_{k+1} R_{k+2} valid
 *   localBlockFromLeft(*Lx.left(), x, k, 1, Lx.right(), J, B);   // B = LX_k * R_{k+1}  (|I_{k-1}| x n_k x |J_{k+1}|)
 *   applyToBlock(f, B);                             // B  = f(x) on the cross
-*   // y in the orthogonal gauge, Ly its partial contractions on I, J (Ly.update(k-1, k+1)):
-*   solveLeftInterface(Ly.left(), I, k-1, B, BL);   // core coordinates: C = L^y_{k-1}^+ B R^y_{k+1}^+
-*   solveRightInterface(BL, Ly.right(), J, k+1, C);
-*   auto upd = updateCoreLeft(C, L^y_{k-1}, tol, maxRank, maxvolTol, enrichment);   // L^y_{-1}: 1x1 identity
+*   // y in the orthogonal gauge with the interface matrices L^y_{k-1} = interfaceLeft(LY_{k-1}, I_{k-1}) and
+*   // R^y_{k+1} = interfaceRight(YR_{k+1}, J_{k+1}) from its partial contractions (1x1 identities at the boundary):
+*   solveLeftInterface(L^y_{k-1}, B, BL);           // core coordinates: C = L^y_{k-1}^+ B R^y_{k+1}^+
+*   solveRightInterface(BL, R^y_{k+1}, C);
+*   auto upd = updateCoreLeft(C, L^y_{k-1}, tol, maxRank, maxvolTol, enrichment);
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
 *   Lx.invalidate(k+1);                             // LX_{k+1} depends on the new I_k, recomputed on the next update
 *   Y_k = upd.core (left-orthonormal);  Y_{k+1} = upd.carry * Y_{k+1};
@@ -264,38 +265,31 @@ namespace PITTS
           copy(B, C);
       }
 
-      //! C = L_k^+ * B: least-squares solution of L_k * C = B with the left interface L_k of the cached contraction LX
+      //! C = L^+ * B: least-squares solution of L * C = B with a left interface matrix L (inverse of normalize_contract1)
       //!
-      //! Inverse operation of contractLeftInterface: converts a block sampled on the rows I_k into the coordinates of
-      //! the TT (y in the orthogonal gauge, see pitts_tensortrain_cross.hpp). L_k (|I_k| x r_k, |I_k| >= r_k) must have
-      //! full column rank, which the maxvol selection of I_k guarantees; with |I_k| > r_k (oversampling) this is
-      //! the least-squares fit on the rows I_k. Solved with a pivoted QR of L_k (no inverse is formed).
-      //! At the left boundary (nullopt) C = B.
+      //! Converts a block sampled on the rows of a left index set into the coordinates of the TT (y in the orthogonal
+      //! gauge, see pitts_tensortrain_cross.hpp). L (q x r, q >= r, the 1x1 identity at the left boundary) must have
+      //! full column rank, which the maxvol selection of the index set guarantees; with q > r (oversampling) this is
+      //! the least-squares fit on the q rows. Solved with a pivoted QR of L (no inverse is formed).
       //!
-      //! @param LX    cached contraction LX_k, nullopt at the left boundary
-      //! @param I     the left index sets
-      //! @param k     dimension of LX, see contractLeftInterface
-      //! @param B     block (|I_k| x n x m)
-      //! @param C     result (r_k x n x m), may not alias B
+      //! @param L     left interface matrix (q x r)
+      //! @param B     block (q x n x m)
+      //! @param C     result (r x n x m), may not alias B
       //!
       template<typename T>
-      void solveLeftInterface(optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& I, int k,
-                              const Tensor3<T>& B, Tensor3<T>& C);
+      void solveLeftInterface(const Tensor2<T>& L, const Tensor3<T>& B, Tensor3<T>& C);
 
-      //! C = B * R_k^+: least-squares solution of C * R_k = B with the right interface R_k of the cached contraction XR
+      //! C = B * R^+: least-squares solution of C * R = B with a right interface matrix R (inverse of normalize_contract2)
       //!
-      //! Mirror image of solveLeftInterface (R_k is r_{k-1} x |J_k| with full row rank, pivoted QR of R_k^H;
-      //! nullopt at the right boundary: C = B).
+      //! Mirror image of solveLeftInterface: R (r x q, full row rank, the 1x1 identity at the right boundary),
+      //! solved as R^H C^H = B^H with a pivoted QR of R^H.
       //!
-      //! @param B     block (m x n x |J_k|)
-      //! @param XR    cached contraction XR_k, nullopt at the right boundary
-      //! @param J     the right index sets
-      //! @param k     dimension of XR, see contractRightInterface
-      //! @param C     result (m x n x r_{k-1}), may not alias B
+      //! @param B     block (m x n x q)
+      //! @param R     right interface matrix (r x q)
+      //! @param C     result (m x n x r), may not alias B
       //!
       template<typename T>
-      void solveRightInterface(const Tensor3<T>& B, optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, int k,
-                               Tensor3<T>& C);
+      void solveRightInterface(const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C);
 
       //! full multi-indices of the left set I_k as a matrix with one row (i_0,...,i_k) per element (I[0] is the set of bond 0)
       //!

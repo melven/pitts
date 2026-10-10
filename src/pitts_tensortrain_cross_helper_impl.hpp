@@ -151,19 +151,15 @@ namespace PITTS
 
       // implement solveLeftInterface
       template<typename T>
-      void solveLeftInterface(optional_cref<Tensor3<T>> LX, const std::vector<NestedIndices>& I, int k,
-                              const Tensor3<T>& B, Tensor3<T>& C)
+      void solveLeftInterface(const Tensor2<T>& L, const Tensor3<T>& B, Tensor3<T>& C)
       {
         const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
-        if( !LX )
-          return copy(B, C);
-
-        // least squares L C = B on the right unfolding of B (|I_k| x n m), with a pivoted QR of the (small) interface;
-        // L is tall but only slightly (|I_k| = r_k + oversampling), so no TSQR
-        const Tensor2<T> L = interfaceLeft(LX->get(), I.at(k));
         if( L.r1() != B.r1() )
           throw std::invalid_argument("solveLeftInterface: dimension mismatch!");
+
+        // least squares L C = B on the right unfolding of B (q x n m); L is tall but only slightly (q = r + oversampling),
+        // so a pivoted QR and no TSQR
         const Eigen::ColPivHouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(L));
         C.resize(L.r2(), B.n(), B.r2());
         EigenMap(unfold_right(C)) = qr.solve(ConstEigenMap(unfold_right(B)));
@@ -172,27 +168,18 @@ namespace PITTS
 
       // implement solveRightInterface
       template<typename T>
-      void solveRightInterface(const Tensor3<T>& B, optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, int k,
-                               Tensor3<T>& C)
+      void solveRightInterface(const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C)
       {
         const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
 
-        if( !XR )
-          return copy(B, C);
-
-        // least squares C R = B on the left unfolding of B (m n x |J_k|), R = r x |J_k| with full row rank:
-        // with the pivoted QR R^H P = Q T (Q: |J_k| x r, T: r x r upper triangular) we have R = P T^H Q^H, so
-        // C = B Q T^{-H} P^T (B Q with the Householder reflectors applied from the right, no matrix is inverted)
-        const Tensor2<T> R = interfaceRight(XR->get(), J.at(k));
         if( R.r2() != B.r2() )
           throw std::invalid_argument("solveRightInterface: dimension mismatch!");
-        const int r = R.r1();
+
+        // mirror image of solveLeftInterface on the left unfolding of B (m n x q): C R = B <=> R^H C^H = B^H
+        // (adjoint() is only a view; the solve copies its right-hand side into a block-sized temporary in both cases)
         const Eigen::ColPivHouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(R).adjoint());
-        Eigen::MatrixX<T> BQ = ConstEigenMap(unfold_left(B)) * qr.householderQ();
-        auto X = BQ.leftCols(r);
-        qr.matrixQR().topLeftCorner(r, r).template triangularView<Eigen::Upper>().adjoint().template solveInPlace<Eigen::OnTheRight>(X);
-        C.resize(B.r1(), B.n(), r);
-        EigenMap(unfold_left(C)) = X * qr.colsPermutation().transpose();
+        C.resize(B.r1(), B.n(), R.r1());
+        EigenMap(unfold_left(C)) = qr.solve(ConstEigenMap(unfold_left(B)).adjoint()).adjoint();
       }
 
 

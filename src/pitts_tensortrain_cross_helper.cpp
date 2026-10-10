@@ -23,11 +23,11 @@ template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreLeft<double>(co
 template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreLeft<float>(const Tensor3<float>& C, const Tensor2<float>& leftInterface, float rankTolerance, int maxRank, float maxvolTolerance, Tensor3<float> enrichment, float oversampling, int maxEnrichment, int maxEnrichedRank, int maxRows);
 template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreRight<double>(const Tensor3<double>& C, const Tensor2<double>& rightInterface, double rankTolerance, int maxRank, double maxvolTolerance, double oversampling, int maxColumns);
 template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreRight<float>(const Tensor3<float>& C, const Tensor2<float>& rightInterface, float rankTolerance, int maxRank, float maxvolTolerance, float oversampling, int maxColumns);
-template void PITTS::internal::tt_cross::solveLeftInterface<double>(optional_cref<Tensor3<double>> LX, const std::vector<NestedIndices>& I, int k, const Tensor3<double>& B, Tensor3<double>& C);
-template void PITTS::internal::tt_cross::solveRightInterface<double>(const Tensor3<double>& B, optional_cref<Tensor3<double>> XR, const std::vector<NestedIndices>& J, int k, Tensor3<double>& C);
+template void PITTS::internal::tt_cross::solveLeftInterface<double>(const Tensor2<double>& L, const Tensor3<double>& B, Tensor3<double>& C);
+template void PITTS::internal::tt_cross::solveRightInterface<double>(const Tensor3<double>& B, const Tensor2<double>& R, Tensor3<double>& C);
 template void PITTS::internal::tt_cross::initialRightFrame<double>(const std::vector<std::reference_wrapper<const TensorTrain<double>>>& TTx, TensorTrain<double>& TTy, int maxRank);
-template void PITTS::internal::tt_cross::solveLeftInterface<float>(optional_cref<Tensor3<float>> LX, const std::vector<NestedIndices>& I, int k, const Tensor3<float>& B, Tensor3<float>& C);
-template void PITTS::internal::tt_cross::solveRightInterface<float>(const Tensor3<float>& B, optional_cref<Tensor3<float>> XR, const std::vector<NestedIndices>& J, int k, Tensor3<float>& C);
+template void PITTS::internal::tt_cross::solveLeftInterface<float>(const Tensor2<float>& L, const Tensor3<float>& B, Tensor3<float>& C);
+template void PITTS::internal::tt_cross::solveRightInterface<float>(const Tensor3<float>& B, const Tensor2<float>& R, Tensor3<float>& C);
 template void PITTS::internal::tt_cross::initialRightFrame<float>(const std::vector<std::reference_wrapper<const TensorTrain<float>>>& TTx, TensorTrain<float>& TTy, int maxRank);
 template std::vector<int> PITTS::internal::tt_cross::dominantRows<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance);
 template std::vector<int> PITTS::internal::tt_cross::dominantColumns<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance);

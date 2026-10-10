@@ -139,27 +139,30 @@ namespace PITTS
     FunctionOnCrosses<T, Function, N> fx(f, TTx, I, J, Iz, Jz);
     auto Lyz = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, Iz), contraction_loop_from_right<T>(TTy, Jz));
 
-    // For the block of the cores k..k+nMALS-1 (all three need Ly.update(k-1, k+nMALS) first):
-    // y on its cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS})
-    const auto yOnOwnCross = [&](int k)
-    {
-      Tensor3<T> withLeft, result;
-      contractLeftInterface<T>(Ly.left(), I, k-1, combineCores(TTy, k, nMALS), withLeft);
-      contractRightInterface<T>(withLeft, Ly.right(), J, k+nMALS, result);
-      return result;
-    };
-    // a block on this cross in the coordinates of y
-    const auto toCoordinatesOfY = [&](int k, const Tensor3<T>& B)
-    {
-      Tensor3<T> withLeft, result;
-      solveLeftInterface<T>(Ly.left(), I, k-1, B, withLeft);
-      solveRightInterface<T>(withLeft, Ly.right(), J, k+nMALS, result);
-      return result;
-    };
-    // the left resp. right interface matrix of y at this cross (the 1x1 identity at the boundary)
+    // The interface matrices of y at the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) of the block of the
+    // cores k..k+nMALS-1 (the 1x1 identity at the boundary; needs Ly.update(k-1, k+nMALS) first)
     const auto identity1 = []{Tensor2<T> one(1, 1); one(0, 0) = T(1); return one;};
-    const auto leftInterfaceOfY = [&](int k){return Ly.left() ? interfaceLeft(Ly.left()->get(), I[k-1]) : identity1();};
-    const auto rightInterfaceOfY = [&](int k){return Ly.right() ? interfaceRight(Ly.right()->get(), J[k+nMALS]) : identity1();};
+    const auto interfacesOfY = [&](int k)
+    {
+      return std::pair<Tensor2<T>, Tensor2<T>>(Ly.left() ? interfaceLeft(Ly.left()->get(), I[k-1]) : identity1(),
+                                               Ly.right() ? interfaceRight(Ly.right()->get(), J[k+nMALS]) : identity1());
+    };
+    // core(s) of y onto the cross, L X R
+    const auto onCross = [](const Tensor2<T>& L, const Tensor3<T>& X, const Tensor2<T>& R)
+    {
+      Tensor3<T> withLeft, result;
+      internal::normalize_contract1(L, X, withLeft);
+      internal::normalize_contract2(withLeft, R, result);
+      return result;
+    };
+    // a block on the cross in the coordinates of y, L^+ B R^+
+    const auto toCoordinates = [](const Tensor2<T>& L, const Tensor3<T>& B, const Tensor2<T>& R)
+    {
+      Tensor3<T> withLeft, result;
+      solveLeftInterface(L, B, withLeft);
+      solveRightInterface(withLeft, R, result);
+      return result;
+    };
 
     // Convergence measures of a step, both returned separately: the change of y on its own cross (block
     // vs. current y) and, with enrichment, the error f(x) - y on the error crosses. The change alone is
@@ -187,10 +190,11 @@ namespace PITTS
 
       // convergence measure: the current y on the same cross
       Ly.update(k-1, k+nMALS);
-      RealType change = rmsDifference(B, yOnOwnCross(k)) / scale;
+      const auto [L, R] = interfacesOfY(k);
+      RealType change = rmsDifference(B, onCross(L, combineCores(TTy, k, nMALS), R)) / scale;
       RealType error = 0;
 
-      Tensor3<T> C = toCoordinatesOfY(k, B);
+      Tensor3<T> C = toCoordinates(L, B, R);
 
       // last core of the 1-site sweep: the block is the core, nothing to select
       if( nMALS == 1 && k == nDim-1 )
@@ -209,13 +213,13 @@ namespace PITTS
         Tensor3<T> residual = fx.mixedBlock(k);
         Lyz.update(k-1, k+1);
         Tensor3<T> withLeft, yOnMixedCross;
-        contractLeftInterface<T>(Ly.left(), I, k-1, TTy.subTensor(k), withLeft);
+        internal::normalize_contract1(L, TTy.subTensor(k), withLeft);
         contractRightInterface<T>(withLeft, Lyz.right(), Jz, k+1, yOnMixedCross);
         internal::t3_axpy(T(-1), yOnMixedCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
         // as in solveMALS, updateCoreLeft first projects out the current directions and then appends the
         // dominant (at most enrichmentRank) new directions of the error
-        solveLeftInterface<T>(Ly.left(), I, k-1, residual, E);
+        solveLeftInterface(L, residual, E);
       }
 
       // local update: truncated SVD, enrichment, maxvol
@@ -223,7 +227,7 @@ namespace PITTS
       //  the left unfolding of the update splits off core k)
       if( nMALS == 2 )
         C = fold_right(unfold_right(std::move(C)), dims[k]);
-      CoreUpdate<T> upd = updateCoreLeft<T>(C, leftInterfaceOfY(k), localTolerance, maxRanks[k], maxvolTolerance, std::move(E),
+      CoreUpdate<T> upd = updateCoreLeft<T>(C, L, localTolerance, maxRanks[k], maxvolTolerance, std::move(E),
                                             oversampling, options.enrichmentRank, maxRanks[k], maxIndices[k]);
       I[k] = leftIndicesFromRows(upd.selected, B.r1());
       fx.invalidate(k+1);
@@ -269,10 +273,11 @@ namespace PITTS
       const RealType scale = rmsRef > 0 ? rmsRef : 1;
 
       Ly.update(kLeft-1, k+1);
-      RealType change = rmsDifference(B, yOnOwnCross(kLeft)) / scale;
+      const auto [L, R] = interfacesOfY(kLeft);
+      RealType change = rmsDifference(B, onCross(L, combineCores(TTy, kLeft, nMALS), R)) / scale;
       RealType error = 0;
 
-      Tensor3<T> C = toCoordinatesOfY(kLeft, B);
+      Tensor3<T> C = toCoordinates(L, B, R);
 
       // first core of the 1-site sweep: the block is the core
       if( nMALS == 1 && k == 0 )
@@ -290,7 +295,7 @@ namespace PITTS
       // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
       if( nMALS == 2 )
         C = fold_left(unfold_left(std::move(C)), dims[k]);
-      CoreUpdate<T> upd = updateCoreRight<T>(C, rightInterfaceOfY(kLeft), localTolerance, maxRanks[k-1], maxvolTolerance, oversampling, maxIndices[k-1]);
+      CoreUpdate<T> upd = updateCoreRight<T>(C, R, localTolerance, maxRanks[k-1], maxvolTolerance, oversampling, maxIndices[k-1]);
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
       fx.invalidate(k-1);
 

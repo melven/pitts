@@ -1248,40 +1248,45 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCore_selection_with_
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, solveLeftInterface_solveRightInterface)
 {
   using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   using PITTS::internal::tt_cross::solveLeftInterface;
   using PITTS::internal::tt_cross::solveRightInterface;
-  using PITTS::internal::tt_cross::contractLeftInterface;
-  using PITTS::internal::tt_cross::contractRightInterface;
   const auto eps = blockTolerance<Type>();
 
-  // inverse operations of contractLeftInterface / contractRightInterface: square and oversampled (least-squares,
-  // exact for a block that is in the range of the interface) sets; the boundary (nullopt) is a copy
-  const auto LX = randomBlock<Type>(2, 3, 3);    // interface rows from |I_{k-1}| x n = 6 rows, r = 3
-  const auto XR = randomBlock<Type>(3, 2, 2);    // interface columns from n x |J_{k+1}| = 4 columns, r = 3
+  // inverse operations of normalize_contract1 / normalize_contract2 with a full-rank interface matrix: square and
+  // oversampled (least squares, exact for a block in the range of the interface); the boundary is the 1x1 identity
   const auto X = randomBlock<Type>(3, 2, 3);
-  for(const std::vector<int>& rows: {std::vector<int>{0, 2, 5}, std::vector<int>{0, 1, 3, 5}})
+  for(int q: {3, 5})
   {
-    const std::vector<NestedIndices> I = {leftIndicesFromRows(rows, 2)};
+    PITTS::Tensor2<Type> L(q, 3), R(3, q);
+    EigenMap(L) = mat::Random(q, 3);
+    EigenMap(R) = mat::Random(3, q);
     PITTS::Tensor3<Type> B, Xsolved;
-    contractLeftInterface<Type>(std::cref(LX), I, 0, X, B);
-    ASSERT_EQ(rows.size(), B.r1());
-    solveLeftInterface<Type>(std::cref(LX), I, 0, B, Xsolved);
+    PITTS::internal::normalize_contract1(L, X, B);
+    solveLeftInterface(L, B, Xsolved);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
+    PITTS::internal::normalize_contract2(X, R, B);
+    solveRightInterface(B, R, Xsolved);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
+
+    // least squares: a perturbation outside the range of L (resp. R^H) does not change the solution
+    PITTS::Tensor3<Type> Bl;
+    PITTS::internal::normalize_contract1(L, X, Bl);
+    const mat Pperp = mat::Identity(q, q) - ConstEigenMap(L) * ConstEigenMap(L).completeOrthogonalDecomposition().pseudoInverse();
+    EigenMap(unfold_right(Bl)) += Pperp * mat::Random(q, 6);
+    solveLeftInterface(L, Bl, Xsolved);
     EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
   }
-  for(const std::vector<int>& columns: {std::vector<int>{0, 1, 3}, std::vector<int>{0, 1, 2, 3}})
-  {
-    const std::vector<NestedIndices> J = {NestedIndices(), rightIndicesFromColumns(columns, 2)};
-    PITTS::Tensor3<Type> B, Xsolved;
-    contractRightInterface<Type>(X, std::cref(XR), J, 1, B);
-    ASSERT_EQ(columns.size(), B.r2());
-    solveRightInterface<Type>(B, std::cref(XR), J, 1, Xsolved);
-    EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
-  }
+  // boundary
   PITTS::Tensor3<Type> copyLeft, copyRight;
-  solveLeftInterface<Type>(std::nullopt, {}, -1, X, copyLeft);
-  solveRightInterface<Type>(X, std::nullopt, {}, 3, copyRight);
-  EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(copyLeft)), Type(0));
-  EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(copyRight)), Type(0));
+  const auto X1 = randomBlock<Type>(1, 2, 1);
+  solveLeftInterface(eye<Type>(1), X1, copyLeft);
+  solveRightInterface(X1, eye<Type>(1), copyRight);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(X1)), ConstEigenMap(unfold_left(copyLeft)), eps);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(X1)), ConstEigenMap(unfold_left(copyRight)), eps);
+  // dimension mismatch
+  EXPECT_THROW(solveLeftInterface(eye<Type>(2), X, copyLeft), std::invalid_argument);
+  EXPECT_THROW(solveRightInterface(X, eye<Type>(2), copyRight), std::invalid_argument);
 }
 
 
