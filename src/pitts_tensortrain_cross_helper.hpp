@@ -30,8 +30,8 @@
 *   localBlockFromLeft(*Lx.left(), x, k, 1, Lx.right(), J, B);   // B = LX_k * R_{k+1}  (|I_{k-1}| x n_k x |J_{k+1}|)
 *   applyToBlock(f, B);                             // B  = f(x) on the cross
 *   // y in the orthogonal gauge, Ly its partial contractions on I, J (Ly.update(k-1, k+1)):
-*   solveLeftInterface(Ly.left(), I, k-1, B, C);    // core coordinates: C = L^y_{k-1}^+ B R^y_{k+1}^{+T}
-*   solveRightInterface(C, Ly.right(), J, k+1, C);
+*   solveLeftInterface(Ly.left(), I, k-1, B, BL);   // core coordinates: C = L^y_{k-1}^+ B R^y_{k+1}^+
+*   solveRightInterface(BL, Ly.right(), J, k+1, C);
 *   auto upd = updateCoreLeft(C, L^y_{k-1}, tol, maxRank, maxvolTol, enrichment);
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
 *   Lx.invalidate(k+1);                             // LX_{k+1} depends on the new I_k, recomputed on the next update
@@ -269,7 +269,8 @@ namespace PITTS
       //! Inverse operation of contractLeftInterface: converts a block sampled on the rows I_k into the coordinates of
       //! the TT (y in the orthogonal gauge, see pitts_tensortrain_cross.hpp). L_k (|I_k| x r_k, |I_k| >= r_k) must have
       //! full column rank, which the maxvol selection of I_k guarantees; with |I_k| > r_k (oversampling) this is
-      //! the least-squares fit on the rows I_k. At the left boundary (nullopt) C = B.
+      //! the least-squares fit on the rows I_k. Solved with a pivoted QR of L_k (no inverse is formed).
+      //! At the left boundary (nullopt) C = B.
       //!
       //! @param LX    cached contraction LX_k, nullopt at the left boundary
       //! @param I     the left index sets
@@ -283,7 +284,8 @@ namespace PITTS
 
       //! C = B * R_k^+: least-squares solution of C * R_k = B with the right interface R_k of the cached contraction XR
       //!
-      //! Mirror image of solveLeftInterface (R_k is r_{k-1} x |J_k| with full row rank; nullopt at the right boundary: C = B).
+      //! Mirror image of solveLeftInterface (R_k is r_{k-1} x |J_k| with full row rank, pivoted QR of R_k^H;
+      //! nullopt at the right boundary: C = B).
       //!
       //! @param B     block (m x n x |J_k|)
       //! @param XR    cached contraction XR_k, nullopt at the right boundary
