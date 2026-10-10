@@ -32,7 +32,7 @@
 *   // y in the orthogonal gauge, Ly its partial contractions on I, J (Ly.update(k-1, k+1)):
 *   solveLeftInterface(Ly.left(), I, k-1, B, BL);   // core coordinates: C = L^y_{k-1}^+ B R^y_{k+1}^+
 *   solveRightInterface(BL, Ly.right(), J, k+1, C);
-*   auto upd = updateCoreLeft(C, L^y_{k-1}, tol, maxRank, maxvolTol, enrichment);
+*   auto upd = updateCoreLeft(C, L^y_{k-1}, tol, maxRank, maxvolTol, enrichment);   // L^y_{-1}: 1x1 identity
 *   I[k] = leftIndicesFromRows(upd.selected, |I_{k-1}|);
 *   Lx.invalidate(k+1);                             // LX_{k+1} depends on the new I_k, recomputed on the next update
 *   Y_k = upd.core (left-orthonormal);  Y_{k+1} = upd.carry * Y_{k+1};
@@ -805,11 +805,9 @@ namespace PITTS
       //!
       //! The new core is U' (left-orthonormal) and the carry SVt', so core * carry = U' SVt' (= C up to the
       //! truncation error). The interface of the next step, L^y_k = M(rows,:), has full column rank.
-      //! Without leftInterface (nullopt: left boundary, or the error approximation, which has no cores),
-      //! M = U'.
       //!
       //! @param C                  block in the coordinates of y (r1 x n x r2)
-      //! @param leftInterface      L^y_{k-1} (|I_{k-1}| x r1), nullopt at the left boundary
+      //! @param leftInterface      L^y_{k-1} (|I_{k-1}| x r1), the 1x1 identity at the left boundary
       //! @param rankTolerance      relative truncation tolerance for C (in the Frobenius norm)
       //! @param maxRank            maximal rank r' (before enrichment)
       //! @param maxvolTolerance    dominance tolerance for maxvol
@@ -822,7 +820,7 @@ namespace PITTS
       //! @return                   new core (r1 x n x r'+rho'), carry (r'+rho' x r2), selected rows (q) and truncated rank
       //!
       template<typename T>
-      CoreUpdate<T> updateCoreLeft(const Tensor3<T>& C, optional_cref<Tensor2<T>> leftInterface, T rankTolerance, int maxRank, T maxvolTolerance,
+      CoreUpdate<T> updateCoreLeft(const Tensor3<T>& C, const Tensor2<T>& leftInterface, T rankTolerance, int maxRank, T maxvolTolerance,
                                    Tensor3<T> enrichment = Tensor3<T>(), T oversampling = T(0),
                                    int maxEnrichment = std::numeric_limits<int>::max(),
                                    int maxEnrichedRank = std::numeric_limits<int>::max(),
@@ -854,62 +852,61 @@ namespace PITTS
       //! There is no enrichment here: only the left-to-right sweeps enrich (see pitts_tensortrain_cross.hpp).
       //!
       //! @param C                  block in the coordinates of y (r1 x n x r2)
-      //! @param rightInterface     R^y_{k+1} (r2 x |J_{k+1}|), nullopt at the right boundary (or for the error approximation)
+      //! @param rightInterface     R^y_{k+1} (r2 x |J_{k+1}|), the 1x1 identity at the right boundary
       //!
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& C, optional_cref<Tensor2<T>> rightInterface, T rankTolerance, int maxRank,
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& C, const Tensor2<T>& rightInterface, T rankTolerance, int maxRank,
                                     T maxvolTolerance, T oversampling = T(0), int maxColumns = std::numeric_limits<int>::max());
+
+      //! Rows of a block for a cross without cores (error approximation): maxvol on its truncated left singular vectors
+      //!
+      //! Truncated SVD of the left unfolding (rankTolerance in the Frobenius norm, at most maxRank directions), then
+      //! maxvol on the orthonormal factor (square selection).
+      //!
+      //! @return  selected rows of the left unfolding of B
+      //!
+      template<typename T>
+      std::vector<int> dominantRows(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance);
+
+      //! Columns of a block for a cross without cores (mirror image of dominantRows, on the right unfolding)
+      template<typename T>
+      std::vector<int> dominantColumns(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance);
 
 
       //! Initial y for TT-cross in the orthogonal gauge: zero, but with an orthonormal right frame from the inputs
       //!
       //! The cores 1..d-1 of y are the right-orthonormal cores of the (left- and then right-normalized, tolerance 0)
       //! direct sum of the inputs (block-diagonal cores), so the right parts of y span the right parts of all
-      //! inputs; core 0 is set to zero. Then a maxvol sweep over these cores (see initialRightIndexSets) gives
-      //! well-conditioned initial right index sets with full-rank interfaces, as needed by solveRightInterface.
+      //! inputs; core 0 is set to zero. Then rightIndexSetsFromFrame gives well-conditioned initial right index
+      //! sets with full-rank interfaces, as needed by solveRightInterface.
       //!
-      //! @param TTx    input tensor trains (same dimensions as TTy, boundary ranks 1)
-      //! @param TTy    result, dimensions unchanged
+      //! @param TTx      input tensor trains (same dimensions as TTy, boundary ranks 1)
+      //! @param TTy      result, dimensions unchanged
+      //! @param maxRank  maximal rank of the frame (the right-normalization truncates the direct sum to it)
       //!
-      template<typename T>
-      void initialRightFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& TTy);
-
-
-      //! Initial right index sets and right interfaces from the tensor train x itself (no function evaluations)
-      //!
-      //! Right-to-left maxvol sweep over a right-orthogonalized copy of x: for k = d-1..1,
-      //! XR = X_k * R_{k+1}, J_k = maxvol columns of unfold_right(XR), R_k = the selected columns.
-      //! The resulting sets are right-nested with |J_k| = r_{k-1}(x) (after removing exactly dependent
-      //! ranks) and the columns of R_k form a dominant submatrix in the orthogonalized TT, so the first
-      //! left-to-right sweep starts from well-conditioned crosses. No function evaluations are needed.
-      //!
-      //! For a function of several tensor trains x^(1), ..., x^(N) (same dimensions, any ranks) the sets must
-      //! capture the right parts of all of them: the right unfoldings of all inputs are stacked
-      //! ((sum_i r^(i)_{k-1}) x n |J_{k+1}|), a truncated SVD (tolerance 0, i.e. only numerically dependent rows
-      //! are removed, and at most maxRank directions) gives an orthonormal basis of their joint row space, and
-      //! maxvolColumns selects the columns J_k of this basis, so |J_k| <= min(sum_i r^(i)_{k-1}, maxRank).
-      //! For a single input with ranks <= maxRank the SVD is skipped (the right unfolding has full row rank
-      //! already), so the result is the same as with the single-input overload.
-      //!
-      //! @param TTx                input tensor trains (same dimensions, boundary ranks 1)
-      //! @param maxvolTolerance    dominance tolerance for maxvol
-      //! @param maxRank            maximal size of the index sets
-      //! @return                   right index sets, J[k] for k = 1..d-1 (J[0] empty); the interfaces are then
-      //!                           obtained with a SweepData built from contraction_loop_from_right
-      //!
-      //! @throws std::invalid_argument for no input, different dimensions, boundary ranks != 1 or maxRank < 1
+      //! @throws std::invalid_argument for no input, different dimensions or boundary ranks != 1
       //!
       template<typename T>
-      std::vector<NestedIndices> initialRightIndexSets(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx,
-                                                       T maxvolTolerance, int maxRank = std::numeric_limits<int>::max());
+      void initialRightFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& TTy,
+                             int maxRank = std::numeric_limits<int>::max());
 
-      //! Initial right index sets from a single tensor train, see above
+      //! Right index sets from a maxvol sweep over the right-orthonormal cores 1..d-1 of a tensor train
+      //!
+      //! Right-to-left: XR_k = X_k * R_{k+1}, J_k = maxvol columns of unfold_right(XR_k) (oversampled: at least the
+      //! rank r_{k-1}, r_{k-1} + ceil(oversampling r_{k-1}) if within maxIndices[k-1]), R_k = the selected columns.
+      //! With right-orthonormal cores, XR_k keeps full row rank as long as R_{k+1} is a nonsingular (maxvol) submatrix,
+      //! so all interfaces have full rank (the QR step of Oseledets/Tyrtyshnikov 2010, reference [1] in
+      //! pitts_tensortrain_cross.hpp). Core 0 is not used. No function evaluations are needed.
+      //!
+      //! @param TT               tensor train with right-orthonormal cores 1..d-1 (e.g. from initialRightFrame)
+      //! @param maxvolTolerance  dominance tolerance for maxvol
+      //! @param oversampling     relative number of additional columns
+      //! @param maxIndices       maximal size of the sets per bond (d-1 entries; empty: no limit)
+      //! @return                 right index sets, J[k] for k = 1..d-1 (J[0] empty)
+      //!
       template<typename T>
-      std::vector<NestedIndices> initialRightIndexSets(const TensorTrain<T>& TTx, T maxvolTolerance)
-      {
-        const std::vector<std::reference_wrapper<const TensorTrain<T>>> inputs = {std::cref(TTx)};
-        return initialRightIndexSets(inputs, maxvolTolerance);
-      }
+      std::vector<NestedIndices> rightIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling = T(0),
+                                                         const std::vector<int>& maxIndices = {});
     }
   }
 }

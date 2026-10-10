@@ -26,7 +26,6 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
-#include <optional>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -102,31 +101,24 @@ namespace PITTS
       q += static_cast<long long>(std::ceil(std::real(options.oversampling) * q));
     const std::vector<int> maxIndices = limitByNeighbors(std::move(oversampledRanks));
     const T oversampling = options.oversampling;
-    // number of selected rows/columns for a bond of rank r: oversampled, but within the limit of the bond (at least r)
-    const auto nSelected = [&](int r, int bond){return std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxIndices[bond]));};
 
     TTCrossInfo<T> info;
 
     // y is kept in the orthogonal gauge, like the solution in solveMALS: in a sweep, the cores left of the current
     // block are left-orthonormal and the cores right of it right-orthonormal, so the truncated SVD of a local block
     // is the truncation of y itself. Start: y = 0 with an orthonormal right frame spanned by the inputs.
-    initialRightFrame(std::vector<std::reference_wrapper<const TensorTrain<T>>>(TTx.begin(), TTx.end()), TTy);
+    const std::vector<std::reference_wrapper<const TensorTrain<T>>> inputs(TTx.begin(), TTx.end());
+    initialRightFrame(inputs, TTy);
 
-    // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused)
-    std::vector<NestedIndices> I(nDim), J(nDim);
+    // index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused);
+    // initial right index sets from a maxvol sweep over the right frame
+    std::vector<NestedIndices> I(nDim);
+    std::vector<NestedIndices> J = rightIndexSetsFromFrame(TTy, maxvolTolerance, oversampling, maxIndices);
 
     // partial contractions of y on its own crosses: their row/column selections are the interface matrices of y
     // (the values of the orthonormal left/right parts on I_k resp. J_k), which convert f(x) on a cross into the
     // coordinates of y (least squares with oversampling) and y back onto the cross
     auto Ly = defineSweepData<Tensor3<T>>(nDim, contraction_loop_from_left<T>(TTy, I), contraction_loop_from_right<T>(TTy, J));
-
-    // initial right index sets: maxvol sweep over the right frame (as in initialRightIndexSets)
-    for(int k = nDim-1; k >= 1; k--)
-    {
-      Ly.update(-1, k);
-      const Tensor3<T>& YR = Ly.right()->get();
-      J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(YR), maxvolTolerance, nullptr, nSelected(YR.r1(), k-1)), dims[k]);
-    }
 
     // index sets of the error approximation z (no cores needed, only the crosses)
     std::vector<NestedIndices> Iz(nDim), Jz(nDim);
@@ -136,15 +128,10 @@ namespace PITTS
         Jz = randomRightIndexSets(dims, options.errorRank);
       else
       {
-        // maxvol sets of a rank-errorRank truncation of x: well-conditioned crosses of the dominant part of x
-        std::vector<TensorTrain<T>> TTxTrunc;
-        TTxTrunc.reserve(N);
-        for(const TensorTrain<T>& TT: TTx)
-        {
-          copy(TT, TTxTrunc.emplace_back(dims));
-          normalize(TTxTrunc.back(), T(0), options.errorRank);
-        }
-        Jz = initialRightIndexSets(std::vector<std::reference_wrapper<const TensorTrain<T>>>(TTxTrunc.begin(), TTxTrunc.end()), maxvolTolerance, options.errorRank);
+        // maxvol sets of a frame of rank errorRank of the inputs: well-conditioned crosses of the dominant part of x
+        TensorTrain<T> TTz(dims);
+        initialRightFrame(inputs, TTz, options.errorRank);
+        Jz = rightIndexSetsFromFrame(TTz, maxvolTolerance);
       }
     }
 
@@ -169,10 +156,10 @@ namespace PITTS
       solveRightInterface<T>(withLeft, Ly.right(), J, k+nMALS, result);
       return result;
     };
-    // the left resp. right interface matrix of y at this cross (nullopt at the boundary)
-    const auto leftInterfaceOfY = [&](int k){return Ly.left() ? std::optional<Tensor2<T>>(interfaceLeft(Ly.left()->get(), I[k-1])) : std::nullopt;};
-    const auto rightInterfaceOfY = [&](int k){return Ly.right() ? std::optional<Tensor2<T>>(interfaceRight(Ly.right()->get(), J[k+nMALS])) : std::nullopt;};
-    const auto cref = [](const std::optional<Tensor2<T>>& A){return A ? optional_cref<Tensor2<T>>(std::cref(*A)) : std::nullopt;};
+    // the left resp. right interface matrix of y at this cross (the 1x1 identity at the boundary)
+    const auto identity1 = []{Tensor2<T> one(1, 1); one(0, 0) = T(1); return one;};
+    const auto leftInterfaceOfY = [&](int k){return Ly.left() ? interfaceLeft(Ly.left()->get(), I[k-1]) : identity1();};
+    const auto rightInterfaceOfY = [&](int k){return Ly.right() ? interfaceRight(Ly.right()->get(), J[k+nMALS]) : identity1();};
 
     // Convergence measures of a step, both returned separately: the change of y on its own cross (block
     // vs. current y) and, with enrichment, the error f(x) - y on the error crosses. The change alone is
@@ -236,8 +223,7 @@ namespace PITTS
       //  the left unfolding of the update splits off core k)
       if( nMALS == 2 )
         C = fold_right(unfold_right(std::move(C)), dims[k]);
-      const auto leftInterface = leftInterfaceOfY(k);
-      CoreUpdate<T> upd = updateCoreLeft<T>(C, cref(leftInterface), localTolerance, maxRanks[k], maxvolTolerance, std::move(E),
+      CoreUpdate<T> upd = updateCoreLeft<T>(C, leftInterfaceOfY(k), localTolerance, maxRanks[k], maxvolTolerance, std::move(E),
                                             oversampling, options.enrichmentRank, maxRanks[k], maxIndices[k]);
       I[k] = leftIndicesFromRows(upd.selected, B.r1());
       fx.invalidate(k+1);
@@ -263,9 +249,7 @@ namespace PITTS
         contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        const int rPrevZ = residual.r1();
-        const CoreUpdate<T> updz = updateCoreLeft<T>(residual, std::nullopt, localTolerance, options.errorRank, maxvolTolerance);
-        Iz[k] = leftIndicesFromRows(updz.selected, rPrevZ);
+        Iz[k] = leftIndicesFromRows(dominantRows(residual, localTolerance, options.errorRank, maxvolTolerance), residual.r1());
         fx.invalidateError(k+1);
         Lyz.invalidate(k+1);
       }
@@ -306,8 +290,7 @@ namespace PITTS
       // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
       if( nMALS == 2 )
         C = fold_left(unfold_left(std::move(C)), dims[k]);
-      const auto rightInterface = rightInterfaceOfY(kLeft);
-      CoreUpdate<T> upd = updateCoreRight<T>(C, cref(rightInterface), localTolerance, maxRanks[k-1], maxvolTolerance, oversampling, maxIndices[k-1]);
+      CoreUpdate<T> upd = updateCoreRight<T>(C, rightInterfaceOfY(kLeft), localTolerance, maxRanks[k-1], maxvolTolerance, oversampling, maxIndices[k-1]);
       J[k] = rightIndicesFromColumns(upd.selected, dims[k]);
       fx.invalidate(k-1);
 
@@ -332,8 +315,7 @@ namespace PITTS
         contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        const CoreUpdate<T> updz = updateCoreRight<T>(residual, std::nullopt, localTolerance, options.errorRank, maxvolTolerance);
-        Jz[k] = rightIndicesFromColumns(updz.selected, dims[k]);
+        Jz[k] = rightIndicesFromColumns(dominantColumns(residual, localTolerance, options.errorRank, maxvolTolerance), dims[k]);
         fx.invalidateError(k-1);
         Lyz.invalidate(k-1);
       }

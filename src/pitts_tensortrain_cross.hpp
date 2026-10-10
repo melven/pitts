@@ -174,7 +174,7 @@ namespace PITTS
     int enrichmentRank = 2;
 
     //! initial index sets of the error approximation z: true = random right-nested sets (as in amen_cross),
-    //! false = the maxvol sets of a rank-errorRank truncation of x (nMALS = 1 only)
+    //! false = the maxvol sets of a rank-errorRank frame of the inputs (nMALS = 1 only)
     bool randomErrorIndexSets = true;
 
     //! tolerance for the dominance criterion of the maxvol row/column selection (see internal::maxvol)
