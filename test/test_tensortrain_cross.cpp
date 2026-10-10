@@ -291,6 +291,33 @@ TYPED_TEST(PITTS_TensorTrain_cross, maxRanks_per_bond)
   EXPECT_THROW(applyElementwise(f, TTx, TTy, options), std::invalid_argument);
 }
 
+TYPED_TEST(PITTS_TensorTrain_cross, rankTolerance_bounds_the_error)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+
+  // y is kept in the orthogonal gauge, so the local truncations are truncations of y itself and the relative
+  // error in the Frobenius norm stays below rankTolerance (as for a TT-SVD), also with many dimensions
+  const std::vector<int> dims(8, 3);
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, std::vector<int>(7, 2), 21);
+  const auto xDense = dense(TTx);
+  const Eigen::Matrix<Type, Eigen::Dynamic, 1> fDense = xDense.array().sqrt();
+
+  for(Type tol: {Type(1.e-2), Type(1.e-3)})
+  {
+    for(Type oversampling: {Type(0), Type(0.5)})
+    {
+      PITTS::TTCrossOptions<Type> options;
+      options.rankTolerance = tol;
+      options.oversampling = oversampling;
+      options.nSweeps = 6;
+      TensorTrain TTy(dims);
+      applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTy, options);
+      EXPECT_LT((fDense - dense(TTy)).norm(), tol * fDense.norm());
+    }
+  }
+}
+
 TYPED_TEST(PITTS_TensorTrain_cross, array_function)
 {
   using Type = typename TestFixture::Type;
@@ -306,6 +333,10 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
+    // well above round-off: with several threads the round-off differs between runs, so a rank decision at the
+    // round-off level (the default sqrt(eps)) could differ between the two calls
+    options.rankTolerance = Type(1.e-5);
+    options.convergenceTolerance = Type(1.e-5);
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
@@ -587,6 +618,10 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
+    // well above round-off: with several threads the round-off differs between runs, so a rank decision at the
+    // round-off level (the default sqrt(eps)) could differ between the two calls
+    options.rankTolerance = Type(1.e-5);
+    options.convergenceTolerance = Type(1.e-5);
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
