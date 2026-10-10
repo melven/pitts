@@ -59,8 +59,8 @@ namespace PITTS
     //! @param tol        stop swapping when max |A * A(I,:)^{-1}| <= 1+tol (only the real part is used, must be >= 0)
     //! @param maxIter    maximal number of row swaps (the result is a valid selection even if this limit is hit)
     //! @param AAinv      optional output: the interpolation coefficients A * A(I,:)^+ (m x nRows, A * A(I,:)^{-1} without
-    //!                   oversampling, rows I are then the identity), which the algorithm maintains anyway; in TT-cross
-    //!                   this is directly the core in interpolation gauge
+    //!                   oversampling, rows I are then the identity), which the algorithm maintains anyway (the core of a
+    //!                   TT-cross in the interpolation gauge)
     //! @param nRows      number of rows to select, at least r (0 = r: no oversampling); limited to m
     //! @return           indices of the selected rows I (size min(nRows, m) or r, no duplicates; the first r rows are the
     //!                   square maxvol selection, the additional ones follow in the order they were added)

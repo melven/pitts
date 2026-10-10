@@ -50,6 +50,9 @@ namespace PITTS
       // Same sequence as the enrichSubspace lambda of solveMALS: project out, rank-revealing QR of the
       // remainder with an absolute tolerance, concatenate with zero padding on the unfoldings. Only needed
       // for the left-to-right sweeps, which are the only ones that enrich (pitts_tensortrain_cross.hpp).
+      // Possible deduplication: enrichSubspace in solveMALS could call this function (it differs in the Gram
+      // correction, the drop tolerance and the second projection). Not done for now, because it would change
+      // solveMALS, which is used for performance measurements and has been tested extensively in its current form.
       template<typename T>
       void enrichFactors(Tensor3<T>& Q, Tensor2<T>& B, Tensor3<T>&& E, int maxDirections, T relativeTolerance)
       {
@@ -146,183 +149,236 @@ namespace PITTS
       }
 
 
+      // implement solveLeftInterface
+      template<typename T>
+      void solveLeftInterface(const Tensor2<T>& L, const Tensor3<T>& B, Tensor3<T>& C)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
+
+        if( L.r1() != B.r1() )
+          throw std::invalid_argument("solveLeftInterface: dimension mismatch!");
+
+        // least squares L C = B on the right unfolding of B (q x n m); L is tall but only slightly (q = r + oversampling),
+        // so a pivoted QR and no TSQR
+        const Eigen::ColPivHouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(L));
+        C.resize(L.r2(), B.n(), B.r2());
+        EigenMap(unfold_right(C)) = qr.solve(ConstEigenMap(unfold_right(B)));
+      }
+
+
+      // implement solveRightInterface
+      template<typename T>
+      void solveRightInterface(const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<Tensor3<T>>();
+
+        if( R.r2() != B.r2() )
+          throw std::invalid_argument("solveRightInterface: dimension mismatch!");
+
+        // mirror image of solveLeftInterface on the left unfolding of B (m n x q): C R = B <=> R^H C^H = B^H
+        // (adjoint() is only a view; the solve copies its right-hand side into a block-sized temporary in both cases)
+        const Eigen::ColPivHouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(R).adjoint());
+        C.resize(B.r1(), B.n(), R.r1());
+        EigenMap(unfold_left(C)) = qr.solve(ConstEigenMap(unfold_left(B)).adjoint()).adjoint();
+      }
+
+
       // implement updateCoreLeft
       template<typename T>
-      CoreUpdate<T> updateCoreLeft(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance,
+      CoreUpdate<T> updateCoreLeft(const Tensor3<T>& C, const Tensor2<T>& leftInterface, T rankTolerance, int maxRank, T maxvolTolerance,
                                    Tensor3<T> enrichment, T oversampling, int maxEnrichment, int maxEnrichedRank, int maxRows)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const int r1 = B.r1();
-        const int n = B.n();
-        const int r2 = B.r2();
+        const int r1 = C.r1();
+        const int n = C.n();
+        const int r2 = C.r2();
         if( r1*n*r2 == 0 )
           throw std::invalid_argument("updateCoreLeft: empty block!");
+        if( leftInterface.r2() != r1 )
+          throw std::invalid_argument("updateCoreLeft: dimension mismatch of the left interface!");
 
         CoreUpdate<T> result;
 
-        // 1. truncated SVD of the left unfolding: B ~ U * SVt with orthonormal columns of U
+        // 1. truncated SVD of the left unfolding: C ~ U * SVt with orthonormal columns of U
         //    (truncation in the Frobenius norm as in PITTS::normalize: the discarded part is bounded by
-        //     rankTolerance * ||B||_F, whereas a threshold on the individual singular values would allow
+        //     rankTolerance * ||C||_F, whereas a threshold on the individual singular values would allow
         //     an error of sqrt(#discarded) * rankTolerance * sigma_1)
-        auto [U, SVt] = normalize_svd(unfold_left(B), true, rankTolerance, maxRank, false, true);
+        auto [U, SVt] = normalize_svd(unfold_left(C), true, rankTolerance, maxRank, false, true);
         result.truncatedRank = U.r2();
-
 
         // 2. enrichment: append new orthonormal directions to U and zero rows to SVt
         //    (this does not change U*SVt, it only enlarges the space the next core can use;
         //     the projection works on the core-shaped factors, folding and unfolding are moves)
+        Tensor3<T> U3 = fold_left(std::move(U), n);
         if( enrichment.r2() > 0 )
         {
-          Tensor3<T> U3 = fold_left(std::move(U), n);
           // directions below the truncation tolerance of the block are irrelevant (rankTolerance 0: only drop noise)
           using RealType = decltype(std::abs(T()));
           const RealType sqrtEps = std::sqrt(std::numeric_limits<RealType>::epsilon());
           const RealType relTol = std::real(rankTolerance) > 0 ? std::min(sqrtEps, RealType(std::real(rankTolerance))) : sqrtEps;
           enrichFactors(U3, SVt, std::move(enrichment), std::min<long long>(maxEnrichment, maxEnrichedRank - U3.r2()), T(relTol));
-          U = unfold_left(std::move(U3));
         }
-        const int r = U.r2();
+        const int r = U3.r2();
 
-        // 3.+4. maxvol selects the rows I_k (with oversampling more than r) and returns the core in interpolation
-        //       gauge, U * U(rows,:)^{-1} (U * U(rows,:)^+ with oversampling)
+        // 3. maxvol on the values of the new left part of y on I_{k-1} x S_k selects the rows I_k
+        //    (with oversampling more than r)
+        Tensor3<T> M;
+        normalize_contract1(leftInterface, U3, M);
         const int nRows = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows));
-        Tensor2<T> coefficients;
-        result.selected = maxvol(U, maxvolTolerance, 100, &coefficients, nRows);
-        result.core = fold_left(std::move(coefficients), n);
+        result.selected = maxvol<T>(unfold_left(M), maxvolTolerance, 100, nullptr, nRows);
 
-        // carry = U(rows,:) * SVt, so that core * carry = U * SVt
-        // (the row selection as an explicit loop: an Eigen indexed view triggers -Warray-bounds false positives with GCC 13)
-        const int q = result.selected.size();
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uhat(q, r);
-        for(int j = 0; j < q; j++)
-          Uhat.row(j) = ConstEigenMap(U).row(result.selected[j]);
-        result.carry.resize(q, r2);
-        EigenMap(result.carry).noalias() = Uhat * ConstEigenMap(SVt);
-
+        result.core = std::move(U3);
+        result.carry = std::move(SVt);
         return result;
       }
 
 
       // implement updateCoreRight
       template<typename T>
-      CoreUpdate<T> updateCoreRight(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance, T oversampling, int maxColumns)
+      CoreUpdate<T> updateCoreRight(const Tensor3<T>& C, const Tensor2<T>& rightInterface, T rankTolerance, int maxRank,
+                                    T maxvolTolerance, T oversampling, int maxColumns)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const int r1 = B.r1();
-        const int n = B.n();
-        const int r2 = B.r2();
+        const int r1 = C.r1();
+        const int n = C.n();
+        const int r2 = C.r2();
         if( r1*n*r2 == 0 )
           throw std::invalid_argument("updateCoreRight: empty block!");
+        if( rightInterface.r1() != r2 )
+          throw std::invalid_argument("updateCoreRight: dimension mismatch of the right interface!");
 
         CoreUpdate<T> result;
 
-        // 1. truncated SVD of the right unfolding: B ~ US * Vt with orthonormal rows of Vt
+        // 1. truncated SVD of the right unfolding: C ~ US * Vt with orthonormal rows of Vt
         //    (truncation in the Frobenius norm, see updateCoreLeft)
-        const auto [US, Vt] = normalize_svd(unfold_right(B), false, rankTolerance, maxRank, false, true);
+        auto [US, Vt] = normalize_svd(unfold_right(C), false, rankTolerance, maxRank, false, true);
         const int r = Vt.r1();
         result.truncatedRank = r;
+        Tensor3<T> Vt3 = fold_right(std::move(Vt), n);
 
-        // 2. maxvol selects the columns J_k of Vt (with oversampling more than r) and returns the core in
-        //    interpolation gauge, Vt(:,cols)^{-1} Vt (Vt(:,cols)^+ Vt with oversampling)
+        // 2. maxvol on the values of the new right part of y on S_k x J_{k+1} selects the columns J_k
+        //    (with oversampling more than r)
+        Tensor3<T> M;
+        normalize_contract2(Vt3, rightInterface, M);
         const int nColumns = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxColumns));
-        Tensor2<T> coefficients;
-        result.selected = maxvolColumns<T>(Vt, maxvolTolerance, &coefficients, nColumns);
-        result.core = fold_right(std::move(coefficients), n);
+        result.selected = maxvolColumns<T>(unfold_right(M), maxvolTolerance, nullptr, nColumns);
 
-        // carry = US * Vt(:,cols), so that carry * core = US * Vt (explicit loop, see updateCoreLeft)
-        const int q = result.selected.size();
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Vhat(r, q);
-        for(int j = 0; j < q; j++)
-          Vhat.col(j) = ConstEigenMap(Vt).col(result.selected[j]);
-        result.carry.resize(r1, q);
-        EigenMap(result.carry).noalias() = ConstEigenMap(US) * Vhat;
-
+        result.core = std::move(Vt3);
+        result.carry = std::move(US);
         return result;
       }
 
 
-      // implement initialRightIndexSets
+      // implement dominantRows
       template<typename T>
-      std::vector<NestedIndices> initialRightIndexSets(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx,
-                                                       T maxvolTolerance, int maxRank)
+      std::vector<int> dominantRows(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        if( TTx.empty() )
-          throw std::invalid_argument("initialRightIndexSets: no tensor train!");
-        if( maxRank < 1 )
-          throw std::invalid_argument("initialRightIndexSets: maxRank must be positive!");
-        const std::vector<int>& dims = TTx.front().get().dimensions();
+        const Tensor2<T> U = normalize_svd(unfold_left(B), true, rankTolerance, maxRank, false, true).first;
+        return maxvol<T>(U, maxvolTolerance);
+      }
+
+
+      // implement dominantColumns
+      template<typename T>
+      std::vector<int> dominantColumns(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const Tensor2<T> Vt = normalize_svd(unfold_right(B), false, rankTolerance, maxRank, false, true).second;
+        return maxvolColumns<T>(Vt, maxvolTolerance);
+      }
+
+
+      // implement initialRightFrame
+      template<typename T>
+      void initialRightFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& TTy, int maxRank)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const std::vector<int>& dims = TTy.dimensions();
         const int nDim = dims.size();
+        if( TTx.empty() )
+          throw std::invalid_argument("initialRightFrame: no tensor train!");
         for(const TensorTrain<T>& TT: TTx)
-        {
-          if( TT.dimensions() != dims )
-            throw std::invalid_argument("initialRightIndexSets: dimensions of the tensor trains differ!");
-          if( nDim < 1 || TT.subTensor(0).r1() != 1 || TT.subTensor(nDim-1).r2() != 1 )
-            throw std::invalid_argument("initialRightIndexSets: boundary ranks must be 1!");
-        }
+          if( TT.dimensions() != dims || TT.subTensor(0).r1() != 1 || TT.subTensor(nDim-1).r2() != 1 )
+            throw std::invalid_argument("initialRightFrame: dimensions or boundary ranks of the inputs do not match!");
 
-        // Work on a right-orthogonalized copy: maxvol needs full column rank, and the right unfolding of a
-        // right-orthogonal core has orthonormal rows, so X_k * R_{k+1} keeps full row rank as long as R_{k+1}
-        // is a nonsingular (maxvol) submatrix. The orthogonalization also removes exactly dependent ranks
-        // and makes the greedy initial pivoting of maxvol well-conditioned (the QR step of Oseledets/Tyrtyshnikov
-        // 2010, reference [1] in pitts_tensortrain_cross.hpp).
-        // The resulting sets are also valid for the original TTx: the interpolation entries x(I, S_k, J)
-        // do not depend on the gauge of the cores.
-        // A right sweep alone does not reveal rank deficiencies that sit in the left unfoldings (e.g. a zero
-        // slice in X_0), so the copy is first left-normalized (minimal ranks) and then right-normalized.
-        std::vector<TensorTrain<T>> TTortho;
-        TTortho.reserve(TTx.size());    // no reallocation: the sweep data below refers to the elements
-        for(const TensorTrain<T>& TT: TTx)
+        // direct sum of the inputs: block-diagonal cores (the first core concatenated along r2, the last along r1),
+        // so the right parts span the right parts of all inputs
+        std::vector<Tensor3<T>> cores(nDim);
+        for(int k = 0; k < nDim; k++)
         {
-          copy(TT, TTortho.emplace_back(dims));
-          leftNormalize(TTortho.back(), T(0));
-          rightNormalize(TTortho.back(), T(0));
+          long long r1 = 0, r2 = 0;
+          for(const TensorTrain<T>& TT: TTx)
+          {
+            r1 += TT.subTensor(k).r1();
+            r2 += TT.subTensor(k).r2();
+          }
+          if( k == 0 )
+            r1 = 1;
+          if( k == nDim-1 )
+            r2 = 1;
+          cores[k].resize(r1, dims[k], r2);
+          cores[k].setConstant(T(0));
+          long long offset1 = 0, offset2 = 0;
+          for(const TensorTrain<T>& TT: TTx)
+          {
+            const auto& X = TT.subTensor(k);
+            for(int c = 0; c < X.r2(); c++)
+              for(int j = 0; j < X.n(); j++)
+                for(int a = 0; a < X.r1(); a++)
+                  cores[k](offset1+a, j, offset2+c) = X(a, j, c);
+            if( k > 0 )
+              offset1 += X.r1();
+            if( k < nDim-1 )
+              offset2 += X.r2();
+          }
         }
+        TensorTrain<T> frame(std::move(cores));
 
-        // right-to-left sweep of the partial contractions XR_k = X_k R_{k+1} (one per input, all on the same
-        // sets J); J[k+1] is set before XR_k is computed, so the same recursion (and boundary handling) as in
-        // the cross sweeps can be used
+        // minimal ranks (a right sweep alone does not reveal deficiencies in the left unfoldings, e.g. dependent
+        // inputs), then right-orthonormal cores; tolerance 0, so inputs that are small in norm are not truncated
+        // (only maxRank truncates)
+        leftNormalize(frame, T(0));
+        rightNormalize(frame, T(0), maxRank);
+        TTy.setSubTensors(0, std::move(frame));
+
+        Tensor3<T> zero(1, dims[0], TTy.subTensor(0).r2());
+        zero.setConstant(T(0));
+        TTy.setSubTensor(0, std::move(zero));
+      }
+
+
+      // implement rightIndexSetsFromFrame
+      template<typename T>
+      std::vector<NestedIndices> rightIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling,
+                                                         const std::vector<int>& maxIndices)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const std::vector<int>& dims = TT.dimensions();
+        const int nDim = dims.size();
+        if( !maxIndices.empty() && std::ssize(maxIndices) != nDim-1 )
+          throw std::invalid_argument("rightIndexSetsFromFrame: maxIndices needs one entry per bond!");
+
+        // right-to-left sweep of the partial contractions XR_k = X_k R_{k+1}; J[k+1] is set before XR_k is computed,
+        // so the same recursion (and boundary handling) as in the cross sweeps can be used
         std::vector<NestedIndices> J(nDim);
         const auto neverFromTheLeft = [](int, optional_cref<Tensor3<T>>, Tensor3<T>&) { assert(false); };
-        using RightContractions = decltype(defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TTortho.front(), J)));
-        std::vector<RightContractions> Rx;
-        for(const TensorTrain<T>& TT: TTortho)
-          Rx.push_back(defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TT, J)));
-
+        auto Rx = defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TT, J));
         for(int k = nDim-1; k >= 1; k--)
         {
-          int nRows = 0;
-          for(auto& R: Rx)
-          {
-            R.update(-1, k);
-            nRows += R.subTensor(k).r1();
-          }
-
-          // single input: the right unfolding (r_{k-1} x n |J_{k+1}|) is wide with full row rank,
-          // maxvolColumns selects the columns J_k
-          if( Rx.size() == 1 && nRows <= maxRank )
-          {
-            J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(Rx.front().subTensor(k)), maxvolTolerance), dims[k]);
-            continue;
-          }
-
-          // several inputs: the stacked right unfoldings may be rank-deficient or even tall, so select the
-          // columns in an orthonormal basis of their joint row space
-          Tensor2<T> stacked(nRows, Rx.front().subTensor(k).n() * Rx.front().subTensor(k).r2());
-          int offset = 0;
-          for(const auto& R: Rx)
-          {
-            const auto XR = unfold_right(R.subTensor(k));
-            EigenMap(stacked).middleRows(offset, XR.r1()) = ConstEigenMap(XR);
-            offset += XR.r1();
-          }
-          const Tensor2<T> Vt = normalize_svd(stacked, false, T(0), maxRank).second;
-          J[k] = rightIndicesFromColumns(maxvolColumns<T>(Vt, maxvolTolerance), dims[k]);
+          Rx.update(-1, k);
+          const Tensor3<T>& XR = Rx.right()->get();
+          const int r = XR.r1();
+          const int maxColumns = maxIndices.empty() ? std::numeric_limits<int>::max() : maxIndices[k-1];
+          const int nColumns = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxColumns));
+          J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(XR), maxvolTolerance, nullptr, nColumns), dims[k]);
         }
-
         return J;
       }
     }
