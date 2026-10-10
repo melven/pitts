@@ -141,9 +141,14 @@ namespace PITTS
     T rankTolerance = std::sqrt(std::numeric_limits<T>::epsilon());
 
     //! maximal TT rank of the result, enforced even if this violates rankTolerance
+    //!
+    //! Also limits the rank after the enrichment. The algorithm reduces it per bond to the maximal useful rank:
+    //! at bond k at most n_k times the limit at bond k-1 and n_{k+1} times the limit at bond k+1 (so a small
+    //! bond also limits its neighbors). With oversampling the index sets are limited in the same way.
+    //!
     int maxRank = std::numeric_limits<int>::max();
 
-    //! maximal TT rank per bond (d-1 entries, bond k between cores k and k+1); if given, it replaces maxRank
+    //! maximal TT rank per bond (d-1 entries, bond k between cores k and k+1); if given, it replaces maxRank (see there)
     std::vector<int> maxRanks = {};
 
     //! maximal number of full sweeps (left-to-right + right-to-left)
@@ -179,7 +184,7 @@ namespace PITTS
     //! over the bonds. For ranks that are still far below the numerical rank of f(x) this can make the error
     //! larger with every enrichment step, and the estimated error as well as the sampled error then grow with
     //! the rank. With oversampling > 0 the rows (columns) are chosen by the oversampled maxvol,
-    //! |I_k| = r + ceil(oversampling r), and the cores are the least-squares interpolation with the
+    //! |I_k| = r + ceil(oversampling r) (limited per bond, see maxRank), and the cores are the least-squares interpolation with the
     //! pseudo-inverse of the tall pivot matrix (cf. Qin et al., NeurIPS 2022): y only fits f(x) on the cross
     //! in the least-squares sense, and the amplification is much smaller (the norm of the pseudo-inverse
     //! decreases with the number of rows). In the sweeps the TT ranks
