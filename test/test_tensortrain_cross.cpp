@@ -264,6 +264,26 @@ TYPED_TEST(PITTS_TensorTrain_cross, maxRanks_per_bond)
     EXPECT_EQ(std::vector<int>({3, 2, 3}), TTy.getTTranks());
   }
 
+  // a rank-1 bond limits its neighbors (rank at bond k <= n_k rank_{k-1}, <= n_{k+1} rank_{k+1}), also the enrichment
+  // and the oversampled index sets: maximal useful ranks (4, 2, 1, 2, 4), index sets (6, 3, 2, 3, 6) with oversampling 0.5
+  {
+    const std::vector<int> dims2 = {6, 2, 2, 2, 2, 6};
+    const TensorTrain TTx2 = positiveRandomTT<Type>(dims2, {2, 2, 2, 2, 2}, 12);
+    PITTS::TTCrossOptions<Type> options2;
+    options2.maxRanks = {100, 100, 1, 100, 100};
+    options2.oversampling = Type(0.5);
+    options2.nSweeps = 3;
+    TensorTrain TTy2(dims2);
+    const auto info = applyElementwise(f, TTx2, TTy2, options2);
+    const std::vector<int> maxRanks = {4, 2, 1, 2, 4}, maxIndices = {6, 3, 2, 3, 6};
+    for(int k = 0; k < 5; k++)
+    {
+      EXPECT_LE(TTy2.getTTranks()[k], maxRanks[k]);
+      EXPECT_LE(info.leftIndices[k].rows(), maxIndices[k]);
+      EXPECT_LE(info.rightIndices[k+1].rows(), maxIndices[k]);
+    }
+  }
+
   TensorTrain TTy(dims);
   options.maxRanks = {3, 2};
   EXPECT_THROW(applyElementwise(f, TTx, TTy, options), std::invalid_argument);
