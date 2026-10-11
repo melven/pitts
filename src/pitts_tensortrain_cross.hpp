@@ -42,7 +42,8 @@
 *     3. Optional AMEn-style enrichment (nMALS = 1 only): append directions of the current error
 *        z ~ f(x) - y (a second, small-rank cross approximation of the error, updated in the same sweep):
 *        the error of the block is projected onto the complement of U, then its dominant (at most enrichmentRank)
-*        directions are appended (as in PITTS::solveMALS).
+*        directions are appended (as in PITTS::solveMALS). No enrichment if the error on this cross is already below
+*        the truncation tolerance (such directions would be truncated anyway, near convergence they are round-off).
 *     4. Y_k = U (left-orthonormal), S V^T is multiplied into Y_{k+1}; maxvol on (L^y_{k-1} x I) U, the values
 *        of the new left part of y on I_{k-1} x S_k, selects the new nested index set I_k, and its selected rows
 *        are the next interface L^y_k.
@@ -168,6 +169,9 @@ namespace PITTS
     int nMALS = 1;
 
     //! rank of the error approximation z ~ f(x) - y used for the enrichment (nMALS = 1 only, 0 = off)
+    //!
+    //! Fixed (as zrank in amen_cross): the error is not truncated relative to its own norm, which near convergence
+    //! would be a rank decision on round-off.
     int errorRank = 3;
 
     //! number of error directions appended to each core per step (nMALS = 1 only, <= errorRank)
