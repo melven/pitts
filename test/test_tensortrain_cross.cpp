@@ -18,7 +18,6 @@
 #include <limits>
 #include <random>
 #include <stdexcept>
-#include <type_traits>
 #include <vector>
 
 namespace
@@ -69,14 +68,11 @@ namespace
     return 100*std::sqrt(std::numeric_limits<T>::epsilon());
   }
 
-  // rank tolerance for tests that compare two runs exactly: with threaded kernels (e.g. MKL) the round-off differs
-  // between runs, so a singular value close to the truncation threshold can end up on either side. The threshold
-  // must therefore be far above the round-off of the type (float: eps ~ 1e-7, so tolerances like 1e-8 or 1e-5 are
-  // at or near the noise level of the singular values).
+  // truncation tolerance of the tests: sqrt(eps) (the default of TTCrossOptions), well above round-off
   template<typename T>
-  T reproducibleTolerance(double forDouble, double forFloat)
+  auto sqrtEps()
   {
-    return std::is_same_v<decltype(std::abs(T())), float> ? T(forFloat) : T(forDouble);
+    return std::sqrt(std::numeric_limits<T>::epsilon());
   }
 }
 
@@ -139,7 +135,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, identity_exact_recovery)
     TensorTrain TTy(dims);
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = Type(1.e-6);
+    options.rankTolerance = sqrtEps<Type>();
     const auto info = applyElementwise([](Type v){return v;}, TTx, TTy, options);
 
     EXPECT_TRUE(info.converged);
@@ -163,7 +159,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, square_and_sqrt_vs_dense)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = Type(1.e-7);
+    options.rankTolerance = sqrtEps<Type>();
     options.nSweeps = 20;
 
     // x^2 has exact TT ranks <= r^2 (Hadamard product), so this is recovered exactly
@@ -245,7 +241,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, qtt_sqrt_with_rank_growth)
     TensorTrain TTy(dims);
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = Type(1.e-6);
+    options.rankTolerance = sqrtEps<Type>();
     options.nSweeps = 30;
     options.maxRank = 40;
     const auto info = applyElementwise([](Type v){return Type(1)/v;}, TTx, TTy, options);
@@ -344,9 +340,11 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    // well above round-off, see reproducibleTolerance
-    options.rankTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
-    options.convergenceTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
+    // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). sqrt is
+    // not exactly low-rank, so its singular values near sqrt(eps) are only as accurate as the approximation on the
+    // crosses: rank decisions and the convergence check need tolerances clearly above that.
+    options.rankTolerance = tolerance<Type>();
+    options.convergenceTolerance = tolerance<Type>();
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
@@ -379,7 +377,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
 
   TensorTrain TTy(dims);
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = reproducibleTolerance<Type>(1.e-8, 1.e-5);   // the ranks of two runs are compared below
+  options.rankTolerance = sqrtEps<Type>();
   options.nSweeps = 20;
   const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
 
@@ -424,7 +422,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
   const auto f = [](Type v){return v*v;};
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = reproducibleTolerance<Type>(1.e-8, 1.e-5);   // the evaluations of two runs are compared below
+  options.rankTolerance = sqrtEps<Type>();
   options.nSweeps = 20;
 
   // same seed for both runs: the random error index sets (and thus the sweeps) are then identical,
@@ -486,7 +484,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
     options.errorRank = 2;
     options.enrichmentRank = 2;
     options.randomErrorIndexSets = random;
-    options.rankTolerance = Type(1.e-7);
+    options.rankTolerance = sqrtEps<Type>();
     options.nSweeps = 20;
     const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
     EXPECT_TRUE(info.converged);
@@ -540,7 +538,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_product_and_quotient_vs_dense)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = Type(1.e-7);
+    options.rankTolerance = sqrtEps<Type>();
     options.nSweeps = 20;
 
     // the element-wise (Hadamard) product has exact TT ranks <= r^(1) r^(2), so it is recovered exactly
@@ -577,7 +575,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_same_tensor_as_single_input)
   const Eigen::Matrix<Type, Eigen::Dynamic, 1> squareDense = xDense.array().square();
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = Type(1.e-7);
+  options.rankTolerance = sqrtEps<Type>();
   options.nSweeps = 20;
   TensorTrain TTy(dims);
   const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx, TTx, TTy, options);
@@ -604,7 +602,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_rank_growth)
   const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = dense(TTx1).array() * dense(TTx2).array();
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = Type(1.e-7);
+  options.rankTolerance = sqrtEps<Type>();
   options.nSweeps = 20;
   TensorTrain TTy(dims);
   const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
@@ -628,9 +626,11 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    // well above round-off, see reproducibleTolerance
-    options.rankTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
-    options.convergenceTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
+    // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). x1/x2 is
+    // not exactly low-rank, so its singular values near sqrt(eps) are only as accurate as the approximation on the
+    // crosses: rank decisions and the convergence check need tolerances clearly above that.
+    options.rankTolerance = tolerance<Type>();
+    options.convergenceTolerance = tolerance<Type>();
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
@@ -681,7 +681,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_vs_dense)
       PITTS::TTCrossOptions<Type> options;
       options.nMALS = nMALS;
       options.oversampling = oversampling;
-      options.rankTolerance = Type(1.e-7);
+      options.rankTolerance = sqrtEps<Type>();
       options.nSweeps = 20;
 
       // x^2 has exact TT ranks <= r^2: recovered exactly, and the ranks of y are the truncated ones
@@ -718,7 +718,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_two_inputs_vs_dense)
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
     options.oversampling = Type(0.3);
-    options.rankTolerance = Type(1.e-7);
+    options.rankTolerance = sqrtEps<Type>();
     options.nSweeps = 20;
 
     TensorTrain TTy(dims);
