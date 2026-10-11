@@ -61,19 +61,6 @@ namespace
     unit.setUnit(std::vector<int>(multiIndex.begin(), multiIndex.end()));
     return dot(unit, TT);
   }
-
-  template<typename T>
-  auto tolerance()
-  {
-    return 100*std::sqrt(std::numeric_limits<T>::epsilon());
-  }
-
-  // truncation tolerance of the tests: sqrt(eps) (the default of TTCrossOptions), well above round-off
-  template<typename T>
-  auto sqrtEps()
-  {
-    return std::sqrt(std::numeric_limits<T>::epsilon());
-  }
 }
 
 template<typename T>
@@ -122,7 +109,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, identity_exact_recovery)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {3, 4, 2, 5};
   TensorTrain TTx(dims);
@@ -135,13 +122,13 @@ TYPED_TEST(PITTS_TensorTrain_cross, identity_exact_recovery)
     TensorTrain TTy(dims);
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = sqrtEps<Type>();
+    options.rankTolerance = eps;
     const auto info = applyElementwise([](Type v){return v;}, TTx, TTy, options);
 
     EXPECT_TRUE(info.converged);
     EXPECT_EQ(TTx.getTTranks(), TTy.getTTranks());
     EXPECT_GT(info.nEvaluations, 0);
-    EXPECT_NEAR(xDense, dense(TTy), eps*xDense.norm());
+    EXPECT_NEAR(xDense, dense(TTy), 100*eps*xDense.norm());
   }
 }
 
@@ -149,7 +136,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, square_and_sqrt_vs_dense)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {4, 3, 5, 3};
   const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 42);
@@ -159,7 +146,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, square_and_sqrt_vs_dense)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = sqrtEps<Type>();
+    options.rankTolerance = eps;
     options.nSweeps = 20;
 
     // x^2 has exact TT ranks <= r^2 (Hadamard product), so this is recovered exactly
@@ -167,7 +154,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, square_and_sqrt_vs_dense)
     const auto infoSquare = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
     EXPECT_TRUE(infoSquare.converged);
     const Eigen::Matrix<Type, Eigen::Dynamic, 1> squareDense = xDense.array().square();
-    EXPECT_NEAR(squareDense, dense(TTy), eps*squareDense.norm());
+    EXPECT_NEAR(squareDense, dense(TTy), 100*eps*squareDense.norm());
     for(int k = 0; k < dims.size()-1; k++)
       EXPECT_LE(TTy.getTTranks()[k], TTx.getTTranks()[k]*TTx.getTTranks()[k]);
 
@@ -175,7 +162,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, square_and_sqrt_vs_dense)
     TensorTrain TTz(dims);
     const auto infoSqrt = applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTz, options);
     const Eigen::Matrix<Type, Eigen::Dynamic, 1> sqrtDense = xDense.array().sqrt();
-    EXPECT_NEAR(sqrtDense, dense(TTz), 100*eps*sqrtDense.norm());
+    EXPECT_NEAR(sqrtDense, dense(TTz), 10000*eps*sqrtDense.norm());
   }
 }
 
@@ -183,7 +170,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, interpolation_property_on_final_crosses)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {3, 4, 3, 2};
   const int nDim = dims.size();
@@ -218,7 +205,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, interpolation_property_on_final_crosses)
           Eigen::RowVectorXi multiIndex(nDim);
           multiIndex << info.leftIndices[k].row(a), info.rightIndices[k+1].row(b);
           const Type ref = f(evaluate(TTx, multiIndex));
-          EXPECT_NEAR(ref, evaluate(TTy, multiIndex), eps*std::abs(ref));
+          EXPECT_NEAR(ref, evaluate(TTy, multiIndex), 100*eps*std::abs(ref));
         }
     }
   }
@@ -228,7 +215,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, qtt_sqrt_with_rank_growth)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   // QTT-like: small mode sizes, many dimensions; 1/x needs a larger rank than x
   const std::vector<int> dims(8, 2);
@@ -241,11 +228,11 @@ TYPED_TEST(PITTS_TensorTrain_cross, qtt_sqrt_with_rank_growth)
     TensorTrain TTy(dims);
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = sqrtEps<Type>();
+    options.rankTolerance = eps;
     options.nSweeps = 30;
     options.maxRank = 40;
     const auto info = applyElementwise([](Type v){return Type(1)/v;}, TTx, TTy, options);
-    EXPECT_NEAR(invDense, dense(TTy), 100*eps*invDense.norm());
+    EXPECT_NEAR(invDense, dense(TTy), 10000*eps*invDense.norm());
   }
 }
 
@@ -329,6 +316,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {4, 3, 5, 3};
   const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 5);
@@ -343,8 +331,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
     // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). sqrt is
     // not exactly low-rank, so its singular values near sqrt(eps) are only as accurate as the approximation on the
     // crosses: rank decisions and the convergence check need tolerances clearly above that.
-    options.rankTolerance = tolerance<Type>();
-    options.convergenceTolerance = tolerance<Type>();
+    options.rankTolerance = 100*eps;
+    options.convergenceTolerance = 100*eps;
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
@@ -361,7 +349,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
     ASSERT_EQ(TTyRef.getTTranks(), TTy.getTTranks());
     // only up to rounding differences of the threaded reductions inside the kernels
     const auto yRef = dense(TTyRef);
-    EXPECT_NEAR(yRef, dense(TTy), tolerance<Type>()*yRef.norm());
+    EXPECT_NEAR(yRef, dense(TTy), 100*eps*yRef.norm());
   }
 }
 
@@ -369,6 +357,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   // mode dimensions and ranks vary strongly over the dimensions, so the blocks differ a lot in size:
   // the measures must still be comparable (rms scaling, one global reference)
@@ -377,7 +366,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
 
   TensorTrain TTy(dims);
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = sqrtEps<Type>();
+  options.rankTolerance = eps;
   options.nSweeps = 20;
   const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
 
@@ -393,8 +382,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
   // scale invariance: scaling the function scales all blocks, the measures must not change
   TensorTrain TTscaled(dims);
   const auto infoScaled = applyElementwise([](Type v){return Type(1000)*v*v;}, TTx, TTscaled, options);
-  EXPECT_NEAR(info.lastChange, infoScaled.lastChange, 10*tolerance<Type>());
-  EXPECT_NEAR(info.lastError, infoScaled.lastError, 10*tolerance<Type>());
+  EXPECT_NEAR(info.lastChange, infoScaled.lastChange, 1000*eps);
+  EXPECT_NEAR(info.lastError, infoScaled.lastError, 1000*eps);
 
   // without enrichment there is no error estimate
   options.errorRank = 0;
@@ -416,13 +405,14 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {4, 3, 5, 3};
   const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 31);
   const auto f = [](Type v){return v*v;};
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = sqrtEps<Type>();
+  options.rankTolerance = eps;
   options.nSweeps = 20;
 
   // same seed for both runs: the random error index sets (and thus the sweeps) are then identical,
@@ -438,7 +428,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
   TensorTrain TTsampled(dims);
   const auto infoSampled = applyElementwise(f, TTx, TTsampled, options);
   EXPECT_TRUE(infoSampled.converged);
-  EXPECT_LT(infoSampled.lastSampleError, tolerance<Type>());
+  EXPECT_LT(infoSampled.lastSampleError, 100*eps);
   // the control sample costs one function evaluation per sample (only once, the entries are fixed)
   EXPECT_EQ(info.nEvaluations + options.controlSampleSize, infoSampled.nEvaluations);
 
@@ -456,7 +446,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {3, 3, 3, 3, 3};
   const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 2, 2, 2}, 11);
@@ -484,11 +474,11 @@ TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
     options.errorRank = 2;
     options.enrichmentRank = 2;
     options.randomErrorIndexSets = random;
-    options.rankTolerance = sqrtEps<Type>();
+    options.rankTolerance = eps;
     options.nSweeps = 20;
     const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
     EXPECT_TRUE(info.converged);
-    EXPECT_NEAR(ref, dense(TTy), eps*ref.norm());
+    EXPECT_NEAR(ref, dense(TTy), 100*eps*ref.norm());
   }
 }
 
@@ -525,7 +515,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_product_and_quotient_vs_dense)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   // different ranks of the inputs
   const std::vector<int> dims = {4, 3, 5, 3};
@@ -538,7 +528,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_product_and_quotient_vs_dense)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    options.rankTolerance = sqrtEps<Type>();
+    options.rankTolerance = eps;
     options.nSweeps = 20;
 
     // the element-wise (Hadamard) product has exact TT ranks <= r^(1) r^(2), so it is recovered exactly
@@ -546,7 +536,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_product_and_quotient_vs_dense)
     const auto infoProduct = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
     EXPECT_TRUE(infoProduct.converged);
     const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = x1Dense.array() * x2Dense.array();
-    EXPECT_NEAR(productDense, dense(TTy), eps*productDense.norm());
+    EXPECT_NEAR(productDense, dense(TTy), 100*eps*productDense.norm());
     for(int k = 0; k < dims.size()-1; k++)
       EXPECT_LE(TTy.getTTranks()[k], TTx1.getTTranks()[k]*TTx2.getTTranks()[k]);
 
@@ -555,7 +545,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_product_and_quotient_vs_dense)
     TensorTrain TTz(dims);
     applyElementwise([](Type a, Type b){return a/b;}, TTx1, TTx2, TTz, options);
     const Eigen::Matrix<Type, Eigen::Dynamic, 1> quotientDense = x1Dense.array() / x2Dense.array();
-    EXPECT_NEAR(quotientDense, dense(TTz), 100*eps*quotientDense.norm());
+    EXPECT_NEAR(quotientDense, dense(TTz), 10000*eps*quotientDense.norm());
   }
 }
 
@@ -563,7 +553,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_same_tensor_as_single_input)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   // f(x, x) = x*x with the same tensor twice: the stacked right unfoldings are rank-deficient, the initial
   // crosses have the size of those for a single input, and the result is x^2 as with the single-input variant.
@@ -575,20 +565,20 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_same_tensor_as_single_input)
   const Eigen::Matrix<Type, Eigen::Dynamic, 1> squareDense = xDense.array().square();
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = sqrtEps<Type>();
+  options.rankTolerance = eps;
   options.nSweeps = 20;
   TensorTrain TTy(dims);
   const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx, TTx, TTy, options);
 
   EXPECT_TRUE(info.converged);
-  EXPECT_NEAR(squareDense, dense(TTy), eps*squareDense.norm());
+  EXPECT_NEAR(squareDense, dense(TTy), 100*eps*squareDense.norm());
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_rank_growth)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   // the product of two random rank-3 tensors has rank 9 in the middle, the initial crosses only 3 + 3:
   // the enrichment must increase the ranks (general random cores: with positive ones the product is
@@ -602,12 +592,12 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_rank_growth)
   const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = dense(TTx1).array() * dense(TTx2).array();
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = sqrtEps<Type>();
+  options.rankTolerance = eps;
   options.nSweeps = 20;
   TensorTrain TTy(dims);
   const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
   EXPECT_TRUE(info.converged);
-  EXPECT_NEAR(productDense, dense(TTy), eps*productDense.norm());
+  EXPECT_NEAR(productDense, dense(TTy), 100*eps*productDense.norm());
   EXPECT_GT(TTy.getTTranks()[1], 6);
   EXPECT_GT(TTy.getTTranks()[2], 6);
 }
@@ -616,6 +606,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {4, 3, 5, 3};
   const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {2, 3, 2}, 5);
@@ -629,8 +620,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
     // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). x1/x2 is
     // not exactly low-rank, so its singular values near sqrt(eps) are only as accurate as the approximation on the
     // crosses: rank decisions and the convergence check need tolerances clearly above that.
-    options.rankTolerance = tolerance<Type>();
-    options.convergenceTolerance = tolerance<Type>();
+    options.rankTolerance = 100*eps;
+    options.convergenceTolerance = 100*eps;
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
@@ -646,7 +637,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
     EXPECT_EQ(infoRef.nSweeps, info.nSweeps);
     ASSERT_EQ(TTyRef.getTTranks(), TTy.getTTranks());
     const auto yRef = dense(TTyRef);
-    EXPECT_NEAR(yRef, dense(TTy), tolerance<Type>()*yRef.norm());
+    EXPECT_NEAR(yRef, dense(TTy), 100*eps*yRef.norm());
   }
 }
 
@@ -669,7 +660,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_vs_dense)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {4, 3, 5, 3};
   const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 42);
@@ -681,7 +672,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_vs_dense)
       PITTS::TTCrossOptions<Type> options;
       options.nMALS = nMALS;
       options.oversampling = oversampling;
-      options.rankTolerance = sqrtEps<Type>();
+      options.rankTolerance = eps;
       options.nSweeps = 20;
 
       // x^2 has exact TT ranks <= r^2: recovered exactly, and the ranks of y are the truncated ones
@@ -690,14 +681,14 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_vs_dense)
       const auto infoSquare = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
       EXPECT_TRUE(infoSquare.converged);
       const Eigen::Matrix<Type, Eigen::Dynamic, 1> squareDense = xDense.array().square();
-      EXPECT_NEAR(squareDense, dense(TTy), eps*squareDense.norm());
+      EXPECT_NEAR(squareDense, dense(TTy), 100*eps*squareDense.norm());
       for(int k = 0; k < dims.size()-1; k++)
         EXPECT_LE(TTy.getTTranks()[k], TTx.getTTranks()[k]*TTx.getTTranks()[k]);
 
       TensorTrain TTz(dims);
       applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTz, options);
       const Eigen::Matrix<Type, Eigen::Dynamic, 1> sqrtDense = xDense.array().sqrt();
-      EXPECT_NEAR(sqrtDense, dense(TTz), 100*eps*sqrtDense.norm());
+      EXPECT_NEAR(sqrtDense, dense(TTz), 10000*eps*sqrtDense.norm());
     }
 }
 
@@ -705,7 +696,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_two_inputs_vs_dense)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = tolerance<Type>();
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
 
   const std::vector<int> dims = {4, 3, 5, 3};
   const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {2, 3, 2}, 42);
@@ -718,14 +709,14 @@ TYPED_TEST(PITTS_TensorTrain_cross, oversampling_two_inputs_vs_dense)
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
     options.oversampling = Type(0.3);
-    options.rankTolerance = sqrtEps<Type>();
+    options.rankTolerance = eps;
     options.nSweeps = 20;
 
     TensorTrain TTy(dims);
     const auto info = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTy, options);
     EXPECT_TRUE(info.converged);
     const Eigen::Matrix<Type, Eigen::Dynamic, 1> productDense = x1Dense.array() * x2Dense.array();
-    EXPECT_NEAR(productDense, dense(TTy), eps*productDense.norm());
+    EXPECT_NEAR(productDense, dense(TTy), 100*eps*productDense.norm());
   }
 }
 
