@@ -18,6 +18,7 @@
 #include <limits>
 #include <random>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 namespace
@@ -66,6 +67,16 @@ namespace
   auto tolerance()
   {
     return 100*std::sqrt(std::numeric_limits<T>::epsilon());
+  }
+
+  // rank tolerance for tests that compare two runs exactly: with threaded kernels (e.g. MKL) the round-off differs
+  // between runs, so a singular value close to the truncation threshold can end up on either side. The threshold
+  // must therefore be far above the round-off of the type (float: eps ~ 1e-7, so tolerances like 1e-8 or 1e-5 are
+  // at or near the noise level of the singular values).
+  template<typename T>
+  T reproducibleTolerance(double forDouble, double forFloat)
+  {
+    return std::is_same_v<decltype(std::abs(T())), float> ? T(forFloat) : T(forDouble);
   }
 }
 
@@ -333,10 +344,9 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    // well above round-off: with several threads the round-off differs between runs, so a rank decision at the
-    // round-off level (the default sqrt(eps)) could differ between the two calls
-    options.rankTolerance = Type(1.e-5);
-    options.convergenceTolerance = Type(1.e-5);
+    // well above round-off, see reproducibleTolerance
+    options.rankTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
+    options.convergenceTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
@@ -369,7 +379,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
 
   TensorTrain TTy(dims);
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = Type(1.e-8);
+  options.rankTolerance = reproducibleTolerance<Type>(1.e-8, 1.e-5);   // the ranks of two runs are compared below
   options.nSweeps = 20;
   const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
 
@@ -414,7 +424,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
   const auto f = [](Type v){return v*v;};
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = Type(1.e-8);
+  options.rankTolerance = reproducibleTolerance<Type>(1.e-8, 1.e-5);   // the evaluations of two runs are compared below
   options.nSweeps = 20;
 
   // same seed for both runs: the random error index sets (and thus the sweeps) are then identical,
@@ -618,10 +628,9 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    // well above round-off: with several threads the round-off differs between runs, so a rank decision at the
-    // round-off level (the default sqrt(eps)) could differ between the two calls
-    options.rankTolerance = Type(1.e-5);
-    options.convergenceTolerance = Type(1.e-5);
+    // well above round-off, see reproducibleTolerance
+    options.rankTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
+    options.convergenceTolerance = reproducibleTolerance<Type>(1.e-5, 1.e-2);
 
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
