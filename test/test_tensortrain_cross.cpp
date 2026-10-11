@@ -366,7 +366,10 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
 
   TensorTrain TTy(dims);
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = eps;
+  // the ranks of two runs are compared below: x^2 has small genuine singular values (down to ~1e-6 relative), so the
+  // truncation threshold must be clearly separated from them also in single precision (sqrt(eps) is not)
+  options.rankTolerance = 10*eps;
+  options.convergenceTolerance = 10*eps;
   options.nSweeps = 20;
   const auto info = applyElementwise([](Type v){return v*v;}, TTx, TTy, options);
 
@@ -392,7 +395,9 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
   const auto infoNoEnrich = applyElementwise([](Type v){return v*v;}, TTx, TTnoEnrich, options);
   EXPECT_EQ(Type(0), infoNoEnrich.lastError);
 
-  // a run that is stopped while the ranks still grow is not converged
+  // a run that is stopped while the ranks still grow is not converged (no comparison of runs: the default tolerances)
+  options.rankTolerance = eps;
+  options.convergenceTolerance = eps;
   options.errorRank = 3;
   options.enrichmentRank = 2;
   options.nSweeps = 1;
@@ -412,7 +417,10 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
   const auto f = [](Type v){return v*v;};
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = eps;
+  // the evaluations of two runs are compared below: truncation threshold clearly separated from the small genuine
+  // singular values of x^2 also in single precision (see convergence_measures)
+  options.rankTolerance = 10*eps;
+  options.convergenceTolerance = 10*eps;
   options.nSweeps = 20;
 
   // same seed for both runs: the random error index sets (and thus the sweeps) are then identical,
