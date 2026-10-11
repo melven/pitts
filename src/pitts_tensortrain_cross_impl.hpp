@@ -219,7 +219,9 @@ namespace PITTS
         error = std::max(error, t3_rms(residual) / scale);
         // as in solveMALS, updateCoreLeft first projects out the current directions and then appends the
         // dominant (at most enrichmentRank) new directions of the error
-        solveLeftInterface(L, residual, E);
+        // (not below the truncation tolerance: those directions would be truncated anyway, near convergence they are round-off)
+        if( t3_rms(residual) / scale > std::real(localTolerance) )
+          solveLeftInterface(L, residual, E);
       }
 
       // local update: truncated SVD, enrichment, maxvol
@@ -253,7 +255,8 @@ namespace PITTS
         contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        Iz[k] = leftIndicesFromRows(dominantRows(residual, localTolerance, options.errorRank, maxvolTolerance), residual.r1());
+        // fixed rank errorRank (as zrank in amen_cross): a tolerance relative to the norm of the error would decide on round-off near convergence
+        Iz[k] = leftIndicesFromRows(dominantRows(residual, T(0), options.errorRank, maxvolTolerance), residual.r1());
         fx.invalidateError(k+1);
         Lyz.invalidate(k+1);
       }
@@ -320,7 +323,7 @@ namespace PITTS
         contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        Jz[k] = rightIndicesFromColumns(dominantColumns(residual, localTolerance, options.errorRank, maxvolTolerance), dims[k]);
+        Jz[k] = rightIndicesFromColumns(dominantColumns(residual, T(0), options.errorRank, maxvolTolerance), dims[k]);
         fx.invalidateError(k-1);
         Lyz.invalidate(k-1);
       }
