@@ -273,23 +273,23 @@ namespace PITTS
 
       // implement dominantRows
       template<typename T>
-      std::vector<int> dominantRows(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance)
+      std::vector<int> dominantRows(const Tensor3<T>& B, T absoluteTolerance, int nRows, T maxvolTolerance)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const Tensor2<T> U = normalize_svd(unfold_left(B), true, rankTolerance, maxRank, false, true).first;
-        return maxvol<T>(U, maxvolTolerance);
+        const Tensor2<T> U = normalize_svd(unfold_left(B), true, absoluteTolerance, nRows, true, true).first;
+        return maxvol<T>(U, maxvolTolerance, 100, nullptr, nRows);
       }
 
 
       // implement dominantColumns
       template<typename T>
-      std::vector<int> dominantColumns(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance)
+      std::vector<int> dominantColumns(const Tensor3<T>& B, T absoluteTolerance, int nColumns, T maxvolTolerance)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-        const Tensor2<T> Vt = normalize_svd(unfold_right(B), false, rankTolerance, maxRank, false, true).second;
-        return maxvolColumns<T>(Vt, maxvolTolerance);
+        const Tensor2<T> Vt = normalize_svd(unfold_right(B), false, absoluteTolerance, nColumns, true, true).second;
+        return maxvolColumns<T>(Vt, maxvolTolerance, nullptr, nColumns);
       }
 
 

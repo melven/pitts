@@ -163,6 +163,19 @@ namespace PITTS
       solveRightInterface(withLeft, R, result);
       return result;
     };
+    // Error crosses: fixed size errorRank (as zrank in amen_cross), selected from the directions of the residual above
+    // the local tolerance (in the Frobenius norm of the block, i.e. rms above localTolerance * scale). No decisions on
+    // round-off: a numerical rank of the residual would change the size of the crosses between runs, and below the
+    // tolerance the residual is round-off near convergence, so the error crosses are kept then. A kept set must only
+    // refer to existing positions of its (possibly updated) parent set.
+    const auto errorTolerance = [&](const Tensor3<T>& residual, RealType scale)
+    {
+      return T(std::real(localTolerance) * scale * std::sqrt(RealType(residual.r1()*residual.n()*residual.r2())));
+    };
+    const auto keepErrorCross = [&](const NestedIndices& Z, RealType relativeError, int parentSize)
+    {
+      return relativeError <= std::real(localTolerance) && Z.size() > 0 && *std::max_element(Z.link.begin(), Z.link.end()) < parentSize;
+    };
 
     // Convergence measures of a step, both returned separately: the change of y on its own cross (block
     // vs. current y) and, with enrichment, the error f(x) - y on the error crosses. The change alone is
@@ -255,8 +268,8 @@ namespace PITTS
         contractRightInterface<T>(Lyz.left()->get(), Lyz.right(), Jz, k+1, yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        // fixed rank errorRank (as zrank in amen_cross): a tolerance relative to the norm of the error would decide on round-off near convergence
-        Iz[k] = leftIndicesFromRows(dominantRows(residual, T(0), options.errorRank, maxvolTolerance), residual.r1());
+        if( !keepErrorCross(Iz[k], t3_rms(residual) / scale, residual.r1()) )
+          Iz[k] = leftIndicesFromRows(dominantRows(residual, errorTolerance(residual, scale), options.errorRank, maxvolTolerance), residual.r1());
         fx.invalidateError(k+1);
         Lyz.invalidate(k+1);
       }
@@ -323,7 +336,8 @@ namespace PITTS
         contractLeftInterface<T>(Lyz.left(), Iz, k-1, Lyz.right()->get(), yOnCross);
         internal::t3_axpy(T(-1), yOnCross, residual);
         error = std::max(error, t3_rms(residual) / scale);
-        Jz[k] = rightIndicesFromColumns(dominantColumns(residual, T(0), options.errorRank, maxvolTolerance), dims[k]);
+        if( !keepErrorCross(Jz[k], t3_rms(residual) / scale, residual.r2()) )
+          Jz[k] = rightIndicesFromColumns(dominantColumns(residual, errorTolerance(residual, scale), options.errorRank, maxvolTolerance), dims[k]);
         fx.invalidateError(k-1);
         Lyz.invalidate(k-1);
       }
