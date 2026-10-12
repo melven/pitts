@@ -167,8 +167,10 @@ namespace PITTS
           throw std::invalid_argument("solveLeftInterface: dimension mismatch!");
 
         // least squares L C = B on the right unfolding of B (q x n m); L is tall but only slightly (q = r + oversampling),
-        // so a pivoted QR and no TSQR
-        const Eigen::ColPivHouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(L));
+        // so no TSQR. No column pivoting (the blocked QR is much faster): L has full column rank, it consists of the rows
+        // that maxvol selected from a matrix it checked for numerical rank deficiency (the 1x1 identity at the boundary),
+        // and for full rank the Householder QR is a backward stable least-squares solver without pivoting.
+        const Eigen::HouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(L));
         C.resize(L.r2(), B.n(), B.r2());
         EigenMap(unfold_right(C)) = qr.solve(ConstEigenMap(unfold_right(B)));
       }
@@ -185,7 +187,8 @@ namespace PITTS
 
         // mirror image of solveLeftInterface on the left unfolding of B (m n x q): C R = B <=> R^H C^H = B^H
         // (adjoint() is only a view; the solve copies its right-hand side into a block-sized temporary in both cases)
-        const Eigen::ColPivHouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(R).adjoint());
+        // R has full row rank (columns selected by maxvol), so no pivoting, see solveLeftInterface
+        const Eigen::HouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(R).adjoint());
         C.resize(B.r1(), B.n(), R.r1());
         EigenMap(unfold_left(C)) = qr.solve(ConstEigenMap(unfold_left(B)).adjoint()).adjoint();
       }
