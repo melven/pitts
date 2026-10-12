@@ -187,6 +187,24 @@ namespace PITTS
     }
 #endif
 
+    //! entry with the largest |B_ij|^2 for maxvol_swapRows
+    template<typename RealType>
+    struct MaxvolMaxEntry
+    {
+      RealType abs2;
+      long long i, j;
+
+      //! the larger one; ties: the first one in column-major order (as Eigen's maxCoeff), so the result does not depend on the order of the comparisons
+      static MaxvolMaxEntry larger(const MaxvolMaxEntry& a, const MaxvolMaxEntry& b)
+      {
+        return (b.abs2 > a.abs2 || (b.abs2 == a.abs2 && (b.j < a.j || (b.j == a.j && b.i < a.i)))) ? b : a;
+      }
+    };
+
+// OpenMP reduction for the largest entry, at namespace scope for each type (a declaration in a function template crashes some GCC versions)
+#pragma omp declare reduction(maxvolMaxEntry : MaxvolMaxEntry<float> : omp_out = MaxvolMaxEntry<float>::larger(omp_out, omp_in)) initializer(omp_priv = MaxvolMaxEntry<float>{-1.f, 0, 0})
+#pragma omp declare reduction(maxvolMaxEntry : MaxvolMaxEntry<double> : omp_out = MaxvolMaxEntry<double>::larger(omp_out, omp_in)) initializer(omp_priv = MaxvolMaxEntry<double>{-1., 0, 0})
+
     //! swap rows into the selection while max |B| > threshold, at most maxIter times (just for timings)
     //!
     //! B = A * A(I,:)^{-1}; when row i replaces the j-th selected row: B <- B - B(:,j) * (B(i,:) - e_j^T) / B(i,j),
@@ -203,19 +221,7 @@ namespace PITTS
       const long long m = B.r1();
       const long long r = B.r2();
 
-      // entry with the largest |B_ij|^2
-      struct MaxEntry
-      {
-        RealType abs2;
-        long long i, j;
-
-        // the larger one; ties: the first one in column-major order (as Eigen's maxCoeff), so the result does not depend on the order of the comparisons
-        static MaxEntry larger(const MaxEntry& a, const MaxEntry& b)
-        {
-          return (b.abs2 > a.abs2 || (b.abs2 == a.abs2 && (b.j < a.j || (b.j == a.j && b.i < a.i)))) ? b : a;
-        }
-      };
-#pragma omp declare reduction(maxEntry : MaxEntry : omp_out = MaxEntry::larger(omp_out, omp_in)) initializer(omp_priv = MaxEntry{RealType(-1), 0, 0})
+      using MaxEntry = MaxvolMaxEntry<RealType>;
       // maximum of column k with its position (only for a column that may contain a new maximum, rarely); scanned again
       // instead of searching for the value of the vectorized loop, which may round differently (e.g. FMA for complex)
       const auto inColumn = [&B, m](long long k)
@@ -236,7 +242,7 @@ namespace PITTS
 
       // initial maximum (threads only for larger matrices, one fork/join per swap)
       MaxEntry best{RealType(-1), 0, 0};
-#pragma omp parallel for schedule(static) reduction(maxEntry : best) if(m*r > 100000)
+#pragma omp parallel for schedule(static) reduction(maxvolMaxEntry : best) if(m*r > 100000)
       for(long long k = 0; k < r; k++)
       {
         RealType colMax = RealType(-1);
@@ -263,7 +269,7 @@ namespace PITTS
 
         // rank-1 update B <- B - Bj * Bi and the next maximum in one pass
         best = MaxEntry{RealType(-1), 0, 0};
-#pragma omp parallel for schedule(static) reduction(maxEntry : best) if(m*r > 100000)
+#pragma omp parallel for schedule(static) reduction(maxvolMaxEntry : best) if(m*r > 100000)
         for(long long k = 0; k < r; k++)
         {
           RealType colMax = RealType(-1);
