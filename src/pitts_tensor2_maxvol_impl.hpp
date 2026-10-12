@@ -187,7 +187,9 @@ namespace PITTS
     //! swap rows into the selection while max |B| > threshold, at most maxIter times (just for timings)
     //!
     //! B = A * A(I,:)^{-1}; when row i replaces the j-th selected row: B <- B - B(:,j) * (B(i,:) - e_j^T) / B(i,j),
-    //! so B(I,:) stays the identity for the new selection.
+    //! so B(I,:) stays the identity for the new selection. The update and the search for the next maximum are done in
+    //! one pass over B, parallelized over the columns (one parallel loop per swap, the result does not depend on the
+    //! number of threads).
     //!
     template<typename T, typename RealType>
     void maxvol_swapRows(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, std::vector<int>& I, RealType threshold, int maxIter)
@@ -195,28 +197,87 @@ namespace PITTS
       // the number of swaps is only known afterwards, so no flops/data transfers
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
-      const auto m = B.rows();
-      const auto r = B.cols();
+      const Eigen::Index m = B.rows();
+      const Eigen::Index r = B.cols();
+      // threads only for larger matrices: one fork/join per swap
+      const bool parallel = m*r > 100000;
+
+      // entry with the largest |B_ij|^2
+      struct MaxEntry
+      {
+        RealType abs2;
+        Eigen::Index i, j;
+
+        // the larger one; ties: the first one in column-major order (as Eigen's maxCoeff), so the result does not depend on the order of the comparisons
+        static MaxEntry larger(const MaxEntry& a, const MaxEntry& b)
+        {
+          return (b.abs2 > a.abs2 || (b.abs2 == a.abs2 && (b.j < a.j || (b.j == a.j && b.i < a.i)))) ? b : a;
+        }
+      };
+#pragma omp declare reduction(maxEntry : MaxEntry : omp_out = MaxEntry::larger(omp_out, omp_in)) initializer(omp_priv = MaxEntry{RealType(-1), 0, 0})
+      // maximum of column k with its position (only for a column that may contain a new maximum, rarely); scanned again
+      // instead of searching for the value of the vectorized loop, which may round differently (e.g. FMA for complex)
+      const auto inColumn = [&B, m](Eigen::Index k)
+      {
+        MaxEntry result{Eigen::numext::abs2(B(0,k)), 0, k};
+        for(Eigen::Index l = 1; l < m; l++)
+        {
+          const RealType v = Eigen::numext::abs2(B(l,k));
+          if( v > result.abs2 )
+            result = MaxEntry{v, l, k};
+        }
+        return result;
+      };
 
       // workspace, reused for all swaps (B(:,j) and B(i,:) are overwritten by the update)
       Eigen::Matrix<T, Eigen::Dynamic, 1> Bj(m);
       Eigen::Matrix<T, 1, Eigen::Dynamic> Bi(r);
 
+      // initial maximum
+      MaxEntry best{RealType(-1), 0, 0};
+#pragma omp parallel for schedule(static) reduction(maxEntry : best) if(parallel)
+      for(Eigen::Index k = 0; k < r; k++)
+      {
+        const T* col = B.col(k).data();
+        RealType colMax = RealType(-1);
+        for(Eigen::Index l = 0; l < m; l++)
+          colMax = std::max(colMax, Eigen::numext::abs2(col[l]));
+        if( colMax > best.abs2 )
+          best = MaxEntry::larger(best, inColumn(k));
+      }
+
+      const RealType threshold2 = threshold*threshold;
       for(int iter = 0; iter < maxIter; iter++)
       {
-        Eigen::Index i, j;
-        const RealType maxB = B.array().abs().maxCoeff(&i, &j);
-        if( maxB <= threshold )
+        if( best.abs2 <= threshold2 )
           break;
 
         // swap row i into the selection, replacing the j-th selected row
+        const Eigen::Index i = best.i, j = best.j;
         const T pivot = B(i,j);
         Bj = B.col(j);
         Bi = B.row(i);
         Bi(j) -= T(1);
         Bi /= pivot;
-        B.noalias() -= Bj * Bi;
         I[j] = i;
+
+        // rank-1 update B <- B - Bj * Bi and the next maximum in one pass
+        best = MaxEntry{RealType(-1), 0, 0};
+        const T* bj = Bj.data();
+#pragma omp parallel for schedule(static) reduction(maxEntry : best) if(parallel)
+        for(Eigen::Index k = 0; k < r; k++)
+        {
+          T* col = B.col(k).data();
+          const T bik = Bi(k);
+          RealType colMax = RealType(-1);
+          for(Eigen::Index l = 0; l < m; l++)
+          {
+            col[l] -= bj[l] * bik;
+            colMax = std::max(colMax, Eigen::numext::abs2(col[l]));
+          }
+          if( colMax > best.abs2 )
+            best = MaxEntry::larger(best, inColumn(k));
+        }
       }
     }
 
