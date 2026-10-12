@@ -852,26 +852,33 @@ namespace PITTS
       CoreUpdate<T> updateCoreRight(const Tensor3<T>& C, const Tensor2<T>& rightInterface, T rankTolerance, int maxRank,
                                     T maxvolTolerance, T oversampling = T(0), int maxColumns = std::numeric_limits<int>::max());
 
-      //! Rows of a block for a cross without cores (error approximation): maxvol on its truncated left singular vectors
+      //! Rows of a block for a cross without cores (error approximation): maxvol on its dominant left singular vectors
       //!
-      //! Truncated SVD of the left unfolding (rankTolerance in the Frobenius norm, at most maxRank directions), then
-      //! maxvol on the orthonormal factor (square selection).
+      //! Truncated SVD of the left unfolding (absoluteTolerance in the Frobenius norm, at most nRows directions), then
+      //! maxvol on the orthonormal factor, oversampled to nRows rows (rows with the largest leverage scores, see maxvol).
+      //! The number of rows is fixed and directions below the tolerance do not influence the selection, so near
+      //! round-off the result does not depend on it (a numerical rank would).
       //!
-      //! @return  selected rows of the left unfolding of B
+      //! @param B                  block (r1 x n x r2)
+      //! @param absoluteTolerance  directions with a tail below it in the Frobenius norm are not dominant
+      //! @param nRows              number of rows to select (limited to r1*n)
+      //! @param maxvolTolerance    dominance tolerance for maxvol
+      //! @return                   selected rows of the left unfolding of B
       //!
       template<typename T>
-      std::vector<int> dominantRows(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance);
+      std::vector<int> dominantRows(const Tensor3<T>& B, T absoluteTolerance, int nRows, T maxvolTolerance);
 
       //! Columns of a block for a cross without cores (mirror image of dominantRows, on the right unfolding)
       template<typename T>
-      std::vector<int> dominantColumns(const Tensor3<T>& B, T rankTolerance, int maxRank, T maxvolTolerance);
+      std::vector<int> dominantColumns(const Tensor3<T>& B, T absoluteTolerance, int nColumns, T maxvolTolerance);
 
 
       //! Initial y for TT-cross in the orthogonal gauge: zero, but with an orthonormal right frame from the inputs
       //!
-      //! The cores 1..d-1 of y are the right-orthonormal cores of the (left- and then right-normalized, tolerance 0)
-      //! direct sum of the inputs (block-diagonal cores), so the right parts of y span the right parts of all
-      //! inputs; core 0 is set to zero. Then rightIndexSetsFromFrame gives well-conditioned initial right index
+      //! The cores 1..d-1 of y are the right-orthonormal cores of the direct sum (block-diagonal cores) of the inputs,
+      //! each left-normalized to unit norm first (tolerance 0) and then right-normalized together (tolerance 0, ranks
+      //! limited by maxRank and the dimensions on the left). So the right parts of y span the right parts of all
+      //! inputs, independent of their norms and gauges (also directions that cancel in their sum); core 0 is set to zero. Then rightIndexSetsFromFrame gives well-conditioned initial right index
       //! sets with full-rank interfaces, as needed by solveRightInterface.
       //!
       //! @param TTx      input tensor trains (same dimensions as TTy, boundary ranks 1)

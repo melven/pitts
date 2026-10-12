@@ -29,9 +29,9 @@ template void PITTS::internal::tt_cross::initialRightFrame<double>(const std::ve
 template void PITTS::internal::tt_cross::solveLeftInterface<float>(const Tensor2<float>& L, const Tensor3<float>& B, Tensor3<float>& C);
 template void PITTS::internal::tt_cross::solveRightInterface<float>(const Tensor3<float>& B, const Tensor2<float>& R, Tensor3<float>& C);
 template void PITTS::internal::tt_cross::initialRightFrame<float>(const std::vector<std::reference_wrapper<const TensorTrain<float>>>& TTx, TensorTrain<float>& TTy, int maxRank);
-template std::vector<int> PITTS::internal::tt_cross::dominantRows<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance);
-template std::vector<int> PITTS::internal::tt_cross::dominantColumns<double>(const Tensor3<double>& B, double rankTolerance, int maxRank, double maxvolTolerance);
+template std::vector<int> PITTS::internal::tt_cross::dominantRows<double>(const Tensor3<double>& B, double absoluteTolerance, int nRows, double maxvolTolerance);
+template std::vector<int> PITTS::internal::tt_cross::dominantColumns<double>(const Tensor3<double>& B, double absoluteTolerance, int nColumns, double maxvolTolerance);
 template std::vector<NestedIndices> PITTS::internal::tt_cross::rightIndexSetsFromFrame<double>(const TensorTrain<double>& TT, double maxvolTolerance, double oversampling, const std::vector<int>& maxIndices);
-template std::vector<int> PITTS::internal::tt_cross::dominantRows<float>(const Tensor3<float>& B, float rankTolerance, int maxRank, float maxvolTolerance);
-template std::vector<int> PITTS::internal::tt_cross::dominantColumns<float>(const Tensor3<float>& B, float rankTolerance, int maxRank, float maxvolTolerance);
+template std::vector<int> PITTS::internal::tt_cross::dominantRows<float>(const Tensor3<float>& B, float absoluteTolerance, int nRows, float maxvolTolerance);
+template std::vector<int> PITTS::internal::tt_cross::dominantColumns<float>(const Tensor3<float>& B, float absoluteTolerance, int nColumns, float maxvolTolerance);
 template std::vector<NestedIndices> PITTS::internal::tt_cross::rightIndexSetsFromFrame<float>(const TensorTrain<float>& TT, float maxvolTolerance, float oversampling, const std::vector<int>& maxIndices);
