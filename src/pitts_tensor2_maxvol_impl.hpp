@@ -86,7 +86,7 @@ namespace PITTS
     //! LU contains L (unit lower trapezoidal, m x r) and U (upper triangular, r x r), row k of P A is row perm[k] of A.
     //!
     template<typename T>
-    void maxvol_lu(const ConstTensor2View<T>& A, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& LU, std::vector<int>& perm)
+    void maxvol_lu(const ConstTensor2View<T>& A, Tensor2<T>& LU, std::vector<int>& perm)
     {
       const auto m = A.r1();
       const auto r = A.r2();
@@ -97,10 +97,12 @@ namespace PITTS
          {(m*r)*kernel_info::Load<T>() + (m*r)*kernel_info::Store<T>()}} // data transfers
         );
 
-      LU = ConstEigenMap(A);
+      LU.resize(m, r);
+      auto mapLU = EigenMap(LU);
+      mapLU = ConstEigenMap(A);
       std::vector<lapack_int> ipiv(r);
       // info > 0 only reports an exactly zero pivot, rank deficiency is checked by the caller
-      const lapack_int info = maxvol_getrf_mapper(m, r, LU.data(), LU.colStride(), ipiv.data());
+      const lapack_int info = maxvol_getrf_mapper(m, r, mapLU.data(), mapLU.colStride(), ipiv.data());
       if( info < 0 )
         throw std::runtime_error("maxvol: ?getrf failed with info " + std::to_string(info) + "!");
 
@@ -114,10 +116,10 @@ namespace PITTS
 
     //! calculate B = A * A(I,:)^{-1} = P^T [I; L2 L1^{-1}] from the LU decomposition P A = [L1; L2] U (just for timings)
     template<typename T>
-    void maxvol_lu_solve(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& LU, const std::vector<int>& perm, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B)
+    void maxvol_lu_solve(Tensor2<T>& LU, const std::vector<int>& perm, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B)
     {
-      const auto m = LU.rows();
-      const auto r = LU.cols();
+      const auto m = LU.r1();
+      const auto r = LU.r2();
       // triangular solve with m-r right-hand sides
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"m", "r"},{m, r}}, // arguments
@@ -126,7 +128,8 @@ namespace PITTS
         );
 
       // L2 <- L2 L1^{-1} in place
-      maxvol_trsm_mapper(CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasUnit, m-r, r, T(1), LU.data(), LU.colStride(), LU.data()+r, LU.colStride());
+      auto mapLU = EigenMap(LU);
+      maxvol_trsm_mapper(CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasUnit, m-r, r, T(1), mapLU.data(), mapLU.colStride(), mapLU.data()+r, mapLU.colStride());
 
       B.resize(m, r);
       for(int k = 0; k < r; k++)
@@ -135,7 +138,7 @@ namespace PITTS
         B(perm[k], k) = T(1);
       }
       for(int k = r; k < m; k++)
-        B.row(perm[k]) = LU.row(k);
+        B.row(perm[k]) = mapLU.row(k);
     }
 #else
     //! small wrapper around the column-pivoted QR of A^H used for the initial row selection (just for timings)
@@ -306,12 +309,12 @@ namespace PITTS
       // initialization) with MKL, otherwise of a column-pivoted QR decomposition of A^T (greedy choice of the "largest" rows)
       std::vector<int> I(r);
 #ifdef PITTS_DIRECT_MKL_GEMM
-      mat LU;
+      Tensor2<T> LU;
       std::vector<int> perm;
       maxvol_lu(A, LU, perm);
       for(int j = 0; j < r; j++)
         I[j] = perm[j];
-      const Eigen::Matrix<RealType, Eigen::Dynamic, 1> absDiag = LU.diagonal().array().abs();
+      const Eigen::Matrix<RealType, Eigen::Dynamic, 1> absDiag = ConstEigenMap(LU).diagonal().array().abs();
 #else
       const auto qr = maxvol_qr(A);
       const auto& pivots = qr.colsPermutation().indices();
