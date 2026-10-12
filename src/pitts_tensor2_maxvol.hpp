@@ -38,7 +38,9 @@ namespace PITTS
     //! dominant submatrix is quasi-maximal, and A(I,:) is a good choice for the intersection matrix of
     //! a cross approximation (the interpolation coefficients A * A(I,:)^{-1} stay bounded).
     //!
-    //! Algorithm: initial row selection by a column-pivoted QR decomposition of A^T, then
+    //! Algorithm: initial row selection by the pivot rows of an LU decomposition with partial pivoting of A
+    //! (with PITTS_DIRECT_MKL_GEMM: ?getrf, BLAS-3, B = A * A(I,:)^{-1} follows with one triangular solve), otherwise
+    //! by a column-pivoted QR decomposition of A^T (better initial selection, but unblocked), then
     //! B = A * A(I,:)^{-1}; while max |B_ij| > 1+tol, swap row i into the selection (replacing the j-th
     //! selected row, the volume grows by |B_ij|) and update B with a rank-1 update.
     //!

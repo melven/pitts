@@ -17,6 +17,7 @@
 // includes
 #include <algorithm>
 #include <cmath>
+#include <complex>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -27,6 +28,10 @@
 #include "pitts_kernel_info.hpp"
 #include "pitts_performance.hpp"
 #include "pitts_timer.hpp"
+#ifdef PITTS_DIRECT_MKL_GEMM
+#include <mkl_cblas.h>
+#include <mkl_lapacke.h>
+#endif
 
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -35,6 +40,107 @@ namespace PITTS
   //! namespace for helper functionality
   namespace internal
   {
+#ifdef PITTS_DIRECT_MKL_GEMM
+    inline lapack_int maxvol_getrf_mapper(lapack_int m, lapack_int n, double* A, lapack_int lda, lapack_int* ipiv)
+    {
+      return LAPACKE_dgetrf(LAPACK_COL_MAJOR, m, n, A, lda, ipiv);
+    }
+
+    inline lapack_int maxvol_getrf_mapper(lapack_int m, lapack_int n, float* A, lapack_int lda, lapack_int* ipiv)
+    {
+      return LAPACKE_sgetrf(LAPACK_COL_MAJOR, m, n, A, lda, ipiv);
+    }
+
+    inline lapack_int maxvol_getrf_mapper(lapack_int m, lapack_int n, std::complex<double>* A, lapack_int lda, lapack_int* ipiv)
+    {
+      return LAPACKE_zgetrf(LAPACK_COL_MAJOR, m, n, (MKL_Complex16*)A, lda, ipiv);
+    }
+
+    inline lapack_int maxvol_getrf_mapper(lapack_int m, lapack_int n, std::complex<float>* A, lapack_int lda, lapack_int* ipiv)
+    {
+      return LAPACKE_cgetrf(LAPACK_COL_MAJOR, m, n, (MKL_Complex8*)A, lda, ipiv);
+    }
+
+    inline void maxvol_trsm_mapper(const CBLAS_LAYOUT Layout, const CBLAS_SIDE side, const CBLAS_UPLO uplo, const CBLAS_TRANSPOSE transa, const CBLAS_DIAG diag, const CBLAS_INDEX M, const CBLAS_INDEX N, const double alpha, const double * A, const CBLAS_INDEX lda, double * B, const CBLAS_INDEX ldb)
+    {
+      cblas_dtrsm(Layout, side, uplo, transa, diag, M, N, alpha, A, lda, B, ldb);
+    }
+
+    inline void maxvol_trsm_mapper(const CBLAS_LAYOUT Layout, const CBLAS_SIDE side, const CBLAS_UPLO uplo, const CBLAS_TRANSPOSE transa, const CBLAS_DIAG diag, const CBLAS_INDEX M, const CBLAS_INDEX N, const float alpha, const float * A, const CBLAS_INDEX lda, float * B, const CBLAS_INDEX ldb)
+    {
+      cblas_strsm(Layout, side, uplo, transa, diag, M, N, alpha, A, lda, B, ldb);
+    }
+
+    inline void maxvol_trsm_mapper(const CBLAS_LAYOUT Layout, const CBLAS_SIDE side, const CBLAS_UPLO uplo, const CBLAS_TRANSPOSE transa, const CBLAS_DIAG diag, const CBLAS_INDEX M, const CBLAS_INDEX N, const std::complex<double> alpha, const std::complex<double> * A, const CBLAS_INDEX lda, std::complex<double> * B, const CBLAS_INDEX ldb)
+    {
+      cblas_ztrsm(Layout, side, uplo, transa, diag, M, N, (const MKL_Complex16*)&alpha, (const MKL_Complex16*)A, lda, (MKL_Complex16*)B, ldb);
+    }
+
+    inline void maxvol_trsm_mapper(const CBLAS_LAYOUT Layout, const CBLAS_SIDE side, const CBLAS_UPLO uplo, const CBLAS_TRANSPOSE transa, const CBLAS_DIAG diag, const CBLAS_INDEX M, const CBLAS_INDEX N, const std::complex<float> alpha, const std::complex<float> * A, const CBLAS_INDEX lda, std::complex<float> * B, const CBLAS_INDEX ldb)
+    {
+      cblas_ctrsm(Layout, side, uplo, transa, diag, M, N, (const MKL_Complex8*)&alpha, (const MKL_Complex8*)A, lda, (MKL_Complex8*)B, ldb);
+    }
+
+    //! LU decomposition with partial pivoting P A = L U of the tall matrix A for the initial row selection (just for timings)
+    //!
+    //! LU contains L (unit lower trapezoidal, m x r) and U (upper triangular, r x r), row k of P A is row perm[k] of A.
+    //!
+    template<typename T>
+    void maxvol_lu(const ConstTensor2View<T>& A, Tensor2<T>& LU, std::vector<int>& perm)
+    {
+      const auto m = A.r1();
+      const auto r = A.r2();
+      // flops of ?getrf for a tall matrix
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"m", "r"},{m, r}}, // arguments
+        {{(m*r*r/2. - r*r*r/6.)*kernel_info::FMA<T>()}, // flops
+         {(m*r)*kernel_info::Load<T>() + (m*r)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      LU.resize(m, r);
+      auto mapLU = EigenMap(LU);
+      mapLU = ConstEigenMap(A);
+      std::vector<lapack_int> ipiv(r);
+      // info > 0 only reports an exactly zero pivot, rank deficiency is checked by the caller
+      const lapack_int info = maxvol_getrf_mapper(m, r, mapLU.data(), mapLU.colStride(), ipiv.data());
+      if( info < 0 )
+        throw std::runtime_error("maxvol: ?getrf failed with info " + std::to_string(info) + "!");
+
+      // the row interchanges of ?getrf (1-based, applied one after another) as a permutation
+      perm.resize(m);
+      for(int i = 0; i < m; i++)
+        perm[i] = i;
+      for(int k = 0; k < r; k++)
+        std::swap(perm[k], perm[ipiv[k]-1]);
+    }
+
+    //! calculate B = A * A(I,:)^{-1} = P^T [I; L2 L1^{-1}] from the LU decomposition P A = [L1; L2] U (just for timings)
+    template<typename T>
+    void maxvol_lu_solve(Tensor2<T>& LU, const std::vector<int>& perm, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B)
+    {
+      const auto m = LU.r1();
+      const auto r = LU.r2();
+      // triangular solve with m-r right-hand sides
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+        {{"m", "r"},{m, r}}, // arguments
+        {{((m-r)*r*r/2.)*kernel_info::FMA<T>()}, // flops
+         {(m*r)*kernel_info::Load<T>() + (m*r)*kernel_info::Store<T>()}} // data transfers
+        );
+
+      // L2 <- L2 L1^{-1} in place
+      auto mapLU = EigenMap(LU);
+      maxvol_trsm_mapper(CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasUnit, m-r, r, T(1), mapLU.data(), mapLU.colStride(), mapLU.data()+r, mapLU.colStride());
+
+      B.resize(m, r);
+      for(int k = 0; k < r; k++)
+      {
+        B.row(perm[k]).setZero();
+        B(perm[k], k) = T(1);
+      }
+      for(int k = r; k < m; k++)
+        B.row(perm[k]) = mapLU.row(k);
+    }
+#else
     //! small wrapper around the column-pivoted QR of A^H used for the initial row selection (just for timings)
     template<typename T>
     auto maxvol_qr(const ConstTensor2View<T>& A)
@@ -76,6 +182,7 @@ namespace PITTS
       const Eigen::PartialPivLU<mat> luH(Ahat.adjoint());
       return mat(luH.solve(mapA.adjoint()).adjoint());
     }
+#endif
 
     //! find the entry of B with the largest absolute value (just for timings)
     template<typename T>
@@ -198,26 +305,37 @@ namespace PITTS
 
       const RealType threshold = 1 + std::real(tol);
 
-      // initial selection: column-pivoted QR of A^T (greedy choice of the "largest" rows)
-      auto qr = maxvol_qr(A);
-      const auto& pivots = qr.colsPermutation().indices();
+      // initial selection: the pivot rows of an LU decomposition with partial pivoting of A (BLAS-3, classical maxvol
+      // initialization) with MKL, otherwise of a column-pivoted QR decomposition of A^T (greedy choice of the "largest" rows)
       std::vector<int> I(r);
+#ifdef PITTS_DIRECT_MKL_GEMM
+      Tensor2<T> LU;
+      std::vector<int> perm;
+      maxvol_lu(A, LU, perm);
+      for(int j = 0; j < r; j++)
+        I[j] = perm[j];
+      const Eigen::Matrix<RealType, Eigen::Dynamic, 1> absDiag = ConstEigenMap(LU).diagonal().array().abs();
+#else
+      const auto qr = maxvol_qr(A);
+      const auto& pivots = qr.colsPermutation().indices();
       for(int j = 0; j < r; j++)
         I[j] = pivots(j);
+      const Eigen::Matrix<RealType, Eigen::Dynamic, 1> absDiag = qr.matrixR().diagonal().array().abs();
+#endif
 
-      // check for a rank-deficient input (A(I,:) would be singular); Eigen's rank() counts the diagonal
-      // entries of R above threshold*maxPivot, the same criterion as in normalize_qb
-      qr.setThreshold(std::numeric_limits<RealType>::epsilon() * std::max(m, r) * 10);
-      if( qr.rank() < r )
+      // check for a rank-deficient input (A(I,:) would be singular): count the diagonal entries of U (or R) above
+      // threshold*max, the same criterion as Eigen's rank() and normalize_qb
+      const RealType rankThreshold = std::numeric_limits<RealType>::epsilon() * std::max(m, r) * 10 * absDiag.maxCoeff();
+      const int rank = (absDiag.array() > rankThreshold).count();
+      if( rank < r )
       {
         // The caller must reduce the number of columns: with fewer selected rows A(I,:) is not square and
         // the interpolation coefficients A * A(I,:)^{-1} do not exist, so this cannot be fixed here.
         // Report what is needed to find the offending step (usually an orthogonal factor that lost its
         // orthogonality, see internal::tt_cross::dropNoiseDirections).
-        const auto absDiagR = qr.matrixR().diagonal().array().abs().eval();
         throw std::invalid_argument("maxvol: input matrix (" + std::to_string(m) + " x " + std::to_string(r) +
-                                    ") is (numerically) rank-deficient: estimated rank " + std::to_string(qr.rank()) +
-                                    ", |R_rr/R_11| " + std::to_string(absDiagR(r-1)/absDiagR(0)) + "!");
+                                    ") is (numerically) rank-deficient: estimated rank " + std::to_string(rank) +
+                                    ", min/max of the absolute pivots " + std::to_string(absDiag.minCoeff()/absDiag.maxCoeff()) + "!");
       }
 
       // fast return: nothing to swap, all rows are selected. Return them in natural order so that
@@ -235,7 +353,12 @@ namespace PITTS
       }
 
       // B = A * A(I,:)^{-1}, so B(I,:) is the identity
+#ifdef PITTS_DIRECT_MKL_GEMM
+      mat B;
+      maxvol_lu_solve(LU, perm, B);
+#else
       mat B = maxvol_solve(A, I);
+#endif
 
       for(int iter = 0; iter < maxIter; iter++)
       {
