@@ -242,9 +242,11 @@ namespace PITTS
     //! add row i to an oversampled selection, with C = B M only the small matrix M is updated (just for timings)
     //!
     //! M <- M - beta (M c^H) c with c = C(i,:) = B(i,:) M, and the scores |C(j,:)|^2 are updated directly; B is only read.
+    //! c (1 x r), w (r) and Cc (m) are workspace of the correct size, reused for all added rows.
     //!
     template<typename T, typename RealType>
-    void maxvol_addRow(Eigen::Index i, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores)
+    void maxvol_addRow(Eigen::Index i, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores,
+                       Eigen::Matrix<T, 1, Eigen::Dynamic>& c, Eigen::Matrix<T, Eigen::Dynamic, 1>& w, Eigen::Matrix<T, Eigen::Dynamic, 1>& Cc)
     {
       const auto m = B.rows();
       const auto r = B.cols();
@@ -254,21 +256,21 @@ namespace PITTS
          {(m*r)*kernel_info::Load<T>() + m*kernel_info::Update<T>()}} // data transfers
         );
 
-      using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
-
       // C = A L is replaced by A L' with L' = L (I - beta c^H c), where (I - beta c^H c)^2 = I - c^H c / (1 + |c|^2), so that
       // L' L'^H = (G + u^H u)^{-1} for the Gram matrix G of the selection and the new row u (Sherman-Morrison);
       // beta = (1 - 1/sqrt(1+a))/a = 1/(sqrt(1+a) (1+sqrt(1+a))) with a = |c|^2, the second form is stable for small a.
       // With C = B M: C' = B M (I - beta c^H c) = B (M - beta w c) with w = M c^H, and
       // |C'(j,:)|^2 = C(j,:) (I - c^H c / (1+a)) C(j,:)^H = |C(j,:)|^2 - |(C c^H)_j|^2 / (1+a) with C c^H = B w.
-      const Eigen::Matrix<T, 1, Eigen::Dynamic> c = B.row(i) * M;
+      c.noalias() = B.row(i) * M;
       const RealType a = c.squaredNorm();
       const RealType sqrt1a = std::sqrt(1 + a);
       const RealType beta = 1 / (sqrt1a * (1 + sqrt1a));
-      const vec w = M * c.adjoint();
-      const vec Cc = B * w;
+      w.noalias() = M * c.adjoint();
+      Cc.noalias() = B * w;
       scores -= Cc.cwiseAbs2() / (1 + a);
-      M.noalias() -= (beta * w) * c;
+      // scale w in place (no temporary for beta * w), it is not needed afterwards
+      w *= beta;
+      M.noalias() -= w * c;
     }
 
     //! interpolation coefficients C C(I,:)^H = A A(I,:)^+ of an oversampled selection with C = B M (just for timings)
@@ -388,6 +390,9 @@ namespace PITTS
       {
         Eigen::Matrix<RealType, Eigen::Dynamic, 1> scores = B.rowwise().squaredNorm();
         mat M = mat::Identity(r, r);
+        // workspace for maxvol_addRow
+        Eigen::Matrix<T, 1, Eigen::Dynamic> c(r);
+        Eigen::Matrix<T, Eigen::Dynamic, 1> w(r), Cc(m);
         for(int nSelected = r; nSelected < nRows; nSelected++)
         {
           for(const int i: I)
@@ -395,7 +400,7 @@ namespace PITTS
           Eigen::Index i;
           scores.maxCoeff(&i);
           I.push_back(i);
-          maxvol_addRow(i, B, M, scores);
+          maxvol_addRow(i, B, M, scores, c, w, Cc);
         }
         if( AAinv != nullptr )
           maxvol_coefficients(B, M, I, *AAinv);
