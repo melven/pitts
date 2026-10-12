@@ -21,6 +21,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 #include "pitts_tensor2_maxvol.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
@@ -116,7 +117,7 @@ namespace PITTS
 
     //! calculate B = A * A(I,:)^{-1} = P^T [I; L2 L1^{-1}] from the LU decomposition P A = [L1; L2] U (just for timings)
     template<typename T>
-    void maxvol_lu_solve(Tensor2<T>& LU, const std::vector<int>& perm, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B)
+    void maxvol_lu_solve(Tensor2<T>& LU, const std::vector<int>& perm, Tensor2<T>& B)
     {
       const auto m = LU.r1();
       const auto r = LU.r2();
@@ -132,13 +133,14 @@ namespace PITTS
       maxvol_trsm_mapper(CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasUnit, m-r, r, T(1), mapLU.data(), mapLU.colStride(), mapLU.data()+r, mapLU.colStride());
 
       B.resize(m, r);
+      auto mapB = EigenMap(B);
       for(int k = 0; k < r; k++)
       {
-        B.row(perm[k]).setZero();
-        B(perm[k], k) = T(1);
+        mapB.row(perm[k]).setZero();
+        mapB(perm[k], k) = T(1);
       }
       for(int k = r; k < m; k++)
-        B.row(perm[k]) = mapLU.row(k);
+        mapB.row(perm[k]) = mapLU.row(k);
     }
 #else
     //! small wrapper around the column-pivoted QR of A^H used for the initial row selection (just for timings)
@@ -160,7 +162,7 @@ namespace PITTS
 
     //! calculate B = A * A(I,:)^{-1} with an LU decomposition of the selected rows (just for timings)
     template<typename T>
-    auto maxvol_solve(const ConstTensor2View<T>& A, const std::vector<int>& I)
+    void maxvol_solve(const ConstTensor2View<T>& A, const std::vector<int>& I, Tensor2<T>& B)
     {
       const auto m = A.r1();
       const auto r = A.r2();
@@ -180,63 +182,100 @@ namespace PITTS
 
       // solve Ahat^H B^H = A^H for B^H
       const Eigen::PartialPivLU<mat> luH(Ahat.adjoint());
-      return mat(luH.solve(mapA.adjoint()).adjoint());
+      B.resize(m, r);
+      EigenMap(B) = luH.solve(mapA.adjoint()).adjoint();
     }
 #endif
 
-    //! find the entry of B with the largest absolute value (just for timings)
-    template<typename T>
-    auto maxvol_maxAbs(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, Eigen::Index& i, Eigen::Index& j)
-    {
-      const auto m = B.rows();
-      const auto r = B.cols();
-      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
-        {{"m", "r"},{m, r}}, // arguments
-        {{(1.*m*r)*kernel_info::Add<T>()}, // flops (one comparison per entry)
-         {(m*r)*kernel_info::Load<T>()}} // data transfers
-        );
-
-      return B.array().abs().maxCoeff(&i, &j);
-    }
-
-    //! rank-1 update of B = A * A(I,:)^{-1} when row i replaces the j-th selected row (just for timings)
+    //! swap rows into the selection while max |B| > threshold, at most maxIter times (just for timings)
     //!
-    //! B <- B - B(:,j) * (B(i,:) - e_j^T) / B(i,j), so B(I,:) stays the identity for the new selection.
+    //! B = A * A(I,:)^{-1}; when row i replaces the j-th selected row: B <- B - B(:,j) * (B(i,:) - e_j^T) / B(i,j),
+    //! so B(I,:) stays the identity for the new selection. The update and the search for the next maximum are done in
+    //! one pass over B, parallelized over the columns (one parallel loop per swap, the result does not depend on the
+    //! number of threads).
     //!
-    template<typename T>
-    void maxvol_swapRow(Eigen::Index i, Eigen::Index j, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B)
+    template<typename T, typename RealType>
+    void maxvol_swapRows(Tensor2<T>& B, std::vector<int>& I, RealType threshold, int maxIter)
     {
-      const auto m = B.rows();
-      const auto r = B.cols();
-      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
-        {{"m", "r"},{m, r}}, // arguments
-        {{(1.*m*r)*kernel_info::FMA<T>()}, // flops
-         {(m*r)*kernel_info::Update<T>()}} // data transfers
-        );
+      // the number of swaps is only known afterwards, so no flops/data transfers
+      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
-      using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+      const long long m = B.r1();
+      const long long r = B.r2();
 
-      const T pivot = B(i,j);
-      const vec Bj = B.col(j);
-      Eigen::Matrix<T, 1, Eigen::Dynamic> Bi = B.row(i);
-      Bi(j) -= T(1);
-      B.noalias() -= Bj * (Bi / pivot);
-    }
+      // entry with the largest |B_ij|^2
+      struct MaxEntry
+      {
+        RealType abs2;
+        long long i, j;
 
-    //! copy the resulting B = A * A(I,:)^{-1} to the output argument (just for timings)
-    template<typename T>
-    void maxvol_copy(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, Tensor2<T>& AAinv)
-    {
-      const auto m = B.rows();
-      const auto r = B.cols();
-      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
-        {{"m", "r"},{m, r}}, // arguments
-        {{0*kernel_info::Add<T>()}, // flops
-         {(m*r)*kernel_info::Load<T>() + (m*r)*kernel_info::Store<T>()}} // data transfers
-        );
+        // the larger one; ties: the first one in column-major order (as Eigen's maxCoeff), so the result does not depend on the order of the comparisons
+        static MaxEntry larger(const MaxEntry& a, const MaxEntry& b)
+        {
+          return (b.abs2 > a.abs2 || (b.abs2 == a.abs2 && (b.j < a.j || (b.j == a.j && b.i < a.i)))) ? b : a;
+        }
+      };
+#pragma omp declare reduction(maxEntry : MaxEntry : omp_out = MaxEntry::larger(omp_out, omp_in)) initializer(omp_priv = MaxEntry{RealType(-1), 0, 0})
+      // maximum of column k with its position (only for a column that may contain a new maximum, rarely); scanned again
+      // instead of searching for the value of the vectorized loop, which may round differently (e.g. FMA for complex)
+      const auto inColumn = [&B, m](long long k)
+      {
+        MaxEntry result{Eigen::numext::abs2(B(0,k)), 0, k};
+        for(long long l = 1; l < m; l++)
+        {
+          const RealType v = Eigen::numext::abs2(B(l,k));
+          if( v > result.abs2 )
+            result = MaxEntry{v, l, k};
+        }
+        return result;
+      };
 
-      AAinv.resize(m, r);
-      EigenMap(AAinv) = B;
+      // workspace, reused for all swaps (B(:,j) and B(i,:) are overwritten by the update)
+      Eigen::Matrix<T, Eigen::Dynamic, 1> Bj(m);
+      Eigen::Matrix<T, 1, Eigen::Dynamic> Bi(r);
+
+      // initial maximum (threads only for larger matrices, one fork/join per swap)
+      MaxEntry best{RealType(-1), 0, 0};
+#pragma omp parallel for schedule(static) reduction(maxEntry : best) if(m*r > 100000)
+      for(long long k = 0; k < r; k++)
+      {
+        RealType colMax = RealType(-1);
+        for(long long l = 0; l < m; l++)
+          colMax = std::max(colMax, Eigen::numext::abs2(B(l,k)));
+        if( colMax > best.abs2 )
+          best = MaxEntry::larger(best, inColumn(k));
+      }
+
+      const RealType threshold2 = threshold*threshold;
+      for(int iter = 0; iter < maxIter; iter++)
+      {
+        if( best.abs2 <= threshold2 )
+          break;
+
+        // swap row i into the selection, replacing the j-th selected row
+        const long long i = best.i, j = best.j;
+        const T pivot = B(i,j);
+        Bj = ConstEigenMap(B).col(j);
+        Bi = ConstEigenMap(B).row(i);
+        Bi(j) -= T(1);
+        Bi /= pivot;
+        I[j] = i;
+
+        // rank-1 update B <- B - Bj * Bi and the next maximum in one pass
+        best = MaxEntry{RealType(-1), 0, 0};
+#pragma omp parallel for schedule(static) reduction(maxEntry : best) if(m*r > 100000)
+        for(long long k = 0; k < r; k++)
+        {
+          RealType colMax = RealType(-1);
+          for(long long l = 0; l < m; l++)
+          {
+            B(l,k) -= Bj(l) * Bi(k);
+            colMax = std::max(colMax, Eigen::numext::abs2(B(l,k)));
+          }
+          if( colMax > best.abs2 )
+            best = MaxEntry::larger(best, inColumn(k));
+        }
+      }
     }
 
     //! add row i to an oversampled selection, with C = B M only the small matrix M is updated (just for timings)
@@ -245,11 +284,11 @@ namespace PITTS
     //! c (1 x r), w (r) and Cc (m) are workspace of the correct size, reused for all added rows.
     //!
     template<typename T, typename RealType>
-    void maxvol_addRow(Eigen::Index i, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores,
+    void maxvol_addRow(long long i, const Tensor2<T>& B, Tensor2<T>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores,
                        Eigen::Matrix<T, 1, Eigen::Dynamic>& c, Eigen::Matrix<T, Eigen::Dynamic, 1>& w, Eigen::Matrix<T, Eigen::Dynamic, 1>& Cc)
     {
-      const auto m = B.rows();
-      const auto r = B.cols();
+      const auto m = B.r1();
+      const auto r = B.r2();
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"m", "r"},{m, r}}, // arguments
         {{(1.*m*r + 3.*r*r)*kernel_info::FMA<T>()}, // flops
@@ -261,24 +300,26 @@ namespace PITTS
       // beta = (1 - 1/sqrt(1+a))/a = 1/(sqrt(1+a) (1+sqrt(1+a))) with a = |c|^2, the second form is stable for small a.
       // With C = B M: C' = B M (I - beta c^H c) = B (M - beta w c) with w = M c^H, and
       // |C'(j,:)|^2 = C(j,:) (I - c^H c / (1+a)) C(j,:)^H = |C(j,:)|^2 - |(C c^H)_j|^2 / (1+a) with C c^H = B w.
-      c.noalias() = B.row(i) * M;
+      const auto mapB = ConstEigenMap(B);
+      auto mapM = EigenMap(M);
+      c.noalias() = mapB.row(i) * mapM;
       const RealType a = c.squaredNorm();
       const RealType sqrt1a = std::sqrt(1 + a);
       const RealType beta = 1 / (sqrt1a * (1 + sqrt1a));
-      w.noalias() = M * c.adjoint();
-      Cc.noalias() = B * w;
+      w.noalias() = mapM * c.adjoint();
+      Cc.noalias() = mapB * w;
       scores -= Cc.cwiseAbs2() / (1 + a);
       // scale w in place (no temporary for beta * w), it is not needed afterwards
       w *= beta;
-      M.noalias() -= w * c;
+      mapM.noalias() -= w * c;
     }
 
     //! interpolation coefficients C C(I,:)^H = A A(I,:)^+ of an oversampled selection with C = B M (just for timings)
     template<typename T>
-    void maxvol_coefficients(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& M, const std::vector<int>& I, Tensor2<T>& AAinv)
+    void maxvol_coefficients(const Tensor2<T>& B, const Tensor2<T>& M, const std::vector<int>& I, Tensor2<T>& AAinv)
     {
-      const auto m = B.rows();
-      const auto r = B.cols();
+      const auto m = B.r1();
+      const auto r = B.r2();
       const long long q = I.size();
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"m", "r", "q"},{m, r, q}}, // arguments
@@ -287,15 +328,17 @@ namespace PITTS
         );
 
       using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      const auto mapB = ConstEigenMap(B);
+      const auto mapM = ConstEigenMap(M);
       // the selected rows as an explicit loop (an Eigen indexed view triggers -Warray-bounds false positives with GCC 13)
       mat BI(q, r);
       for(int k = 0; k < q; k++)
-        BI.row(k) = B.row(I[k]);
+        BI.row(k) = mapB.row(I[k]);
       // C C(I,:)^H = B M (B(I,:) M)^H: first the small r x q factor, then one product with B
-      const mat CI = BI * M;
-      const mat K = M * CI.adjoint();
+      const mat CI = BI * mapM;
+      const mat K = mapM * CI.adjoint();
       AAinv.resize(m, q);
-      EigenMap(AAinv).noalias() = B * K;
+      EigenMap(AAinv).noalias() = mapB * K;
     }
 
     // implement maxvol
@@ -365,31 +408,22 @@ namespace PITTS
       }
 
       // B = A * A(I,:)^{-1}, so B(I,:) is the identity
+      Tensor2<T> B;
 #ifdef PITTS_DIRECT_MKL_GEMM
-      mat B;
       maxvol_lu_solve(LU, perm, B);
 #else
-      mat B = maxvol_solve(A, I);
+      maxvol_solve(A, I, B);
 #endif
 
-      for(int iter = 0; iter < maxIter; iter++)
-      {
-        Eigen::Index i, j;
-        const RealType maxB = maxvol_maxAbs(B, i, j);
-        if( maxB <= threshold )
-          break;
-
-        // swap row i into the selection, replacing the j-th selected row
-        maxvol_swapRow(i, j, B);
-        I[j] = i;
-      }
+      maxvol_swapRows(B, I, threshold, maxIter);
 
       // oversampling: add the rows with the largest scores |C(i,:)|^2 of C = A L with L L^H = (A(I,:)^H A(I,:))^{-1},
       // represented as C = B M with the small r x r matrix M (initially C = B), so B is not modified
       if( nRows > r )
       {
-        Eigen::Matrix<RealType, Eigen::Dynamic, 1> scores = B.rowwise().squaredNorm();
-        mat M = mat::Identity(r, r);
+        Eigen::Matrix<RealType, Eigen::Dynamic, 1> scores = ConstEigenMap(B).rowwise().squaredNorm();
+        Tensor2<T> M(r, r);
+        EigenMap(M) = mat::Identity(r, r);
         // workspace for maxvol_addRow
         Eigen::Matrix<T, 1, Eigen::Dynamic> c(r);
         Eigen::Matrix<T, Eigen::Dynamic, 1> w(r), Cc(m);
@@ -409,7 +443,7 @@ namespace PITTS
 
       // B is kept consistent with the final selection by the rank-1 updates, so it can be returned as is
       if( AAinv != nullptr )
-        maxvol_copy(B, *AAinv);
+        *AAinv = std::move(B);
 
       return I;
     }
