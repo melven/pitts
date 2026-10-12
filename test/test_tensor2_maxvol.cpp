@@ -345,6 +345,49 @@ TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_adds_the_row_with_the_largest_volu
   }
 }
 
+TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_in_blocks_adds_the_row_with_the_largest_volume)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using RealType = decltype(std::abs(Type()));
+
+  // many more rows than candidates per block and many added rows: the blocked selection (several rows per pass,
+  // certified by the largest score outside the candidates) must still choose the greedy maximum in every step;
+  // groups of nearly identical rows: adding one row of a group lowers the scores of the others in the group a lot,
+  // so the best rows of a block are not simply the candidates with the largest scores at the start of the block
+  const int m = 300, r = 4, nRows = 60;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+  const mat groups = mat::Random(10, r);
+  for(int i = 0; i < m/2; i++)
+    for(int j = 0; j < r; j++)
+      A(i, j) = RealType(2) * groups(i % 10, j) + RealType(0.01) * A(i, j);
+
+  const std::vector<int> I = PITTS::internal::maxvol<Type>(A, Type(0.05), 100, nullptr, nRows);
+  checkValidIndices(I, m, nRows);
+
+  const auto gramDet = [&](const std::vector<int>& rows)
+  {
+    const mat Asub = submatrix(A, rows);
+    return std::real((Asub.adjoint() * Asub).determinant());
+  };
+  for(int n = r; n < nRows; n++)
+  {
+    std::vector<int> rows(I.begin(), I.begin() + n+1);
+    const RealType chosen = gramDet(rows);
+    RealType bestOther = 0;
+    for(int i = 0; i < m; i++)
+    {
+      if( std::find(I.begin(), I.begin() + n+1, i) != I.begin() + n+1 )
+        continue;
+      rows[n] = i;
+      bestOther = std::max(bestOther, gramDet(rows));
+    }
+    EXPECT_LE(bestOther, chosen * (1 + RealType(100)*std::sqrt(std::numeric_limits<RealType>::epsilon())));
+  }
+}
+
 TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_returns_least_squares_coefficients)
 {
   using Type = typename TestFixture::Type;

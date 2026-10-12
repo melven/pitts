@@ -16,6 +16,7 @@
 
 // includes
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <complex>
 #include <limits>
@@ -284,40 +285,125 @@ namespace PITTS
       }
     }
 
-    //! add row i to an oversampled selection, with C = B M only the small matrix M is updated (just for timings)
-    //!
-    //! M <- M - beta (M c^H) c with c = C(i,:) = B(i,:) M, and the scores |C(j,:)|^2 are updated directly; B is only read.
-    //! c (1 x r), w (r) and Cc (m) are workspace of the correct size, reused for all added rows.
-    //!
-    template<typename T, typename RealType>
-    void maxvol_addRow(long long i, const Tensor2<T>& B, Tensor2<T>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores,
-                       Eigen::Matrix<T, 1, Eigen::Dynamic>& c, Eigen::Matrix<T, Eigen::Dynamic, 1>& w, Eigen::Matrix<T, Eigen::Dynamic, 1>& Cc)
-    {
-      const auto m = B.r1();
-      const auto r = B.r2();
-      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
-        {{"m", "r"},{m, r}}, // arguments
-        {{(1.*m*r + 3.*r*r)*kernel_info::FMA<T>()}, // flops
-         {(m*r)*kernel_info::Load<T>() + m*kernel_info::Update<T>()}} // data transfers
-        );
+    //! number of rows added per pass over B in maxvol_addRows (compile-time constant, e.g. 4 or 8)
+    constexpr int maxvolAddRowsBlockSize = 8;
 
-      // C = A L is replaced by A L' with L' = L (I - beta c^H c), where (I - beta c^H c)^2 = I - c^H c / (1 + |c|^2), so that
-      // L' L'^H = (G + u^H u)^{-1} for the Gram matrix G of the selection and the new row u (Sherman-Morrison);
-      // beta = (1 - 1/sqrt(1+a))/a = 1/(sqrt(1+a) (1+sqrt(1+a))) with a = |c|^2, the second form is stable for small a.
-      // With C = B M: C' = B M (I - beta c^H c) = B (M - beta w c) with w = M c^H, and
-      // |C'(j,:)|^2 = C(j,:) (I - c^H c / (1+a)) C(j,:)^H = |C(j,:)|^2 - |(C c^H)_j|^2 / (1+a) with C c^H = B w.
+    //! add rows to an oversampled selection until it has nRows rows, with C = B M only the small matrix M is updated (just for timings)
+    //!
+    //! Adding one row c = C(i,:) is the update M <- M - beta (M c^H) c, beta = 1 / (sqrt(1+a) (1+sqrt(1+a))), a = |c|^2,
+    //! and the scores |C(j,:)|^2 decrease by |(C c^H)_j|^2 / (1+a) with C c^H = B (M c^H), see maxvol.
+    //!
+    //! Blocked: up to BlockSize rows per pass over B with the same selection as one row at a time (up to rounding). The
+    //! next rows are chosen among the 4*BlockSize rows with the largest scores, whose rows of C are kept exactly with the
+    //! rank-1 updates. Scores never increase when rows are added, so a candidate whose score is at least the largest
+    //! score outside the candidates is the global maximum; otherwise the block ends early (at least one row per block).
+    //! Afterwards, the scores of all rows and M are updated with matrix-matrix products: B is read once per block.
+    //!
+    template<int BlockSize, typename T, typename RealType>
+    void maxvol_addRows(const Tensor2<T>& B, Tensor2<T>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores, std::vector<int>& I, int nRows)
+    {
+      // the number of blocks is only known afterwards, so no flops/data transfers
+      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
+      using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+      using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+      constexpr int nCandidates = 4*BlockSize;
+
+      const long long m = B.r1();
+      const long long r = B.r2();
       const auto mapB = ConstEigenMap(B);
       auto mapM = EigenMap(M);
-      c.noalias() = mapB.row(i) * mapM;
-      const RealType a = c.squaredNorm();
-      const RealType sqrt1a = std::sqrt(1 + a);
-      const RealType beta = 1 / (sqrt1a * (1 + sqrt1a));
-      w.noalias() = mapM * c.adjoint();
-      Cc.noalias() = mapB * w;
-      scores -= Cc.cwiseAbs2() / (1 + a);
-      // scale w in place (no temporary for beta * w), it is not needed afterwards
-      w *= beta;
-      mapM.noalias() -= w * c;
+
+      std::vector<char> selected(m, 0);
+      for(const int i: I)
+        selected[i] = 1;
+
+      // workspace, reused for all blocks
+      std::vector<long long> P;
+      P.reserve(nCandidates+1);
+      mat BP(nCandidates, r), CP(nCandidates, r), Cb(BlockSize, r), G(r, BlockSize), W(r, BlockSize), Z(m, BlockSize);
+      vec v(nCandidates);
+      std::array<RealType, BlockSize> a, beta;
+
+      while( std::ssize(I) < nRows )
+      {
+        // candidates: the not yet selected rows with the nCandidates largest scores (descending, ties: smaller index first),
+        // and the largest score outside them as bound (none if all remaining rows are candidates)
+        P.clear();
+        for(long long j = 0; j < m; j++)
+        {
+          if( selected[j] || (std::ssize(P) == nCandidates+1 && !(scores(j) > scores(P.back()))) )
+            continue;
+          auto pos = P.end();
+          while( pos != P.begin() && scores(*(pos-1)) < scores(j) )
+            --pos;
+          P.insert(pos, j);
+          if( std::ssize(P) > nCandidates+1 )
+            P.pop_back();
+        }
+        const bool hasBound = std::ssize(P) > nCandidates;
+        const RealType bound = hasBound ? scores(P.back()) : RealType(0);
+        if( hasBound )
+          P.pop_back();
+        const int p = P.size();
+
+        // exact current rows of the candidates: C(P,:) = B(P,:) M
+        for(int l = 0; l < p; l++)
+          BP.row(l) = mapB.row(P[l]);
+        CP.topRows(p).noalias() = BP.topRows(p) * mapM;
+        std::array<bool, nCandidates> taken{};
+
+        // select one after another among the candidates with rank-1 updates of C(P,:)
+        const int kMax = std::min<long long>(BlockSize, nRows - std::ssize(I));
+        int k = 0;
+        for(; k < kMax; k++)
+        {
+          int best = -1;
+          RealType bestScore = 0;
+          for(int l = 0; l < p; l++)
+          {
+            if( taken[l] )
+              continue;
+            const RealType s = CP.row(l).squaredNorm();
+            if( best < 0 || s > bestScore )
+            {
+              best = l;
+              bestScore = s;
+            }
+          }
+          if( best < 0 || (k > 0 && hasBound && bestScore < bound) )
+            break;
+
+          taken[best] = true;
+          selected[P[best]] = 1;
+          I.push_back(P[best]);
+          Cb.row(k) = CP.row(best);
+          a[k] = bestScore;
+          const RealType sqrt1a = std::sqrt(1 + a[k]);
+          beta[k] = 1 / (sqrt1a * (1 + sqrt1a));
+          // C(P,:) <- C(P,:) (I - beta c^H c)
+          v.head(p).noalias() = CP.topRows(p) * Cb.row(k).adjoint();
+          v.head(p) *= beta[k];
+          CP.topRows(p).noalias() -= v.head(p) * Cb.row(k);
+        }
+
+        // w_l = M_l c_l^H with M_l = M - sum_{s<l} beta_s w_s c_s (M before the l-th row of the block)
+        G.leftCols(k).noalias() = mapM * Cb.topRows(k).adjoint();
+        for(int l = 0; l < k; l++)
+        {
+          W.col(l) = G.col(l);
+          for(int s = 0; s < l; s++)
+            W.col(l) -= (beta[s] * Cb.row(l).dot(Cb.row(s))) * W.col(s);
+        }
+
+        // scores of all rows (one pass over B) and M
+        Z.leftCols(k).noalias() = mapB * W.leftCols(k);
+        for(int l = 0; l < k; l++)
+          scores -= Z.col(l).cwiseAbs2() / (1 + a[l]);
+        for(int l = 0; l < k; l++)
+          W.col(l) *= beta[l];
+        mapM.noalias() -= W.leftCols(k) * Cb.topRows(k);
+      }
     }
 
     //! interpolation coefficients C C(I,:)^H = A A(I,:)^+ of an oversampled selection with C = B M (just for timings)
@@ -430,18 +516,7 @@ namespace PITTS
         Eigen::Matrix<RealType, Eigen::Dynamic, 1> scores = ConstEigenMap(B).rowwise().squaredNorm();
         Tensor2<T> M(r, r);
         EigenMap(M) = mat::Identity(r, r);
-        // workspace for maxvol_addRow
-        Eigen::Matrix<T, 1, Eigen::Dynamic> c(r);
-        Eigen::Matrix<T, Eigen::Dynamic, 1> w(r), Cc(m);
-        for(int nSelected = r; nSelected < nRows; nSelected++)
-        {
-          for(const int i: I)
-            scores(i) = -std::numeric_limits<RealType>::infinity();
-          Eigen::Index i;
-          scores.maxCoeff(&i);
-          I.push_back(i);
-          maxvol_addRow(i, B, M, scores, c, w, Cc);
-        }
+        maxvol_addRows<maxvolAddRowsBlockSize>(B, M, scores, I, nRows);
         if( AAinv != nullptr )
           maxvol_coefficients(B, M, I, *AAinv);
         return I;
