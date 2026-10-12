@@ -270,7 +270,8 @@ namespace PITTS
       //! Converts a block sampled on the rows of a left index set into the coordinates of the TT (y in the orthogonal
       //! gauge, see pitts_tensortrain_cross.hpp). L (q x r, q >= r, the 1x1 identity at the left boundary) must have
       //! full column rank, which the maxvol selection of the index set guarantees; with q > r (oversampling) this is
-      //! the least-squares fit on the q rows. Solved with a pivoted QR of L (no inverse is formed).
+      //! the least-squares fit on the q rows. Solved with a Householder QR of L without pivoting (backward stable for full
+      //! rank, no inverse is formed).
       //!
       //! @param L     left interface matrix (q x r)
       //! @param B     block (q x n x m)
@@ -282,7 +283,7 @@ namespace PITTS
       //! C = B * R^+: least-squares solution of C * R = B with a right interface matrix R (inverse of normalize_contract2)
       //!
       //! Mirror image of solveLeftInterface: R (r x q, full row rank, the 1x1 identity at the right boundary),
-      //! solved as R^H C^H = B^H with a pivoted QR of R^H.
+      //! solved as R^H C^H = B^H with a Householder QR of R^H.
       //!
       //! @param B     block (m x n x q)
       //! @param R     right interface matrix (r x q)
