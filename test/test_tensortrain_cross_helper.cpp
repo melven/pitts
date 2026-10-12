@@ -1300,15 +1300,31 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, dominantRows_dominantColum
   using PITTS::internal::tt_cross::dominantColumns;
   const Type maxvolTol = Type(0.05);
 
-  // exact rank 2 block: the truncated SVD gives 2 directions, maxvol selects as many rows/columns; maxRank limits them
+  // exact rank 2 block: always the requested number of rows/columns; the first two are the square maxvol selection
+  // of the 2 dominant directions, the others are added by oversampling
   PITTS::Tensor3<Type> B(3, 4, 5);
   EigenMap(unfold_left(B)) = mat::Random(12, 2) * mat::Random(2, 5);
-  checkSelection(dominantRows(B, Type(1.e-4), 10, maxvolTol), 2, 12);
+  const std::vector<int> rows = dominantRows(B, Type(1.e-4), 4, maxvolTol);
+  checkSelection(rows, 4, 12);
+  const std::vector<int> rows2 = dominantRows(B, Type(1.e-4), 2, maxvolTol);
+  checkSelection(rows2, 2, 12);
+  EXPECT_EQ(rows2, std::vector<int>(rows.begin(), rows.begin()+2));
   checkSelection(dominantRows(B, Type(0), 1, maxvolTol), 1, 12);
   PITTS::Tensor3<Type> B2(3, 4, 5);
   EigenMap(unfold_right(B2)) = mat::Random(3, 2) * mat::Random(2, 20);
-  checkSelection(dominantColumns(B2, Type(1.e-4), 10, maxvolTol), 2, 20);
+  const std::vector<int> columns = dominantColumns(B2, Type(1.e-4), 3, maxvolTol);
+  checkSelection(columns, 3, 20);
+  const std::vector<int> columns2 = dominantColumns(B2, Type(1.e-4), 2, maxvolTol);
+  checkSelection(columns2, 2, 20);
+  EXPECT_EQ(columns2, std::vector<int>(columns.begin(), columns.begin()+2));
   checkSelection(dominantColumns(B2, Type(0), 1, maxvolTol), 1, 20);
+
+  // directions below the tolerance (here: round-off of a rank-deficient residual) do not change the selection
+  PITTS::Tensor3<Type> Bnoise(3, 4, 5), B2noise(3, 4, 5);
+  EigenMap(unfold_left(Bnoise)) = ConstEigenMap(unfold_left(B)) + 10*std::numeric_limits<Type>::epsilon() * mat::Random(12, 5);
+  EigenMap(unfold_right(B2noise)) = ConstEigenMap(unfold_right(B2)) + 10*std::numeric_limits<Type>::epsilon() * mat::Random(3, 20);
+  EXPECT_EQ(rows, dominantRows(Bnoise, Type(1.e-4), 4, maxvolTol));
+  EXPECT_EQ(columns, dominantColumns(B2noise, Type(1.e-4), 3, maxvolTol));
 }
 
 
@@ -1401,6 +1417,31 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightFrame)
   check(Inputs{std::cref(TTa), std::cref(TTb)}, {2, 2, 2}, 2);
   // dependent inputs: no additional directions
   check(Inputs{std::cref(TTa), std::cref(TTa)}, {2, 3, 2});
+  // independent of the norms and of the gauge of the inputs: TTb much smaller, or with its norm in the first core;
+  // directions that cancel in the sum of the inputs are kept
+  PITTS::TensorTrain<Type> TTsmall(dims), TTgauge(dims), TTneg(dims);
+  copy(TTb, TTsmall);
+  copy(TTb, TTgauge);
+  copy(TTa, TTneg);
+  {
+    PITTS::Tensor3<Type> core;
+    copy(TTneg.subTensor(1), core);
+    PITTS::internal::t3_scale(Type(-1), core);
+    TTneg.setSubTensor(1, std::move(core));
+    copy(TTsmall.subTensor(1), core);
+    PITTS::internal::t3_scale(Type(1.e-10), core);
+    TTsmall.setSubTensor(1, std::move(core));
+    copy(TTgauge.subTensor(0), core);
+    PITTS::internal::t3_scale(Type(1.e10), core);
+    TTgauge.setSubTensor(0, std::move(core));
+    copy(TTgauge.subTensor(3), core);
+    PITTS::internal::t3_scale(Type(1.e-10), core);
+    TTgauge.setSubTensor(3, std::move(core));
+  }
+  check(Inputs{std::cref(TTa), std::cref(TTsmall)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTgauge)}, {3, 5, 5});
+  check(Inputs{std::cref(TTgauge), std::cref(TTa)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTneg)}, {2, 3, 2});
 
   // invalid inputs: none, different dimensions, boundary ranks != 1
   PITTS::TensorTrain<Type> TTy(dims), TTwrong({3, 4, 3, 4});
