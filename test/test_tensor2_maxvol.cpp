@@ -14,6 +14,7 @@
 #include <limits>
 #include <cmath>
 #include <stdexcept>
+#include <omp.h>
 
 namespace
 {
@@ -401,4 +402,29 @@ TYPED_TEST(PITTS_Tensor2_maxvol, oversampling_improves_the_pseudo_inverse)
   const RealType sminSquare = Eigen::JacobiSVD<mat>(submatrix(A, Isquare)).singularValues().minCoeff();
   // oversampling by a factor of 4 improves the conditioning clearly
   EXPECT_GT(smin, 2 * sminSquare);
+}
+
+TYPED_TEST(PITTS_Tensor2_maxvol, independent_of_the_number_of_threads)
+{
+  using Type = typename TestFixture::Type;
+  using Tensor2 = PITTS::Tensor2<Type>;
+
+  // large enough for the parallel swap loop, random rows need many swaps
+  const int m = 2000, r = 60;
+  Tensor2 A(m, r);
+  EigenMap(A).setRandom();
+
+  const int nThreads = omp_get_max_threads();
+  ASSERT_GE(nThreads, 4);
+  Tensor2 AAinv1, AAinv4;
+  omp_set_num_threads(1);
+  const std::vector<int> I1 = PITTS::internal::maxvol<Type>(A, Type(0.01), 1000, &AAinv1);
+  omp_set_num_threads(4);
+  const std::vector<int> I4 = PITTS::internal::maxvol<Type>(A, Type(0.01), 1000, &AAinv4);
+  omp_set_num_threads(nThreads);
+
+  // bitwise identical: each column is updated by one thread, and ties in the maximum are resolved by the position
+  EXPECT_EQ(I1, I4);
+  EXPECT_TRUE(ConstEigenMap(AAinv1) == ConstEigenMap(AAinv4));
+  EXPECT_LE(dominance(A, I4), 1.01 * (1 + 1.e-4));
 }
