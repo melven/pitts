@@ -875,9 +875,10 @@ namespace PITTS
 
       //! Initial y for TT-cross in the orthogonal gauge: zero, but with an orthonormal right frame from the inputs
       //!
-      //! The cores 1..d-1 of y are the right-orthonormal cores of the (left- and then right-normalized, tolerance 0)
-      //! direct sum of the inputs (block-diagonal cores), so the right parts of y span the right parts of all
-      //! inputs; core 0 is set to zero. Then rightIndexSetsFromFrame gives well-conditioned initial right index
+      //! The cores 1..d-1 of y are the right-orthonormal cores of the direct sum (block-diagonal cores) of the inputs,
+      //! each left-normalized to unit norm first (tolerance 0) and then right-normalized together (tolerance 0, ranks
+      //! limited by maxRank and the dimensions on the left). So the right parts of y span the right parts of all
+      //! inputs, independent of their norms and gauges (also directions that cancel in their sum); core 0 is set to zero. Then rightIndexSetsFromFrame gives well-conditioned initial right index
       //! sets with full-rank interfaces, as needed by solveRightInterface.
       //!
       //! @param TTx      input tensor trains (same dimensions as TTy, boundary ranks 1)

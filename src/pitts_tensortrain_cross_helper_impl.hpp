@@ -15,6 +15,7 @@
 #define PITTS_TENSORTRAIN_CROSS_HELPER_IMPL_HPP
 
 // includes
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -307,13 +308,25 @@ namespace PITTS
           if( TT.dimensions() != dims || TT.subTensor(0).r1() != 1 || TT.subTensor(nDim-1).r2() != 1 )
             throw std::invalid_argument("initialRightFrame: dimensions or boundary ranks of the inputs do not match!");
 
+        // each input separately: minimal ranks (a right sweep alone does not reveal deficiencies in the left unfoldings)
+        // and unit norm, with left-orthonormal cores. So the right parts of all inputs have the singular values of their own
+        // unfoldings, independent of their norms and of the gauge of their cores (in a direct sum of the unnormalized inputs,
+        // the truncation of round-off below would drop all directions of an input that is small compared to another input).
+        std::vector<TensorTrain<T>> TTortho;
+        TTortho.reserve(TTx.size());
+        for(const TensorTrain<T>& TT: TTx)
+        {
+          copy(TT, TTortho.emplace_back(dims));
+          leftNormalize(TTortho.back(), T(0));
+        }
+
         // direct sum of the inputs: block-diagonal cores (the first core concatenated along r2, the last along r1),
         // so the right parts span the right parts of all inputs
         std::vector<Tensor3<T>> cores(nDim);
         for(int k = 0; k < nDim; k++)
         {
           long long r1 = 0, r2 = 0;
-          for(const TensorTrain<T>& TT: TTx)
+          for(const TensorTrain<T>& TT: TTortho)
           {
             r1 += TT.subTensor(k).r1();
             r2 += TT.subTensor(k).r2();
@@ -325,7 +338,7 @@ namespace PITTS
           cores[k].resize(r1, dims[k], r2);
           cores[k].setConstant(T(0));
           long long offset1 = 0, offset2 = 0;
-          for(const TensorTrain<T>& TT: TTx)
+          for(const TensorTrain<T>& TT: TTortho)
           {
             const auto& X = TT.subTensor(k);
             for(int c = 0; c < X.r2(); c++)
@@ -340,11 +353,19 @@ namespace PITTS
         }
         TensorTrain<T> frame(std::move(cores));
 
-        // minimal ranks (a right sweep alone does not reveal deficiencies in the left unfoldings, e.g. dependent
-        // inputs), then right-orthonormal cores; tolerance 0, so inputs that are small in norm are not truncated
-        // (only maxRank truncates)
-        leftNormalize(frame, T(0));
-        rightNormalize(frame, T(0), maxRank);
+        // right-orthonormal cores of the direct sum: the right unfoldings stack the right parts of all inputs, so tolerance 0
+        // only removes round-off and (numerically) dependent directions of different inputs. Otherwise only maxRank and the
+        // dimensions on the left truncate (the summed ranks may exceed n_0 * ... * n_{k-1} at the bond between cores k-1 and k).
+        // No left sweep over the direct sum: it would mix the inputs, e.g. directions that cancel in x1 + x2 would be lost.
+        std::vector<int> leftLimit(nDim);
+        long long nLeft = 1;
+        for(int k = 1; k < nDim; k++)
+        {
+          nLeft = std::min<long long>(nLeft * dims[k-1], std::numeric_limits<int>::max());
+          leftLimit[k] = std::min<long long>(nLeft, maxRank);
+        }
+        for(int k = nDim-1; k > 0; k--)
+          rightNormalize_range(frame, k-1, k, T(0), leftLimit[k]);
         TTy.setSubTensors(0, std::move(frame));
 
         Tensor3<T> zero(1, dims[0], TTy.subTensor(0).r2());

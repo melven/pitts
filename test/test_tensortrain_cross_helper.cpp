@@ -1417,6 +1417,31 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightFrame)
   check(Inputs{std::cref(TTa), std::cref(TTb)}, {2, 2, 2}, 2);
   // dependent inputs: no additional directions
   check(Inputs{std::cref(TTa), std::cref(TTa)}, {2, 3, 2});
+  // independent of the norms and of the gauge of the inputs: TTb much smaller, or with its norm in the first core;
+  // directions that cancel in the sum of the inputs are kept
+  PITTS::TensorTrain<Type> TTsmall(dims), TTgauge(dims), TTneg(dims);
+  copy(TTb, TTsmall);
+  copy(TTb, TTgauge);
+  copy(TTa, TTneg);
+  {
+    PITTS::Tensor3<Type> core;
+    copy(TTneg.subTensor(1), core);
+    PITTS::internal::t3_scale(Type(-1), core);
+    TTneg.setSubTensor(1, std::move(core));
+    copy(TTsmall.subTensor(1), core);
+    PITTS::internal::t3_scale(Type(1.e-10), core);
+    TTsmall.setSubTensor(1, std::move(core));
+    copy(TTgauge.subTensor(0), core);
+    PITTS::internal::t3_scale(Type(1.e10), core);
+    TTgauge.setSubTensor(0, std::move(core));
+    copy(TTgauge.subTensor(3), core);
+    PITTS::internal::t3_scale(Type(1.e-10), core);
+    TTgauge.setSubTensor(3, std::move(core));
+  }
+  check(Inputs{std::cref(TTa), std::cref(TTsmall)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTgauge)}, {3, 5, 5});
+  check(Inputs{std::cref(TTgauge), std::cref(TTa)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTneg)}, {2, 3, 2});
 
   // invalid inputs: none, different dimensions, boundary ranks != 1
   PITTS::TensorTrain<Type> TTy(dims), TTwrong({3, 4, 3, 4});
