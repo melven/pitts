@@ -239,51 +239,63 @@ namespace PITTS
       EigenMap(AAinv) = B;
     }
 
-    //! add row i to an oversampled selection: C <- C - beta (C c^H) c with c = C(i,:), and new scores |C(j,:)|^2 (just for timings)
+    //! add row i to an oversampled selection, with C = B M only the small matrix M is updated (just for timings)
+    //!
+    //! M <- M - beta (M c^H) c with c = C(i,:) = B(i,:) M, and the scores |C(j,:)|^2 are updated directly; B is only read.
+    //! c (1 x r), w (r) and Cc (m) are workspace of the correct size, reused for all added rows.
+    //!
     template<typename T, typename RealType>
-    void maxvol_addRow(Eigen::Index i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& C, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores)
+    void maxvol_addRow(Eigen::Index i, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& M, Eigen::Matrix<RealType, Eigen::Dynamic, 1>& scores,
+                       Eigen::Matrix<T, 1, Eigen::Dynamic>& c, Eigen::Matrix<T, Eigen::Dynamic, 1>& w, Eigen::Matrix<T, Eigen::Dynamic, 1>& Cc)
     {
-      const auto m = C.rows();
-      const auto r = C.cols();
+      const auto m = B.rows();
+      const auto r = B.cols();
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"m", "r"},{m, r}}, // arguments
-        {{(3.*m*r)*kernel_info::FMA<T>()}, // flops
-         {(m*r)*kernel_info::Update<T>() + (m*r)*kernel_info::Load<T>()}} // data transfers
+        {{(1.*m*r + 3.*r*r)*kernel_info::FMA<T>()}, // flops
+         {(m*r)*kernel_info::Load<T>() + m*kernel_info::Update<T>()}} // data transfers
         );
-
-      using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
 
       // C = A L is replaced by A L' with L' = L (I - beta c^H c), where (I - beta c^H c)^2 = I - c^H c / (1 + |c|^2), so that
       // L' L'^H = (G + u^H u)^{-1} for the Gram matrix G of the selection and the new row u (Sherman-Morrison);
-      // beta = (1 - 1/sqrt(1+a))/a = 1/(sqrt(1+a) (1+sqrt(1+a))) with a = |c|^2, the second form is stable for small a
-      const Eigen::Matrix<T, 1, Eigen::Dynamic> c = C.row(i);
-      const RealType sqrt1a = std::sqrt(1 + c.squaredNorm());
+      // beta = (1 - 1/sqrt(1+a))/a = 1/(sqrt(1+a) (1+sqrt(1+a))) with a = |c|^2, the second form is stable for small a.
+      // With C = B M: C' = B M (I - beta c^H c) = B (M - beta w c) with w = M c^H, and
+      // |C'(j,:)|^2 = C(j,:) (I - c^H c / (1+a)) C(j,:)^H = |C(j,:)|^2 - |(C c^H)_j|^2 / (1+a) with C c^H = B w.
+      c.noalias() = B.row(i) * M;
+      const RealType a = c.squaredNorm();
+      const RealType sqrt1a = std::sqrt(1 + a);
       const RealType beta = 1 / (sqrt1a * (1 + sqrt1a));
-      const vec Cc = C * c.adjoint();
-      C.noalias() -= (beta * Cc) * c;
-      scores = C.rowwise().squaredNorm();
+      w.noalias() = M * c.adjoint();
+      Cc.noalias() = B * w;
+      scores -= Cc.cwiseAbs2() / (1 + a);
+      // scale w in place (no temporary for beta * w), it is not needed afterwards
+      w *= beta;
+      M.noalias() -= w * c;
     }
 
-    //! interpolation coefficients C C(I,:)^H = A A(I,:)^+ of an oversampled selection (just for timings)
+    //! interpolation coefficients C C(I,:)^H = A A(I,:)^+ of an oversampled selection with C = B M (just for timings)
     template<typename T>
-    void maxvol_coefficients(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& C, const std::vector<int>& I, Tensor2<T>& AAinv)
+    void maxvol_coefficients(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& B, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& M, const std::vector<int>& I, Tensor2<T>& AAinv)
     {
-      const auto m = C.rows();
-      const auto r = C.cols();
+      const auto m = B.rows();
+      const auto r = B.cols();
       const long long q = I.size();
       const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
         {{"m", "r", "q"},{m, r, q}}, // arguments
-        {{(1.*m*r*q)*kernel_info::FMA<T>()}, // flops
+        {{(1.*m*r*q + 2.*r*r*q)*kernel_info::FMA<T>()}, // flops
          {(m*r)*kernel_info::Load<T>() + (m*q)*kernel_info::Store<T>()}} // data transfers
         );
 
       using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       // the selected rows as an explicit loop (an Eigen indexed view triggers -Warray-bounds false positives with GCC 13)
-      mat CI(q, r);
+      mat BI(q, r);
       for(int k = 0; k < q; k++)
-        CI.row(k) = C.row(I[k]);
+        BI.row(k) = B.row(I[k]);
+      // C C(I,:)^H = B M (B(I,:) M)^H: first the small r x q factor, then one product with B
+      const mat CI = BI * M;
+      const mat K = M * CI.adjoint();
       AAinv.resize(m, q);
-      EigenMap(AAinv).noalias() = C * CI.adjoint();
+      EigenMap(AAinv).noalias() = B * K;
     }
 
     // implement maxvol
@@ -372,10 +384,15 @@ namespace PITTS
         I[j] = i;
       }
 
-      // oversampling: add the rows with the largest scores |B(i,:)|^2, B is updated to C = A L with L L^H = (A(I,:)^H A(I,:))^{-1}
+      // oversampling: add the rows with the largest scores |C(i,:)|^2 of C = A L with L L^H = (A(I,:)^H A(I,:))^{-1},
+      // represented as C = B M with the small r x r matrix M (initially C = B), so B is not modified
       if( nRows > r )
       {
         Eigen::Matrix<RealType, Eigen::Dynamic, 1> scores = B.rowwise().squaredNorm();
+        mat M = mat::Identity(r, r);
+        // workspace for maxvol_addRow
+        Eigen::Matrix<T, 1, Eigen::Dynamic> c(r);
+        Eigen::Matrix<T, Eigen::Dynamic, 1> w(r), Cc(m);
         for(int nSelected = r; nSelected < nRows; nSelected++)
         {
           for(const int i: I)
@@ -383,10 +400,10 @@ namespace PITTS
           Eigen::Index i;
           scores.maxCoeff(&i);
           I.push_back(i);
-          maxvol_addRow(i, B, scores);
+          maxvol_addRow(i, B, M, scores, c, w, Cc);
         }
         if( AAinv != nullptr )
-          maxvol_coefficients(B, I, *AAinv);
+          maxvol_coefficients(B, M, I, *AAinv);
         return I;
       }
 

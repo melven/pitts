@@ -49,7 +49,9 @@ namespace PITTS
     //! sqrt(det(A(I,:)^H A(I,:))) most, i.e. the one with the largest leverage score u (A(I,:)^H A(I,:))^{-1} u^H.
     //! With C = A L, L L^H = (A(I,:)^H A(I,:))^{-1} (initially C = B), the scores are the squared row norms of C, and
     //! adding the row c = C(i,:) is the symmetric rank-1 update C <- C - beta (C c^H) c with
-    //! beta = 1 / (sqrt(1+|c|^2) (1+sqrt(1+|c|^2))) (no inverse or Gram matrix is formed). The interpolation
+    //! beta = 1 / (sqrt(1+|c|^2) (1+sqrt(1+|c|^2))) (no inverse or Gram matrix is formed). C is not formed either:
+    //! C = B M with a small r x r matrix M that gets the rank-1 updates, the scores are updated with |C c^H|^2/(1+|c|^2),
+    //! so each added row costs one product B (M c^H), i.e. O(m r) with only reading B. The interpolation
     //! coefficients are then A A(I,:)^+ = C C(I,:)^H (least squares instead of collocation): their norm, the norm of
     //! the pseudo-inverse of A(I,:) for orthonormal columns of A, only decreases with more rows.
     //!
