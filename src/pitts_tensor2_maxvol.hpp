@@ -38,7 +38,9 @@ namespace PITTS
     //! dominant submatrix is quasi-maximal, and A(I,:) is a good choice for the intersection matrix of
     //! a cross approximation (the interpolation coefficients A * A(I,:)^{-1} stay bounded).
     //!
-    //! Algorithm: initial row selection by a column-pivoted QR decomposition of A^T, then
+    //! Algorithm: initial row selection by the pivot rows of an LU decomposition with partial pivoting of A
+    //! (with PITTS_DIRECT_MKL_GEMM: ?getrf, BLAS-3, B = A * A(I,:)^{-1} follows with one triangular solve), otherwise
+    //! by a column-pivoted QR decomposition of A^T (better initial selection, but unblocked), then
     //! B = A * A(I,:)^{-1}; while max |B_ij| > 1+tol, swap row i into the selection (replacing the j-th
     //! selected row, the volume grows by |B_ij|) and update B with a rank-1 update.
     //!
@@ -47,7 +49,9 @@ namespace PITTS
     //! sqrt(det(A(I,:)^H A(I,:))) most, i.e. the one with the largest leverage score u (A(I,:)^H A(I,:))^{-1} u^H.
     //! With C = A L, L L^H = (A(I,:)^H A(I,:))^{-1} (initially C = B), the scores are the squared row norms of C, and
     //! adding the row c = C(i,:) is the symmetric rank-1 update C <- C - beta (C c^H) c with
-    //! beta = 1 / (sqrt(1+|c|^2) (1+sqrt(1+|c|^2))) (no inverse or Gram matrix is formed). The interpolation
+    //! beta = 1 / (sqrt(1+|c|^2) (1+sqrt(1+|c|^2))) (no inverse or Gram matrix is formed). C is not formed either:
+    //! C = B M with a small r x r matrix M that gets the rank-1 updates, the scores are updated with |C c^H|^2/(1+|c|^2),
+    //! so each added row costs one product B (M c^H), i.e. O(m r) with only reading B. The interpolation
     //! coefficients are then A A(I,:)^+ = C C(I,:)^H (least squares instead of collocation): their norm, the norm of
     //! the pseudo-inverse of A(I,:) for orthonormal columns of A, only decreases with more rows.
     //!
@@ -59,8 +63,8 @@ namespace PITTS
     //! @param tol        stop swapping when max |A * A(I,:)^{-1}| <= 1+tol (only the real part is used, must be >= 0)
     //! @param maxIter    maximal number of row swaps (the result is a valid selection even if this limit is hit)
     //! @param AAinv      optional output: the interpolation coefficients A * A(I,:)^+ (m x nRows, A * A(I,:)^{-1} without
-    //!                   oversampling, rows I are then the identity), which the algorithm maintains anyway; in TT-cross
-    //!                   this is directly the core in interpolation gauge
+    //!                   oversampling, rows I are then the identity), which the algorithm maintains anyway (the core of a
+    //!                   TT-cross in the interpolation gauge)
     //! @param nRows      number of rows to select, at least r (0 = r: no oversampling); limited to m
     //! @return           indices of the selected rows I (size min(nRows, m) or r, no duplicates; the first r rows are the
     //!                   square maxvol selection, the additional ones follow in the order they were added)

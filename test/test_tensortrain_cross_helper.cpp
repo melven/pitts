@@ -880,10 +880,11 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, t3_rms_and_rmsDifference)
 }
 
 
-// ---- local core updates ----
+// ---- local core updates (y in the orthogonal gauge) ----
 
 #include "pitts_tensor3_fold.hpp"
 #include <limits>
+#include <optional>
 
 using PITTS::internal::tt_cross::updateCoreLeft;
 using PITTS::internal::tt_cross::updateCoreRight;
@@ -905,63 +906,67 @@ namespace
     return 10*std::sqrt(std::numeric_limits<T>::epsilon());
   }
 
-  // common invariants of a left update: selected rows are the identity, entries bounded, core*carry reconstructs B
+  // interface matrix of the boundary: the identity (here also for blocks with more than one row/column)
   template<typename T>
-  void checkLeftUpdate(const PITTS::Tensor3<T>& B, const CoreUpdate<T>& upd, T maxvolTol, bool exactReconstruction)
+  PITTS::Tensor2<T> eye(int n)
+  {
+    PITTS::Tensor2<T> I(n, n);
+    EigenMap(I) = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(n, n);
+    return I;
+  }
+
+  // distinct indices in [0, n)
+  void checkSelection(const std::vector<int>& selected, int nExpected, long long n)
+  {
+    ASSERT_EQ(nExpected, selected.size());
+    const std::set<int> unique(selected.begin(), selected.end());
+    EXPECT_EQ(nExpected, unique.size());
+    for(int i: selected)
+    {
+      EXPECT_LE(0, i);
+      EXPECT_LT(i, n);
+    }
+  }
+
+  // common invariants of a left update: left-orthonormal core, core*carry reconstructs C, q selected rows
+  template<typename T>
+  void checkLeftUpdate(const PITTS::Tensor3<T>& C, const CoreUpdate<T>& upd, bool exactReconstruction, int nRows = 0)
   {
     using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     const auto eps = blockTolerance<T>();
     const int r = upd.core.r2();
-    ASSERT_EQ(B.r1(), upd.core.r1());
-    ASSERT_EQ(B.n(), upd.core.n());
+    ASSERT_EQ(C.r1(), upd.core.r1());
+    ASSERT_EQ(C.n(), upd.core.n());
     ASSERT_EQ(r, upd.carry.r1());
-    ASSERT_EQ(B.r2(), upd.carry.r2());
-    ASSERT_EQ(r, upd.selected.size());
+    ASSERT_EQ(C.r2(), upd.carry.r2());
+    checkSelection(upd.selected, nRows > 0 ? nRows : r, C.r1()*C.n());
 
     const auto mapCore = ConstEigenMap(unfold_left(upd.core));
-    for(int j = 0; j < r; j++)
-    {
-      ASSERT_LE(0, upd.selected[j]);
-      ASSERT_LT(upd.selected[j], mapCore.rows());
-      for(int k = 0; k < r; k++)
-        EXPECT_NEAR(T(j == k ? 1 : 0), mapCore(upd.selected[j], k), eps);
-    }
-    EXPECT_LE(mapCore.array().abs().maxCoeff(), 1 + maxvolTol + eps);
-
+    EXPECT_NEAR(mat::Identity(r, r), mat(mapCore.adjoint() * mapCore), eps);
     if( exactReconstruction )
     {
-      const mat reconstructed = mapCore * ConstEigenMap(upd.carry);
-      EXPECT_NEAR(ConstEigenMap(unfold_left(B)), reconstructed, eps);
+      EXPECT_NEAR(ConstEigenMap(unfold_left(C)), mat(mapCore * ConstEigenMap(upd.carry)), eps);
     }
   }
 
-  // common invariants of a right update: selected columns are the identity, entries bounded, carry*core reconstructs B
+  // common invariants of a right update: right-orthonormal core, carry*core reconstructs C, q selected columns
   template<typename T>
-  void checkRightUpdate(const PITTS::Tensor3<T>& B, const CoreUpdate<T>& upd, T maxvolTol, bool exactReconstruction)
+  void checkRightUpdate(const PITTS::Tensor3<T>& C, const CoreUpdate<T>& upd, bool exactReconstruction, int nColumns = 0)
   {
     using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     const auto eps = blockTolerance<T>();
     const int r = upd.core.r1();
-    ASSERT_EQ(B.n(), upd.core.n());
-    ASSERT_EQ(B.r2(), upd.core.r2());
-    ASSERT_EQ(B.r1(), upd.carry.r1());
+    ASSERT_EQ(C.n(), upd.core.n());
+    ASSERT_EQ(C.r2(), upd.core.r2());
+    ASSERT_EQ(C.r1(), upd.carry.r1());
     ASSERT_EQ(r, upd.carry.r2());
-    ASSERT_EQ(r, upd.selected.size());
+    checkSelection(upd.selected, nColumns > 0 ? nColumns : r, C.n()*C.r2());
 
     const auto mapCore = ConstEigenMap(unfold_right(upd.core));
-    for(int j = 0; j < r; j++)
-    {
-      ASSERT_LE(0, upd.selected[j]);
-      ASSERT_LT(upd.selected[j], mapCore.cols());
-      for(int k = 0; k < r; k++)
-        EXPECT_NEAR(T(j == k ? 1 : 0), mapCore(k, upd.selected[j]), eps);
-    }
-    EXPECT_LE(mapCore.array().abs().maxCoeff(), 1 + maxvolTol + eps);
-
+    EXPECT_NEAR(mat::Identity(r, r), mat(mapCore * mapCore.adjoint()), eps);
     if( exactReconstruction )
     {
-      const mat reconstructed = ConstEigenMap(upd.carry) * mapCore;
-      EXPECT_NEAR(ConstEigenMap(unfold_right(B)), reconstructed, eps);
+      EXPECT_NEAR(ConstEigenMap(unfold_right(C)), mat(ConstEigenMap(upd.carry) * mapCore), eps);
     }
   }
 }
@@ -971,11 +976,11 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_full_rank)
   using Type = typename TestFixture::Type;
   const Type maxvolTol = Type(0.05);
 
-  const auto B = randomBlock<Type>(2, 4, 3);
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(0), std::numeric_limits<int>::max(), maxvolTol);
+  const auto C = randomBlock<Type>(2, 4, 3);
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol);
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(3, upd.core.r2());
-  checkLeftUpdate(B, upd, maxvolTol, true);
+  checkLeftUpdate(C, upd, true);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_low_rank_and_maxRank)
@@ -985,19 +990,19 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_low_rank_an
   const Type maxvolTol = Type(0.05);
 
   // exact rank 2 block (r1*n = 8, r2 = 3)
-  PITTS::Tensor3<Type> B(2, 4, 3);
-  EigenMap(unfold_left(B)) = mat::Random(8, 2) * mat::Random(2, 3);
+  PITTS::Tensor3<Type> C(2, 4, 3);
+  EigenMap(unfold_left(C)) = mat::Random(8, 2) * mat::Random(2, 3);
 
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
   EXPECT_EQ(2, upd.truncatedRank);
   EXPECT_EQ(2, upd.core.r2());
-  checkLeftUpdate(B, upd, maxvolTol, true);
+  checkLeftUpdate(C, upd, true);
 
   // maxRank limits the rank, no exact reconstruction then
-  const CoreUpdate<Type> upd1 = updateCoreLeft(B, Type(0), 1, maxvolTol);
+  const CoreUpdate<Type> upd1 = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), 1, maxvolTol);
   EXPECT_EQ(1, upd1.truncatedRank);
   EXPECT_EQ(1, upd1.core.r2());
-  checkLeftUpdate(B, upd1, maxvolTol, false);
+  checkLeftUpdate(C, upd1, false);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_wide_block)
@@ -1006,10 +1011,10 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_wide_block)
   const Type maxvolTol = Type(0.05);
 
   // r1*n = 2 < r2 = 5: the rank is limited by the number of rows
-  const auto B = randomBlock<Type>(1, 2, 5);
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(0), std::numeric_limits<int>::max(), maxvolTol);
+  const auto C = randomBlock<Type>(1, 2, 5);
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol);
   EXPECT_EQ(2, upd.core.r2());
-  checkLeftUpdate(B, upd, maxvolTol, true);
+  checkLeftUpdate(C, upd, true);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment)
@@ -1019,22 +1024,25 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment)
   const Type maxvolTol = Type(0.05);
   const auto eps = blockTolerance<Type>();
 
-  const auto B = randomBlock<Type>(2, 4, 3);
+  const auto C = randomBlock<Type>(2, 4, 3);
   const auto E = randomBlock<Type>(2, 4, 2);   // the same block shape, 2 candidate directions
   PITTS::Tensor3<Type> Econsumed;              // updateCoreLeft consumes the directions
   copy(E, Econsumed);
 
-  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::move(Econsumed));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol, std::move(Econsumed));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(5, upd.core.r2());
   // the enrichment does not change the represented block (zero rows in the carry)
-  checkLeftUpdate(B, upd, maxvolTol, true);
+  checkLeftUpdate(C, upd, true);
 
-  // the columns of the core span the enrichment directions: E - core * core^+ E = 0
+  // the columns of the core span the enrichment directions: E - core core^H E = 0
   const auto mapCore = ConstEigenMap(unfold_left(upd.core));
   const auto mapE = ConstEigenMap(unfold_left(E));
-  const mat residual = mapE - mapCore * mapCore.colPivHouseholderQr().solve(mapE);
-  EXPECT_NEAR(mat::Zero(8, 2), residual, eps);
+  EXPECT_NEAR(mat::Zero(8, 2), mat(mapE - mapCore * (mapCore.adjoint() * mapE)), eps);
+
+  // limited by maxEnrichment and by maxEnrichedRank
+  EXPECT_EQ(4, updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(2, 4, 2), Type(0), 1).core.r2());
+  EXPECT_EQ(4, updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(2, 4, 2), Type(0), 2, 4).core.r2());
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_already_in_span)
@@ -1043,15 +1051,15 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
   using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   const Type maxvolTol = Type(0.05);
 
-  const auto B = randomBlock<Type>(2, 4, 3);
-  // directions inside the column space of B: nothing to add
+  const auto C = randomBlock<Type>(2, 4, 3);
+  // directions inside the column space of C: nothing to add
   PITTS::Tensor3<Type> E(2, 4, 2);
-  EigenMap(unfold_left(E)) = ConstEigenMap(unfold_left(B)) * mat::Random(3, 2);
+  EigenMap(unfold_left(E)) = ConstEigenMap(unfold_left(C)) * mat::Random(3, 2);
 
-  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, std::move(E));
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol, std::move(E));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(3, upd.core.r2());
-  checkLeftUpdate(B, upd, maxvolTol, true);
+  checkLeftUpdate(C, upd, true);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_limited_by_rows)
@@ -1060,18 +1068,18 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_enrichment_
   const Type maxvolTol = Type(0.05);
 
   // the left unfolding has only r1*n = 4 rows: at most 4 - rank directions can be added
-  const auto B = randomBlock<Type>(2, 2, 3);
-  const CoreUpdate<Type> upd = updateCoreLeft<Type>(B, Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(2, 2, 2));
+  const auto C = randomBlock<Type>(2, 2, 3);
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(2, 2, 2));
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(4, upd.core.r2());
-  checkLeftUpdate(B, upd, maxvolTol, true);
+  checkLeftUpdate(C, upd, true);
 
   // full rank already: nothing can be added (the projected remainder is only round-off)
-  const auto Bfull = randomBlock<Type>(1, 3, 5);
-  const CoreUpdate<Type> updFull = updateCoreLeft<Type>(Bfull, Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(1, 3, 2));
+  const auto Cfull = randomBlock<Type>(1, 3, 5);
+  const CoreUpdate<Type> updFull = updateCoreLeft<Type>(Cfull, eye<Type>(Cfull.r1()), Type(0), std::numeric_limits<int>::max(), maxvolTol, randomBlock<Type>(1, 3, 2));
   EXPECT_EQ(3, updFull.truncatedRank);
   EXPECT_EQ(3, updFull.core.r2());
-  checkLeftUpdate(Bfull, updFull, maxvolTol, true);
+  checkLeftUpdate(Cfull, updFull, true);
 }
 
 
@@ -1114,11 +1122,11 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_full_rank)
   using Type = typename TestFixture::Type;
   const Type maxvolTol = Type(0.05);
 
-  const auto B = randomBlock<Type>(3, 4, 2);
-  const CoreUpdate<Type> upd = updateCoreRight(B, Type(0), std::numeric_limits<int>::max(), maxvolTol);
+  const auto C = randomBlock<Type>(3, 4, 2);
+  const CoreUpdate<Type> upd = updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(0), std::numeric_limits<int>::max(), maxvolTol);
   EXPECT_EQ(3, upd.truncatedRank);
   EXPECT_EQ(3, upd.core.r1());
-  checkRightUpdate(B, upd, maxvolTol, true);
+  checkRightUpdate(C, upd, true);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_low_rank_and_maxRank)
@@ -1127,123 +1135,46 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_low_rank_a
   using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   const Type maxvolTol = Type(0.05);
 
-  PITTS::Tensor3<Type> B(3, 4, 2);
-  EigenMap(unfold_right(B)) = mat::Random(3, 2) * mat::Random(2, 8);
+  PITTS::Tensor3<Type> C(3, 4, 2);
+  EigenMap(unfold_right(C)) = mat::Random(3, 2) * mat::Random(2, 8);
 
-  const CoreUpdate<Type> upd = updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
+  const CoreUpdate<Type> upd = updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
   EXPECT_EQ(2, upd.truncatedRank);
   EXPECT_EQ(2, upd.core.r1());
-  checkRightUpdate(B, upd, maxvolTol, true);
+  checkRightUpdate(C, upd, true);
 
-  const CoreUpdate<Type> upd1 = updateCoreRight(B, Type(0), 1, maxvolTol);
+  const CoreUpdate<Type> upd1 = updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(0), 1, maxvolTol);
   EXPECT_EQ(1, upd1.core.r1());
-  checkRightUpdate(B, upd1, maxvolTol, false);
+  checkRightUpdate(C, upd1, false);
 }
 
 
-// ---- oversampled (least-squares) core updates ----
-
-namespace
-{
-  // invariants of an oversampled left update: shapes, distinct rows, core * carry reconstructs B
-  template<typename T>
-  void checkOversampledLeftUpdate(const PITTS::Tensor3<T>& B, const CoreUpdate<T>& upd, int nExpectedRows)
-  {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto eps = blockTolerance<T>();
-    ASSERT_EQ(nExpectedRows, upd.selected.size());
-    ASSERT_EQ(B.r1(), upd.core.r1());
-    ASSERT_EQ(B.n(), upd.core.n());
-    ASSERT_EQ(nExpectedRows, upd.core.r2());
-    ASSERT_EQ(nExpectedRows, upd.carry.r1());
-    ASSERT_EQ(B.r2(), upd.carry.r2());
-    const std::set<int> unique(upd.selected.begin(), upd.selected.end());
-    EXPECT_EQ(nExpectedRows, unique.size());
-    for(int i: upd.selected)
-    {
-      EXPECT_LE(0, i);
-      EXPECT_LT(i, B.r1()*B.n());
-    }
-    EXPECT_NEAR(ConstEigenMap(unfold_left(B)), mat(ConstEigenMap(unfold_left(upd.core)) * ConstEigenMap(upd.carry)), eps);
-    // the selected rows of the core form an orthogonal projector (the identity without oversampling)
-    mat P(nExpectedRows, nExpectedRows);
-    for(int j = 0; j < nExpectedRows; j++)
-      P.row(j) = ConstEigenMap(unfold_left(upd.core)).row(upd.selected[j]);
-    EXPECT_NEAR(P, mat(P * P), eps);
-    EXPECT_NEAR(P, mat(P.adjoint()), eps);
-  }
-
-  template<typename T>
-  void checkOversampledRightUpdate(const PITTS::Tensor3<T>& B, const CoreUpdate<T>& upd, int nExpectedColumns)
-  {
-    using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    const auto eps = blockTolerance<T>();
-    ASSERT_EQ(nExpectedColumns, upd.selected.size());
-    ASSERT_EQ(nExpectedColumns, upd.core.r1());
-    ASSERT_EQ(B.n(), upd.core.n());
-    ASSERT_EQ(B.r2(), upd.core.r2());
-    ASSERT_EQ(B.r1(), upd.carry.r1());
-    ASSERT_EQ(nExpectedColumns, upd.carry.r2());
-    const std::set<int> unique(upd.selected.begin(), upd.selected.end());
-    EXPECT_EQ(nExpectedColumns, unique.size());
-    for(int j: upd.selected)
-    {
-      EXPECT_LE(0, j);
-      EXPECT_LT(j, B.n()*B.r2());
-    }
-    EXPECT_NEAR(ConstEigenMap(unfold_right(B)), mat(ConstEigenMap(upd.carry) * ConstEigenMap(unfold_right(upd.core))), eps);
-    mat P(nExpectedColumns, nExpectedColumns);
-    for(int j = 0; j < nExpectedColumns; j++)
-      P.col(j) = ConstEigenMap(unfold_right(upd.core)).col(upd.selected[j]);
-    EXPECT_NEAR(P, mat(P * P), eps);
-    EXPECT_NEAR(P, mat(P.adjoint()), eps);
-  }
-}
+// ---- oversampled selection and interface matrices ----
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_oversampling)
 {
   using Type = typename TestFixture::Type;
   using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
   const Type maxvolTol = Type(0.05);
+  const auto eps = blockTolerance<Type>();
 
   // exact rank 3 block (r1*n = 24, r2 = 6): oversampling 1 selects 3 + 3 rows
-  PITTS::Tensor3<Type> B(3, 8, 6);
-  EigenMap(unfold_left(B)) = mat::Random(24, 3) * mat::Random(3, 6);
-  const CoreUpdate<Type> square = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(1));
+  PITTS::Tensor3<Type> C(3, 8, 6);
+  EigenMap(unfold_left(C)) = mat::Random(24, 3) * mat::Random(3, 6);
+  const CoreUpdate<Type> square = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(1));
   EXPECT_EQ(3, upd.truncatedRank);
-  checkOversampledLeftUpdate(B, upd, 6);
-  // the first rows are the square maxvol rows
+  checkLeftUpdate(C, upd, true, 6);
+  // oversampling only changes the selection: the same core, and the first rows are the square maxvol rows
+  EXPECT_NEAR(ConstEigenMap(unfold_left(square.core)), ConstEigenMap(unfold_left(upd.core)), eps);
   EXPECT_EQ(square.selected, std::vector<int>(upd.selected.begin(), upd.selected.begin() + 3));
 
   // fractional oversampling is rounded up: 3 + ceil(0.1 * 3) = 4 rows
-  checkOversampledLeftUpdate(B, updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(0.1)), 4);
-
-  // limited by the number of rows of the block
-  checkOversampledLeftUpdate(B, updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(100)), 24);
-
-  // the interpolation operator core = U U(rows,:)^+ is better conditioned than the collocation U U(rows,:)^{-1}
-  const mat coreSquare = ConstEigenMap(unfold_left(square.core));
-  const mat coreOver = ConstEigenMap(unfold_left(upd.core));
-  const Type normSquare = Eigen::JacobiSVD<mat>(coreSquare).singularValues()(0);
-  const Type normOver = Eigen::JacobiSVD<mat>(coreOver).singularValues()(0);
-  EXPECT_LE(normOver, normSquare * (1 + blockTolerance<Type>()));
-}
-
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreLeft_oversampling_with_enrichment)
-{
-  using Type = typename TestFixture::Type;
-  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
-  const Type maxvolTol = Type(0.05);
-
-  PITTS::Tensor3<Type> B(3, 8, 6);
-  EigenMap(unfold_left(B)) = mat::Random(24, 2) * mat::Random(2, 6);
-  PITTS::Tensor3<Type> E = randomBlock<Type>(3, 8, 2);
-
-  // 2 directions of B + 2 enrichment directions, 4 + 2 selected rows; the enrichment does not change core * carry
-  const CoreUpdate<Type> upd = updateCoreLeft(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, std::move(E), Type(0.5));
-  EXPECT_EQ(2, upd.truncatedRank);
-  checkOversampledLeftUpdate(B, upd, 6);
+  checkLeftUpdate(C, updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(0.1)), true, 4);
+  // limited by the number of rows of the block and by maxRows (but at least the rank)
+  checkLeftUpdate(C, updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(100)), true, 24);
+  checkLeftUpdate(C, updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(1), 0, 100, 5), true, 5);
+  checkLeftUpdate(C, updateCoreLeft<Type>(C, eye<Type>(C.r1()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(1), 0, 100, 1), true, 3);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_oversampling)
@@ -1253,30 +1184,156 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCoreRight_oversampli
   const Type maxvolTol = Type(0.05);
 
   // exact rank 3 block (r1 = 6, n*r2 = 24)
-  PITTS::Tensor3<Type> B(6, 8, 3);
-  EigenMap(unfold_right(B)) = mat::Random(6, 3) * mat::Random(3, 24);
-  const CoreUpdate<Type> square = updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
-  const CoreUpdate<Type> upd = updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(1));
+  PITTS::Tensor3<Type> C(6, 8, 3);
+  EigenMap(unfold_right(C)) = mat::Random(6, 3) * mat::Random(3, 24);
+  const CoreUpdate<Type> square = updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol);
+  const CoreUpdate<Type> upd = updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(1));
   EXPECT_EQ(3, upd.truncatedRank);
-  checkOversampledRightUpdate(B, upd, 6);
+  checkRightUpdate(C, upd, true, 6);
   EXPECT_EQ(square.selected, std::vector<int>(upd.selected.begin(), upd.selected.begin() + 3));
 
-  checkOversampledRightUpdate(B, updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(0.1)), 4);
-  checkOversampledRightUpdate(B, updateCoreRight(B, Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(100)), 24);
+  checkRightUpdate(C, updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(0.1)), true, 4);
+  checkRightUpdate(C, updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(100)), true, 24);
+  checkRightUpdate(C, updateCoreRight<Type>(C, eye<Type>(C.r2()), Type(1.e-4), std::numeric_limits<int>::max(), maxvolTol, Type(1), 4), true, 4);
+}
 
-  const mat coreSquare = ConstEigenMap(unfold_right(square.core));
-  const mat coreOver = ConstEigenMap(unfold_right(upd.core));
-  const Type normSquare = Eigen::JacobiSVD<mat>(coreSquare).singularValues()(0);
-  const Type normOver = Eigen::JacobiSVD<mat>(coreOver).singularValues()(0);
-  EXPECT_LE(normOver, normSquare * (1 + blockTolerance<Type>()));
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, updateCore_selection_with_interface)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  const Type maxvolTol = Type(0.05);
+  const auto eps = blockTolerance<Type>();
+
+  // left: the rows are selected from M = (L x I_n) U, the values of the new left part on I_{k-1} x S_k;
+  // without oversampling M(rows,:) is a dominant submatrix
+  const int q = 5, r1 = 3, n = 4, r2 = 4;
+  PITTS::Tensor2<Type> L(q, r1);
+  EigenMap(L) = mat::Random(q, r1);
+  const auto C = randomBlock<Type>(r1, n, r2);
+  const CoreUpdate<Type> upd = updateCoreLeft<Type>(C, L, Type(0), std::numeric_limits<int>::max(), maxvolTol);
+  checkSelection(upd.selected, r2, q*n);
+  {
+    PITTS::Tensor3<Type> M;
+    PITTS::internal::normalize_contract1(L, upd.core, M);
+    const auto mapM = ConstEigenMap(unfold_left(M));
+    mat Mhat(r2, r2);
+    for(int j = 0; j < r2; j++)
+      Mhat.row(j) = mapM.row(upd.selected[j]);
+    EXPECT_LE(mat(mapM * Mhat.inverse()).array().abs().maxCoeff(), 1 + maxvolTol + eps);
+  }
+  // oversampled: more rows of M
+  checkSelection(updateCoreLeft<Type>(C, L, Type(0), std::numeric_limits<int>::max(), maxvolTol, PITTS::Tensor3<Type>(), Type(1)).selected, 2*r2, q*n);
+
+  // right: the columns are selected from M = Vt (I_n x R)
+  PITTS::Tensor2<Type> R(r2, q);
+  EigenMap(R) = mat::Random(r2, q);
+  const auto C2 = randomBlock<Type>(r1, n, r2);
+  const CoreUpdate<Type> updR = updateCoreRight<Type>(C2, R, Type(0), std::numeric_limits<int>::max(), maxvolTol);
+  checkSelection(updR.selected, r1, n*q);
+  {
+    PITTS::Tensor3<Type> M;
+    PITTS::internal::normalize_contract2(updR.core, R, M);
+    const auto mapM = ConstEigenMap(unfold_right(M));
+    mat Mhat(r1, r1);
+    for(int j = 0; j < r1; j++)
+      Mhat.col(j) = mapM.col(updR.selected[j]);
+    EXPECT_LE(mat(Mhat.inverse() * mapM).array().abs().maxCoeff(), 1 + maxvolTol + eps);
+  }
+
+  // wrong interface dimensions
+  EXPECT_THROW(updateCoreLeft<Type>(randomBlock<Type>(2, n, r2), L, Type(0), 10, maxvolTol), std::invalid_argument);
+  EXPECT_THROW(updateCoreRight<Type>(randomBlock<Type>(r1, n, 2), R, Type(0), 10, maxvolTol), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, solveLeftInterface_solveRightInterface)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using PITTS::internal::tt_cross::solveLeftInterface;
+  using PITTS::internal::tt_cross::solveRightInterface;
+  const auto eps = blockTolerance<Type>();
+
+  // inverse operations of normalize_contract1 / normalize_contract2 with a full-rank interface matrix: square and
+  // oversampled (least squares, exact for a block in the range of the interface); the boundary is the 1x1 identity
+  const auto X = randomBlock<Type>(3, 2, 3);
+  for(int q: {3, 5})
+  {
+    PITTS::Tensor2<Type> L(q, 3), R(3, q);
+    EigenMap(L) = mat::Random(q, 3);
+    EigenMap(R) = mat::Random(3, q);
+    PITTS::Tensor3<Type> B, Xsolved;
+    PITTS::internal::normalize_contract1(L, X, B);
+    solveLeftInterface(L, B, Xsolved);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
+    PITTS::internal::normalize_contract2(X, R, B);
+    solveRightInterface(B, R, Xsolved);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
+
+    // least squares: a perturbation outside the range of L (resp. R^H) does not change the solution
+    PITTS::Tensor3<Type> Bl;
+    PITTS::internal::normalize_contract1(L, X, Bl);
+    const mat Pperp = mat::Identity(q, q) - ConstEigenMap(L) * ConstEigenMap(L).completeOrthogonalDecomposition().pseudoInverse();
+    EigenMap(unfold_right(Bl)) += Pperp * mat::Random(q, 6);
+    solveLeftInterface(L, Bl, Xsolved);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(X)), ConstEigenMap(unfold_left(Xsolved)), eps);
+  }
+  // boundary
+  PITTS::Tensor3<Type> copyLeft, copyRight;
+  const auto X1 = randomBlock<Type>(1, 2, 1);
+  solveLeftInterface(eye<Type>(1), X1, copyLeft);
+  solveRightInterface(X1, eye<Type>(1), copyRight);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(X1)), ConstEigenMap(unfold_left(copyLeft)), eps);
+  EXPECT_NEAR(ConstEigenMap(unfold_left(X1)), ConstEigenMap(unfold_left(copyRight)), eps);
+  // dimension mismatch
+  EXPECT_THROW(solveLeftInterface(eye<Type>(2), X, copyLeft), std::invalid_argument);
+  EXPECT_THROW(solveRightInterface(X, eye<Type>(2), copyRight), std::invalid_argument);
 }
 
 
-// ---- initial index sets from the input tensor train ----
+// ---- index selection without cores (error approximation) ----
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, dominantRows_dominantColumns)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using PITTS::internal::tt_cross::dominantRows;
+  using PITTS::internal::tt_cross::dominantColumns;
+  const Type maxvolTol = Type(0.05);
+
+  // exact rank 2 block: always the requested number of rows/columns; the first two are the square maxvol selection
+  // of the 2 dominant directions, the others are added by oversampling
+  PITTS::Tensor3<Type> B(3, 4, 5);
+  EigenMap(unfold_left(B)) = mat::Random(12, 2) * mat::Random(2, 5);
+  const std::vector<int> rows = dominantRows(B, Type(1.e-4), 4, maxvolTol);
+  checkSelection(rows, 4, 12);
+  const std::vector<int> rows2 = dominantRows(B, Type(1.e-4), 2, maxvolTol);
+  checkSelection(rows2, 2, 12);
+  EXPECT_EQ(rows2, std::vector<int>(rows.begin(), rows.begin()+2));
+  checkSelection(dominantRows(B, Type(0), 1, maxvolTol), 1, 12);
+  PITTS::Tensor3<Type> B2(3, 4, 5);
+  EigenMap(unfold_right(B2)) = mat::Random(3, 2) * mat::Random(2, 20);
+  const std::vector<int> columns = dominantColumns(B2, Type(1.e-4), 3, maxvolTol);
+  checkSelection(columns, 3, 20);
+  const std::vector<int> columns2 = dominantColumns(B2, Type(1.e-4), 2, maxvolTol);
+  checkSelection(columns2, 2, 20);
+  EXPECT_EQ(columns2, std::vector<int>(columns.begin(), columns.begin()+2));
+  checkSelection(dominantColumns(B2, Type(0), 1, maxvolTol), 1, 20);
+
+  // directions below the tolerance (here: round-off of a rank-deficient residual) do not change the selection
+  PITTS::Tensor3<Type> Bnoise(3, 4, 5), B2noise(3, 4, 5);
+  EigenMap(unfold_left(Bnoise)) = ConstEigenMap(unfold_left(B)) + 10*std::numeric_limits<Type>::epsilon() * mat::Random(12, 5);
+  EigenMap(unfold_right(B2noise)) = ConstEigenMap(unfold_right(B2)) + 10*std::numeric_limits<Type>::epsilon() * mat::Random(3, 20);
+  EXPECT_EQ(rows, dominantRows(Bnoise, Type(1.e-4), 4, maxvolTol));
+  EXPECT_EQ(columns, dominantColumns(B2noise, Type(1.e-4), 3, maxvolTol));
+}
+
+
+// ---- initial right frame of y and its index sets ----
 
 #include "pitts_tensortrain_normalize.hpp"
 
-using PITTS::internal::tt_cross::initialRightIndexSets;
+using PITTS::internal::tt_cross::initialRightFrame;
+using PITTS::internal::tt_cross::rightIndexSetsFromFrame;
 
 namespace
 {
@@ -1293,67 +1350,7 @@ namespace
     const mat B = Ahat.inverse() * mapA;
     return B.array().abs().maxCoeff();
   }
-}
 
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_random_TT)
-{
-  using Type = typename TestFixture::Type;
-  using TensorTrain = PITTS::TensorTrain<Type>;
-  const auto eps = blockTolerance<Type>();
-  const Type maxvolTol = Type(0.05);
-
-  const std::vector<int> dims = {3, 4, 2, 5};
-  const int nDim = dims.size();
-  TensorTrain TT(dims);
-  TT.setTTranks({2, 3, 2});
-  randomize(TT);
-
-  const std::vector<NestedIndices> J = initialRightIndexSets(TT, maxvolTol);
-  // |J_k| = rank of bond k-1 (the random TT has full ranks)
-  checkRightNested(J, dims, {0, 2, 3, 2});
-
-  // the selected columns are dominant in the right-orthogonalized TT: recompute XR_k = X_k * R_{k+1} with the cached contractions
-  TensorTrain TTortho(dims);
-  copy(TT, TTortho);
-  rightNormalize(TTortho, Type(0));
-  std::vector<NestedIndices> noLeft(nDim);
-  auto Rx = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(TTortho, noLeft), contraction_loop_from_right<Type>(TTortho, J));
-  Rx.update(-1, 1);
-  for(int k = nDim-1; k >= 1; k--)
-    EXPECT_LE(columnDominance(Rx.subTensor(k), J[k]), 1 + maxvolTol + eps);
-}
-
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_rank_deficient_TT)
-{
-  using Type = typename TestFixture::Type;
-  using TensorTrain = PITTS::TensorTrain<Type>;
-  const Type maxvolTol = Type(0.05);
-
-  // TT ranks 3 but the actual rank of bond 0 is 2 (third slice of the first core is zero)
-  const std::vector<int> dims = {4, 3, 3};
-  TensorTrain TT(dims, 3);
-  randomize(TT);
-  TT.editSubTensor(0, [](PITTS::Tensor3<Type>& X){for(int j = 0; j < X.n(); j++) X(0, j, 2) = Type(0);});
-
-  const std::vector<NestedIndices> J = initialRightIndexSets(TT, maxvolTol);
-  checkRightNested(J, dims, {0, 2, 3});
-}
-
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_invalid_boundary_rank)
-{
-  using Type = typename TestFixture::Type;
-  using TensorTrain = PITTS::TensorTrain<Type>;
-
-  std::vector<PITTS::Tensor3<Type>> cores(2);
-  cores[0].resize(2, 3, 2);
-  cores[1].resize(2, 3, 1);
-  TensorTrain TT(std::move(cores));
-  randomize(TT);
-  EXPECT_THROW(initialRightIndexSets(TT, Type(0.05)), std::invalid_argument);
-}
-
-namespace
-{
   // smallest singular value of the right interface R_k (r_{k-1} x |J_k|) of a TT relative to the largest one, for k = 1..d-1:
   // a positive value means that the cross determines the right part of the TT
   template<typename T>
@@ -1374,25 +1371,161 @@ namespace
     }
     return result;
   }
+
+  // frame of the inputs and its index sets
+  template<typename T>
+  std::vector<NestedIndices> indexSetsOfFrame(const std::vector<std::reference_wrapper<const PITTS::TensorTrain<T>>>& inputs, T maxvolTol,
+                                              int maxRank = std::numeric_limits<int>::max(), T oversampling = T(0), const std::vector<int>& maxIndices = {})
+  {
+    PITTS::TensorTrain<T> frame(inputs.front().get().dimensions());
+    initialRightFrame(inputs, frame, maxRank);
+    return rightIndexSetsFromFrame(frame, maxvolTol, oversampling, maxIndices);
+  }
 }
 
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_two_TTs)
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightFrame)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using Inputs = std::vector<std::reference_wrapper<const PITTS::TensorTrain<Type>>>;
+  const auto eps = blockTolerance<Type>();
+
+  const std::vector<int> dims = {3, 4, 3, 5};
+  PITTS::TensorTrain<Type> TTa(dims), TTb(dims);
+  TTa.setTTranks({2, 3, 2});
+  TTb.setTTranks({2, 2, 3});
+  PITTS::internal::randomGenerator.seed(4711);   // same data on all MPI processes (PITTS::initialize seeds them differently)
+  randomize(TTa);
+  randomize(TTb);
+
+  // y = 0 with right-orthonormal cores 1..d-1, of the ranks of the inputs (summed, at most the full ranks or maxRank)
+  const auto check = [&](const Inputs& inputs, const std::vector<int>& expectedRanks, int maxRank = std::numeric_limits<int>::max())
+  {
+    PITTS::TensorTrain<Type> TTy(dims);
+    initialRightFrame(inputs, TTy, maxRank);
+    EXPECT_EQ(expectedRanks, TTy.getTTranks());
+    EXPECT_NEAR(Type(0), ConstEigenMap(unfold_left(TTy.subTensor(0))).norm(), Type(0));
+    for(int k = 1; k < 4; k++)
+    {
+      const auto core = ConstEigenMap(unfold_right(TTy.subTensor(k)));
+      EXPECT_NEAR(mat::Identity(core.rows(), core.rows()), mat(core * core.adjoint()), eps);
+      EXPECT_NE(PITTS::TT_Orthogonality::none, TTy.isOrthonormal(k) & PITTS::TT_Orthogonality::right);
+    }
+  };
+  check(Inputs{std::cref(TTa)}, {2, 3, 2});
+  check(Inputs{std::cref(TTa), std::cref(TTb)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTb)}, {2, 2, 2}, 2);
+  // dependent inputs: no additional directions
+  check(Inputs{std::cref(TTa), std::cref(TTa)}, {2, 3, 2});
+  // independent of the norms and of the gauge of the inputs: TTb much smaller, or with its norm in the first core;
+  // directions that cancel in the sum of the inputs are kept
+  PITTS::TensorTrain<Type> TTsmall(dims), TTgauge(dims), TTneg(dims);
+  copy(TTb, TTsmall);
+  copy(TTb, TTgauge);
+  copy(TTa, TTneg);
+  {
+    PITTS::Tensor3<Type> core;
+    copy(TTneg.subTensor(1), core);
+    PITTS::internal::t3_scale(Type(-1), core);
+    TTneg.setSubTensor(1, std::move(core));
+    copy(TTsmall.subTensor(1), core);
+    PITTS::internal::t3_scale(Type(1.e-10), core);
+    TTsmall.setSubTensor(1, std::move(core));
+    copy(TTgauge.subTensor(0), core);
+    PITTS::internal::t3_scale(Type(1.e10), core);
+    TTgauge.setSubTensor(0, std::move(core));
+    copy(TTgauge.subTensor(3), core);
+    PITTS::internal::t3_scale(Type(1.e-10), core);
+    TTgauge.setSubTensor(3, std::move(core));
+  }
+  check(Inputs{std::cref(TTa), std::cref(TTsmall)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTgauge)}, {3, 5, 5});
+  check(Inputs{std::cref(TTgauge), std::cref(TTa)}, {3, 5, 5});
+  check(Inputs{std::cref(TTa), std::cref(TTneg)}, {2, 3, 2});
+
+  // invalid inputs: none, different dimensions, boundary ranks != 1
+  PITTS::TensorTrain<Type> TTy(dims), TTwrong({3, 4, 3, 4});
+  std::vector<PITTS::Tensor3<Type>> cores(4);
+  cores[0].resize(2, 3, 2);
+  cores[1].resize(2, 4, 2);
+  cores[2].resize(2, 3, 2);
+  cores[3].resize(2, 5, 1);
+  PITTS::TensorTrain<Type> TTboundary(std::move(cores));
+  EXPECT_THROW(initialRightFrame(Inputs{}, TTy), std::invalid_argument);
+  EXPECT_THROW(initialRightFrame(Inputs{std::cref(TTwrong)}, TTy), std::invalid_argument);
+  EXPECT_THROW(initialRightFrame(Inputs{std::cref(TTboundary)}, TTy), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, rightIndexSetsFromFrame_random_TT)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = blockTolerance<Type>();
+  const Type maxvolTol = Type(0.05);
+
+  const std::vector<int> dims = {3, 4, 2, 5};
+  const int nDim = dims.size();
+  TensorTrain TT(dims);
+  TT.setTTranks({2, 3, 2});
+  PITTS::internal::randomGenerator.seed(4712);
+  randomize(TT);
+
+  TensorTrain frame(dims);
+  initialRightFrame({std::cref(TT)}, frame);
+  const std::vector<NestedIndices> J = rightIndexSetsFromFrame(frame, maxvolTol);
+  // |J_k| = rank of bond k-1 (the random TT has full ranks)
+  checkRightNested(J, dims, {0, 2, 3, 2});
+
+  // the selected columns are dominant in the frame: recompute XR_k = X_k * R_{k+1} with the cached contractions
+  std::vector<NestedIndices> noLeft(nDim);
+  auto Rx = defineSweepData<PITTS::Tensor3<Type>>(nDim, contraction_loop_from_left<Type>(frame, noLeft), contraction_loop_from_right<Type>(frame, J));
+  Rx.update(-1, 1);
+  for(int k = nDim-1; k >= 1; k--)
+    EXPECT_LE(columnDominance(Rx.subTensor(k), J[k]), 1 + maxvolTol + eps);
+
+  // the sets determine the right parts of the input
+  for(int k = 1; k < nDim; k++)
+    EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TT, J)[k], Type(1.e-3));
+
+  // oversampled sets (at least the rank, limited per bond by maxIndices and by the number of columns)
+  checkRightNested(rightIndexSetsFromFrame(frame, maxvolTol, Type(1)), dims, {0, 4, 6, 4});
+  checkRightNested(rightIndexSetsFromFrame(frame, maxvolTol, Type(1), {3, 3, 3}), dims, {0, 3, 3, 3});
+  EXPECT_THROW(rightIndexSetsFromFrame(frame, maxvolTol, Type(1), {3, 3}), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, rightIndexSetsFromFrame_rank_deficient_TT)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using Inputs = std::vector<std::reference_wrapper<const TensorTrain>>;
+
+  // TT ranks 3 but the actual rank of bond 0 is 2 (third slice of the first core is zero)
+  const std::vector<int> dims = {4, 3, 3};
+  TensorTrain TT(dims, 3);
+  PITTS::internal::randomGenerator.seed(4713);
+  randomize(TT);
+  TT.editSubTensor(0, [](PITTS::Tensor3<Type>& X){for(int j = 0; j < X.n(); j++) X(0, j, 2) = Type(0);});
+  checkRightNested(indexSetsOfFrame<Type>(Inputs{std::cref(TT)}, Type(0.05)), dims, {0, 2, 3});
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, rightIndexSetsFromFrame_two_TTs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using Inputs = std::vector<std::reference_wrapper<const TensorTrain>>;
   const Type maxvolTol = Type(0.05);
 
   const std::vector<int> dims = {3, 4, 2, 5};
   TensorTrain TTa(dims), TTb(dims);
   TTa.setTTranks({2, 3, 2});
   TTb.setTTranks({1, 2, 3});
-  PITTS::internal::randomGenerator.seed(4712);   // same data on all MPI processes (PITTS::initialize seeds them differently)
+  PITTS::internal::randomGenerator.seed(4714);   // same data on all MPI processes (PITTS::initialize seeds them differently)
   randomize(TTa);
   randomize(TTb);
-  const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
+  const Inputs inputs = {std::cref(TTa), std::cref(TTb)};
 
   // |J_k| = min(r^a_{k-1} + r^b_{k-1}, n_k |J_{k+1}|)
-  const std::vector<NestedIndices> J = initialRightIndexSets(inputs, maxvolTol);
+  const std::vector<NestedIndices> J = indexSetsOfFrame(inputs, maxvolTol);
   checkRightNested(J, dims, {0, 3, 5, 5});
 
   // the crosses determine the right parts of both tensor trains: R_k has full row rank for both
@@ -1400,54 +1533,28 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_two_
     for(int k = 1; k < int(dims.size()); k++)
       EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TT, J)[k], Type(1.e-3));
 
-  // maxRank limits the size of the sets
-  checkRightNested(initialRightIndexSets(inputs, maxvolTol, 2), dims, {0, 2, 2, 2});
+  // the rank of the frame limits the size of the sets
+  checkRightNested(indexSetsOfFrame(inputs, maxvolTol, 2), dims, {0, 2, 2, 2});
 }
 
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_dependent_TTs)
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, rightIndexSetsFromFrame_dependent_TTs)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
+  using Inputs = std::vector<std::reference_wrapper<const TensorTrain>>;
   const Type maxvolTol = Type(0.05);
 
-  // x and -2x have the same right parts: the stacked unfoldings are rank-deficient, the sets get the size of a single input
+  // x and -2x have the same right parts: the direct sum is rank-deficient, the sets get the size of a single input
   const std::vector<int> dims = {3, 4, 2, 5};
   TensorTrain TTa(dims), TTb(dims);
   TTa.setTTranks({2, 3, 2});
-  PITTS::internal::randomGenerator.seed(4713);   // same data on all MPI processes (PITTS::initialize seeds them differently)
+  PITTS::internal::randomGenerator.seed(4715);   // same data on all MPI processes (PITTS::initialize seeds them differently)
   randomize(TTa);
   copy(TTa, TTb);
   TTb.editSubTensor(1, [](PITTS::Tensor3<Type>& X){PITTS::internal::t3_scale(Type(-2), X);});
-  const std::vector<std::reference_wrapper<const TensorTrain>> inputs = {std::cref(TTa), std::cref(TTb)};
 
-  const std::vector<NestedIndices> J = initialRightIndexSets(inputs, maxvolTol);
+  const std::vector<NestedIndices> J = indexSetsOfFrame(Inputs{std::cref(TTa), std::cref(TTb)}, maxvolTol);
   checkRightNested(J, dims, {0, 2, 3, 2});
   for(int k = 1; k < int(dims.size()); k++)
     EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TTa, J)[k], Type(1.e-3));
-
-  // a single input in the vector: the same sets as from the single-input overload (SVD skipped);
-  // with maxRank below the ranks (SVD path) the sets have the requested size
-  const std::vector<std::reference_wrapper<const TensorTrain>> single = {std::cref(TTa)};
-  const std::vector<NestedIndices> Jsingle = initialRightIndexSets(TTa, maxvolTol);
-  const std::vector<NestedIndices> Jvector = initialRightIndexSets(single, maxvolTol);
-  for(int k = 1; k < int(dims.size()); k++)
-  {
-    EXPECT_EQ(Jsingle[k].idx, Jvector[k].idx);
-    EXPECT_EQ(Jsingle[k].link, Jvector[k].link);
-  }
-  checkRightNested(initialRightIndexSets(single, maxvolTol, 1), dims, {0, 1, 1, 1});
-}
-
-TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, initialRightIndexSets_invalid_inputs)
-{
-  using Type = typename TestFixture::Type;
-  using TensorTrain = PITTS::TensorTrain<Type>;
-
-  TensorTrain TTa({3, 4, 2}, 2), TTb({3, 4, 3}, 2);
-  randomize(TTa);
-  randomize(TTb);
-  using Inputs = std::vector<std::reference_wrapper<const TensorTrain>>;
-  EXPECT_THROW(initialRightIndexSets(Inputs{}, Type(0.05)), std::invalid_argument);
-  EXPECT_THROW(initialRightIndexSets(Inputs{std::cref(TTa), std::cref(TTb)}, Type(0.05)), std::invalid_argument);
-  EXPECT_THROW(initialRightIndexSets(Inputs{std::cref(TTa)}, Type(0.05), 0), std::invalid_argument);
 }
