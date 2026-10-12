@@ -41,6 +41,13 @@ namespace PITTS
     //! dedicated helper functionality for TT-cross algorithms
     namespace tt_cross
     {
+      //! maximal number of maxvol swaps for a matrix with r columns: the initial selection (LU with partial pivoting
+      //! with PITTS_DIRECT_MKL_GEMM) usually needs more swaps for larger r, each swap costs only O(m r)
+      inline int maxvolIterations(int r)
+      {
+        return std::max(100, 2*r);
+      }
+
       // implement enrichFactors
       //
       // Directions inside the span of Q are dropped, and never more than the dimension of the orthogonal
@@ -138,7 +145,7 @@ namespace PITTS
         EigenMap(VtH) = ConstEigenMap(Vt).adjoint();
 
         Tensor2<T> coefficientsH;
-        const std::vector<int> columns = maxvol(VtH, maxvolTolerance, 100, coefficients ? &coefficientsH : nullptr, nColumns);
+        const std::vector<int> columns = maxvol(VtH, maxvolTolerance, maxvolIterations(VtH.r2()), coefficients ? &coefficientsH : nullptr, nColumns);
 
         if( coefficients )
         {
@@ -227,7 +234,7 @@ namespace PITTS
         Tensor3<T> M;
         normalize_contract1(leftInterface, U3, M);
         const int nRows = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows));
-        result.selected = maxvol<T>(unfold_left(M), maxvolTolerance, 100, nullptr, nRows);
+        result.selected = maxvol<T>(unfold_left(M), maxvolTolerance, maxvolIterations(r), nullptr, nRows);
 
         result.core = std::move(U3);
         result.carry = std::move(SVt);
@@ -279,7 +286,7 @@ namespace PITTS
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
         const Tensor2<T> U = normalize_svd(unfold_left(B), true, absoluteTolerance, nRows, true, true).first;
-        return maxvol<T>(U, maxvolTolerance, 100, nullptr, nRows);
+        return maxvol<T>(U, maxvolTolerance, maxvolIterations(U.r2()), nullptr, nRows);
       }
 
 
