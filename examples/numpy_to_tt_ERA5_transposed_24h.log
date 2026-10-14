@@ -1,0 +1,888 @@
+[1;34m[pthread wrapper] 
+[0m[1;34m[pthread wrapper] MAIN -> 0
+[0m[1;34m[pthread wrapper] PIN_MASK: [0m[1;34m0->1  [0m[1;34m1->2  [0m[1;34m2->3  [0m[1;34m3->4  [0m[1;34m4->5  [0m[1;34m5->6  [0m[1;34m6->7  [0m[1;34m7->8  [0m[1;34m8->9  [0m[1;34m9->10  [0m[1;34m10->11  [0m[1;34m11->12  [0m[1;34m12->13  [0m[1;34m13->14  [0m[1;34m14->15  [0m[1;34m15->16  [0m[1;34m16->17  [0m[1;34m17->18  [0m[1;34m18->19  [0m[1;34m19->20  [0m[1;34m20->21  [0m[1;34m21->22  [0m[1;34m22->23  [0m[1;34m23->24  [0m[1;34m24->25  [0m[1;34m25->26  [0m[1;34m26->27  [0m[1;34m27->28  [0m[1;34m28->29  [0m[1;34m29->30  [0m[1;34m30->31  [0m[1;34m31->32  [0m[1;34m32->33  [0m[1;34m33->34  [0m[1;34m34->35  [0m[1;34m35->36  [0m[1;34m36->37  [0m[1;34m37->38  [0m[1;34m38->39  [0m[1;34m39->40  [0m[1;34m40->41  [0m[1;34m41->42  [0m[1;34m42->43  [0m[1;34m43->44  [0m[1;34m44->45  [0m[1;34m45->46  [0m[1;34m46->47  [0m[1;34m47->48  [0m[1;34m48->49  [0m[1;34m49->50  [0m[1;34m50->51  [0m[1;34m51->52  [0m[1;34m52->53  [0m[1;34m53->54  [0m[1;34m54->55  [0m[1;34m55->56  [0m[1;34m56->57  [0m[1;34m57->58  [0m[1;34m58->59  [0m[1;34m59->60  [0m[1;34m60->61  [0m[1;34m61->62  [0m[1;34m62->63  [0m[1;34m
+[pthread wrapper] SKIP MASK: 0x0
+[0m[1;34m	threadid 131494331791168 -> hwthread 1 - OK[0m[1;34m
+[0m[1;34m	threadid 131494248966080 -> hwthread 2 - OK[0m[1;34m
+[0m[1;34m	threadid 131494240569408 -> hwthread 3 - OK[0m[1;34m
+[0m[1;34m	threadid 131494232172736 -> hwthread 4 - OK[0m[1;34m
+[0m[1;34m	threadid 131494223776064 -> hwthread 5 - OK[0m[1;34m
+[0m[1;34m	threadid 131494215379392 -> hwthread 6 - OK[0m[1;34m
+[0m[1;34m	threadid 131494206982720 -> hwthread 7 - OK[0m[1;34m
+[0m[1;34m	threadid 131494198586048 -> hwthread 8 - OK[0m[1;34m
+[0m[1;34m	threadid 131493712096064 -> hwthread 9 - OK[0m[1;34m
+[0m[1;34m	threadid 131493703699392 -> hwthread 10 - OK[0m[1;34m
+[0m[1;34m	threadid 131493695302720 -> hwthread 11 - OK[0m[1;34m
+[0m[1;34m	threadid 131493686906048 -> hwthread 12 - OK[0m[1;34m
+[0m[1;34m	threadid 131493678509376 -> hwthread 13 - OK[0m[1;34m
+[0m[1;34m	threadid 131493670112704 -> hwthread 14 - OK[0m[1;34m
+[0m[1;34m	threadid 131493661716032 -> hwthread 15 - OK[0m[1;34m
+[0m[1;34m	threadid 131493175226048 -> hwthread 16 - OK[0m[1;34m
+[0m[1;34m	threadid 131493166829376 -> hwthread 17 - OK[0m[1;34m
+[0m[1;34m	threadid 131493158432704 -> hwthread 18 - OK[0m[1;34m
+[0m[1;34m	threadid 131493150036032 -> hwthread 19 - OK[0m[1;34m
+[0m[1;34m	threadid 131493141639360 -> hwthread 20 - OK[0m[1;34m
+[0m[1;34m	threadid 131493133242688 -> hwthread 21 - OK[0m[1;34m
+[0m[1;34m	threadid 131493124846016 -> hwthread 22 - OK[0m[1;34m
+[0m[1;34m	threadid 131492638356032 -> hwthread 23 - OK[0m[1;34m
+[0m[1;34m	threadid 131492629959360 -> hwthread 24 - OK[0m[1;34m
+[0m[1;34m	threadid 131492621562688 -> hwthread 25 - OK[0m[1;34m
+[0m[1;34m	threadid 131492613166016 -> hwthread 26 - OK[0m[1;34m
+[0m[1;34m	threadid 131492604769344 -> hwthread 27 - OK[0m[1;34m
+[0m[1;34m	threadid 131492596372672 -> hwthread 28 - OK[0m[1;34m
+[0m[1;34m	threadid 131492587976000 -> hwthread 29 - OK[0m[1;34m
+[0m[1;34m	threadid 131492101486016 -> hwthread 30 - OK[0m[1;34m
+[0m[1;34m	threadid 131492093089344 -> hwthread 31 - OK[0m[1;34m
+[0m[1;34m	threadid 131492084692672 -> hwthread 32 - OK[0m[1;34m
+[0m[1;34m	threadid 131492076291904 -> hwthread 33 - OK[0m[1;34m
+[0m[1;34m	threadid 131492067891136 -> hwthread 34 - OK[0m[1;34m
+[0m[1;34m	threadid 131492059490368 -> hwthread 35 - OK[0m[1;34m
+[0m[1;34m	threadid 131492051089600 -> hwthread 36 - OK[0m[1;34m
+[0m[1;34m	threadid 131491564611904 -> hwthread 37 - OK[0m[1;34m
+[0m[1;34m	threadid 131491556211136 -> hwthread 38 - OK[0m[1;34m
+[0m[1;34m	threadid 131491547810368 -> hwthread 39 - OK[0m[1;34m
+[0m[1;34m	threadid 131491539409600 -> hwthread 40 - OK[0m[1;34m
+[0m[1;34m	threadid 131491531008832 -> hwthread 41 - OK[0m[1;34m
+[0m[1;34m	threadid 131491522608064 -> hwthread 42 - OK[0m[1;34m
+[0m[1;34m	threadid 131491514207296 -> hwthread 43 - OK[0m[1;34m
+[0m[1;34m	threadid 131491027741888 -> hwthread 44 - OK[0m[1;34m
+[0m[1;34m	threadid 131491019341120 -> hwthread 45 - OK[0m[1;34m
+[0m[1;34m	threadid 131491010940352 -> hwthread 46 - OK[0m[1;34m
+[0m[1;34m	threadid 131491002539584 -> hwthread 47 - OK[0m[1;34m
+[0m[1;34m	threadid 131490994138816 -> hwthread 48 - OK[0m[1;34m
+[0m[1;34m	threadid 131490985738048 -> hwthread 49 - OK[0m[1;34m
+[0m[1;34m	threadid 131490977337280 -> hwthread 50 - OK[0m[1;34m
+[0m[1;34m	threadid 131490490871872 -> hwthread 51 - OK[0m[1;34m
+[0m[1;34m	threadid 131490482471104 -> hwthread 52 - OK[0m[1;34m
+[0m[1;34m	threadid 131490474070336 -> hwthread 53 - OK[0m[1;34m
+[0m[1;34m	threadid 131490465669568 -> hwthread 54 - OK[0m[1;34m
+[0m[1;34m	threadid 131490457268800 -> hwthread 55 - OK[0m[1;34m
+[0m[1;34m	threadid 131490448868032 -> hwthread 56 - OK[0m[1;34m
+[0m[1;34m	threadid 131490440467264 -> hwthread 57 - OK[0m[1;34m
+[0m[1;34m	threadid 131489954001856 -> hwthread 58 - OK[0m[1;34m
+[0m[1;34m	threadid 131489945601088 -> hwthread 59 - OK[0m[1;34m
+[0m[1;34m	threadid 131489937200320 -> hwthread 60 - OK[0m[1;34m
+[0m[1;34m	threadid 131489928799552 -> hwthread 61 - OK[0m[1;34m
+[0m[1;34m	threadid 131489920398784 -> hwthread 62 - OK[0m[1;34m
+[0m[1;34m	threadid 131489911998016 -> hwthread 63 - OK[0m[1;34m
+[0m[1;34mRoundrobin placement triggered
+	threadid 131489903597248 -> hwthread 0 - OK[0m[1;34m
+[0m[1;34m	threadid 131489417131712 -> hwthread 1 - OK[0m[1;34m
+[0mPITTS: version v0.9.7-207-gc00bfa6
+PITTS: MPI #procs: 1
+PITTS: OpenMP #threads: 64
+PITTS: SIMD implementation: avx512
+PITTS: Eigen SIMD implementation: AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2
+PITTS: cache sizes (L1/core, L2/core, L3/accessible) [byte]: (32768, 1048576, 92274688)
+PITTS: preprocessor definitions: PITTS_DIRECT_MKL_GEMM
+progress 0 %
+progress 0 %
+progress 0 %
+progress 0 %
+progress 1 %
+progress 1 %
+progress 1 %
+progress 1 %
+progress 1 %
+progress 1 %
+progress 1 %
+progress 1 %
+progress 2 %
+progress 2 %
+progress 2 %
+progress 2 %
+progress 2 %
+progress 2 %
+progress 2 %
+progress 3 %
+progress 3 %
+progress 3 %
+progress 3 %
+progress 3 %
+progress 3 %
+progress 3 %
+progress 4 %
+progress 4 %
+progress 4 %
+progress 4 %
+progress 4 %
+progress 4 %
+progress 4 %
+progress 4 %
+progress 5 %
+progress 5 %
+progress 5 %
+progress 5 %
+progress 5 %
+progress 5 %
+progress 5 %
+progress 6 %
+progress 6 %
+progress 6 %
+progress 6 %
+progress 6 %
+progress 6 %
+progress 6 %
+progress 7 %
+progress 7 %
+progress 7 %
+progress 7 %
+progress 7 %
+progress 7 %
+progress 7 %
+progress 7 %
+progress 8 %
+progress 8 %
+progress 8 %
+progress 8 %
+progress 8 %
+progress 8 %
+progress 8 %
+progress 9 %
+progress 9 %
+progress 9 %
+progress 9 %
+progress 9 %
+progress 9 %
+progress 9 %
+progress 10 %
+progress 10 %
+progress 10 %
+progress 10 %
+progress 10 %
+progress 10 %
+progress 10 %
+progress 10 %
+progress 11 %
+progress 11 %
+progress 11 %
+progress 11 %
+progress 11 %
+progress 11 %
+progress 11 %
+progress 12 %
+progress 12 %
+progress 12 %
+progress 12 %
+progress 12 %
+progress 12 %
+progress 12 %
+progress 12 %
+progress 13 %
+progress 13 %
+progress 13 %
+progress 13 %
+progress 13 %
+progress 13 %
+progress 13 %
+progress 14 %
+progress 14 %
+progress 14 %
+progress 14 %
+progress 14 %
+progress 14 %
+progress 14 %
+progress 15 %
+progress 15 %
+progress 15 %
+progress 15 %
+progress 15 %
+progress 15 %
+progress 15 %
+progress 15 %
+progress 16 %
+progress 16 %
+progress 16 %
+progress 16 %
+progress 16 %
+progress 16 %
+progress 16 %
+progress 17 %
+progress 17 %
+progress 17 %
+progress 17 %
+progress 17 %
+progress 17 %
+progress 17 %
+progress 18 %
+progress 18 %
+progress 18 %
+progress 18 %
+progress 18 %
+progress 18 %
+progress 18 %
+progress 18 %
+progress 19 %
+progress 19 %
+progress 19 %
+progress 19 %
+progress 19 %
+progress 19 %
+progress 19 %
+progress 20 %
+progress 20 %
+progress 20 %
+progress 20 %
+progress 20 %
+progress 20 %
+progress 20 %
+progress 21 %
+progress 21 %
+progress 21 %
+progress 21 %
+progress 21 %
+progress 21 %
+progress 21 %
+progress 21 %
+progress 22 %
+progress 22 %
+progress 22 %
+progress 22 %
+progress 22 %
+progress 22 %
+progress 22 %
+progress 23 %
+progress 23 %
+progress 23 %
+progress 23 %
+progress 23 %
+progress 23 %
+progress 23 %
+progress 23 %
+progress 24 %
+progress 24 %
+progress 24 %
+progress 24 %
+progress 24 %
+progress 24 %
+progress 24 %
+progress 25 %
+progress 25 %
+progress 25 %
+progress 25 %
+progress 25 %
+progress 25 %
+progress 25 %
+progress 26 %
+progress 26 %
+progress 26 %
+progress 26 %
+progress 26 %
+progress 26 %
+progress 26 %
+progress 26 %
+progress 27 %
+progress 27 %
+progress 27 %
+progress 27 %
+progress 27 %
+progress 27 %
+progress 27 %
+progress 28 %
+progress 28 %
+progress 28 %
+progress 28 %
+progress 28 %
+progress 28 %
+progress 28 %
+progress 29 %
+progress 29 %
+progress 29 %
+progress 29 %
+progress 29 %
+progress 29 %
+progress 29 %
+progress 29 %
+progress 30 %
+progress 30 %
+progress 30 %
+progress 30 %
+progress 30 %
+progress 30 %
+progress 30 %
+progress 31 %
+progress 31 %
+progress 31 %
+progress 31 %
+progress 31 %
+progress 31 %
+progress 31 %
+progress 32 %
+progress 32 %
+progress 32 %
+progress 32 %
+progress 32 %
+progress 32 %
+progress 32 %
+progress 32 %
+progress 33 %
+progress 33 %
+progress 33 %
+progress 33 %
+progress 33 %
+progress 33 %
+progress 33 %
+progress 34 %
+progress 34 %
+progress 34 %
+progress 34 %
+progress 34 %
+progress 34 %
+progress 34 %
+progress 35 %
+progress 35 %
+progress 35 %
+progress 35 %
+progress 35 %
+progress 35 %
+progress 35 %
+progress 35 %
+progress 36 %
+progress 36 %
+progress 36 %
+progress 36 %
+progress 36 %
+progress 36 %
+progress 36 %
+progress 37 %
+progress 37 %
+progress 37 %
+progress 37 %
+progress 37 %
+progress 37 %
+progress 37 %
+progress 37 %
+progress 38 %
+progress 38 %
+progress 38 %
+progress 38 %
+progress 38 %
+progress 38 %
+progress 38 %
+progress 39 %
+progress 39 %
+progress 39 %
+progress 39 %
+progress 39 %
+progress 39 %
+progress 39 %
+progress 40 %
+progress 40 %
+progress 40 %
+progress 40 %
+progress 40 %
+progress 40 %
+progress 40 %
+progress 40 %
+progress 41 %
+progress 41 %
+progress 41 %
+progress 41 %
+progress 41 %
+progress 41 %
+progress 41 %
+progress 42 %
+progress 42 %
+progress 42 %
+progress 42 %
+progress 42 %
+progress 42 %
+progress 42 %
+progress 43 %
+progress 43 %
+progress 43 %
+progress 43 %
+progress 43 %
+progress 43 %
+progress 43 %
+progress 43 %
+progress 44 %
+progress 44 %
+progress 44 %
+progress 44 %
+progress 44 %
+progress 44 %
+progress 44 %
+progress 45 %
+progress 45 %
+progress 45 %
+progress 45 %
+progress 45 %
+progress 45 %
+progress 45 %
+progress 46 %
+progress 46 %
+progress 46 %
+progress 46 %
+progress 46 %
+progress 46 %
+progress 46 %
+progress 46 %
+progress 47 %
+progress 47 %
+progress 47 %
+progress 47 %
+progress 47 %
+progress 47 %
+progress 47 %
+progress 48 %
+progress 48 %
+progress 48 %
+progress 48 %
+progress 48 %
+progress 48 %
+progress 48 %
+progress 48 %
+progress 49 %
+progress 49 %
+progress 49 %
+progress 49 %
+progress 49 %
+progress 49 %
+progress 49 %
+progress 50 %
+progress 50 %
+progress 50 %
+progress 50 %
+progress 50 %
+progress 50 %
+progress 50 %
+progress 51 %
+progress 51 %
+progress 51 %
+progress 51 %
+progress 51 %
+progress 51 %
+progress 51 %
+progress 51 %
+progress 52 %
+progress 52 %
+progress 52 %
+progress 52 %
+progress 52 %
+progress 52 %
+progress 52 %
+progress 53 %
+progress 53 %
+progress 53 %
+progress 53 %
+progress 53 %
+progress 53 %
+progress 53 %
+progress 54 %
+progress 54 %
+progress 54 %
+progress 54 %
+progress 54 %
+progress 54 %
+progress 54 %
+progress 54 %
+progress 55 %
+progress 55 %
+progress 55 %
+progress 55 %
+progress 55 %
+progress 55 %
+progress 55 %
+progress 56 %
+progress 56 %
+progress 56 %
+progress 56 %
+progress 56 %
+progress 56 %
+progress 56 %
+progress 57 %
+progress 57 %
+progress 57 %
+progress 57 %
+progress 57 %
+progress 57 %
+progress 57 %
+progress 57 %
+progress 58 %
+progress 58 %
+progress 58 %
+progress 58 %
+progress 58 %
+progress 58 %
+progress 58 %
+progress 59 %
+progress 59 %
+progress 59 %
+progress 59 %
+progress 59 %
+progress 59 %
+progress 59 %
+progress 59 %
+progress 60 %
+progress 60 %
+progress 60 %
+progress 60 %
+progress 60 %
+progress 60 %
+progress 60 %
+progress 61 %
+progress 61 %
+progress 61 %
+progress 61 %
+progress 61 %
+progress 61 %
+progress 61 %
+progress 62 %
+progress 62 %
+progress 62 %
+progress 62 %
+progress 62 %
+progress 62 %
+progress 62 %
+progress 62 %
+progress 63 %
+progress 63 %
+progress 63 %
+progress 63 %
+progress 63 %
+progress 63 %
+progress 63 %
+progress 64 %
+progress 64 %
+progress 64 %
+progress 64 %
+progress 64 %
+progress 64 %
+progress 64 %
+progress 65 %
+progress 65 %
+progress 65 %
+progress 65 %
+progress 65 %
+progress 65 %
+progress 65 %
+progress 65 %
+progress 66 %
+progress 66 %
+progress 66 %
+progress 66 %
+progress 66 %
+progress 66 %
+progress 66 %
+progress 67 %
+progress 67 %
+progress 67 %
+progress 67 %
+progress 67 %
+progress 67 %
+progress 67 %
+progress 68 %
+progress 68 %
+progress 68 %
+progress 68 %
+progress 68 %
+progress 68 %
+progress 68 %
+progress 68 %
+progress 69 %
+progress 69 %
+progress 69 %
+progress 69 %
+progress 69 %
+progress 69 %
+progress 69 %
+progress 70 %
+progress 70 %
+progress 70 %
+progress 70 %
+progress 70 %
+progress 70 %
+progress 70 %
+progress 70 %
+progress 71 %
+progress 71 %
+progress 71 %
+progress 71 %
+progress 71 %
+progress 71 %
+progress 71 %
+progress 72 %
+progress 72 %
+progress 72 %
+progress 72 %
+progress 72 %
+progress 72 %
+progress 72 %
+progress 73 %
+progress 73 %
+progress 73 %
+progress 73 %
+progress 73 %
+progress 73 %
+progress 73 %
+progress 73 %
+progress 74 %
+progress 74 %
+progress 74 %
+progress 74 %
+progress 74 %
+progress 74 %
+progress 74 %
+progress 75 %
+progress 75 %
+progress 75 %
+progress 75 %
+progress 75 %
+progress 75 %
+progress 75 %
+progress 76 %
+progress 76 %
+progress 76 %
+progress 76 %
+progress 76 %
+progress 76 %
+progress 76 %
+progress 76 %
+progress 77 %
+progress 77 %
+progress 77 %
+progress 77 %
+progress 77 %
+progress 77 %
+progress 77 %
+progress 78 %
+progress 78 %
+progress 78 %
+progress 78 %
+progress 78 %
+progress 78 %
+progress 78 %
+progress 79 %
+progress 79 %
+progress 79 %
+progress 79 %
+progress 79 %
+progress 79 %
+progress 79 %
+progress 79 %
+progress 80 %
+progress 80 %
+progress 80 %
+progress 80 %
+progress 80 %
+progress 80 %
+progress 80 %
+progress 81 %
+progress 81 %
+progress 81 %
+progress 81 %
+progress 81 %
+progress 81 %
+progress 81 %
+progress 81 %
+progress 82 %
+progress 82 %
+progress 82 %
+progress 82 %
+progress 82 %
+progress 82 %
+progress 82 %
+progress 83 %
+progress 83 %
+progress 83 %
+progress 83 %
+progress 83 %
+progress 83 %
+progress 83 %
+progress 84 %
+progress 84 %
+progress 84 %
+progress 84 %
+progress 84 %
+progress 84 %
+progress 84 %
+progress 84 %
+progress 85 %
+progress 85 %
+progress 85 %
+progress 85 %
+progress 85 %
+progress 85 %
+progress 85 %
+progress 86 %
+progress 86 %
+progress 86 %
+progress 86 %
+progress 86 %
+progress 86 %
+progress 86 %
+progress 87 %
+progress 87 %
+progress 87 %
+progress 87 %
+progress 87 %
+progress 87 %
+progress 87 %
+progress 87 %
+progress 88 %
+progress 88 %
+progress 88 %
+progress 88 %
+progress 88 %
+progress 88 %
+progress 88 %
+progress 89 %
+progress 89 %
+progress 89 %
+progress 89 %
+progress 89 %
+progress 89 %
+progress 89 %
+progress 90 %
+progress 90 %
+progress 90 %
+progress 90 %
+progress 90 %
+progress 90 %
+progress 90 %
+progress 90 %
+progress 91 %
+progress 91 %
+progress 91 %
+progress 91 %
+progress 91 %
+progress 91 %
+progress 91 %
+progress 92 %
+progress 92 %
+progress 92 %
+progress 92 %
+progress 92 %
+progress 92 %
+progress 92 %
+progress 92 %
+progress 93 %
+progress 93 %
+progress 93 %
+progress 93 %
+progress 93 %
+progress 93 %
+progress 93 %
+progress 94 %
+progress 94 %
+progress 94 %
+progress 94 %
+progress 94 %
+progress 94 %
+progress 94 %
+progress 95 %
+progress 95 %
+progress 95 %
+progress 95 %
+progress 95 %
+progress 95 %
+progress 95 %
+progress 95 %
+progress 96 %
+progress 96 %
+progress 96 %
+progress 96 %
+progress 96 %
+progress 96 %
+progress 96 %
+progress 97 %
+progress 97 %
+progress 97 %
+progress 97 %
+progress 97 %
+progress 97 %
+progress 97 %
+progress 98 %
+progress 98 %
+progress 98 %
+progress 98 %
+progress 98 %
+progress 98 %
+progress 98 %
+progress 98 %
+progress 99 %
+progress 99 %
+progress 99 %
+progress 99 %
+progress 99 %
+progress 99 %
+progress 99 %
+progress 100 %
+progress 100 %
+progress 100 %
+progress 100 %
+read_data_to_multivector wtime: 4483.086522137746 memory useage (GB) before/after: 0.223344 339.4489
+iDim: 11, matrix dimensions: 180933120 x 480
+n: 480, rank: 44, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 10, matrix dimensions: 36186624 x 220
+n: 220, rank: 144, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 9, matrix dimensions: 12062208 x 432
+n: 432, rank: 372, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 8, matrix dimensions: 6031104 x 744
+n: 744, rank: 633, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 7, matrix dimensions: 3015552 x 1266
+n: 1266, rank: 635, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 6, matrix dimensions: 1507776 x 1270
+n: 1270, rank: 573, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 5, matrix dimensions: 753888 x 1146
+n: 1146, rank: 529, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 4, matrix dimensions: 376944 x 1058
+n: 1058, rank: 589, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 3, matrix dimensions: 188472 x 1178
+n: 1178, rank: 665, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 2, matrix dimensions: 94236 x 1330
+n: 1330, rank: 839, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+iDim: 1, matrix dimensions: 47118 x 1678
+n: 1678, rank: 1130, maxRank: 4000, rankTol*initialFrobeniusNorm: 2.61753
+calculate_TT_SVD wtime: 57.81981479842216 memory useage (GB) before/after: 339.454 371.853776
+PITTS::TensorTrainfloat
+        with dimensions = [47118, 2, 2, 2, 2, 2, 2, 2, 2, 3, 5, 480]
+             ranks      = [1130, 839, 665, 589, 529, 573, 635, 633, 372, 144, 44]
+tensortrain_to_dict wtime: 0.9416610514745116 memory useage (GB) before/after: 371.853776 372.062008
+Performance statistics:
+function                                                                                                                                                                                                                                   	 time [s]  	 #calls    	 GFlop/s DP	 GFlop/s SP	 GByte/s   	Flops/Byte
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 180933120, cols: 480, reductionFactor: 12, colBlockingSize: 16)                                           	 24.7673   	 1         	 0         	 3646.82   	 14.0263   	 259.999   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 180933120, Xcols: 480, Yrows: 36186624, Ycols: 220, fast: 1)	 9.02117   	 1         	 0         	 847.186   	 42.0384   	 20.1527   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 3015552, cols: 1266, reductionFactor: 4, colBlockingSize: 16)                                             	 3.73019   	 1         	 0         	 3239.24   	 4.09555   	 790.918   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 753888, Xcols: 1146, Yrows: 376944, Ycols: 1058, fast: 0)   	 2.38578   	 1         	 0         	 383.131   	 2.11817   	 180.879   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 6031104, cols: 744, reductionFactor: 8, colBlockingSize: 16)                                              	 2.04591   	 1         	 0         	 3671.46   	 8.77399   	 418.448   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 1507776, cols: 1270, reductionFactor: 4, colBlockingSize: 16)                                             	 1.84171   	 1         	 0         	 3301.13   	 4.1624    	 793.082   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 12062208, cols: 432, reductionFactor: 14, colBlockingSize: 16)                                            	 1.18231   	 1         	 0         	 4079.96   	 17.6301   	 231.42    
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 376944, Xcols: 1058, Yrows: 188472, Ycols: 1178, fast: 0)   	 1.06452   	 1         	 0         	 441.319   	 2.33513   	 188.991   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 6031104, Xcols: 744, Yrows: 3015552, Ycols: 1266, fast: 3)  	 1.05865   	 1         	 0         	 5365.99   	 31.3806   	 170.997   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 3015552, Xcols: 1266, Yrows: 1507776, Ycols: 1270, fast: 3) 	 1.02653   	 1         	 0         	 4723.18   	 22.3409   	 211.414   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 188472, Xcols: 1178, Yrows: 94236, Ycols: 1330, fast: 0)    	 0.886421  	 1         	 0         	 333.122   	 1.57098   	 212.048   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 36186624, cols: 220, reductionFactor: 27, colBlockingSize: 16)                                            	 0.848597  	 1         	 0         	 4280.71   	 37.526    	 114.073   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 94236, Xcols: 1330, Yrows: 47118, Ycols: 1678, fast: 0)     	 0.795768  	 1         	 0         	 264.286   	 1.03303   	 255.835   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 12062208, Xcols: 432, Yrows: 6031104, Ycols: 744, fast: 3)  	 0.783712  	 1         	 0         	 4946.83   	 49.4987   	 99.9386   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 753888, cols: 1146, reductionFactor: 5, colBlockingSize: 16)                                              	 0.661477  	 1         	 0         	 3592.3    	 5.23235   	 686.556   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 36186624, Xcols: 220, Yrows: 12062208, Ycols: 432, fast: 1) 	 0.597581  	 1         	 0         	 3836.78   	 88.1685   	 43.5164   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 47118, cols: 1678, reductionFactor: 3, colBlockingSize: 16)                                               	 0.479637  	 1         	 0         	 737.61    	 0.682847  	 1080.2    
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 1507776, Xcols: 1270, Yrows: 753888, Ycols: 1146, fast: 3)  	 0.385915  	 1         	 0         	 5686.35   	 28.8101   	 197.374   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 376944, cols: 1058, reductionFactor: 5, colBlockingSize: 16)                                              	 0.305423  	 1         	 0         	 3315.56   	 5.23766   	 633.023   
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 188472, cols: 1178, reductionFactor: 5, colBlockingSize: 16)                                              	 0.215881  	 1         	 0         	 2907.6    	 4.13946   	 702.41    
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float](rows: 94236, cols: 1330, reductionFactor: 4, colBlockingSize: 16)                                               	 0.18018   	 1         	 0         	 2312.89   	 2.82169   	 819.681   
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float](Xrows: 47118, Xcols: 1678, Yrows: 47118, Ycols: 1130, fast: 3)     	 0.0312287 	 1         	 0         	 5721.81   	 17.1898   	 332.861   
+<PITTS::Tensor3<float>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = MultiVector<float>](r1: 1, n: 47118, r2: 1130)                                                                         	 0.0126741 	 1         	 0         	 0         	 33.6077   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 44, n: 480, r2: 1)       	 0.0033085 	 1         	 0         	 0         	 0.0510685 	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 1130, n: 2, r2: 839)     	 0.000375775	 1         	 0         	 0         	 40.3676   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 573, n: 2, r2: 635)      	 0.00034379	 1         	 0         	 0         	 16.9338   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 839, n: 2, r2: 665)      	 0.000241925	 1         	 0         	 0         	 36.8997   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 635, n: 2, r2: 633)      	 0.000216834	 1         	 0         	 0         	 29.6599   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 665, n: 2, r2: 589)      	 0.000212545	 1         	 0         	 0         	 29.4853   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 372, n: 3, r2: 144)      	 0.000194992	 1         	 0         	 0         	 6.59326   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 633, n: 2, r2: 372)      	 0.000181844	 1         	 0         	 0         	 20.7189   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 589, n: 2, r2: 529)      	 0.000173691	 1         	 0         	 0         	 28.7021   	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 529, n: 2, r2: 573)      	 0.000159572	 1         	 0         	 0         	 30.393    	 0         
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >](r1: 144, n: 5, r2: 44)       	 2.386e-05 	 1         	 0         	 0         	 10.622    	 0         
+Timing statistics:
+function                                                                                                                                                                                                     	 time [s]  	 #calls    
+<PITTS::TensorTrain<float>> :: PITTS::TensorTrain<T> PITTS::fromDense(MultiVector<T>&, MultiVector<T>&, const std::vector<int>&, T, int, bool, int, int) [with T = float]                                    	 57.7854   	 1         
+<PITTS::MultiVector<float>> :: void PITTS::block_TSQR(const MultiVector<T>&, Tensor2<T>&, int, bool, int) [with T = float]                                                                                   	 36.2586   	 11        
+<PITTS::MultiVector<float>> :: void PITTS::transform(const MultiVector<T>&, const ConstTensor2View<T>&, MultiVector<T>&, std::array<long long int, 2>) [with T = float]                                      	 18.0373   	 11        
+<PITTS::Tensor3<float>> :: void PITTS::fold_left(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = MultiVector<float>]                                                                      	 0.0126741 	 1         
+<PITTS::MultiVector<float>> :: void PITTS::MultiVector<T>::resize(long long int, long long int, bool, bool) [with T = float]                                                                                 	 0.00667393	 12        
+<PITTS::Tensor3<float>> :: void PITTS::fold_right(const MatrixType&, int, Tensor3<T>&) [with T = float; MatrixType = Eigen::Transpose<const Eigen::Block<const Eigen::Matrix<float, -1, -1>, -1, -1, true> >]	 0.00543333	 11        
+<PITTS::Tensor3<float>> :: void PITTS::Tensor3<T>::resize(long long int, long long int, long long int, bool, bool) [with T = float]                                                                          	 0.00028108	 24        
+<PITTS::Tensor2<float>> :: void PITTS::Tensor2<T>::resize(long long int, long long int, bool) [with T = float]                                                                                               	 0.000219047	 22        
