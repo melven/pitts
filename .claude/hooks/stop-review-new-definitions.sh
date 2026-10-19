@@ -4,11 +4,14 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Stop hook for Claude Code: when the changes in src/ (relative to origin/master, including uncommitted
-# ones) add new function or class definitions, refuse to end the turn once and ask for a review of them:
-# reuse of existing helpers and numerical soundness (see "Reuse and numerical soundness" in CLAUDE.md).
-# Each definition is only reported once (remembered in .git/claude-reviewed-definitions).
-# Exit code 2 blocks stopping and feeds stderr back to the agent.
+# Stop hook for Claude Code: when the current state of src/ contains function or class definitions that do not
+# exist on origin/master (compared by their heads, see definition-heads.awk; moved code is not new, untracked
+# files are included), refuse to end the turn once and ask for a review of them (reuse of existing helpers,
+# numerical soundness). Exit code 2 blocks stopping and feeds stderr back to the agent.
+#
+# Limitations: the review comes at the end of a turn, often after commit and push, so fixes become extra commits;
+# reviewed definitions are remembered in .git/claude-reviewed-definitions, so a fresh clone (new cloud session)
+# lists them again; definitions added while fixing after a block are only checked at the end of the next turn.
 
 set -uo pipefail
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}"
@@ -19,64 +22,20 @@ if printf '%s' "$input" | grep -q '"stop_hook_active": *true'; then
   exit 0
 fi
 
-base=$(git merge-base HEAD origin/master 2>/dev/null || git rev-parse HEAD 2>/dev/null) || exit 0
+base=$(git merge-base HEAD origin/master 2>/dev/null) || exit 0
+heads=.claude/hooks/definition-heads.awk
 reviewed="$(git rev-parse --git-dir)/claude-reviewed-definitions"
 touch "$reviewed"
 
-# Added definitions: the head of a definition is followed by a line "{" (Allman style); git may align that "{"
-# with an unchanged line, so an added hunk that ends like a definition head counts as well. Reported is the line
-# with the opening parenthesis (or the class/struct line); control statements, lambdas, member initializers,
-# comments and preprocessor lines are skipped.
-definitions=$(git diff --unified=0 "$base" -- 'src/*.hpp' 'src/*.cpp' | awk '
-  function endsHead() { return n > 0 && (buf[n] ~ /\)[ \t]*((const|final|override|noexcept)[ \t]*)*$/ || buf[n] ~ /^[ \t]*(class|struct)[ \t][^;]*$/) }
-  function report(   i, head, initList, plain) {
-    head = ""
-    initList = 0
-    for(i = n; i > 0 && i > n-40; i--)
-    {
-      if( buf[i] ~ /^[ \t]*(\/\/|#)/ )
-        continue
-      # constructor head "Name(...) :" ends an initializer list (member initializers end with an underscore)
-      if( buf[i] ~ /\)[ \t]*:[ \t]*$/ )
-      {
-        head = buf[i]
-        break
-      }
-      if( buf[i] ~ /^[ \t]*([A-Za-z_][A-Za-z0-9_]*_\(|:)/ )
-        initList = 1
-      if( initList )
-        continue
-      if( buf[i] ~ /^[ \t]*(class|struct)[ \t]/ || buf[i] ~ /\(/ )
-      {
-        head = buf[i]
-        break
-      }
-    }
-    plain = head
-    gsub(/\[\[[^\]]*\]\]/, "", plain)   # attributes like [[nodiscard]] are no lambdas
-    if( head != "" && plain !~ /^[ \t]*(if|for|while|switch|catch|else|do|return)[ \t(]/ && plain !~ /[=\[]/ )
-    {
-      gsub(/^[ \t]+|[ \t]+$/, "", head)
-      print file ": " head
-    }
-    n = 0
-  }
-  /^\+\+\+ / { if( endsHead() ) report(); file = substr($0, 7); n = 0; next }
-  /^@@/      { if( endsHead() ) report(); n = 0; next }
-  /^\+/      {
-    line = substr($0, 2)
-    if( line ~ /^[ \t]*\{[ \t]*$/ )
-    {
-      if( n > 0 ) report()
-      next
-    }
-    buf[++n] = line
-    next
-  }
-  END { if( endsHead() ) report() }' | sort -u)
+# heads on the base (without the file name) and in the working tree ("<file>: <head>")
+before=$(git ls-tree -r --name-only "$base" -- src | grep -E '\.(hpp|cpp)$' | while read -r f; do
+           git show "$base:$f" | awk -v file="$f" -f "$heads"
+         done | sed 's/^[^:]*: //' | sort -u)
+after=$(for f in src/*.hpp src/*.cpp; do [ -f "$f" ] && awk -v file="$f" -f "$heads" "$f"; done | sort -u)
 
-[ -z "$definitions" ] && exit 0
-new=$(comm -23 <(printf '%s\n' "$definitions") <(sort -u "$reviewed"))
+# new: the head exists on the base in no file, and it was not reported before
+new=$(awk 'NR == FNR { known[$0] = 1; next } !(substr($0, index($0, ": ")+2) in known)' <(printf '%s\n' "$before") <(printf '%s\n' "$after") \
+        | grep -v -x -F -f "$reviewed" | sed '/^$/d')
 [ -z "$new" ] && exit 0
 printf '%s\n' "$new" >> "$reviewed"
 
@@ -84,13 +43,8 @@ printf '%s\n' "$new" >> "$reviewed"
   echo "New definitions in src/ (not yet reviewed):"
   printf '%s\n' "$new" | sed 's/^/  /'
   echo
-  echo "Before finishing, review each of them (see \"Reuse and numerical soundness\" in CLAUDE.md):"
-  echo "  1. Reuse: is there already a helper for this (src/CLAUDE.md tables, the pitts_<type>_*.hpp headers of"
-  echo "     the data types involved)? Use it instead. If it is a variant of an existing helper, generalize that"
-  echo "     one instead of adding a similar second function; generally useful new helpers belong to the headers"
-  echo "     of their data type, not into a single algorithm."
-  echo "  2. Numerics: no explicit inverses or normal equations where a factorization/solve works, no avoidable"
-  echo "     cancellation, scale-invariant (relative) tolerances, conditioning of every step considered."
-  echo "Fix what you find; report remaining concerns (e.g. a numerically questionable step) to the user."
+  echo "Before finishing, review each of them for reuse of existing helpers (\"Check existing functionality\" in"
+  echo "src/CLAUDE.md) and for numerical soundness (\"Numerical soundness\" in DESIGN.md). Fix what you find; report"
+  echo "remaining concerns, e.g. a numerically questionable step, to the user."
 } >&2
 exit 2
