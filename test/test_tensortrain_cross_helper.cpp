@@ -1290,6 +1290,41 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, solveLeftInterface_solveRi
 }
 
 
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, contractInterfaces_solveInterfaces)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+  using PITTS::internal::tt_cross::boundaryInterface;
+  using PITTS::internal::tt_cross::contractInterfaces;
+  using PITTS::internal::tt_cross::solveInterfaces;
+  const auto eps = blockTolerance<Type>();
+
+  // L X R on both sides at once, and its inverse (q = 0: boundary; square and oversampled interfaces)
+  for(int q: {0, 3, 5})
+  {
+    PITTS::Tensor2<Type> L = boundaryInterface<Type>(), R = boundaryInterface<Type>();
+    const auto Xq = q == 0 ? randomBlock<Type>(1, 2, 1) : randomBlock<Type>(3, 2, 4);
+    if( q > 0 )
+    {
+      L.resize(q, 3);
+      R.resize(4, q+1);
+      EigenMap(L) = mat::Random(q, 3);
+      EigenMap(R) = mat::Random(4, q+1);
+    }
+    PITTS::Tensor3<Type> B, Bref, withLeft, Xsolved;
+    contractInterfaces(L, Xq, R, B);
+    PITTS::internal::normalize_contract1(L, Xq, withLeft);
+    PITTS::internal::normalize_contract2(withLeft, R, Bref);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(Bref)), ConstEigenMap(unfold_left(B)), eps);
+    solveInterfaces(L, B, R, Xsolved);
+    EXPECT_NEAR(ConstEigenMap(unfold_left(Xq)), ConstEigenMap(unfold_left(Xsolved)), eps);
+  }
+  EXPECT_EQ(1, boundaryInterface<Type>().r1());
+  EXPECT_EQ(1, boundaryInterface<Type>().r2());
+  EXPECT_EQ(Type(1), boundaryInterface<Type>()(0, 0));
+}
+
+
 // ---- index selection without cores (error approximation) ----
 
 TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, dominantRows_dominantColumns)

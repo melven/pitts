@@ -194,6 +194,36 @@ namespace PITTS
       }
 
 
+      // implement boundaryInterface
+      template<typename T>
+      Tensor2<T> boundaryInterface()
+      {
+        Tensor2<T> one(1, 1);
+        one(0, 0) = T(1);
+        return one;
+      }
+
+
+      // implement contractInterfaces
+      template<typename T>
+      void contractInterfaces(const Tensor2<T>& L, const Tensor3<T>& X, const Tensor2<T>& R, Tensor3<T>& B)
+      {
+        Tensor3<T> withLeft;
+        normalize_contract1(L, X, withLeft);
+        normalize_contract2(withLeft, R, B);
+      }
+
+
+      // implement solveInterfaces
+      template<typename T>
+      void solveInterfaces(const Tensor2<T>& L, const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C)
+      {
+        Tensor3<T> withLeft;
+        solveLeftInterface(L, B, withLeft);
+        solveRightInterface(withLeft, R, C);
+      }
+
+
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& C, const Tensor2<T>& leftInterface, T rankTolerance, int maxRank, T maxvolTolerance,
