@@ -25,7 +25,7 @@ Each main directory has its own `CLAUDE.md` with per-file summaries; read it bef
 | `.gitlab-ci.yml` | CI jobs: release/debug/coverage/clang builds with ccache and MKL modules, REUSE lint, GitLab pages publishing the coverage report. |
 | `CITATION.cff`, `README.md`, `LICENSE` | Citation metadata (Zenodo DOI), project description, license. |
 | `DESIGN.md` | Design goals and conventions (API shape, kernels, TT specifics, testing). Read before adding or changing library code. Coding style is in `src/CLAUDE.md`, including the rule to check the existing `pitts_<type>_*.hpp` headers for available functionality before writing new helpers. |
-| `.claude/` | `settings.json` registers `hooks/session-start.sh` (environment setup below, Claude Code on the web) and `hooks/stop-check-claude-md.sh` (blocks ending a turn while the `CLAUDE.md` files are out of sync). |
+| `.claude/` | `settings.json` registers `hooks/session-start.sh` (environment setup below, Claude Code on the web), `hooks/stop-check-claude-md.sh` (blocks ending a turn while the `CLAUDE.md` files are out of sync) and `hooks/stop-review-new-definitions.sh` (once per new function/class definition in `src/`: asks for the review in "Reuse and numerical soundness" below). |
 | `scripts/` | `check_claude_md.sh`: consistency check between the directory contents and the `CLAUDE.md` tables (used by the Stop hook; run it manually any time). |
 
 **Keeping this documentation current:** when you add, rename or delete a file in `src/`, `test/`,
