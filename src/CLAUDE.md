@@ -50,6 +50,8 @@ There is no `.clang-format` on purpose (existing code would change massively). F
   `concatLeftRight`/`concatTopBottom` in `pitts_tensor2_concat.hpp`). The tables below list what each header provides.
   Reuse is preferred over a private one-liner: no duplicated kernel, and the existing ones carry timers, OpenMP and
   dimension checks. A boundary case (first/last dimension) is usually handled with a 1x1 identity instead of a special case.
+  For a variant of an existing helper, generalize that one instead of adding a similar second function (see "Reuse and
+  numerical soundness" in the root `CLAUDE.md`, also for the numerical rules).
 
 ## Core data structures
 

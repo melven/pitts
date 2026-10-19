@@ -34,6 +34,21 @@ file names, one short sentence). When you change how to build or run tests, upda
 change a convention, update `DESIGN.md` or the style section in `src/CLAUDE.md`. New top-level
 directories go into the table above. `scripts/check_claude_md.sh` verifies the file lists.
 
+**Reuse and numerical soundness** (the Stop hook `stop-review-new-definitions.sh` asks for this review
+for every new definition in `src/`):
+* Before writing a helper, look for existing functionality (tables in `src/CLAUDE.md`, the
+  `pitts_<type>_*.hpp` headers of the data types involved) and use it. If you need a variant of an existing
+  helper, generalize that one instead of adding a second, similar function; several similar new cases get
+  one general helper. Generally useful helpers belong into the headers of their data type, not into a
+  single algorithm.
+* Follow the best practices of numerical linear algebra: no explicit inverses (solve with a factorization:
+  QR, Cholesky, LU with pivoting, SVD), no normal equations or Gram matrices where an orthogonal
+  factorization works (they square the condition number), no avoidable cancellation, relative
+  (scale-invariant) tolerances, and the conditioning and stability of every step considered.
+* Check the numerical robustness and soundness of the algorithmic approach step by step. Report
+  questionable steps (ill-conditioned operations, decisions on round-off, missing stability arguments)
+  to the user instead of silently working around them.
+
 Every new source or documentation file needs an SPDX header (REUSE compliance is checked in CI; check locally with `reuse lint`, which the hook installs). For files that cannot carry a header (e.g. JSON) add a `<file>.license` file next to it.
 
 **Authorship of AI-generated files:** files written by an AI coding agent must be distinguishable from
