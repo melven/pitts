@@ -64,40 +64,54 @@ namespace PITTS
       using RealType = decltype(std::abs(T()));
       using Inputs = std::array<std::reference_wrapper<const TensorTrain<T>>, N>;
 
+      //! convergence measures of a local step (see TTCrossInfo): change of y on its own cross, error on the error crosses
+      struct StepMeasures
+      {
+        RealType change = 0;
+        RealType error = 0;
+      };
+
       //! check the arguments and initialize y (a zero tensor with the right frame of the inputs) and the index sets
+      //!
+      //! All setup happens in the member initializers, in the order in which the members are declared: each initializer
+      //! only uses members declared before it (the order of the declarations below matters). Three initializers have
+      //! side effects: options_ checks the arguments (first, before anything else), J_ initializes TTy, and fOnSample_
+      //! evaluates f on the control sample.
+      //!
       CrossSweepState(const Function& f, const Inputs& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options) :
         options_(checkedOptions(TTx, TTy, options)),
         dims_(TTy.dimensions()),
         nDim_(dims_.size()),
-        nMALS_(std::min(options.nMALS, nDim_)),
+        nMALS_(std::min(options_.nMALS, nDim_)),
         // enrichment only for the 1-site variant (the 2-site variant adapts the ranks through the SVD)
-        enrich_(nMALS_ == 1 && nDim_ > 1 && options.errorRank > 0 && options.enrichmentRank > 0),
-        localTolerance_(options.rankTolerance / (2*std::sqrt(T(std::max(nDim_-1, 1))))),     // factor 2 heuristic, like tt_amen in ttpy
+        enrich_(nMALS_ == 1 && nDim_ > 1 && options_.errorRank > 0 && options_.enrichmentRank > 0),
+        localTolerance_(options_.rankTolerance / (2*std::sqrt(T(std::max(nDim_-1, 1))))),     // factor 2 heuristic, like tt_amen in ttpy
         // maximal useful rank per bond (also after the enrichment)
-        maxRanks_(limitByNeighbors(options.maxRanks.empty() ?
-          std::vector<long long>(std::max(nDim_-1, 0), options.maxRank) : std::vector<long long>(options.maxRanks.begin(), options.maxRanks.end()))),
+        maxRanks_(limitByNeighbors(dims_, options_.maxRanks.empty() ?
+          std::vector<long long>(std::max(nDim_-1, 0), options_.maxRank) : std::vector<long long>(options_.maxRanks.begin(), options_.maxRanks.end()))),
         // maximal size of the index sets per bond: the oversampled maximal rank, again limited by the neighbors
-        maxIndices_(limitByNeighbors(oversampled(maxRanks_, options.oversampling))),
+        maxIndices_(limitByNeighbors(dims_, oversampled(maxRanks_, options_.oversampling))),
+        inputs_(TTx.begin(), TTx.end()),
         TTy_(TTy),
         I_(nDim_),
         // y is kept in the orthogonal gauge, like the solution in solveMALS: in a sweep, the cores left of the current
         // block are left-orthonormal and the cores right of it right-orthonormal, so the truncated SVD of a local block
         // is the truncation of y itself. Start: y = 0 with an orthonormal right frame spanned by the inputs, and
         // initial right index sets from a maxvol sweep over this frame.
-        J_(initialRightIndexSets(TTx, TTy)),
+        J_(initializeYAndRightIndexSets()),
         // partial contractions of y on its own crosses: their row/column selections are the interface matrices of y
         // (the values of the orthonormal left/right parts on I_k resp. J_k), which convert f(x) on a cross into the
         // coordinates of y (least squares with oversampling) and y back onto the cross
         Ly_(defineSweepData<Tensor3<T>>(nDim_, contraction_loop_from_left<T>(TTy, I_), contraction_loop_from_right<T>(TTy, J_))),
         // index sets of the error approximation z (no cores needed, only the crosses)
         Iz_(nDim_),
-        Jz_(initialErrorIndexSets(TTx)),
+        Jz_(initialErrorIndexSets()),
         // f(x) on the crosses of y and z (with the partial contractions of x on them), partial contractions of y on the crosses of z
         fx_(f, TTx, I_, J_, Iz_, Jz_),
         Lyz_(defineSweepData<Tensor3<T>>(nDim_, contraction_loop_from_left<T>(TTy, Iz_), contraction_loop_from_right<T>(TTy, Jz_))),
         // independent control sample: random entries, drawn once so that the estimate is comparable between
         // sweeps; it does not enter the convergence check, see TTCrossOptions::controlSampleSize
-        sampleIndices_(options.controlSampleSize > 0 ? randomIndices(dims_, options.controlSampleSize) : Eigen::MatrixXi(0, nDim_)),
+        sampleIndices_(options_.controlSampleSize > 0 ? randomIndices(dims_, options_.controlSampleSize) : Eigen::MatrixXi(0, nDim_)),
         // f(x) on the sample does not change (fixed entries), so it is evaluated only once
         fOnSample_(sampleIndices_.rows() > 0 ? fx_.atIndices(sampleIndices_) : Tensor3<T>()),
         rmsfOnSample_(sampleIndices_.rows() > 0 ? t3_rms(fOnSample_) : RealType(0))
@@ -118,32 +132,33 @@ namespace PITTS
 
       //! one step of a left-to-right sweep at the cores swpIdx.leftDim()..swpIdx.rightDim()
       //!
-      //! @return the convergence measures (change, error) of the step, see TTCrossInfo
+      //! @return the convergence measures of the step
       //!
-      std::pair<RealType, RealType> stepLeftToRight(const SweepIndex& swpIdx)
+      StepMeasures stepLeftToRight(const SweepIndex& swpIdx)
       {
         const int k = swpIdx.leftDim();
-        const int nMALS = nMALS_;
-        auto& TTy = TTy_;
 
         // block B = f( x(I_{k-1}, S_k [x S_{k+1}], J_{kRight+1}) ) = f( LX_k [X_{k+1}] R_{kRight+1} );
         // LX_k = L_{k-1} X_k is cached: it is reused for the enrichment residual and for the next interface L_k
-        const Tensor3<T> B = fx_.blockFromLeft(k, nMALS);
+        const Tensor3<T> B = fx_.blockFromLeft(k, nMALS_);
         rmsRef_ = std::max(rmsRef_, t3_rms(B));
         const RealType scale = rmsRef_ > 0 ? rmsRef_ : 1;   // zero blocks only: the measures become absolute
 
         // convergence measure: the current y on the same cross
-        Ly_.update(k-1, k+nMALS);
+        Ly_.update(k-1, k+nMALS_);
         const auto [L, R] = interfacesOfY(k);
-        RealType change = rmsDifference(B, onCross(L, combineCores(TTy, k, nMALS), R)) / scale;
+        Tensor3<T> yOnCross;
+        contractInterfaces(L, combineCores(TTy_, k, nMALS_), R, yOnCross);
+        RealType change = rmsDifference(B, yOnCross) / scale;
         RealType error = 0;
 
-        Tensor3<T> C = toCoordinates(L, B, R);
+        Tensor3<T> C;
+        solveInterfaces(L, B, R, C);
 
         // last core of the 1-site sweep: the block is the core, nothing to select
-        if( nMALS == 1 && k == nDim_-1 )
+        if( nMALS_ == 1 && k == nDim_-1 )
         {
-          TTy.setSubTensor(k, std::move(C));
+          TTy_.setSubTensor(k, std::move(C));
           Lyz_.invalidate(k);   // the core of y changed
           Ly_.invalidate(k);
           return {change, error};
@@ -157,7 +172,7 @@ namespace PITTS
           Tensor3<T> residual = fx_.mixedBlock(k);
           Lyz_.update(k-1, k+1);
           Tensor3<T> withLeft, yOnMixedCross;
-          internal::normalize_contract1(L, TTy.subTensor(k), withLeft);
+          internal::normalize_contract1(L, TTy_.subTensor(k), withLeft);
           contractRightInterface<T>(withLeft, Lyz_.right(), Jz_, k+1, yOnMixedCross);
           internal::t3_axpy(T(-1), yOnMixedCross, residual);
           error = std::max(error, t3_rms(residual) / scale);
@@ -171,7 +186,7 @@ namespace PITTS
         // local update: truncated SVD, enrichment, maxvol
         // (2-site: view the block r1 x n_k n_{k+1} x r2 as r1 x n_k x n_{k+1} r2, same memory layout, so that
         //  the left unfolding of the update splits off core k)
-        if( nMALS == 2 )
+        if( nMALS_ == 2 )
           C = fold_right(unfold_right(std::move(C)), dims_[k]);
         CoreUpdate<T> upd = updateCoreLeft<T>(C, L, localTolerance_, maxRanks_[k], options_.maxvolTolerance, std::move(E),
                                               options_.oversampling, options_.enrichmentRank, maxRanks_[k], maxIndices_[k]);
@@ -181,11 +196,11 @@ namespace PITTS
         // new core(s): core k left-orthonormal; the carry keeps y consistent as a tensor until the next core is rebuilt
         std::vector<Tensor3<T>> newCores(2);
         newCores[0] = std::move(upd.core);
-        if( nMALS == 2 )
+        if( nMALS_ == 2 )
           newCores[1] = fold_right(std::move(upd.carry), dims_[k+1]);
         else
-          internal::normalize_contract1(upd.carry, TTy.subTensor(k+1), newCores[1]);
-        TTy.setSubTensors(k, std::move(newCores), {TT_Orthogonality::left, TT_Orthogonality::none});
+          internal::normalize_contract1(upd.carry, TTy_.subTensor(k+1), newCores[1]);
+        TTy_.setSubTensors(k, std::move(newCores), {TT_Orthogonality::left, TT_Orthogonality::none});
         Ly_.invalidate(k, 2);
 
         // update of the error crosses: I^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
@@ -209,29 +224,30 @@ namespace PITTS
       }
 
       //! one step of a right-to-left sweep at the cores swpIdx.leftDim()..swpIdx.rightDim() (mirror image of stepLeftToRight)
-      std::pair<RealType, RealType> stepRightToLeft(const SweepIndex& swpIdx)
+      StepMeasures stepRightToLeft(const SweepIndex& swpIdx)
       {
         const int k = swpIdx.rightDim();
         const int kLeft = swpIdx.leftDim();
-        const int nMALS = nMALS_;
-        auto& TTy = TTy_;
 
         // block B = f( x(I_{kLeft-1}, [S_{k-1} x] S_k, J_{k+1}) ) = f( L_{kLeft-1} [X_{k-1}] XR_k ) with the cached XR_k = X_k R_{k+1}
-        const Tensor3<T> B = fx_.blockFromRight(kLeft, nMALS);
+        const Tensor3<T> B = fx_.blockFromRight(kLeft, nMALS_);
         rmsRef_ = std::max(rmsRef_, t3_rms(B));
         const RealType scale = rmsRef_ > 0 ? rmsRef_ : 1;
 
         Ly_.update(kLeft-1, k+1);
         const auto [L, R] = interfacesOfY(kLeft);
-        RealType change = rmsDifference(B, onCross(L, combineCores(TTy, kLeft, nMALS), R)) / scale;
+        Tensor3<T> yOnCross;
+        contractInterfaces(L, combineCores(TTy_, kLeft, nMALS_), R, yOnCross);
+        RealType change = rmsDifference(B, yOnCross) / scale;
         RealType error = 0;
 
-        Tensor3<T> C = toCoordinates(L, B, R);
+        Tensor3<T> C;
+        solveInterfaces(L, B, R, C);
 
         // first core of the 1-site sweep: the block is the core
-        if( nMALS == 1 && k == 0 )
+        if( nMALS_ == 1 && k == 0 )
         {
-          TTy.setSubTensor(k, std::move(C));
+          TTy_.setSubTensor(k, std::move(C));
           Lyz_.invalidate(k);
           Ly_.invalidate(k);
           return {change, error};
@@ -242,7 +258,7 @@ namespace PITTS
         // leaves the final truncation to the caller). Rank growth still happens: the enlarged left sets
         // I_{k-1} of the preceding left-to-right sweep provide the additional rows of the block here.
         // (2-site: view the block r1 x n_{k-1} n_k x r2 as r1 n_{k-1} x n_k x r2 for splitting off core k)
-        if( nMALS == 2 )
+        if( nMALS_ == 2 )
           C = fold_left(unfold_left(std::move(C)), dims_[k]);
         CoreUpdate<T> upd = updateCoreRight<T>(C, R, localTolerance_, maxRanks_[k-1], options_.maxvolTolerance, options_.oversampling, maxIndices_[k-1]);
         J_[k] = rightIndicesFromColumns(upd.selected, dims_[k]);
@@ -250,12 +266,12 @@ namespace PITTS
 
         // new core(s): core k right-orthonormal, the carry multiplied into the left neighbor
         std::vector<Tensor3<T>> newCores(2);
-        if( nMALS == 2 )
+        if( nMALS_ == 2 )
           newCores[0] = fold_left(std::move(upd.carry), dims_[k-1]);
         else
-          internal::normalize_contract2(TTy.subTensor(k-1), upd.carry, newCores[0]);
+          internal::normalize_contract2(TTy_.subTensor(k-1), upd.carry, newCores[0]);
         newCores[1] = std::move(upd.core);
-        TTy.setSubTensors(k-1, std::move(newCores), {TT_Orthogonality::none, TT_Orthogonality::right});
+        TTy_.setSubTensors(k-1, std::move(newCores), {TT_Orthogonality::none, TT_Orthogonality::right});
         Ly_.invalidate(k-1, 2);
 
         // update of the error crosses: J^z_k from the error f(x) - y on (I^z_{k-1}, S_k, J^z_{k+1}),
@@ -289,7 +305,7 @@ namespace PITTS
       }
 
       //! store the number of evaluations and the final index sets as full multi-indices in info
-      void finalInfo(TTCrossInfo<T>& info) const
+      void storeFinalInfo(TTCrossInfo<T>& info) const
       {
         info.nEvaluations = nEvaluations();
         info.leftIndices.resize(std::max(nDim_-1, 0));
@@ -330,12 +346,13 @@ namespace PITTS
 
       //! Limits per bond k (between cores k and k+1): a TT rank at bond k is at most n_k times the rank at bond k-1 and
       //! n_{k+1} times the rank at bond k+1, so a small bond also limits its neighbors (one pass in each direction suffices).
-      std::vector<int> limitByNeighbors(std::vector<long long> limit) const
+      static std::vector<int> limitByNeighbors(const std::vector<int>& dims, std::vector<long long> limit)
       {
-        for(int k = 0; k < nDim_-1; k++)
-          limit[k] = std::min(limit[k], dims_[k] * (k == 0 ? 1 : limit[k-1]));
-        for(int k = nDim_-2; k >= 0; k--)
-          limit[k] = std::min(limit[k], dims_[k+1] * (k == nDim_-2 ? 1 : limit[k+1]));
+        const int nDim = dims.size();
+        for(int k = 0; k < nDim-1; k++)
+          limit[k] = std::min(limit[k], dims[k] * (k == 0 ? 1 : limit[k-1]));
+        for(int k = nDim-2; k >= 0; k--)
+          limit[k] = std::min(limit[k], dims[k+1] * (k == nDim-2 ? 1 : limit[k+1]));
         return std::vector<int>(limit.begin(), limit.end());
       }
 
@@ -348,60 +365,32 @@ namespace PITTS
         return result;
       }
 
-      //! initialize TTy with the right frame of the inputs and return the right index sets from this frame
-      std::vector<NestedIndices> initialRightIndexSets(const Inputs& TTx, TensorTrain<T>& TTy) const
+      //! initialize y with the right frame of the inputs and return the right index sets from this frame
+      std::vector<NestedIndices> initializeYAndRightIndexSets()
       {
-        const std::vector<std::reference_wrapper<const TensorTrain<T>>> inputs(TTx.begin(), TTx.end());
-        initialRightFrame(inputs, TTy);
-        return rightIndexSetsFromFrame(TTy, options_.maxvolTolerance, options_.oversampling, maxIndices_);
+        initialRightFrame(inputs_, TTy_);
+        return rightIndexSetsFromFrame(TTy_, options_.maxvolTolerance, options_.oversampling, maxIndices_);
       }
 
       //! initial right index sets of the error crosses (empty without enrichment)
-      std::vector<NestedIndices> initialErrorIndexSets(const Inputs& TTx) const
+      std::vector<NestedIndices> initialErrorIndexSets() const
       {
         if( !enrich_ )
           return std::vector<NestedIndices>(nDim_);
         if( options_.randomErrorIndexSets )
           return randomRightIndexSets(dims_, options_.errorRank);
         // maxvol sets of a frame of rank errorRank of the inputs: well-conditioned crosses of the dominant part of x
-        const std::vector<std::reference_wrapper<const TensorTrain<T>>> inputs(TTx.begin(), TTx.end());
         TensorTrain<T> TTz(dims_);
-        initialRightFrame(inputs, TTz, options_.errorRank);
+        initialRightFrame(inputs_, TTz, options_.errorRank);
         return rightIndexSetsFromFrame(TTz, options_.maxvolTolerance);
-      }
-
-      //! the 1x1 identity: interface at the boundary
-      static Tensor2<T> identity1()
-      {
-        Tensor2<T> one(1, 1);
-        one(0, 0) = T(1);
-        return one;
       }
 
       //! The interface matrices of y at the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) of the block of the
       //! cores k..k+nMALS-1 (the 1x1 identity at the boundary; needs Ly.update(k-1, k+nMALS) first)
       std::pair<Tensor2<T>, Tensor2<T>> interfacesOfY(int k) const
       {
-        return {Ly_.left() ? interfaceLeft(Ly_.left()->get(), I_[k-1]) : identity1(),
-                Ly_.right() ? interfaceRight(Ly_.right()->get(), J_[k+nMALS_]) : identity1()};
-      }
-
-      //! core(s) of y onto the cross, L X R
-      static Tensor3<T> onCross(const Tensor2<T>& L, const Tensor3<T>& X, const Tensor2<T>& R)
-      {
-        Tensor3<T> withLeft, result;
-        internal::normalize_contract1(L, X, withLeft);
-        internal::normalize_contract2(withLeft, R, result);
-        return result;
-      }
-
-      //! a block on the cross in the coordinates of y, L^+ B R^+
-      static Tensor3<T> toCoordinates(const Tensor2<T>& L, const Tensor3<T>& B, const Tensor2<T>& R)
-      {
-        Tensor3<T> withLeft, result;
-        solveLeftInterface(L, B, withLeft);
-        solveRightInterface(withLeft, R, result);
-        return result;
+        return {Ly_.left() ? interfaceLeft(Ly_.left()->get(), I_[k-1]) : boundaryInterface<T>(),
+                Ly_.right() ? interfaceRight(Ly_.right()->get(), J_[k+nMALS_]) : boundaryInterface<T>()};
       }
 
       // Error crosses: fixed size errorRank (as zrank in amen_cross), selected from the directions of the residual above
@@ -418,6 +407,7 @@ namespace PITTS
         return relativeError <= std::real(localTolerance_) && Z.size() > 0 && *std::max_element(Z.link.begin(), Z.link.end()) < parentSize;
       }
 
+      // (the order of the members matters, see the constructor)
       const TTCrossOptions<T>& options_;
       const std::vector<int>& dims_;
       const int nDim_;
@@ -426,6 +416,7 @@ namespace PITTS
       const T localTolerance_;
       const std::vector<int> maxRanks_;
       const std::vector<int> maxIndices_;
+      const std::vector<std::reference_wrapper<const TensorTrain<T>>> inputs_;
       TensorTrain<T>& TTy_;
       //! index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused)
       std::vector<NestedIndices> I_;
@@ -522,7 +513,7 @@ namespace PITTS
       }
     }
 
-    state.finalInfo(info);
+    state.storeFinalInfo(info);
     return info;
   }
   }
