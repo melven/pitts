@@ -25,9 +25,15 @@ template CoreUpdate<double> PITTS::internal::tt_cross::updateCoreRight<double>(c
 template CoreUpdate<float> PITTS::internal::tt_cross::updateCoreRight<float>(const Tensor3<float>& C, const Tensor2<float>& rightInterface, float rankTolerance, int maxRank, float maxvolTolerance, float oversampling, int maxColumns);
 template void PITTS::internal::tt_cross::solveLeftInterface<double>(const Tensor2<double>& L, const Tensor3<double>& B, Tensor3<double>& C);
 template void PITTS::internal::tt_cross::solveRightInterface<double>(const Tensor3<double>& B, const Tensor2<double>& R, Tensor3<double>& C);
+template Tensor2<double> PITTS::internal::tt_cross::boundaryInterface<double>();
+template void PITTS::internal::tt_cross::contractInterfaces<double>(const Tensor2<double>& L, const Tensor3<double>& X, const Tensor2<double>& R, Tensor3<double>& B);
+template void PITTS::internal::tt_cross::solveInterfaces<double>(const Tensor2<double>& L, const Tensor3<double>& B, const Tensor2<double>& R, Tensor3<double>& C);
 template void PITTS::internal::tt_cross::initialRightFrame<double>(const std::vector<std::reference_wrapper<const TensorTrain<double>>>& TTx, TensorTrain<double>& TTy, int maxRank);
 template void PITTS::internal::tt_cross::solveLeftInterface<float>(const Tensor2<float>& L, const Tensor3<float>& B, Tensor3<float>& C);
 template void PITTS::internal::tt_cross::solveRightInterface<float>(const Tensor3<float>& B, const Tensor2<float>& R, Tensor3<float>& C);
+template Tensor2<float> PITTS::internal::tt_cross::boundaryInterface<float>();
+template void PITTS::internal::tt_cross::contractInterfaces<float>(const Tensor2<float>& L, const Tensor3<float>& X, const Tensor2<float>& R, Tensor3<float>& B);
+template void PITTS::internal::tt_cross::solveInterfaces<float>(const Tensor2<float>& L, const Tensor3<float>& B, const Tensor2<float>& R, Tensor3<float>& C);
 template void PITTS::internal::tt_cross::initialRightFrame<float>(const std::vector<std::reference_wrapper<const TensorTrain<float>>>& TTx, TensorTrain<float>& TTy, int maxRank);
 template std::vector<int> PITTS::internal::tt_cross::dominantRows<double>(const Tensor3<double>& B, double absoluteTolerance, int nRows, double maxvolTolerance);
 template std::vector<int> PITTS::internal::tt_cross::dominantColumns<double>(const Tensor3<double>& B, double absoluteTolerance, int nColumns, double maxvolTolerance);

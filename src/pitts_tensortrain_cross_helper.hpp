@@ -292,6 +292,32 @@ namespace PITTS
       template<typename T>
       void solveRightInterface(const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C);
 
+      //! the 1x1 identity: the interface matrix at the boundary of a tensor train
+      template<typename T>
+      Tensor2<T> boundaryInterface();
+
+      //! B = L * X * R: a block in the coordinates of a TT (its core(s) X) onto the cross of the interface matrices L and R
+      //!
+      //! @param L     left interface matrix (q1 x r1), boundaryInterface() at the left boundary
+      //! @param X     core(s) (r1 x n x r2)
+      //! @param R     right interface matrix (r2 x q2), boundaryInterface() at the right boundary
+      //! @param B     result (q1 x n x q2)
+      //!
+      template<typename T>
+      void contractInterfaces(const Tensor2<T>& L, const Tensor3<T>& X, const Tensor2<T>& R, Tensor3<T>& B);
+
+      //! C = L^+ * B * R^+: a block sampled on a cross into the coordinates of the TT (inverse of contractInterfaces)
+      //!
+      //! Least-squares solves with the interface matrices, see solveLeftInterface and solveRightInterface.
+      //!
+      //! @param L     left interface matrix (q1 x r1, full column rank)
+      //! @param B     block (q1 x n x q2)
+      //! @param R     right interface matrix (r2 x q2, full row rank)
+      //! @param C     result (r1 x n x r2), may not alias B
+      //!
+      template<typename T>
+      void solveInterfaces(const Tensor2<T>& L, const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C);
+
       //! full multi-indices of the left set I_k as a matrix with one row (i_0,...,i_k) per element (I[0] is the set of bond 0)
       //!
       //! expandLeft(I, -1) returns the single empty multi-index of I_{-1} = {()} (a 1 x 0 matrix).
@@ -389,6 +415,12 @@ namespace PITTS
           contractRightInterface<T>(TT.subTensor(iDim), prev, J, iDim+1, XR);
         };
       }
+
+      //! type of the cached partial contractions of a TT on nested index sets (SweepData with the two loops above)
+      template<typename T>
+      using PartialContractions = decltype(defineSweepData<Tensor3<T>>(0,
+          contraction_loop_from_left<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>()),
+          contraction_loop_from_right<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>())));
 
 
       //! the cores iDim..iDim+nMALS-1 of a tensor train combined into a single block (modes combined as in combine)
@@ -693,11 +725,6 @@ namespace PITTS
             return std::move(B[0]);
           }
 
-          //! type of the cached partial contractions of one input
-          using Contractions = decltype(defineSweepData<Tensor3<T>>(0,
-              contraction_loop_from_left<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>()),
-              contraction_loop_from_right<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>())));
-
           const Function& f_;
           Inputs TTx_;
           const std::vector<NestedIndices>& I_;
@@ -705,9 +732,9 @@ namespace PITTS
           const std::vector<NestedIndices>& Iz_;
           const std::vector<NestedIndices>& Jz_;
           //! partial contractions of each input on the sets of y
-          std::vector<Contractions> Lx_;
+          std::vector<PartialContractions<T>> Lx_;
           //! partial contractions of each input on the sets of the error approximation
-          std::vector<Contractions> Lxz_;
+          std::vector<PartialContractions<T>> Lxz_;
           long long nEvaluations_ = 0;
       };
 
