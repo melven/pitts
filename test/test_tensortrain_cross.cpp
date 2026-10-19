@@ -14,10 +14,12 @@
 #include "pitts_random.hpp"
 #include "pitts_multivector_eigen_adaptor.hpp"
 #include "eigen_test_helper.hpp"
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <random>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 namespace
@@ -249,14 +251,18 @@ TYPED_TEST(PITTS_TensorTrain_cross, maxRanks_per_bond)
   options.rankTolerance = Type(0);  // only maxRanks truncates
   options.maxRank = 1;              // replaced by maxRanks
   options.maxRanks = {3, 2, 3};
-  for(Type oversampling: {Type(0), Type(0.3)})
-  {
-    options.oversampling = oversampling;
-    TensorTrain TTy(dims);
-    applyElementwise(f, TTx, TTy, options);
-    // x^3 has the full ranks (3, 12, 3) (Hadamard product: at most r^3): only the middle bond is limited
-    EXPECT_EQ(std::vector<int>({3, 2, 3}), TTy.getTTranks());
-  }
+  // the limits also apply to the 2-site SVD (nMALS = 2) and after the enrichment (nMALS = 1)
+  for(int nMALS: {1, 2})
+    for(Type oversampling: {Type(0), Type(0.3)})
+    {
+      options.nMALS = nMALS;
+      options.oversampling = oversampling;
+      TensorTrain TTy(dims);
+      applyElementwise(f, TTx, TTy, options);
+      // x^3 has the full ranks (3, 12, 3) (Hadamard product: at most r^3): only the middle bond is limited
+      EXPECT_EQ(std::vector<int>({3, 2, 3}), TTy.getTTranks());
+    }
+  options.nMALS = 1;
 
   // a rank-1 bond limits its neighbors (rank at bond k <= n_k rank_{k-1}, <= n_{k+1} rank_{k+1}), also the enrichment
   // and the oversampled index sets: maximal useful ranks (4, 2, 1, 2, 4), index sets (6, 3, 2, 3, 6) with oversampling 0.5
@@ -322,8 +328,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
   const TensorTrain TTx = positiveRandomTT<Type>(dims, {2, 3, 2}, 5);
 
   // a function that is applied to all entries of a block at once must give the same result as the
-  // corresponding scalar function (the algorithm only sees the same numbers); the random error index
-  // sets require the same seed for both runs
+  // corresponding scalar function (the algorithm only sees the same numbers); random error index sets
+  // (randomErrorIndexSets) would require the same seed for both runs
   for(int nMALS: {1, 2})
   {
     PITTS::TTCrossOptions<Type> options;
@@ -403,7 +409,15 @@ TYPED_TEST(PITTS_TensorTrain_cross, convergence_measures)
   options.nSweeps = 1;
   TensorTrain TTshort(dims);
   const auto infoShort = applyElementwise([](Type v){return v*v;}, TTx, TTshort, options);
-  EXPECT_FALSE(infoShort.converged);
+  // (in float the first sweep need not increase the ranks at the float tolerance: then only the measures decide,
+  //  and they are at the level of the tolerance, so the result depends on round-off - only check the rank criterion)
+  const auto maxRankOf = [](const std::vector<int>& ranks){return *std::max_element(ranks.begin(), ranks.end());};
+  const bool ranksGrew = maxRankOf(TTshort.getTTranks()) > maxRankOf(TTx.getTTranks());
+  if constexpr( std::is_same_v<Type, double> )
+  {
+    EXPECT_TRUE(ranksGrew);
+  }
+  EXPECT_FALSE(infoShort.converged && ranksGrew);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
@@ -423,8 +437,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, control_sample)
   options.convergenceTolerance = 10*eps;
   options.nSweeps = 20;
 
-  // same seed for both runs: the random error index sets (and thus the sweeps) are then identical,
-  // so the difference in the number of evaluations is exactly the control sample
+  // same seed for both runs: also with random error index sets (randomErrorIndexSets) the sweeps are then
+  // identical, so the difference in the number of evaluations is exactly the control sample
   PITTS::internal::randomGenerator.seed(31);
   TensorTrain TTy(dims);
   const auto info = applyElementwise(f, TTx, TTy, options);
@@ -490,6 +504,73 @@ TYPED_TEST(PITTS_TensorTrain_cross, enrichment_options)
   }
 }
 
+
+
+TYPED_TEST(PITTS_TensorTrain_cross, small_dimensions)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
+
+  // one and two dimensions: the block of the first step is the whole tensor (nMALS is reduced to nDim),
+  // no enrichment with a single core
+  const auto f = [](Type v){return Type(1)/(Type(1)+v);};
+  for(const std::vector<int>& dims: {std::vector<int>{7}, std::vector<int>{7, 5}})
+    for(int nMALS: {1, 2})
+    {
+      const TensorTrain TTx = positiveRandomTT<Type>(dims, std::vector<int>(dims.size()-1, 2), 13);
+      const Eigen::Matrix<Type, Eigen::Dynamic, 1> ref = dense(TTx).array().unaryExpr(f);
+      PITTS::TTCrossOptions<Type> options;
+      options.nMALS = nMALS;
+      options.rankTolerance = Type(1.e-7);
+      TensorTrain TTy(dims);
+      const auto info = applyElementwise(f, TTx, TTy, options);
+      EXPECT_TRUE(info.converged);
+      EXPECT_NEAR(ref, dense(TTy), 100*eps*ref.norm());
+    }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross, error_index_sets_with_low_rank_inputs)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type eps = std::sqrt(std::numeric_limits<Type>::epsilon());
+
+  // The frame of rank-1 inputs only provides error crosses of size 1 < errorRank (randomErrorIndexSets = false),
+  // the random ones have the full size: both must find the ranks of a function that is not low-rank, also for two
+  // inputs (frame of their direct sum) and with oversampling.
+  const std::vector<int> dims = {4, 4, 4, 4, 4};
+  const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {1, 1, 1, 1}, 17);
+  const TensorTrain TTx2 = positiveRandomTT<Type>(dims, {1, 1, 1, 1}, 18);
+  const auto x1Dense = dense(TTx1);
+  const auto x2Dense = dense(TTx2);
+  const Eigen::Matrix<Type, Eigen::Dynamic, 1> ref1 = (Type(1) + x1Dense.array()).inverse();
+  const Eigen::Matrix<Type, Eigen::Dynamic, 1> ref2 = (Type(1) + x1Dense.array()*x2Dense.array()).inverse();
+
+  for(bool random: {false, true})
+    for(Type oversampling: {Type(0), Type(0.5)})
+    {
+      PITTS::TTCrossOptions<Type> options;
+      options.randomErrorIndexSets = random;
+      options.oversampling = oversampling;
+      options.rankTolerance = Type(1.e-7);
+      options.convergenceTolerance = Type(1.e-6);   // above the truncation error of rankTolerance, see TTCrossOptions
+      options.nSweeps = 30;
+      PITTS::internal::randomGenerator.seed(19);   // same random sets on all MPI processes
+
+      TensorTrain TTy(dims);
+      const auto info = applyElementwise([](Type v){return Type(1)/(Type(1)+v);}, TTx1, TTy, options);
+      EXPECT_TRUE(info.converged);
+      EXPECT_NEAR(ref1, dense(TTy), 100*eps*ref1.norm());
+      EXPECT_GT(TTy.getTTranks()[1], 1);
+
+      TensorTrain TTz(dims);
+      const auto info2 = applyElementwise([](Type a, Type b){return Type(1)/(Type(1)+a*b);}, TTx1, TTx2, TTz, options);
+      EXPECT_TRUE(info2.converged);
+      EXPECT_NEAR(ref2, dense(TTz), 100*eps*ref2.norm());
+      EXPECT_GT(TTz.getTTranks()[1], 1);
+    }
+}
 
 // ---- functions of two tensor trains ----
 
