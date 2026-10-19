@@ -390,6 +390,12 @@ namespace PITTS
         };
       }
 
+      //! type of the cached partial contractions of a TT on nested index sets (SweepData with the two loops above)
+      template<typename T>
+      using PartialContractions = decltype(defineSweepData<Tensor3<T>>(0,
+          contraction_loop_from_left<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>()),
+          contraction_loop_from_right<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>())));
+
 
       //! the cores iDim..iDim+nMALS-1 of a tensor train combined into a single block (modes combined as in combine)
       //!
@@ -693,11 +699,6 @@ namespace PITTS
             return std::move(B[0]);
           }
 
-          //! type of the cached partial contractions of one input
-          using Contractions = decltype(defineSweepData<Tensor3<T>>(0,
-              contraction_loop_from_left<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>()),
-              contraction_loop_from_right<T>(std::declval<const TensorTrain<T>&>(), std::declval<const std::vector<NestedIndices>&>())));
-
           const Function& f_;
           Inputs TTx_;
           const std::vector<NestedIndices>& I_;
@@ -705,9 +706,9 @@ namespace PITTS
           const std::vector<NestedIndices>& Iz_;
           const std::vector<NestedIndices>& Jz_;
           //! partial contractions of each input on the sets of y
-          std::vector<Contractions> Lx_;
+          std::vector<PartialContractions<T>> Lx_;
           //! partial contractions of each input on the sets of the error approximation
-          std::vector<Contractions> Lxz_;
+          std::vector<PartialContractions<T>> Lxz_;
           long long nEvaluations_ = 0;
       };
 
