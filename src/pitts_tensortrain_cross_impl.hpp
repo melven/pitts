@@ -72,8 +72,6 @@ namespace PITTS
       throw std::invalid_argument("applyElementwise: need 0 <= enrichmentRank <= errorRank!");
     if( options.nSweeps < 1 || options.maxRank < 1 )
       throw std::invalid_argument("applyElementwise: nSweeps and maxRank must be positive!");
-    if( !options.maxRanks.empty() && (std::ssize(options.maxRanks) != nDim-1 || *std::min_element(options.maxRanks.begin(), options.maxRanks.end()) < 1) )
-      throw std::invalid_argument("applyElementwise: maxRanks needs one positive entry per bond!");
     if( !(std::real(options.oversampling) >= 0) )
       throw std::invalid_argument("applyElementwise: oversampling must not be negative!");
 
@@ -93,8 +91,7 @@ namespace PITTS
       return std::vector<int>(limit.begin(), limit.end());
     };
     // maximal useful rank per bond (also after the enrichment)
-    const std::vector<int> maxRanks = limitByNeighbors(options.maxRanks.empty() ?
-      std::vector<long long>(std::max(nDim-1, 0), options.maxRank) : std::vector<long long>(options.maxRanks.begin(), options.maxRanks.end()));
+    const std::vector<int> maxRanks = limitByNeighbors(std::vector<long long>(std::max(nDim-1, 0), options.maxRank));
     // maximal size of the index sets per bond: the oversampled maximal rank, again limited by the neighbors
     std::vector<long long> oversampledRanks(maxRanks.begin(), maxRanks.end());
     for(long long& q: oversampledRanks)

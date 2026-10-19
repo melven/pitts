@@ -69,7 +69,7 @@ namespace PITTS
       //! wrapper for PITTS::applyElementwise with one or more input tensors (Inputs = TensorTrain<T>...) and the options as individual arguments
       template<typename T, typename... Inputs>
       void TensorTrain_applyElementwise(const py::object& f, const Inputs&... TTx, TensorTrain<T>& TTy,
-                                        T rankTolerance, int maxRank, const std::vector<int>& maxRanks, int nSweeps, T convergenceTolerance,
+                                        T rankTolerance, int maxRank, int nSweeps, T convergenceTolerance,
                                         int nMALS, int errorRank, int enrichmentRank, bool randomErrorIndexSets,
                                         T maxvolTolerance, T oversampling, int controlSampleSize, bool verbose)
       {
@@ -83,8 +83,7 @@ namespace PITTS
           applyPythonFunction<T>(f, mv, others...);
         };
         applyElementwise(pythonFunction, TTx..., TTy,
-                         TTCrossOptions<T>{.rankTolerance = rankTolerance, .maxRank = maxRank, .maxRanks = maxRanks,
-                                           .nSweeps = nSweeps,
+                         TTCrossOptions<T>{.rankTolerance = rankTolerance, .maxRank = maxRank, .nSweeps = nSweeps,
                                            .convergenceTolerance = convergenceTolerance, .nMALS = nMALS,
                                            .errorRank = errorRank, .enrichmentRank = enrichmentRank,
                                            .randomErrorIndexSets = randomErrorIndexSets,
@@ -104,7 +103,6 @@ namespace PITTS
             &TensorTrain_applyElementwise<T, Inputs...>,
             py::arg("f"), py::arg(inputNames[i])..., py::arg("TTy"),
             py::arg("rankTolerance") = defaults.rankTolerance, py::arg("maxRank") = defaults.maxRank,
-            py::arg("maxRanks") = defaults.maxRanks,
             py::arg("nSweeps") = defaults.nSweeps, py::arg("convergenceTolerance") = defaults.convergenceTolerance,
             py::arg("nMALS") = defaults.nMALS, py::arg("errorRank") = defaults.errorRank,
             py::arg("enrichmentRank") = defaults.enrichmentRank,

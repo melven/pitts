@@ -238,7 +238,7 @@ TYPED_TEST(PITTS_TensorTrain_cross, qtt_sqrt_with_rank_growth)
   }
 }
 
-TYPED_TEST(PITTS_TensorTrain_cross, maxRanks_per_bond)
+TYPED_TEST(PITTS_TensorTrain_cross, maxRank_limits_ranks_and_index_sets)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
@@ -248,47 +248,26 @@ TYPED_TEST(PITTS_TensorTrain_cross, maxRanks_per_bond)
   const auto f = [](Type v){return v*v*v;};
 
   PITTS::TTCrossOptions<Type> options;
-  options.rankTolerance = Type(0);  // only maxRanks truncates
-  options.maxRank = 1;              // replaced by maxRanks
-  options.maxRanks = {3, 2, 3};
-  // the limits also apply to the 2-site SVD (nMALS = 2) and after the enrichment (nMALS = 1)
+  options.rankTolerance = Type(0);  // only maxRank truncates
+  options.maxRank = 2;
+  // the limit also applies to the 2-site SVD (nMALS = 2) and after the enrichment (nMALS = 1),
+  // the oversampled index sets have at most maxRank + ceil(oversampling maxRank) multi-indices
   for(int nMALS: {1, 2})
-    for(Type oversampling: {Type(0), Type(0.3)})
+    for(Type oversampling: {Type(0), Type(0.5)})
     {
       options.nMALS = nMALS;
       options.oversampling = oversampling;
       TensorTrain TTy(dims);
-      applyElementwise(f, TTx, TTy, options);
-      // x^3 has the full ranks (3, 12, 3) (Hadamard product: at most r^3): only the middle bond is limited
-      EXPECT_EQ(std::vector<int>({3, 2, 3}), TTy.getTTranks());
+      const auto info = applyElementwise(f, TTx, TTy, options);
+      // x^3 has the full ranks (3, 12, 3) (Hadamard product: at most r^3)
+      EXPECT_EQ(std::vector<int>({2, 2, 2}), TTy.getTTranks());
+      const int maxIndices = options.maxRank + static_cast<int>(std::ceil(oversampling * options.maxRank));
+      for(int k = 0; k < 3; k++)
+      {
+        EXPECT_LE(info.leftIndices[k].rows(), maxIndices);
+        EXPECT_LE(info.rightIndices[k+1].rows(), maxIndices);
+      }
     }
-  options.nMALS = 1;
-
-  // a rank-1 bond limits its neighbors (rank at bond k <= n_k rank_{k-1}, <= n_{k+1} rank_{k+1}), also the enrichment
-  // and the oversampled index sets: maximal useful ranks (4, 2, 1, 2, 4), index sets (6, 3, 2, 3, 6) with oversampling 0.5
-  {
-    const std::vector<int> dims2 = {6, 2, 2, 2, 2, 6};
-    const TensorTrain TTx2 = positiveRandomTT<Type>(dims2, {2, 2, 2, 2, 2}, 12);
-    PITTS::TTCrossOptions<Type> options2;
-    options2.maxRanks = {100, 100, 1, 100, 100};
-    options2.oversampling = Type(0.5);
-    options2.nSweeps = 3;
-    TensorTrain TTy2(dims2);
-    const auto info = applyElementwise(f, TTx2, TTy2, options2);
-    const std::vector<int> maxRanks = {4, 2, 1, 2, 4}, maxIndices = {6, 3, 2, 3, 6};
-    for(int k = 0; k < 5; k++)
-    {
-      EXPECT_LE(TTy2.getTTranks()[k], maxRanks[k]);
-      EXPECT_LE(info.leftIndices[k].rows(), maxIndices[k]);
-      EXPECT_LE(info.rightIndices[k+1].rows(), maxIndices[k]);
-    }
-  }
-
-  TensorTrain TTy(dims);
-  options.maxRanks = {3, 2};
-  EXPECT_THROW(applyElementwise(f, TTx, TTy, options), std::invalid_argument);
-  options.maxRanks = {3, 0, 3};
-  EXPECT_THROW(applyElementwise(f, TTx, TTy, options), std::invalid_argument);
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross, rankTolerance_bounds_the_error)
