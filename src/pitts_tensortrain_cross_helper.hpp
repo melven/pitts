@@ -279,16 +279,16 @@ namespace PITTS
       //! @param k          dimension of XR: J[k] (the set of bond k-1) selects its columns; pass iDim+1 for a
       //!                   block ending at core iDim (unused at the boundary)
       //! @param C          result (m x n x |J_k|)
-      //! @param boundary   interface matrix at the right boundary (r_{k-1} x q), nullptr for the 1x1 identity
+      //! @param boundary   interface matrix at the right boundary (r_{k-1} x q), nullopt for the 1x1 identity
       //!
       template<typename T>
       void contractRightInterface(const Tensor3<T>& B, optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, int k,
-                                  Tensor3<T>& C, const Tensor2<T>* boundary = nullptr)
+                                  Tensor3<T>& C, optional_cref<Tensor2<T>> boundary = std::nullopt)
       {
         if( XR )
           normalize_contract2(B, interfaceRight(XR->get(), J.at(k)), C);
         else if( boundary )
-          normalize_contract2(B, *boundary, C);
+          normalize_contract2(B, boundary->get(), C);
         else
           copy(B, C);
       }
@@ -433,11 +433,11 @@ namespace PITTS
       //!
       //! @param TT         the tensor train (captured by reference)
       //! @param J          the right index sets (captured by reference, J[k+1] must be valid when XR_k is computed)
-      //! @param boundary   interface matrix at the right boundary, see contractRightInterface (the pointer is captured:
+      //! @param boundary   interface matrix at the right boundary, see contractRightInterface (captured by reference:
       //!                   its value may change, then the contractions must be invalidated)
       //!
       template<typename T>
-      auto contraction_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J, const Tensor2<T>* boundary = nullptr)
+      auto contraction_loop_from_right(const TensorTrain<T>& TT, const std::vector<NestedIndices>& J, optional_cref<Tensor2<T>> boundary = std::nullopt)
       {
         return [&TT, &J, boundary](int iDim, optional_cref<Tensor3<T>> prev, Tensor3<T>& XR)
         {
@@ -484,7 +484,7 @@ namespace PITTS
       template<typename T>
       void localBlockFromLeft(const Tensor3<T>& LX, const TensorTrain<T>& TTx, int iDim, int nMALS,
                               optional_cref<Tensor3<T>> XR, const std::vector<NestedIndices>& J, Tensor3<T>& B,
-                              const Tensor2<T>* boundary = nullptr)
+                              optional_cref<Tensor2<T>> boundary = std::nullopt)
       {
         if( nMALS == 1 )
           return contractRightInterface<T>(LX, XR, J, iDim+1, B, boundary);
@@ -640,7 +640,7 @@ namespace PITTS
         }
         const EigenMatrix right = partAt([nCores](int k){return 2*nCores-1-k;});
         for(int s = 0; s < nSamples; s++)
-          values(s, 0, 0) = left.row(s).dot(right.row(s));
+          values(s, 0, 0) = left.row(s).cwiseProduct(right.row(s)).sum();   // transpose, not adjoint: x = H H^T
       }
 
 
@@ -698,6 +698,11 @@ namespace PITTS
             }
           }
 
+          //! no copies: the cached right contractions refer to the boundary matrices of this object (moving keeps them)
+          FunctionOnCrosses(const FunctionOnCrosses&) = delete;
+          FunctionOnCrosses& operator=(const FunctionOnCrosses&) = delete;
+          FunctionOnCrosses(FunctionOnCrosses&&) = default;
+
           //! Right boundary matrices of mirrored inputs: the transposed left part of x at the middle bond
           //!
           //! For x = H H^T with H of m cores and the mirrored right sets J_m = mirror(I_{m-1}), the right part of x on J_m
@@ -707,12 +712,12 @@ namespace PITTS
           //!
           void mirrorRightBoundary()
           {
-            assert(mirrored_);
+            assert(mirrored_ && middleSetsMirrored());
             for(int i = 0; i < int(N); i++)
             {
               const int m = TTx_[i].get().dimensions().size();
               transposedLeftInterface(Lx_[i], I_, m, Rx_[i]);
-              if( static_cast<int>(Iz_.size()) >= m && Iz_[m-1].size() > 0 )
+              if( withErrorSets(m) )
                 transposedLeftInterface(Lxz_[i], Iz_, m, Rxz_[i]);
             }
           }
@@ -720,7 +725,7 @@ namespace PITTS
           //! f on the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) with the cached LX_k (left-to-right step)
           Tensor3<T> blockFromLeft(int k, int nMALS)
           {
-            return evaluate([&](int i, Tensor3<T>& B)
+            return onCrosses([&](int i, Tensor3<T>& B)
             {
               Lx_[i].update(k, k+nMALS);
               localBlockFromLeft<T>(Lx_[i].left()->get(), TTx_[i].get(), k, nMALS, Lx_[i].right(), J_, B, boundary(Rx_, i));
@@ -730,7 +735,7 @@ namespace PITTS
           //! f on the cross (I_{kLeft-1}, S_kLeft x ... x S_{kLeft+nMALS-1}, J_{kLeft+nMALS}) with the cached XR (right-to-left step)
           Tensor3<T> blockFromRight(int kLeft, int nMALS)
           {
-            return evaluate([&](int i, Tensor3<T>& B)
+            return onCrosses([&](int i, Tensor3<T>& B)
             {
               Lx_[i].update(kLeft-1, kLeft+nMALS-1);
               localBlockFromRight<T>(Lx_[i].left(), I_, TTx_[i].get(), kLeft, nMALS, Lx_[i].right()->get(), B);
@@ -740,7 +745,7 @@ namespace PITTS
           //! f on the mixed cross (I_{k-1}, S_k, J^z_{k+1}): left sets of y, right sets of the error approximation (enrichment)
           Tensor3<T> mixedBlock(int k)
           {
-            return evaluate([&](int i, Tensor3<T>& B)
+            return onCrosses([&](int i, Tensor3<T>& B)
             {
               Lx_[i].update(k, k+1);
               Lxz_[i].update(k, k+1);
@@ -751,7 +756,7 @@ namespace PITTS
           //! f on the error cross (I^z_{k-1}, S_k, J^z_{k+1}) with the cached LX^z_k (left-to-right step)
           Tensor3<T> errorBlockFromLeft(int k)
           {
-            return evaluate([&](int i, Tensor3<T>& B)
+            return onCrosses([&](int i, Tensor3<T>& B)
             {
               Lxz_[i].update(k, k+1);
               contractRightInterface<T>(Lxz_[i].left()->get(), Lxz_[i].right(), Jz_, k+1, B, boundary(Rxz_, i));
@@ -761,7 +766,7 @@ namespace PITTS
           //! f on the error cross (I^z_{k-1}, S_k, J^z_{k+1}) with the cached XR^z_k (right-to-left step)
           Tensor3<T> errorBlockFromRight(int k)
           {
-            return evaluate([&](int i, Tensor3<T>& B)
+            return onCrosses([&](int i, Tensor3<T>& B)
             {
               Lxz_[i].update(k-1, k);
               contractLeftInterface<T>(Lxz_[i].left(), Iz_, k-1, Lxz_[i].right()->get(), B);
@@ -776,7 +781,7 @@ namespace PITTS
           //!
           Tensor3<T> bondBlock(int k)
           {
-            return evaluate([&](int i, Tensor3<T>& B)
+            return onCrosses([&](int i, Tensor3<T>& B)
             {
               Lx_[i].update(k-1, k);
               contractRightInterface<T>(fold_left(interfaceLeft(Lx_[i].left()->get(), I_[k-1]), 1), Lx_[i].right(), J_, k, B, boundary(Rx_, i));
@@ -803,12 +808,45 @@ namespace PITTS
               L.invalidate(k);
           }
 
+          //! J_m (and J^z_m) is the mirror of I_{m-1} (and I^z_{m-1}), see mirrorIndexSets (checked in an assert, public for the tests)
+          [[nodiscard]] bool middleSetsMirrored() const
+          {
+            const auto same = [](const NestedIndices& a, const NestedIndices& b){return a.link == b.link && a.idx == b.idx;};
+            const int m = TTx_[0].get().dimensions().size();
+            return same(J_.at(m), I_.at(m-1)) && (!withErrorSets(m) || same(Jz_.at(m), Iz_.at(m-1)));
+          }
+
+          //! the boundary matrices fit to the inputs and the current sets I_{m-1} (and I^z_{m-1}), i.e. mirrorRightBoundary
+          //! was called after the last change (checked in an assert, public for the tests; a changed set of the same size is not detected)
+          [[nodiscard]] bool boundariesFit() const
+          {
+            for(int i = 0; i < int(N); i++)
+            {
+              const TensorTrain<T>& TT = TTx_[i];
+              const int m = TT.dimensions().size();
+              const int r = TT.subTensor(m-1).r2();
+              if( Rx_[i].r1() != r || Rx_[i].r2() != I_[m-1].size() )
+                return false;
+              if( withErrorSets(m) && (Rxz_[i].r1() != r || Rxz_[i].r2() != Iz_[m-1].size()) )
+                return false;
+            }
+            return true;
+          }
+
           //! total number of evaluated entries (calls of a scalar f)
           [[nodiscard]] long long nEvaluations() const {return nEvaluations_;}
 
         private:
-          //! the right boundary matrix of input i (nullptr = the 1x1 identity for inputs that are not mirrored)
-          const Tensor2<T>* boundary(const std::vector<Tensor2<T>>& R, int i) const {return mirrored_ ? &R[i] : nullptr;}
+          //! the right boundary matrix of input i (nullopt = the 1x1 identity for inputs that are not mirrored)
+          optional_cref<Tensor2<T>> boundary(const std::vector<Tensor2<T>>& R, int i) const
+          {
+            if( mirrored_ )
+              return std::cref(R[i]);
+            return std::nullopt;
+          }
+
+          //! the error sets of mirrored inputs are used (they may be empty without enrichment)
+          bool withErrorSets(int m) const {return static_cast<int>(Iz_.size()) >= m && Iz_[m-1].size() > 0;}
 
           //! R = (L_{m-1})^T, the transposed rows I_{m-1} of the left contraction at the last core; invalidates the right contractions
           static void transposedLeftInterface(PartialContractions<T>& L, const std::vector<NestedIndices>& I, int m, Tensor2<T>& R)
@@ -818,6 +856,15 @@ namespace PITTS
             R.resize(left.r2(), left.r1());
             EigenMap(R) = ConstEigenMap(left).transpose();   // transpose, not adjoint: x = H H^T (symmetric)
             L.invalidate(m-1);
+          }
+
+          //! evaluate on a cross, see evaluate (the right contractions of mirrored inputs end with the boundary matrices)
+          template<typename BlockOfInput>
+          Tensor3<T> onCrosses(const BlockOfInput& blockOfInput)
+          {
+            // mirrored inputs: mirrorRightBoundary must have been called after the last change of the middle sets
+            assert(!mirrored_ || boundariesFit());
+            return evaluate(blockOfInput);
           }
 
           //! assemble the block of every input with blockOfInput(i, B), then apply f to all of them
