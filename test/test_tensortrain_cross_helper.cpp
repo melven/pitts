@@ -1645,9 +1645,9 @@ TEST(PITTS_TensorTrain_cross_helper, mirrorIndexSets)
 
 namespace
 {
-  // x(i_0, ..., i_{2m-1}) = <H(i_0, ..., i_{m-1}, :), H(i_{2m-1}, ..., i_m, :)> for the left half H with m cores (direct evaluation)
+  // x(i_0, ..., i_{2m-1}) = H(i_0, ..., i_{m-1}, :) M H(i_{2m-1}, ..., i_m, :)^T for the left half H with m cores (M = I by default; direct evaluation)
   template<typename T>
-  T evaluateMirrored(const PITTS::TensorTrain<T>& H, const Eigen::RowVectorXi& multiIndex)
+  T evaluateMirrored(const PITTS::TensorTrain<T>& H, const Eigen::RowVectorXi& multiIndex, const Eigen::MatrixX<T>* middle = nullptr)
   {
     const int m = H.dimensions().size();
     const auto row = [&](const auto& column)
@@ -1668,7 +1668,8 @@ namespace
     const std::vector<T> right = row([m](int k){return 2*m-1-k;});
     T result = 0;
     for(int a = 0; a < left.size(); a++)
-      result += left[a] * right[a];
+      for(int b = 0; b < right.size(); b++)
+        result += left[a] * (middle ? (*middle)(a, b) : T(a == b)) * right[b];
     return result;
   }
 
@@ -1762,7 +1763,10 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_mirrored
   Evaluator bond(f, inputs, I, J, Iz, Jz, true);
   bond.mirrorRightBoundary();
   for(int k = 1; k <= m; k++)
+  {
     checkBlock(bond.bondBlock(k), expandLeft(I, k-1), k, 0, expandRight(J, k, nDim));
+    checkBlock(bond.errorBondBlock(k), expandLeft(Iz, k-1), k, 0, expandRight(Jz, k, nDim));
+  }
   const PITTS::Tensor3<Type> middle = bond.bondBlock(m);
   for(int a = 0; a < middle.r1(); a++)
     for(int b = 0; b < middle.r2(); b++)
@@ -1852,4 +1856,299 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_mirrored
   EXPECT_FALSE(x.boundariesFit());
   x.mirrorRightBoundary();
   EXPECT_TRUE(x.boundariesFit());
+}
+
+// building blocks of the symmetric TT-cross (index sets of a half, frames, the symmetric middle block)
+using PITTS::internal::tt_cross::randomLeftIndexSets;
+using PITTS::internal::tt_cross::randomRightIndexSets;
+using PITTS::internal::tt_cross::fullLeftIndexSet;
+using PITTS::internal::tt_cross::selectLeftRows;
+using PITTS::internal::tt_cross::solveLeftInterfaceSymmetric;
+using PITTS::internal::tt_cross::directSum;
+using PITTS::internal::tt_cross::initialHalfFrame;
+using PITTS::internal::tt_cross::leftIndexSetsFromFrame;
+
+namespace
+{
+  // values of a half as an N x r matrix (row = i_0 + n_0 i_1 + ..., N = n_0 ... n_{m-1})
+  template<typename T>
+  Eigen::MatrixX<T> denseHalf(const PITTS::TensorTrain<T>& H)
+  {
+    using mat = Eigen::MatrixX<T>;
+    mat A = mat::Ones(1, 1);
+    for(int k = 0; k < int(H.dimensions().size()); k++)
+    {
+      const auto& core = H.subTensor(k);
+      mat next(A.rows() * core.n(), core.r2());
+      for(int j = 0; j < core.n(); j++)
+      {
+        mat slice(core.r1(), core.r2());
+        for(int a = 0; a < core.r1(); a++)
+          for(int b = 0; b < core.r2(); b++)
+            slice(a, b) = core(a, j, b);
+        next.middleRows(j * A.rows(), A.rows()) = A * slice;
+      }
+      A = std::move(next);
+    }
+    return A;
+  }
+
+  // the left interfaces L_k = values of the left part of TT on I_k (|I_k| x r_k) for the given sets
+  template<typename T>
+  std::vector<Eigen::MatrixX<T>> leftInterfaces(const PITTS::TensorTrain<T>& TT, const std::vector<NestedIndices>& I, int nSets)
+  {
+    std::vector<Eigen::MatrixX<T>> result;
+    PITTS::Tensor2<T> L(1, 1);
+    L(0, 0) = T(1);
+    for(int k = 0; k < nSets; k++)
+    {
+      PITTS::Tensor3<T> LX;
+      PITTS::internal::normalize_contract1(L, TT.subTensor(k), LX);
+      L = interfaceLeft(LX, I[k]);
+      result.push_back(ConstEigenMap(L));
+    }
+    return result;
+  }
+
+  template<typename T>
+  T relativeSmallestSingularValue(const Eigen::MatrixX<T>& A)
+  {
+    const Eigen::JacobiSVD<Eigen::MatrixX<T>> svd(A);
+    return svd.singularValues()(svd.singularValues().size()-1) / svd.singularValues()(0);
+  }
+}
+
+TEST(PITTS_TensorTrain_cross_helper, randomLeftIndexSets_randomRightIndexSets_with_boundary_fullLeftIndexSet)
+{
+  PITTS::internal::randomGenerator.seed(53);
+  const std::vector<int> dims = {3, 2, 4, 2};
+
+  const auto I = randomLeftIndexSets(dims, 4);
+  ASSERT_EQ(4, I.size());
+  const std::vector<int> sizes = {3, 4, 4, 0};
+  for(int k = 0; k < 4; k++)
+  {
+    ASSERT_EQ(sizes[k], I[k].size());
+    const int parentSize = k == 0 ? 1 : I[k-1].size();
+    std::set<std::pair<int,int>> unique;
+    for(int a = 0; a < I[k].size(); a++)
+    {
+      EXPECT_LE(0, I[k].link[a]);
+      EXPECT_LT(I[k].link[a], parentSize);
+      EXPECT_LE(0, I[k].idx[a]);
+      EXPECT_LT(I[k].idx[a], dims[k]);
+      unique.emplace(I[k].link[a], I[k].idx[a]);
+    }
+    EXPECT_EQ(I[k].size(), unique.size());
+  }
+  EXPECT_THROW(randomLeftIndexSets(dims, 0), std::invalid_argument);
+
+  // right sets of a half that continues beyond its last core with a boundary set of size 3
+  const auto J = randomRightIndexSets(dims, 5, 3);
+  ASSERT_EQ(5, J[3].size());
+  for(int b = 0; b < J[3].size(); b++)
+    EXPECT_LT(J[3].link[b], 3);
+  EXPECT_EQ(5, J[2].size());
+  EXPECT_EQ(5, J[1].size());
+  EXPECT_THROW(randomRightIndexSets(dims, 5, 0), std::invalid_argument);
+
+  // all multi-indices of I_{k-1} x S_k in the row order of the left unfolding
+  const NestedIndices full = fullLeftIndexSet(3, 2);
+  ASSERT_EQ(6, full.size());
+  for(int row = 0; row < 6; row++)
+  {
+    EXPECT_EQ(row % 3, full.link[row]);
+    EXPECT_EQ(row / 3, full.idx[row]);
+  }
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, selectLeftRows)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::MatrixX<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  std::srand(59);
+  PITTS::Tensor2<Type> L(5, 3);
+  EigenMap(L) = mat::Random(5, 3);
+  // left-orthonormal core 3 x 2 x 4
+  PITTS::Tensor3<Type> U(3, 2, 4);
+  const mat Q = Eigen::HouseholderQR<mat>(mat::Random(6, 4)).householderQ() * mat::Identity(6, 4);
+  EigenMap(unfold_left(U)) = Q;
+
+  // rows of M = (L x I) U: dominant, r of them (more with oversampling, limited by maxRows)
+  PITTS::Tensor3<Type> M;
+  PITTS::internal::normalize_contract1(L, U, M);
+  const mat Mmat = ConstEigenMap(unfold_left(M));
+  const std::vector<int> rows = selectLeftRows(L, U, maxvolTol);
+  ASSERT_EQ(4, rows.size());
+  mat Msel(4, 4);
+  for(int i = 0; i < 4; i++)
+    Msel.row(i) = Mmat.row(rows[i]);
+  EXPECT_LE((Mmat * Msel.inverse()).array().abs().maxCoeff(), 1 + maxvolTol + blockTolerance<Type>());
+  EXPECT_EQ(6, selectLeftRows(L, U, maxvolTol, Type(0.5)).size());
+  EXPECT_EQ(5, selectLeftRows(L, U, maxvolTol, Type(0.5), 5).size());
+  EXPECT_EQ(4, selectLeftRows(L, U, maxvolTol, Type(0.5), 2).size());   // at least r
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, solveLeftInterfaceSymmetric)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::MatrixX<Type>;
+  const auto eps = blockTolerance<Type>();
+
+  std::srand(61);
+  const int q = 4, r = 3, n = 2;
+  for(const int rows: {r, q})   // square and oversampled interface
+  {
+    PITTS::Tensor2<Type> L(rows, r);
+    EigenMap(L) = mat::Random(rows, r) + 3*mat::Identity(rows, r);
+    mat C0 = mat::Random(r*n, r*n);
+    C0 = (C0 + C0.transpose()).eval();
+    // K = L x I in the row order (link + idx*q) and the column order (c + idx*r)
+    mat K = mat::Zero(rows*n, r*n);
+    for(int i = 0; i < n; i++)
+      K.block(i*rows, i*r, rows, r) = ConstEigenMap(L);
+    PITTS::Tensor2<Type> M(rows*n, rows*n);
+    EigenMap(M) = K * C0 * K.transpose();
+    const PITTS::Tensor2<Type> C = solveLeftInterfaceSymmetric(L, PITTS::ConstTensor2View<Type>(M), n);
+    EXPECT_NEAR(C0, ConstEigenMap(C), eps * C0.norm());
+  }
+  PITTS::Tensor2<Type> L(4, 3), wrong(5, 5);
+  EXPECT_THROW(solveLeftInterfaceSymmetric(L, PITTS::ConstTensor2View<Type>(wrong), 2), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, directSum_and_initialHalfFrame)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::MatrixX<Type>;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const auto eps = blockTolerance<Type>();
+
+  PITTS::internal::randomGenerator.seed(67);
+  const std::vector<int> halfDims = {3, 2, 4};
+  const TensorTrain Ha = randomHalf<Type>(halfDims, {2, 3, 2}), Hb = randomHalf<Type>(halfDims, {3, 2, 3});
+  const mat Aa = denseHalf(Ha), Ab = denseHalf(Hb);
+
+  // halves side by side
+  const TensorTrain D = directSum<Type>({std::cref(Ha), std::cref(Hb)}, true);
+  EXPECT_EQ(5, D.subTensor(2).r2());
+  mat AB(Aa.rows(), 5);
+  AB << Aa, Ab;
+  EXPECT_NEAR(AB, denseHalf(D), eps * AB.norm());
+
+  // sum of tensor trains (r_d = 1)
+  const TensorTrain Ta = randomHalf<Type>(halfDims, {2, 3, 1}), Tb = randomHalf<Type>(halfDims, {3, 2, 1});
+  const TensorTrain sum = directSum<Type>({std::cref(Ta), std::cref(Tb)});
+  EXPECT_NEAR(mat(denseHalf(Ta) + denseHalf(Tb)), denseHalf(sum), eps * denseHalf(Ta).norm());
+  EXPECT_THROW(directSum<Type>({std::cref(Ha), std::cref(Hb)}), std::invalid_argument);
+  EXPECT_THROW(directSum<Type>({}), std::invalid_argument);
+
+  // frame of the halves: left-orthonormal, sum of the normalized inputs, spans both halves
+  TensorTrain G(halfDims);
+  PITTS::Tensor2<Type> S;
+  initialHalfFrame<Type>({std::cref(Ha), std::cref(Hb)}, G, S);
+  const mat A = denseHalf(G);
+  EXPECT_NEAR(mat::Identity(A.cols(), A.cols()), mat(A.transpose() * A), eps);
+  const mat xa = Aa * Aa.transpose(), xb = Ab * Ab.transpose();
+  const mat ref = xa / xa.norm() + xb / xb.norm();
+  EXPECT_NEAR(ref, mat(A * ConstEigenMap(S) * A.transpose()), eps * ref.norm());
+  EXPECT_NEAR(Aa, mat(A * (A.transpose() * Aa)), eps * Aa.norm());
+  EXPECT_NEAR(Ab, mat(A * (A.transpose() * Ab)), eps * Ab.norm());
+  // independent of the norms of the inputs
+  TensorTrain Hscaled(halfDims);
+  copy(Hb, Hscaled);
+  Hscaled.editSubTensor(0, [](PITTS::Tensor3<Type>& core){PITTS::internal::t3_scale(Type(1000), core);});
+  TensorTrain G2(halfDims);
+  PITTS::Tensor2<Type> S2;
+  initialHalfFrame<Type>({std::cref(Ha), std::cref(Hscaled)}, G2, S2);
+  const mat A2 = denseHalf(G2);
+  EXPECT_NEAR(ref, mat(A2 * ConstEigenMap(S2) * A2.transpose()), eps * ref.norm());
+
+  const TensorTrain other = randomHalf<Type>({3, 2, 3}, {2, 3, 2});
+  EXPECT_THROW(initialHalfFrame<Type>({std::cref(Ha), std::cref(other)}, G, S), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, leftIndexSetsFromFrame_and_right_sets_with_boundary)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::MatrixX<Type>;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  const Type maxvolTol = Type(0.05);
+
+  PITTS::internal::randomGenerator.seed(71);
+  const std::vector<int> halfDims = {3, 2, 4};
+  const int m = 3;
+  const TensorTrain H = randomHalf<Type>(halfDims, {2, 4, 3});
+  TensorTrain G(halfDims);
+  PITTS::Tensor2<Type> S;
+  initialHalfFrame<Type>({std::cref(H)}, G, S);
+  const std::vector<int> ranks = {G.subTensor(0).r2(), G.subTensor(1).r2(), G.subTensor(2).r2()};
+  EXPECT_EQ(std::vector<int>({2, 4, 3}), ranks);
+
+  // left sets of the half including the middle bond: sizes = ranks, full-rank interfaces
+  const std::vector<NestedIndices> I = leftIndexSetsFromFrame(G, maxvolTol);
+  ASSERT_EQ(m, I.size());
+  const auto L = leftInterfaces(G, I, m);
+  for(int k = 0; k < m; k++)
+  {
+    EXPECT_EQ(ranks[k], I[k].size());
+    EXPECT_GT(relativeSmallestSingularValue(L[k]), Type(1.e-3));
+  }
+  // oversampled and limited sets
+  const std::vector<NestedIndices> Iover = leftIndexSetsFromFrame(G, maxvolTol, Type(1), {3, 6, 5});
+  EXPECT_EQ(3, Iover[0].size());
+  EXPECT_EQ(6, Iover[1].size());
+  EXPECT_EQ(5, Iover[2].size());
+  EXPECT_THROW(leftIndexSetsFromFrame(G, maxvolTol, Type(1), {3, 6}), std::invalid_argument);
+  // a tensor train with r_d = 1: no set at the last bond
+  TensorTrain T1 = randomHalf<Type>(halfDims, {2, 3, 1});
+  leftNormalize(T1, Type(0));
+  const std::vector<NestedIndices> I1 = leftIndexSetsFromFrame(T1, maxvolTol);
+  EXPECT_EQ(2, I1[0].size());
+  EXPECT_EQ(3, I1[1].size());
+  EXPECT_EQ(0, I1[2].size());
+
+  // right sets inside the half on top of the mirrored middle set: the boundary matrix is (L_{m-1})^T
+  TensorTrain Y(halfDims);
+  copy(G, Y);
+  PITTS::internal::rightNormalize_range(Y, 0, m-1, Type(0));
+  PITTS::Tensor2<Type> boundary(L[m-1].cols(), L[m-1].rows());
+  EigenMap(boundary) = L[m-1].transpose();
+  const std::vector<NestedIndices> J = rightIndexSetsFromFrame(Y, maxvolTol, Type(0), {}, std::optional(std::cref(boundary)));
+  EXPECT_EQ(Y.subTensor(2).r1(), J[2].size());
+  EXPECT_EQ(Y.subTensor(1).r1(), J[1].size());
+  for(int b = 0; b < J[2].size(); b++)
+    EXPECT_LT(J[2].link[b], I[m-1].size());
+  // full-rank right interfaces with the boundary: R_k = values of Y_k ... Y_{m-1} times the boundary on J_k
+  std::vector<NestedIndices> noLeft(m);
+  auto Rx = defineSweepData<PITTS::Tensor3<Type>>(m, contraction_loop_from_left<Type>(Y, noLeft), contraction_loop_from_right<Type>(Y, J, std::optional(std::cref(boundary))));
+  Rx.update(-1, 1);
+  for(int k = 1; k < m; k++)
+    EXPECT_GT(relativeSmallestSingularValue(mat(ConstEigenMap(interfaceRight(Rx.subTensor(k), J[k])))), Type(1.e-3));
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, evaluateAt_with_middle_matrix)
+{
+  using Type = typename TestFixture::Type;
+  using mat = Eigen::MatrixX<Type>;
+  constexpr auto eps = 1.e-4;
+
+  PITTS::internal::randomGenerator.seed(73);
+  std::srand(73);
+  const std::vector<int> halfDims = {3, 2};
+  const std::vector<int> dims = {3, 2, 2, 3};
+  const PITTS::TensorTrain<Type> H = randomHalf<Type>(halfDims, {2, 3});
+  const mat Mmat = mat::Random(3, 3);
+  PITTS::Tensor2<Type> M(3, 3);
+  EigenMap(M) = Mmat;
+  const Eigen::MatrixXi indices = randomIndices(dims, 12);
+  PITTS::Tensor3<Type> values;
+  evaluateAt(H, indices, values, true, std::optional(std::cref(M)));
+  ASSERT_EQ(12, values.r1());
+  for(int s = 0; s < 12; s++)
+  {
+    const Type ref = evaluateMirrored(H, indices.row(s), &Mmat);
+    EXPECT_NEAR(ref, values(s, 0, 0), eps*(1 + std::abs(ref)));
+  }
 }

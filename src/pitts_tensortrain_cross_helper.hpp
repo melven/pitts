@@ -191,16 +191,22 @@ namespace PITTS
       //! Used for the initial error crosses of the AMEn-style enrichment (as in amen_cross); the sets are
       //! nested by construction (each J_k is drawn from S_k x J_{k+1}). Uses internal::randomGenerator.
       //!
-      inline std::vector<NestedIndices> randomRightIndexSets(const std::vector<int>& dims, int size)
+      //! @param dims          dimensions
+      //! @param size          maximal size of each set
+      //! @param boundarySize  size of the set J_d beyond the last dimension: 1 for a tensor train (J_d = {()}), the size of a
+      //!                      given boundary set for a tensor train that continues beyond its last core (e.g. a half of a
+      //!                      symmetric tensor, whose J_d is the mirrored left set at the middle bond)
+      //!
+      inline std::vector<NestedIndices> randomRightIndexSets(const std::vector<int>& dims, int size, int boundarySize = 1)
       {
-        if( size < 1 )
-          throw std::invalid_argument("randomRightIndexSets: size must be positive!");
+        if( size < 1 || boundarySize < 1 )
+          throw std::invalid_argument("randomRightIndexSets: size and boundarySize must be positive!");
         const int nDim = dims.size();
         std::vector<NestedIndices> J(nDim);
         for(int k = nDim-1; k >= 1; k--)
         {
           // all (idx, link) candidates of S_k x J_{k+1} in a shuffled order, take the first ones
-          const int nCandidates = dims[k] * ((k == nDim-1) ? 1 : J[k+1].size());
+          const int nCandidates = dims[k] * ((k == nDim-1) ? boundarySize : J[k+1].size());
           std::vector<int> candidates(nCandidates);
           std::iota(candidates.begin(), candidates.end(), 0);
           std::shuffle(candidates.begin(), candidates.end(), randomGenerator);
@@ -208,6 +214,38 @@ namespace PITTS
           J[k] = rightIndicesFromColumns(candidates, dims[k]);
         }
         return J;
+      }
+
+      //! random left-nested index sets I[k] (k = 0..d-2) with at most `size` elements each (mirror image of randomRightIndexSets)
+      inline std::vector<NestedIndices> randomLeftIndexSets(const std::vector<int>& dims, int size)
+      {
+        if( size < 1 )
+          throw std::invalid_argument("randomLeftIndexSets: size must be positive!");
+        const int nDim = dims.size();
+        std::vector<NestedIndices> I(nDim);
+        for(int k = 0; k < nDim-1; k++)
+        {
+          // all (link, idx) candidates of I_{k-1} x S_k in a shuffled order, take the first ones
+          const int parentSize = (k == 0) ? 1 : I[k-1].size();
+          std::vector<int> candidates(parentSize * dims[k]);
+          std::iota(candidates.begin(), candidates.end(), 0);
+          std::shuffle(candidates.begin(), candidates.end(), randomGenerator);
+          candidates.resize(std::min<int>(size, candidates.size()));
+          I[k] = leftIndicesFromRows(candidates, parentSize);
+        }
+        return I;
+      }
+
+      //! the full left set I_{k-1} x S_k (all multi-indices, in the row order of the left unfolding: link + idx*parentSize)
+      //!
+      //! @param parentSize  |I_{k-1}| (1 for k = 0)
+      //! @param n           n_k
+      //!
+      inline NestedIndices fullLeftIndexSet(int parentSize, int n)
+      {
+        std::vector<int> rows(parentSize * n);
+        std::iota(rows.begin(), rows.end(), 0);
+        return leftIndicesFromRows(rows, parentSize);
       }
 
       //! left interface matrix L_k (|I_k| x r_k) as the rows (link, idx) of the contraction LX_k = L_{k-1} X_k (|I_{k-1}| x n_k x r_k)
@@ -597,13 +635,15 @@ namespace PITTS
       //! allows reusing applyToBlock and rmsDifference on the result.
       //!
       //! With mirrored = true, TT is the left half H (m cores, open right bond) of the symmetric tensor x = H H^T
-      //! with 2m dimensions: x(i_0, ..., i_{2m-1}) = <H(i_0, ..., i_{m-1}, :), H(i_{2m-1}, ..., i_m, :)>.
+      //! with 2m dimensions: x(i_0, ..., i_{2m-1}) = <H(i_0, ..., i_{m-1}, :), H(i_{2m-1}, ..., i_m, :)>, or with a
+      //! middle matrix M of the symmetric tensor x = H M H^T (see pitts_tensortrain_symmetric.hpp).
       //!
       //! @todo Move this to a dedicated top-level function (with a better implementation: group the
       //!       samples by index value into GEMMs, parallelize) as soon as it is needed somewhere else.
       //!
       template<typename T>
-      void evaluateAt(const TensorTrain<T>& TT, const Eigen::MatrixXi& indices, Tensor3<T>& values, bool mirrored = false)
+      void evaluateAt(const TensorTrain<T>& TT, const Eigen::MatrixXi& indices, Tensor3<T>& values, bool mirrored = false,
+                      optional_cref<Tensor2<T>> middle = std::nullopt)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -641,9 +681,12 @@ namespace PITTS
             values(s, 0, 0) = left(s, 0);
           return;
         }
-        const EigenMatrix right = partAt([nCores](int k){return 2*nCores-1-k;});
+        // x = H M H^T: right * M^T, so that the entry is the row-wise product sum (transpose, not adjoint)
+        EigenMatrix right = partAt([nCores](int k){return 2*nCores-1-k;});
+        if( middle )
+          right = right * ConstEigenMap(middle->get()).transpose();
         for(int s = 0; s < nSamples; s++)
-          values(s, 0, 0) = left.row(s).cwiseProduct(right.row(s)).sum();   // transpose, not adjoint: x = H H^T
+          values(s, 0, 0) = left.row(s).cwiseProduct(right.row(s)).sum();
       }
 
 
@@ -782,14 +825,10 @@ namespace PITTS
           //! symmetric tensor with J_k the mirror of I_{k-1}, a symmetric matrix). Valid for 1 <= k <= number of cores
           //! (k = number of cores: the middle bond of mirrored inputs, with their boundary matrices).
           //!
-          Tensor3<T> bondBlock(int k)
-          {
-            return onCrosses([&](int i, Tensor3<T>& B)
-            {
-              Lx_[i].update(k-1, k);
-              contractRightInterface<T>(fold_left(interfaceLeft(Lx_[i].left()->get(), I_[k-1]), 1), Lx_[i].right(), J_, k, B, boundary(Rx_, i));
-            });
-          }
+          Tensor3<T> bondBlock(int k) {return bondBlockOf(Lx_, I_, J_, Rx_, k);}
+
+          //! f on the error cross (I^z_{k-1}, J^z_k) of the bond between the cores k-1 and k (see bondBlock)
+          Tensor3<T> errorBondBlock(int k) {return bondBlockOf(Lxz_, Iz_, Jz_, Rxz_, k);}
 
           //! f at the given multi-indices (one per row) as a block of shape (nSamples,1,1), see evaluateAt
           Tensor3<T> atIndices(const Eigen::MatrixXi& indices)
@@ -858,6 +897,18 @@ namespace PITTS
             R.resize(left.r2(), left.r1());
             EigenMap(R) = ConstEigenMap(left).transpose();   // transpose, not adjoint: x = H H^T (symmetric)
             L.invalidate(m-1);
+          }
+
+          //! f on the bond cross (I_{k-1}, J_k) of one family of sets (the sets of y or of the error approximation)
+          template<typename Contractions>
+          Tensor3<T> bondBlockOf(Contractions& L, const std::vector<NestedIndices>& I, const std::vector<NestedIndices>& J,
+                                 const std::vector<Tensor2<T>>& R, int k)
+          {
+            return onCrosses([&](int i, Tensor3<T>& B)
+            {
+              L[i].update(k-1, k);
+              contractRightInterface<T>(fold_left(interfaceLeft(L[i].left()->get(), I[k-1]), 1), L[i].right(), J, k, B, boundary(R, i));
+            });
           }
 
           //! evaluate on a cross, see evaluate (the right contractions of mirrored inputs end with the boundary matrices)
@@ -975,6 +1026,37 @@ namespace PITTS
         int truncatedRank = 0;
       };
 
+      //! maxvol rows of the values of a new left part: M = (L x I_n) U, the rows of a left index set I_k
+      //!
+      //! U is a left-orthonormal core (r1 x n x r) and L the interface L_{k-1} (q x r1) of the left part it is appended to,
+      //! so M (q n x r) are the values of the new left part on I_{k-1} x S_k; selects r + ceil(oversampling r) rows (at
+      //! most maxRows, at least r). M has full column rank if L has (U is orthonormal), which maxvol needs.
+      //!
+      //! @param leftInterface      L_{k-1} (q x r1), the 1x1 identity at the left boundary
+      //! @param U                  left-orthonormal core (r1 x n x r)
+      //! @param maxvolTolerance    dominance tolerance for maxvol
+      //! @param oversampling       relative number of additional rows
+      //! @param maxRows            maximal number of rows
+      //! @return                   selected rows of M (decode with leftIndicesFromRows(rows, q))
+      //!
+      template<typename T>
+      std::vector<int> selectLeftRows(const Tensor2<T>& leftInterface, const Tensor3<T>& U, T maxvolTolerance, T oversampling = T(0),
+                                      int maxRows = std::numeric_limits<int>::max());
+
+      //! C = (L x I_n)^+ M (L x I_n)^{+T}: a symmetric block sampled on the cross (I_{k-1} x S_k) x mirror(I_{k-1} x S_k)
+      //! into the coordinates of the left part (least squares on both sides, see solveLeftInterface)
+      //!
+      //! The rows and the columns of M are both ordered as the rows of the left unfolding (link + idx*q), e.g. the
+      //! bond block of the full set fullLeftIndexSet(q, n) and its mirror (FunctionOnCrosses::bondBlock).
+      //!
+      //! @param L     left interface L_{k-1} (q x r), full column rank
+      //! @param M     symmetric block (q n x q n)
+      //! @param n     mode size n_k
+      //! @return      C (r n x r n), symmetric up to round-off
+      //!
+      template<typename T>
+      Tensor2<T> solveLeftInterfaceSymmetric(const Tensor2<T>& L, const ConstTensor2View<T>& M, int n);
+
       //! Local core update for a left-to-right sweep (y in the orthogonal gauge)
       //!
       //! Given the block C (r1 x n x r2) of f(x) on the cross (I_{k-1}, S_k, J_{k+1}) in the coordinates of y
@@ -1065,6 +1147,37 @@ namespace PITTS
       std::vector<int> dominantColumns(const Tensor3<T>& B, T absoluteTolerance, int nColumns, T maxvolTolerance);
 
 
+      //! Direct sum of tensor trains: block-diagonal cores (x_1 + ... + x_N with r_d = 1, or the halves side by side)
+      //!
+      //! The first cores are concatenated along r2 (r_0 = 1). The last cores are concatenated along r1 (their sum, all
+      //! inputs need r_d = 1), or with openLastBond block-diagonal also along r2 (halves with open right bonds: the
+      //! result is the half whose open bond holds the open bonds of all inputs side by side).
+      //!
+      //! @param TTs           tensor trains with the same dimensions (first rank 1)
+      //! @param openLastBond  keep the last bonds separate (halves) instead of summing them
+      //! @return              the direct sum
+      //!
+      //! @throws std::invalid_argument for no input, different dimensions or boundary ranks
+      //!
+      template<typename T>
+      TensorTrain<T> directSum(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTs, bool openLastBond = false);
+
+      //! Initial frame of a symmetric TT-cross: a left-orthonormal half G spanning the halves of all inputs x_i = H_i H_i^T
+      //!
+      //! Each input half is left-orthonormalized first, H_i = G_i R_i, and its middle matrix R_i R_i^T normalized to unit
+      //! Frobenius norm (as initialRightFrame normalizes the inputs: independent of their norms and gauges). G is the
+      //! left-orthonormalized direct sum of the G_i with block-diagonal open bonds (tolerance 0, nothing cancels), and S
+      //! the normalized middle matrices in the coordinates of G: sum_i x_i / ||x_i|| = G S G^T.
+      //!
+      //! @param TTx   input halves (same dimensions, first rank 1)
+      //! @param G     result: left-orthonormal half
+      //! @param S     result: symmetric middle matrix (positive semidefinite)
+      //!
+      //! @throws std::invalid_argument for no input, different dimensions or a first rank != 1
+      //!
+      template<typename T>
+      void initialHalfFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& G, Tensor2<T>& S);
+
       //! Initial y for TT-cross in the orthogonal gauge: zero, but with an orthonormal right frame from the inputs
       //!
       //! The cores 1..d-1 of y are the right-orthonormal cores of the direct sum (block-diagonal cores) of the inputs,
@@ -1091,15 +1204,37 @@ namespace PITTS
       //! so all interfaces have full rank (the QR step of Oseledets/Tyrtyshnikov 2010, reference [1] in
       //! pitts_tensortrain_cross.hpp). Core 0 is not used. No function evaluations are needed.
       //!
+      //! With a boundary matrix (a half of a symmetric tensor, see contractRightInterface), the recursion starts with it
+      //! instead of the 1x1 identity: the sets inside the half then refer to the positions of the given set beyond the
+      //! last core (whose values form the columns of the boundary matrix, which must have full row rank).
+      //!
       //! @param TT               tensor train with right-orthonormal cores 1..d-1 (e.g. from initialRightFrame)
       //! @param maxvolTolerance  dominance tolerance for maxvol
       //! @param oversampling     relative number of additional columns
       //! @param maxIndices       maximal size of the sets per bond (d-1 entries; empty: no limit)
+      //! @param boundary         interface matrix at the right boundary (r_d x q), nullopt for the 1x1 identity
       //! @return                 right index sets, J[k] for k = 1..d-1 (J[0] empty)
       //!
       template<typename T>
       std::vector<NestedIndices> rightIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling = T(0),
-                                                         const std::vector<int>& maxIndices = {});
+                                                         const std::vector<int>& maxIndices = {},
+                                                         optional_cref<Tensor2<T>> boundary = std::nullopt);
+
+      //! Left index sets from a maxvol sweep over the left-orthonormal cores of a tensor train (mirror image of rightIndexSetsFromFrame)
+      //!
+      //! Left-to-right: LX_k = L_{k-1} X_k, I_k = selectLeftRows(L_{k-1}, X_k) (oversampled: at least r_k), L_k = the
+      //! selected rows. For a tensor train with r_d = 1 the sets I_0..I_{d-2} are computed (I[d-1] stays empty), for a
+      //! half with an open right bond (r_d > 1) also I_{d-1}, the set of the middle bond of the symmetric tensor.
+      //!
+      //! @param TT               tensor train with left-orthonormal cores
+      //! @param maxvolTolerance  dominance tolerance for maxvol
+      //! @param oversampling     relative number of additional rows
+      //! @param maxIndices       maximal size of the sets per bond (one entry per computed set; empty: no limit)
+      //! @return                 left index sets I[k] (d entries)
+      //!
+      template<typename T>
+      std::vector<NestedIndices> leftIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling = T(0),
+                                                        const std::vector<int>& maxIndices = {});
     }
   }
 }

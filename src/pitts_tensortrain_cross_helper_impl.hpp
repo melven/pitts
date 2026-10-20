@@ -30,6 +30,7 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain_normalize.hpp"
+#include "pitts_tensortrain_symmetric.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -224,6 +225,44 @@ namespace PITTS
       }
 
 
+      // implement selectLeftRows
+      template<typename T>
+      std::vector<int> selectLeftRows(const Tensor2<T>& leftInterface, const Tensor3<T>& U, T maxvolTolerance, T oversampling, int maxRows)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        Tensor3<T> M;
+        normalize_contract1(leftInterface, U, M);
+        const int r = U.r2();
+        const int nRows = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows));
+        return maxvol<T>(unfold_left(M), maxvolTolerance, maxvolIterations(r), nullptr, nRows);
+      }
+
+
+      // implement solveLeftInterfaceSymmetric
+      template<typename T>
+      Tensor2<T> solveLeftInterfaceSymmetric(const Tensor2<T>& L, const ConstTensor2View<T>& M, int n)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
+
+        const int q = L.r1();
+        const int r = L.r2();
+        if( M.r1() != q*n || M.r2() != q*n )
+          throw std::invalid_argument("solveLeftInterfaceSymmetric: dimension mismatch!");
+
+        // rows: (L x I)^+ M as a block q x n x (q n), then the same for the columns of the transposed result
+        Tensor3<T> B(q, n, q*n), X;
+        EigenMap(unfold_left(B)) = ConstEigenMap(M);
+        solveLeftInterface(L, B, X);
+        Tensor3<T> Bt(q, n, r*n);
+        EigenMap(unfold_left(Bt)) = ConstEigenMap(unfold_left(X)).transpose();
+        solveLeftInterface(L, Bt, X);
+        Tensor2<T> C(r*n, r*n);
+        EigenMap(C) = ConstEigenMap(unfold_left(X));
+        return C;
+      }
+
+
       // implement updateCoreLeft
       template<typename T>
       CoreUpdate<T> updateCoreLeft(const Tensor3<T>& C, const Tensor2<T>& leftInterface, T rankTolerance, int maxRank, T maxvolTolerance,
@@ -260,14 +299,10 @@ namespace PITTS
           const RealType relTol = std::real(rankTolerance) > 0 ? std::min(sqrtEps, RealType(std::real(rankTolerance))) : sqrtEps;
           enrichFactors(U3, SVt, std::move(enrichment), std::min<long long>(maxEnrichment, maxEnrichedRank - U3.r2()), T(relTol));
         }
-        const int r = U3.r2();
 
         // 3. maxvol on the values of the new left part of y on I_{k-1} x S_k selects the rows I_k
         //    (with oversampling more than r)
-        Tensor3<T> M;
-        normalize_contract1(leftInterface, U3, M);
-        const int nRows = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows));
-        result.selected = maxvol<T>(unfold_left(M), maxvolTolerance, maxvolIterations(r), nullptr, nRows);
+        result.selected = selectLeftRows(leftInterface, U3, maxvolTolerance, oversampling, maxRows);
 
         result.core = std::move(U3);
         result.carry = std::move(SVt);
@@ -334,6 +369,103 @@ namespace PITTS
       }
 
 
+      // implement directSum
+      template<typename T>
+      TensorTrain<T> directSum(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTs, bool openLastBond)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        if( TTs.empty() )
+          throw std::invalid_argument("directSum: no tensor train!");
+        const std::vector<int>& dims = TTs[0].get().dimensions();
+        const int nDim = dims.size();
+        for(const TensorTrain<T>& TT: TTs)
+          if( TT.dimensions() != dims || TT.subTensor(0).r1() != 1 || (!openLastBond && TT.subTensor(nDim-1).r2() != 1) )
+            throw std::invalid_argument("directSum: dimensions or boundary ranks do not match!");
+
+        std::vector<Tensor3<T>> cores(nDim);
+        for(int k = 0; k < nDim; k++)
+        {
+          const bool sumLeft = (k == 0);
+          const bool sumRight = (k == nDim-1) && !openLastBond;
+          long long r1 = 0, r2 = 0;
+          for(const TensorTrain<T>& TT: TTs)
+          {
+            r1 += TT.subTensor(k).r1();
+            r2 += TT.subTensor(k).r2();
+          }
+          if( sumLeft )
+            r1 = 1;
+          if( sumRight )
+            r2 = 1;
+          cores[k].resize(r1, dims[k], r2);
+          cores[k].setConstant(T(0));
+          long long offset1 = 0, offset2 = 0;
+          for(const TensorTrain<T>& TT: TTs)
+          {
+            const auto& X = TT.subTensor(k);
+            for(int c = 0; c < X.r2(); c++)
+              for(int j = 0; j < X.n(); j++)
+                for(int a = 0; a < X.r1(); a++)
+                  cores[k](offset1+a, j, offset2+c) = X(a, j, c);
+            if( !sumLeft )
+              offset1 += X.r1();
+            if( !sumRight )
+              offset2 += X.r2();
+          }
+        }
+        return TensorTrain<T>(std::move(cores));
+      }
+
+
+      // implement initialHalfFrame
+      template<typename T>
+      void initialHalfFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& G, Tensor2<T>& S)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        using symmetric_tt::leftOrthonormalizeHalf;
+
+        if( TTx.empty() )
+          throw std::invalid_argument("initialHalfFrame: no tensor train!");
+        const std::vector<int>& dims = TTx[0].get().dimensions();
+
+        // each input separately: H_i = G_i R_i, middle matrix R_i R_i^T / ||R_i R_i^T||_F (= x_i / ||x_i|| in the coordinates of G_i)
+        std::vector<TensorTrain<T>> halves;
+        halves.reserve(TTx.size());
+        std::vector<Eigen::MatrixX<T>> middles;
+        long long rSum = 0;
+        for(const TensorTrain<T>& TT: TTx)
+        {
+          if( TT.dimensions() != dims || TT.subTensor(0).r1() != 1 )
+            throw std::invalid_argument("initialHalfFrame: dimensions or first ranks of the inputs do not match!");
+          copy(TT, halves.emplace_back(dims));
+          const Tensor2<T> R = leftOrthonormalizeHalf(halves.back());
+          Eigen::MatrixX<T> RRt = ConstEigenMap(R) * ConstEigenMap(R).transpose();
+          const auto nrm = RRt.norm();
+          if( nrm > 0 )
+            RRt /= nrm;
+          middles.push_back(std::move(RRt));
+          rSum += middles.back().rows();
+        }
+
+        // left-orthonormalized direct sum with separate open bonds: D = G R, D B D^T = G (R B R^T) G^T with B = blockdiag(middles)
+        std::vector<std::reference_wrapper<const TensorTrain<T>>> refs(halves.begin(), halves.end());
+        TensorTrain<T> D = directSum(refs, true);
+        const Tensor2<T> R = leftOrthonormalizeHalf(D);
+        Eigen::MatrixX<T> B = Eigen::MatrixX<T>::Zero(rSum, rSum);
+        long long offset = 0;
+        for(const auto& Mi: middles)
+        {
+          B.block(offset, offset, Mi.rows(), Mi.cols()) = Mi;
+          offset += Mi.rows();
+        }
+        S.resize(R.r1(), R.r1());
+        EigenMap(S) = ConstEigenMap(R) * B * ConstEigenMap(R).transpose();
+        G = std::move(D);
+      }
+
+
       // implement initialRightFrame
       template<typename T>
       void initialRightFrame(const std::vector<std::reference_wrapper<const TensorTrain<T>>>& TTx, TensorTrain<T>& TTy, int maxRank)
@@ -362,36 +494,8 @@ namespace PITTS
 
         // direct sum of the inputs: block-diagonal cores (the first core concatenated along r2, the last along r1),
         // so the right parts span the right parts of all inputs
-        std::vector<Tensor3<T>> cores(nDim);
-        for(int k = 0; k < nDim; k++)
-        {
-          long long r1 = 0, r2 = 0;
-          for(const TensorTrain<T>& TT: TTortho)
-          {
-            r1 += TT.subTensor(k).r1();
-            r2 += TT.subTensor(k).r2();
-          }
-          if( k == 0 )
-            r1 = 1;
-          if( k == nDim-1 )
-            r2 = 1;
-          cores[k].resize(r1, dims[k], r2);
-          cores[k].setConstant(T(0));
-          long long offset1 = 0, offset2 = 0;
-          for(const TensorTrain<T>& TT: TTortho)
-          {
-            const auto& X = TT.subTensor(k);
-            for(int c = 0; c < X.r2(); c++)
-              for(int j = 0; j < X.n(); j++)
-                for(int a = 0; a < X.r1(); a++)
-                  cores[k](offset1+a, j, offset2+c) = X(a, j, c);
-            if( k > 0 )
-              offset1 += X.r1();
-            if( k < nDim-1 )
-              offset2 += X.r2();
-          }
-        }
-        TensorTrain<T> frame(std::move(cores));
+        std::vector<std::reference_wrapper<const TensorTrain<T>>> orthoRefs(TTortho.begin(), TTortho.end());
+        TensorTrain<T> frame = directSum(orthoRefs);
 
         // right-orthonormal cores of the direct sum: the right unfoldings stack the right parts of all inputs, so tolerance 0
         // only removes round-off and (numerically) dependent directions of different inputs. Otherwise only maxRank and the
@@ -417,7 +521,7 @@ namespace PITTS
       // implement rightIndexSetsFromFrame
       template<typename T>
       std::vector<NestedIndices> rightIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling,
-                                                         const std::vector<int>& maxIndices)
+                                                         const std::vector<int>& maxIndices, optional_cref<Tensor2<T>> boundary)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -430,7 +534,7 @@ namespace PITTS
         // so the same recursion (and boundary handling) as in the cross sweeps can be used
         std::vector<NestedIndices> J(nDim);
         const auto neverFromTheLeft = [](int, optional_cref<Tensor3<T>>, Tensor3<T>&) { assert(false); };
-        auto Rx = defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TT, J));
+        auto Rx = defineSweepData<Tensor3<T>>(nDim, neverFromTheLeft, contraction_loop_from_right<T>(TT, J, boundary));
         for(int k = nDim-1; k >= 1; k--)
         {
           Rx.update(-1, k);
@@ -441,6 +545,34 @@ namespace PITTS
           J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(XR), maxvolTolerance, nullptr, nColumns), dims[k]);
         }
         return J;
+      }
+
+
+      // implement leftIndexSetsFromFrame
+      template<typename T>
+      std::vector<NestedIndices> leftIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling,
+                                                        const std::vector<int>& maxIndices)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const std::vector<int>& dims = TT.dimensions();
+        const int nDim = dims.size();
+        const int nSets = TT.subTensor(nDim-1).r2() > 1 ? nDim : nDim-1;
+        if( !maxIndices.empty() && std::ssize(maxIndices) != nSets )
+          throw std::invalid_argument("leftIndexSetsFromFrame: maxIndices needs one entry per set!");
+
+        // left-to-right sweep: the interface L_{k-1} is a row selection of the previous contraction LX_{k-1}, the boundary is the 1x1 identity
+        std::vector<NestedIndices> I(nDim);
+        Tensor2<T> L = boundaryInterface<T>();
+        for(int k = 0; k < nSets; k++)
+        {
+          const int maxRows = maxIndices.empty() ? std::numeric_limits<int>::max() : maxIndices[k];
+          I[k] = leftIndicesFromRows(selectLeftRows(L, TT.subTensor(k), maxvolTolerance, oversampling, maxRows), L.r1());
+          Tensor3<T> LX;
+          normalize_contract1(L, TT.subTensor(k), LX);
+          L = interfaceLeft(LX, I[k]);
+        }
+        return I;
       }
     }
   }
