@@ -36,22 +36,33 @@ namespace PITTS
     std::pair<Tensor2<T>,Tensor2<T>> normalize_svd(const ConstTensor2View<T>& M, bool leftOrthog, T rankTolerance = 0, int maxRank = std::numeric_limits<int>::max(), bool absoluteTolerance = false, bool useFrobeniusNorm = false, T* oldFrobeniusNorm = nullptr);
 
 
-    //! small helper function to calculate the rank for truncating in the Frobenius norm with a given tolerance
-    template<typename EigenSVD, typename T>
-    int rankInFrobeniusNorm(const EigenSVD& svd, T absoluteTolerance)
+    //! rank for truncating in the Frobenius norm: the smallest r <= rank (at least 1) such that the norm of values(r:rank-1) <= absoluteTolerance
+    //!
+    //! @param values             singular values (or absolute eigenvalues of a symmetric matrix), sorted by decreasing size
+    //! @param rank               number of values to consider
+    //! @param absoluteTolerance  tolerance for the discarded part
+    //!
+    template<typename Values, typename T>
+    int rankInFrobeniusNorm(const Values& values, int rank, T absoluteTolerance)
     {
       constexpr auto pow2 = [](auto x){return x*x;};
       const T squaredTol = pow2(absoluteTolerance);
-      int rank = svd.rank();
       T squaredError = 0;
       while( rank > 1 )
       {
-        squaredError += pow2(svd.singularValues()(rank-1));
+        squaredError += pow2(values(rank-1));
         if( squaredError > squaredTol )
           break;
         rank--;
       }
       return rank;
+    }
+
+    //! small helper function to calculate the rank for truncating in the Frobenius norm with a given tolerance
+    template<typename EigenSVD, typename T>
+    int rankInFrobeniusNorm(const EigenSVD& svd, T absoluteTolerance)
+    {
+      return rankInFrobeniusNorm(svd.singularValues(), svd.rank(), absoluteTolerance);
     }
   }
 
