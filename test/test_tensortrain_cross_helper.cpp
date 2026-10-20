@@ -2239,10 +2239,14 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, symmetricRound)
     {
       EXPECT_GT(lambda[i], Type(0));
       if( i > 0 )
+      {
         EXPECT_LE(lambda[i], lambda[i-1]);
+      }
     }
     if( maxRank >= 6 )   // (a rank limit is enforced even if it violates the tolerance)
+    {
       EXPECT_LE((y - denseSymmetric(G, lambda)).norm(), std::max(tol, orthoTol) * y.norm());
+    }
     for(int r: G.getTTranks())
       EXPECT_LE(r, maxRank);
     EXPECT_LE(lambda.size(), maxRank);
