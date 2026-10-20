@@ -87,8 +87,7 @@ namespace PITTS
         enrich_(nMALS_ == 1 && nDim_ > 1 && options_.errorRank > 0 && options_.enrichmentRank > 0),
         localTolerance_(options_.rankTolerance / (2*std::sqrt(T(std::max(nDim_-1, 1))))),     // factor 2 heuristic, like tt_amen in ttpy
         // maximal useful rank per bond (also after the enrichment)
-        maxRanks_(limitByNeighbors(dims_, options_.maxRanks.empty() ?
-          std::vector<long long>(std::max(nDim_-1, 0), options_.maxRank) : std::vector<long long>(options_.maxRanks.begin(), options_.maxRanks.end()))),
+        maxRanks_(limitByNeighbors(dims_, std::vector<long long>(std::max(nDim_-1, 0), options_.maxRank))),
         // maximal size of the index sets per bond: the oversampled maximal rank, again limited by the neighbors
         maxIndices_(limitByNeighbors(dims_, oversampled(maxRanks_, options_.oversampling))),
         inputs_(TTx.begin(), TTx.end()),
@@ -337,8 +336,6 @@ namespace PITTS
           throw std::invalid_argument("applyElementwise: need 0 <= enrichmentRank <= errorRank!");
         if( options.nSweeps < 1 || options.maxRank < 1 )
           throw std::invalid_argument("applyElementwise: nSweeps and maxRank must be positive!");
-        if( !options.maxRanks.empty() && (std::ssize(options.maxRanks) != nDim-1 || *std::min_element(options.maxRanks.begin(), options.maxRanks.end()) < 1) )
-          throw std::invalid_argument("applyElementwise: maxRanks needs one positive entry per bond!");
         if( !(std::real(options.oversampling) >= 0) )
           throw std::invalid_argument("applyElementwise: oversampling must not be negative!");
         return options;
