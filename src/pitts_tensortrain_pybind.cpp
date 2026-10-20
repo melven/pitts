@@ -77,11 +77,11 @@ namespace PITTS
       template<typename T>
       void TensorTrain_setSubTensor(TensorTrain<T>& TT, int d, py::array_t<T> array)
       {
-        PITTS::Tensor3<T> subT(TT.subTensor(d).r1(), TT.subTensor(d).n(), TT.subTensor(d).r2());
         if( array.ndim() != 3 )
           throw std::invalid_argument("array must have 3 dimensions");
-        if( array.shape(0) != subT.r1() || array.shape(1) != subT.n() || array.shape(2) != subT.r2() )
-          throw std::invalid_argument("array has incompatible shape, expected " + to_string<long long>({subT.r1(), subT.n(), subT.r2()}) + ", got " + to_string<long long>({array.shape(), array.shape()+array.ndim()}));
+        // the shape is checked by TensorTrain::setSubTensor: the first sub-tensor may change its left rank and the last
+        // one its right rank (open boundary bonds, e.g. the half of a symmetric tensor)
+        PITTS::Tensor3<T> subT(array.shape(0), array.shape(1), array.shape(2));
 
         for(long long i2 = 0; i2 < subT.r2(); i2++)
           for(long long j = 0; j < subT.n(); j++)
@@ -168,7 +168,7 @@ namespace PITTS
           .def(py::init< const std::vector<int>& >(), py::arg("dimensions"), "Create TensorTrain with given dimensions")
           .def("dimensions", &TensorTrain<T>::dimensions, "tensor dimensions (immutable)")
           .def("getSubTensor", &TensorTrain_getSubTensor<T>, py::arg("d"), "Return the rank-3 sub-tensor for dimension 'd'")
-          .def("setSubTensor", &TensorTrain_setSubTensor<T>, py::arg("d"), py::arg("array"), "Set the rank-3 sub-tensor for dimension 'd'")
+          .def("setSubTensor", &TensorTrain_setSubTensor<T>, py::arg("d"), py::arg("array"), "Set the rank-3 sub-tensor for dimension 'd' (the first one may have another left rank, the last one another right rank: open boundary bonds)")
           .def("setTTranks", py::overload_cast<int>(&TensorTrain<T>::setTTranks), py::arg("tt_rank"), "set sub-tensor dimensions (TT-ranks), destroying all existing data")
           .def("setTTranks", py::overload_cast<const std::vector<int>& >(&TensorTrain<T>::setTTranks), py::arg("tt_ranks"), "set sub-tensor dimensions (TT-ranks), destroying all existing data")
           .def("getTTranks", &TensorTrain<T>::getTTranks, "get current sub-tensor dimensions (TT-ranks)")

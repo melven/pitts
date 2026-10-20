@@ -18,6 +18,11 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-check-claude-md.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-review-new-definitions.sh",
+            "timeout": 30
           }
         ]
       }
