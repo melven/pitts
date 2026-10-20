@@ -27,6 +27,7 @@
 #include <array>
 #include <cmath>
 #include <functional>
+#include <optional>
 #include <iostream>
 #include <stdexcept>
 #include <type_traits>
@@ -39,7 +40,6 @@
 #include "pitts_tensortrain_normalize.hpp"
 #include "pitts_tensortrain_sweep_data.hpp"
 #include "pitts_tensortrain_sweep_index.hpp"
-#include "pitts_tensortrain_symmetric.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensor3_unfold.hpp"
@@ -59,19 +59,9 @@ namespace PITTS
   //!
   //! TTy and the index sets are referred to by the cached contractions, so the object can neither be copied nor moved.
   //!
-  //! Symmetric mode (applyElementwiseSymmetric): the inputs are the left halves H_i of symmetric tensors x_i = H_i H_i^T with
-  //! d = 2m dimensions, and the result is y = G S G^T with a left-orthonormal half G and a symmetric S (orthogonal gauge,
-  //! see pitts_tensortrain_symmetric.hpp). The index sets are those of the full tensor; the right sets at and beyond the
-  //! middle bond are the mirrored left sets (J_{2m-1-k} = I_k). One iteration of the symmetric sweeps:
-  //!  - prepareSymmetricSweep (not in the first one): TTy = G S with right-orthonormal cores 1..m-1, the right part of y
-  //!    at bond k is these cores times the mirrored G^T (orthonormal rows), so it is right-orthonormal; the right sets
-  //!    inside the half from a maxvol sweep over it; the error crosses updated from right to left (as in stepRightToLeft);
-  //!  - stepLeftToRight for the cores 0..m-2 (unchanged, the mirrored G^T is the fixed right boundary);
-  //!  - middleStep: f on the symmetric cross (I_{m-2} x S_{m-1}) x mirror, in the coordinates of the new left part,
-  //!    truncated eigendecomposition: the new last core of G and S (this is where the rank at the middle bond grows);
-  //!  - roundSymmetric: symmetric TT-rounding of G S G^T (truncates the enrichment and the oversized ranks).
-  //! The scale of y is only in S (linear in the samples), the cores of G only define subspaces: no fixed-point iteration
-  //! on the values of G (which would oscillate, y being quadratic in each core of G).
+  //! Symmetric mode (applyElementwiseSymmetric, see the symmetric variant in pitts_tensortrain_cross.hpp): TTy is the working
+  //! half in the right-orthonormal form, the symmetric approximation G diag(lambda) G^T is held in sym_, and the right sets at
+  //! and beyond the middle bond are the mirrored left sets.
   //!
   template<typename T, typename Function, std::size_t N>
   class CrossSweepState final
@@ -92,13 +82,12 @@ namespace PITTS
       //! All setup happens in the member initializers, in the order in which the members are declared: each initializer
       //! only uses members declared before it (the order of the declarations below matters). Four initializers have
       //! side effects: options_ checks the arguments (first, before anything else), J_ initializes TTy (and in symmetric
-      //! mode G_, S_, I_ and Ry_), Jz_ in symmetric mode also Iz_, and fOnSample_ evaluates f on the control sample.
+      //! mode sym_ and I_), Jz_ in symmetric mode also Iz_, and fOnSample_ evaluates f on the control sample.
       //!
       //! @param symmetric  symmetric mode: TTx are halves of symmetric tensors and TTy a half, see above
       //!
       CrossSweepState(const Function& f, const Inputs& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options, bool symmetric = false) :
         options_(checkedOptions(TTx, TTy, options, symmetric)),
-        symmetric_(symmetric),
         nCores_(TTy.dimensions().size()),
         dims_(symmetric ? mirroredDimensions(TTy.dimensions()) : TTy.dimensions()),
         nDim_(dims_.size()),
@@ -115,7 +104,7 @@ namespace PITTS
         inputs_(TTx.begin(), TTx.end()),
         TTy_(TTy),
         I_(nDim_),
-        G_(TTy.dimensions()),
+        sym_(symmetric ? std::make_optional<SymmetricPart>(TTy.dimensions()) : std::nullopt),
         // y is kept in the orthogonal gauge, like the solution in solveMALS: in a sweep, the cores left of the current
         // block are left-orthonormal and the cores right of it right-orthonormal, so the truncated SVD of a local block
         // is the truncation of y itself. Start: y = 0 with an orthonormal right frame spanned by the inputs, and
@@ -124,14 +113,14 @@ namespace PITTS
         // partial contractions of y on its own crosses: their row/column selections are the interface matrices of y
         // (the values of the orthonormal left/right parts on I_k resp. J_k), which convert f(x) on a cross into the
         // coordinates of y (least squares with oversampling) and y back onto the cross
-        // (symmetric: TTy is the half, the right part ends with the mirrored G^T, the boundary matrix Ry_)
-        Ly_(defineSweepData<Tensor3<T>>(nCores_, contraction_loop_from_left<T>(TTy, I_), contraction_loop_from_right<T>(TTy, J_, yBoundary(Ry_)))),
+        // (symmetric: TTy is the half, the right part ends with the mirrored G^T, the boundary matrix Ry)
+        Ly_(defineSweepData<Tensor3<T>>(nCores_, contraction_loop_from_left<T>(TTy, I_), contraction_loop_from_right<T>(TTy, J_, yBoundary(false)))),
         // index sets of the error approximation z (no cores needed, only the crosses)
         Iz_(nDim_),
         Jz_(initialErrorIndexSets()),
         // f(x) on the crosses of y and z (with the partial contractions of x on them), partial contractions of y on the crosses of z
         fx_(f, TTx, I_, J_, Iz_, Jz_, symmetric),
-        Lyz_(defineSweepData<Tensor3<T>>(nCores_, contraction_loop_from_left<T>(TTy, Iz_), contraction_loop_from_right<T>(TTy, Jz_, yBoundary(Ryz_)))),
+        Lyz_(defineSweepData<Tensor3<T>>(nCores_, contraction_loop_from_left<T>(TTy, Iz_), contraction_loop_from_right<T>(TTy, Jz_, yBoundary(true)))),
         // independent control sample: random entries, drawn once so that the estimate is comparable between
         // sweeps; it does not enter the convergence check, see TTCrossOptions::controlSampleSize
         sampleIndices_(options_.controlSampleSize > 0 ? randomIndices(dims_, options_.controlSampleSize) : Eigen::MatrixXi(0, nDim_)),
@@ -140,7 +129,7 @@ namespace PITTS
         rmsfOnSample_(sampleIndices_.rows() > 0 ? t3_rms(fOnSample_) : RealType(0))
       {
         // symmetric: the boundary matrices of x and of y on the error crosses (those of y on its own sets are set with J_)
-        if( symmetric_ )
+        if( sym_ )
           updateBoundaries();
       }
 
@@ -175,7 +164,8 @@ namespace PITTS
 
         // convergence measure: the current y on the same cross
         Ly_.update(k-1, k+nMALS_);
-        const auto [L, R] = interfacesOfY(k);
+        const auto [L, Rref] = interfacesOfY(k);
+        const Tensor2<T>& R = Rref;
         Tensor3<T> yOnCross;
         contractInterfaces(L, combineCores(TTy_, k, nMALS_), R, yOnCross);
         RealType change = rmsDifference(B, yOnCross) / scale;
@@ -202,7 +192,7 @@ namespace PITTS
           Lyz_.update(k-1, k+1);
           Tensor3<T> withLeft, yOnMixedCross;
           internal::normalize_contract1(L, TTy_.subTensor(k), withLeft);
-          contractRightInterface<T>(withLeft, Lyz_.right(), Jz_, k+1, yOnMixedCross, yBoundary(Ryz_));
+          contractRightInterface<T>(withLeft, Lyz_.right(), Jz_, k+1, yOnMixedCross, yBoundary(true));
           internal::t3_axpy(T(-1), yOnMixedCross, residual);
           error = std::max(error, t3_rms(residual) / scale);
           // as in solveMALS, updateCoreLeft first projects out the current directions and then appends the
@@ -251,7 +241,7 @@ namespace PITTS
         Tensor3<T> residual = fx_.errorBlockFromLeft(k);
         Lyz_.update(k, k+1);
         Tensor3<T> yOnCross;
-        contractRightInterface<T>(Lyz_.left()->get(), Lyz_.right(), Jz_, k+1, yOnCross, yBoundary(Ryz_));
+        contractRightInterface<T>(Lyz_.left()->get(), Lyz_.right(), Jz_, k+1, yOnCross, yBoundary(true));
         internal::t3_axpy(T(-1), yOnCross, residual);
         const RealType error = t3_rms(residual) / scale;
         if( !keepErrorCross(Iz_[k], error, residual.r1()) )
@@ -273,7 +263,8 @@ namespace PITTS
         const RealType scale = rmsRef_ > 0 ? rmsRef_ : 1;
 
         Ly_.update(kLeft-1, k+1);
-        const auto [L, R] = interfacesOfY(kLeft);
+        const auto [L, Rref] = interfacesOfY(kLeft);
+        const Tensor2<T>& R = Rref;
         Tensor3<T> yOnCross;
         contractInterfaces(L, combineCores(TTy_, kLeft, nMALS_), R, yOnCross);
         RealType change = rmsDifference(B, yOnCross) / scale;
@@ -341,16 +332,16 @@ namespace PITTS
         return error;
       }
 
-      //! symmetric mode: start of an iteration after roundSymmetric: frame of y, right sets, boundaries, error crosses (see the class documentation)
+      //! symmetric mode: start of an iteration after roundSymmetric: frame of y, right sets, boundaries, error crosses
       //!
       //! @return the largest error estimate on the error crosses (0 without enrichment)
       //!
       RealType prepareSymmetricSweep()
       {
-        assert(symmetric_ && !yIsZero_);
-        setupSymmetricFrame(S_, false, J_);
+        assert(sym_ && !sym_->yIsZero);
+        setupSymmetricFrame(false, J_);
         updateBoundaries();
-        // the error crosses inside the half from right to left, on top of the mirrored J^z_m (y is G S G^T here)
+        // the error crosses inside the half from right to left, on top of the mirrored J^z_m
         RealType error = 0;
         if( enrich_ )
         {
@@ -362,16 +353,9 @@ namespace PITTS
       }
 
       //! symmetric mode: the symmetric two-site step at the middle bond, after stepLeftToRight for the cores 0..m-2
-      //!
-      //! f on the cross (I_{m-2} x S_{m-1}) x mirror is a symmetric matrix F. In the coordinates of the new left part
-      //! (left-orthonormal cores 0..m-2 with the interface L on I_{m-2}): C = (L x I)^+ F (L x I)^{+T}, and
-      //! C ~ U diag(lambda) U^T truncated by |lambda| (the singular values of y at the middle bond: the left part is
-      //! orthonormal and the right part its mirror). U is the new last core of G, diag(lambda) the new S, and I_{m-1}
-      //! the maxvol rows of the values of the new left part. The rank at the middle bond can grow up to r_{m-2} n_{m-1}.
-      //!
       StepMeasures middleStep()
       {
-        assert(symmetric_);
+        assert(sym_);
         const int m = nCores_;
         const int n = dims_[m-1];
 
@@ -392,33 +376,30 @@ namespace PITTS
         rmsRef_ = std::max(rmsRef_, t3_rms(B));
         const RealType scale = rmsRef_ > 0 ? rmsRef_ : 1;
 
-        // change: the previous y = G S G^T on this cross (zero in the first iteration)
+        // change: the previous y on this cross (zero in the first iteration)
         Tensor3<T> yOld(B.r1(), 1, B.r2());
-        if( yIsZero_ )
+        if( sym_->yIsZero )
           yOld.setConstant(T(0));
         else
-          EigenMap(unfold_left(yOld)) = symmetricValues(G_, S_, I_);
+          EigenMap(unfold_left(yOld)) = symmetricValues(I_);
         const RealType change = rmsDifference(B, yOld) / scale;
 
-        // coordinates of the new left part, truncated eigendecomposition: the new last core of G and S
+        // coordinates of the new left part (positive semidefinite up to round-off: a principal cross of the positive
+        // semidefinite f(x), congruence), its truncated positive part: the new last core of G and lambda
         const Tensor2<T> C = solveLeftInterfaceSymmetric(L, unfold_left(B), n);
-        const symmetric_tt::SymmetricEigen<T> eig = symmetric_tt::symmetricEigen(C, localTolerance_, maxRanks_[m-1]);
-        Tensor2<T> U;
-        copy(eig.U, U);
-        Tensor3<T> core = fold_left(std::move(U), n);
+        PositiveEigen<T> eig = positiveEigen(C, localTolerance_, maxRanks_[m-1]);
+        const RealType normC = ConstEigenMap(C).norm();
+        sym_->negativePart = normC > 0 ? eig.negativeNorm / normC : RealType(0);
+        Tensor3<T> core = fold_left(std::move(eig.U), n);
         I_[m-1] = leftIndicesFromRows(selectLeftRows(L, core, options_.maxvolTolerance, options_.oversampling, maxIndices_[m-1]), q);
 
         std::vector<Tensor3<T>> cores(m);
         for(int j = 0; j < m-1; j++)
           copy(TTy_.subTensor(j), cores[j]);
         cores[m-1] = std::move(core);
-        G_ = TensorTrain<T>(std::move(cores), std::vector<TT_Orthogonality>(m, TT_Orthogonality::left));
-        const int r = eig.lambda.size();
-        S_.resize(r, r);
-        EigenMap(S_).setZero();
-        for(int i = 0; i < r; i++)
-          S_(i, i) = eig.lambda[i];
-        yIsZero_ = false;
+        sym_->G = TensorTrain<T>(std::move(cores), std::vector<TT_Orthogonality>(m, TT_Orthogonality::left));
+        sym_->lambda = std::move(eig.lambda);
+        sym_->yIsZero = false;
 
         // error crosses: I^z_{m-1} from the error f(x) - y on (I^z_{m-2} x S_{m-1}) x mirror
         RealType error = 0;
@@ -426,7 +407,7 @@ namespace PITTS
         {
           Tensor3<T> residual = fx_.errorBondBlock(m);
           Tensor3<T> yNew(residual.r1(), 1, residual.r2());
-          EigenMap(unfold_left(yNew)) = symmetricValues(G_, S_, Iz_);
+          EigenMap(unfold_left(yNew)) = symmetricValues(Iz_);
           internal::t3_axpy(T(-1), yNew, residual);
           error = t3_rms(residual) / scale;
           if( keepErrorCross(oldIz, error, qz) )
@@ -442,39 +423,27 @@ namespace PITTS
         return {change, error};
       }
 
-      //! symmetric mode: TT-rounding of y = G S G^T (truncates the enrichment and the ranks that are larger than needed)
+      //! symmetric mode: TT-rounding of y (truncates the enrichment and the ranks that are larger than needed)
       void roundSymmetric()
       {
-        assert(symmetric_ && !yIsZero_);
+        assert(sym_ && !sym_->yIsZero);
         // the same tolerance per bond as the local steps (symmetricRound uses rankTolerance / sqrt(d-1) per bond)
-        symmetric_tt::symmetricRound(G_, S_, T(options_.rankTolerance / 2), options_.maxRank);
+        symmetricRound(sym_->G, sym_->lambda, T(options_.rankTolerance / 2), options_.maxRank);
       }
 
       //! symmetric mode: the ranks of y at the bonds 0..m-1 (the last one is the middle bond)
       [[nodiscard]] std::vector<int> symmetricRanks() const
       {
-        std::vector<int> ranks = G_.getTTranks();
-        ranks.push_back(G_.subTensor(nCores_-1).r2());
+        std::vector<int> ranks = sym_->G.getTTranks();
+        ranks.push_back(sym_->G.subTensor(nCores_-1).r2());
         return ranks;
       }
 
-      //! symmetric mode: store the result in TTy (the half y = TTy TTy^T without the negative eigenvalues of S, or G with S)
-      //!
-      //! @param middle  if given: TTy = G (left-orthonormal) and *middle = S, otherwise the positive semidefinite half
-      //! @return        the norm of the removed negative eigenvalues relative to ||y|| (0 with middle)
-      //!
-      RealType storeSymmetricResult(Tensor2<T>* middle)
+      //! symmetric mode: store the result y = TTy TTy^T in TTy (TTy = G diag(sqrt(lambda)))
+      void storeSymmetricResult()
       {
-        assert(symmetric_);
-        if( middle )
-        {
-          copy(G_, TTy_);
-          copy(S_, *middle);
-          return 0;
-        }
-        const RealType negative = symmetric_tt::positiveHalf(G_, S_, TTy_);
-        const RealType nrm = ConstEigenMap(S_).norm();   // = ||y|| (G left-orthonormal)
-        return nrm > 0 ? negative / nrm : RealType(0);
+        assert(sym_);
+        halfOfY(TTy_);
       }
 
       //! relative error of y on the control sample (0 without control sample), see TTCrossInfo::lastSampleError
@@ -483,8 +452,12 @@ namespace PITTS
         if( sampleIndices_.rows() == 0 )
           return 0;
         Tensor3<T> yOnSample;
-        if( symmetric_ )
-          evaluateAt(G_, sampleIndices_, yOnSample, true, std::optional(std::cref(S_)));
+        if( sym_ )
+        {
+          TensorTrain<T> H(sym_->G.dimensions());
+          halfOfY(H);
+          evaluateAt(H, sampleIndices_, yOnSample, true);
+        }
         else
           evaluateAt(TTy_, sampleIndices_, yOnSample);
         return rmsDifference(fOnSample_, yOnSample) / (rmsfOnSample_ > 0 ? rmsfOnSample_ : 1);
@@ -494,8 +467,9 @@ namespace PITTS
       void storeFinalInfo(TTCrossInfo<T>& info) const
       {
         info.nEvaluations = nEvaluations();
-        if( symmetric_ )
+        if( sym_ )
         {
+          info.lastNegativePart = sym_->negativePart;
           // the left sets of the half (including the middle bond) and their mirrors (the right sets inside the half come
           // from the frame of the last iteration and are not stored)
           info.leftIndices.resize(nCores_);
@@ -540,6 +514,8 @@ namespace PITTS
           throw std::invalid_argument("applyElementwise: nSweeps and maxRank must be positive!");
         if( !(std::real(options.oversampling) >= 0) )
           throw std::invalid_argument("applyElementwise: oversampling must not be negative!");
+        if( symmetric && options.randomErrorIndexSets )
+          throw std::invalid_argument("applyElementwiseSymmetric: randomErrorIndexSets is not supported!");
         return options;
       }
 
@@ -578,52 +554,44 @@ namespace PITTS
         return std::vector<int>(v.begin(), v.begin() + n);
       }
 
-      //! the boundary matrix of y in symmetric mode (nullopt: the 1x1 identity)
-      [[nodiscard]] optional_cref<Tensor2<T>> yBoundary(const Tensor2<T>& R) const
+      //! symmetric mode: the boundary matrix of y on its own sets or on the error sets (nullopt: the 1x1 identity otherwise)
+      [[nodiscard]] optional_cref<Tensor2<T>> yBoundary(bool errorSets) const
       {
-        if( symmetric_ )
-          return std::cref(R);
-        return std::nullopt;
+        if( !sym_ )
+          return std::nullopt;
+        return std::cref(errorSets ? sym_->Ryz : sym_->Ry);
       }
 
-      //! LX_k = L_{k-1} X_k of a tensor train on the left sets I (all rows of I_{k-1} x S_k), without caching
-      static Tensor3<T> leftContraction(const TensorTrain<T>& TT, const std::vector<NestedIndices>& I, int k)
+      //! symmetric mode: the values of the half G on I_{m-1}, transposed (the boundary matrix of the mirrored G^T on J_m)
+      [[nodiscard]] Tensor2<T> boundaryOf(const TensorTrain<T>& G, const std::vector<NestedIndices>& I) const
       {
-        Tensor3<T> LX, next;
-        copy(TT.subTensor(0), LX);
-        for(int j = 1; j <= k; j++)
-        {
-          contractLeftInterface<T>(std::optional(std::cref(LX)), I, j-1, TT.subTensor(j), next);
-          std::swap(LX, next);
-        }
-        return LX;
+        return transposedInterfaceLeft(leftPartialContraction(G, I, nCores_-1), I[nCores_-1]);
       }
 
-      //! the values of the half G on I_{m-1}, transposed: the right boundary matrix of the mirrored G^T on J_m = mirror(I_{m-1})
-      static Tensor2<T> transposedLeftValues(const TensorTrain<T>& G, const std::vector<NestedIndices>& I)
+      //! symmetric mode: y on the cross (I_{m-2} x S_{m-1}) x mirror (rows and columns in the row order of the left unfolding)
+      [[nodiscard]] Eigen::MatrixX<T> symmetricValues(const std::vector<NestedIndices>& I) const
       {
-        const int m = G.dimensions().size();
-        const Tensor2<T> L = interfaceLeft(leftContraction(G, I, m-1), I[m-1]);
-        Tensor2<T> R(L.r2(), L.r1());
-        EigenMap(R) = ConstEigenMap(L).transpose();
-        return R;
-      }
-
-      //! G S G^T on the cross (I_{m-2} x S_{m-1}) x mirror (rows and columns in the row order of the left unfolding)
-      static Eigen::MatrixX<T> symmetricValues(const TensorTrain<T>& G, const Tensor2<T>& S, const std::vector<NestedIndices>& I)
-      {
-        const int m = G.dimensions().size();
-        const Tensor3<T> LX = leftContraction(G, I, m-1);
+        const Tensor3<T> LX = leftPartialContraction(sym_->G, I, nCores_-1);
         const auto A = ConstEigenMap(unfold_left(LX));
-        return A * ConstEigenMap(S) * A.transpose();
+        const Eigen::Map<const Eigen::VectorX<T>> lambda(sym_->lambda.data(), sym_->lambda.size());
+        return A * lambda.asDiagonal() * A.transpose();
       }
 
-      //! symmetric mode: TTy = G S in the right-orthonormal form (zero values for y = 0 on the frame), the mirrored right
-      //! sets J at and beyond the middle bond, the boundary matrix Ry_ and the right sets inside the half (maxvol on the frame)
-      void setupSymmetricFrame(const Tensor2<T>& S, bool zeroValues, std::vector<NestedIndices>& J)
+      //! symmetric mode: the half H = G diag(sqrt(lambda)) of y = H H^T
+      void halfOfY(TensorTrain<T>& H) const
+      {
+        std::vector<T> sqrtLambda(sym_->lambda.size());
+        for(int i = 0; i < std::ssize(sqrtLambda); i++)
+          sqrtLambda[i] = std::sqrt(sym_->lambda[i]);
+        scaleOpenBond(sym_->G, sqrtLambda, H);
+      }
+
+      //! symmetric mode: TTy = G diag(lambda) in the right-orthonormal form (zero values for y = 0 on the initial frame), the
+      //! mirrored right sets J at and beyond the middle bond, the boundary matrix Ry and the right sets inside the half (maxvol)
+      void setupSymmetricFrame(bool zeroValues, std::vector<NestedIndices>& J)
       {
         const int m = nCores_;
-        symmetric_tt::rightOrthonormalHalf(G_, S, TTy_);
+        rightOrthonormalHalf(sym_->G, sym_->lambda, TTy_);
         if( zeroValues )
         {
           Tensor3<T> zero(1, dims_[0], TTy_.subTensor(0).r2());
@@ -631,9 +599,9 @@ namespace PITTS
           TTy_.setSubTensor(0, std::move(zero));
         }
         mirrorIndexSets(I_, m, J);
-        Ry_ = transposedLeftValues(G_, I_);
+        sym_->Ry = boundaryOf(sym_->G, I_);
         const std::vector<NestedIndices> Jhalf = rightIndexSetsFromFrame(TTy_, options_.maxvolTolerance, options_.oversampling,
-                                                                         firstEntries(maxIndices_, m-1), std::optional(std::cref(Ry_)));
+                                                                         firstEntries(maxIndices_, m-1), yBoundary(false));
         for(int k = 1; k < m; k++)
           J[k] = Jhalf[k];
       }
@@ -647,7 +615,7 @@ namespace PITTS
         if( enrich_ )
         {
           mirrorIndexSets(Iz_, m, Jz_);
-          Ryz_ = transposedLeftValues(G_, Iz_);
+          sym_->Ryz = boundaryOf(sym_->G, Iz_);
         }
         fx_.mirrorRightBoundary();
         Ly_.invalidate(0, m);
@@ -656,23 +624,23 @@ namespace PITTS
 
       //! initialize y with the right frame of the inputs and return the right index sets from this frame
       //!
-      //! Symmetric: G S G^T is the frame of the inputs (initialHalfFrame), y = 0 on it (S_ only holds the weights of the
-      //! frame until the first middle step), the left sets from a maxvol sweep over G and the right sets from the frame.
+      //! Symmetric: G diag(lambda) G^T is the frame of the inputs (initialHalfFrame), y = 0 on it, the left sets from a
+      //! maxvol sweep over G and the right sets from the frame.
       //!
       std::vector<NestedIndices> initializeYAndRightIndexSets()
       {
-        if( !symmetric_ )
+        if( !sym_ )
         {
           initialRightFrame(inputs_, TTy_);
           return rightIndexSetsFromFrame(TTy_, options_.maxvolTolerance, options_.oversampling, maxIndices_);
         }
-        initialHalfFrame(inputs_, G_, S_);
-        const std::vector<NestedIndices> Ihalf = leftIndexSetsFromFrame(G_, options_.maxvolTolerance, options_.oversampling,
+        initialHalfFrame(inputs_, sym_->G, sym_->lambda);
+        const std::vector<NestedIndices> Ihalf = leftIndexSetsFromFrame(sym_->G, options_.maxvolTolerance, options_.oversampling,
                                                                         firstEntries(maxIndices_, nCores_), true);
         for(int k = 0; k < nCores_; k++)
           I_[k] = Ihalf[k];
         std::vector<NestedIndices> J(nDim_);
-        setupSymmetricFrame(S_, true, J);
+        setupSymmetricFrame(true, J);
         return J;
       }
 
@@ -681,7 +649,7 @@ namespace PITTS
       {
         if( !enrich_ )
           return std::vector<NestedIndices>(nDim_);
-        if( symmetric_ )
+        if( sym_ )
           return initialSymmetricErrorIndexSets();
         if( options_.randomErrorIndexSets )
           return randomRightIndexSets(dims_, options_.errorRank);
@@ -691,39 +659,26 @@ namespace PITTS
         return rightIndexSetsFromFrame(TTz, options_.maxvolTolerance);
       }
 
-      //! symmetric mode: initial error crosses, random or from the rank-errorRank part of the frame (as for y)
+      //! symmetric mode: initial error crosses from the dominant rank-errorRank part of the frame, with errorRank rows/columns
+      //! where possible (fixed size as zrank in amen_cross: with only the rank of the frame at a bond, the error crosses would
+      //! be the maxvol crosses of the same frame as those of y, where y interpolates exactly)
       std::vector<NestedIndices> initialSymmetricErrorIndexSets()
       {
         const int m = nCores_;
-        std::vector<NestedIndices> Jz(nDim_);
-        if( options_.randomErrorIndexSets )
-        {
-          const std::vector<NestedIndices> Irandom = randomLeftIndexSets(dims_, options_.errorRank);
-          for(int k = 0; k < m; k++)
-            Iz_[k] = Irandom[k];
-          mirrorIndexSets(Iz_, m, Jz);
-          const std::vector<NestedIndices> Jrandom = randomRightIndexSets(G_.dimensions(), options_.errorRank, Iz_[m-1].size());
-          for(int k = 1; k < m; k++)
-            Jz[k] = Jrandom[k];
-          return Jz;
-        }
-        // the dominant rank-errorRank part of the frame: well-conditioned crosses of the dominant part of x, with errorRank
-        // rows/columns where possible (fixed size as zrank in amen_cross: with only the rank of the frame at a bond, the
-        // error crosses would be the maxvol crosses of the same frame as those of y, where y interpolates exactly)
-        TensorTrain<T> Gz(G_.dimensions());
-        copy(G_, Gz);
-        Tensor2<T> Sz;
-        copy(S_, Sz);
-        symmetric_tt::symmetricRound(Gz, Sz, T(0), options_.errorRank);
+        TensorTrain<T> Gz(sym_->G.dimensions());
+        copy(sym_->G, Gz);
+        std::vector<T> lambdaz = sym_->lambda;
+        symmetricRound(Gz, lambdaz, T(0), options_.errorRank);
         const T oversampleToErrorRank = T(options_.errorRank);
         const std::vector<NestedIndices> Ihalf = leftIndexSetsFromFrame(Gz, options_.maxvolTolerance, oversampleToErrorRank,
                                                                         std::vector<int>(m, options_.errorRank), true);
         for(int k = 0; k < m; k++)
           Iz_[k] = Ihalf[k];
+        std::vector<NestedIndices> Jz(nDim_);
         mirrorIndexSets(Iz_, m, Jz);
-        const Tensor2<T> Rz = transposedLeftValues(Gz, Iz_);
+        const Tensor2<T> Rz = boundaryOf(Gz, Iz_);
         TensorTrain<T> Z(Gz.dimensions());
-        symmetric_tt::rightOrthonormalHalf(Gz, Sz, Z);
+        rightOrthonormalHalf(Gz, lambdaz, Z);
         const std::vector<NestedIndices> Jhalf = rightIndexSetsFromFrame(Z, options_.maxvolTolerance, oversampleToErrorRank,
                                                                          std::vector<int>(m-1, options_.errorRank), std::optional(std::cref(Rz)));
         for(int k = 1; k < m; k++)
@@ -732,17 +687,18 @@ namespace PITTS
       }
 
       //! The interface matrices of y at the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) of the block of the
-      //! cores k..k+nMALS-1 (the 1x1 identity at the boundary; needs Ly.update(k-1, k+nMALS) first)
-      std::pair<Tensor2<T>, Tensor2<T>> interfacesOfY(int k) const
+      //! cores k..k+nMALS-1 (the 1x1 identity at the boundary, symmetric: Ry at the right end of the half; needs
+      //! Ly.update(k-1, k+nMALS) first). The right one is a reference to a member (no copy of Ry).
+      std::pair<Tensor2<T>, std::reference_wrapper<const Tensor2<T>>> interfacesOfY(int k)
       {
-        Tensor2<T> R;
+        Tensor2<T> L = Ly_.left() ? interfaceLeft(Ly_.left()->get(), I_[k-1]) : boundaryInterface<T>();
         if( Ly_.right() )
-          R = interfaceRight(Ly_.right()->get(), J_[k+nMALS_]);
-        else if( symmetric_ )
-          copy(Ry_, R);   // the half ends with the mirrored G^T
+          rightInterface_ = interfaceRight(Ly_.right()->get(), J_[k+nMALS_]);
+        else if( sym_ )
+          return {std::move(L), std::cref(sym_->Ry)};
         else
-          R = boundaryInterface<T>();
-        return {Ly_.left() ? interfaceLeft(Ly_.left()->get(), I_[k-1]) : boundaryInterface<T>(), std::move(R)};
+          rightInterface_ = boundaryInterface<T>();
+        return {std::move(L), std::cref(rightInterface_)};
       }
 
       // Error crosses: fixed size errorRank (as zrank in amen_cross), selected from the directions of the residual above
@@ -759,9 +715,25 @@ namespace PITTS
         return relativeError <= std::real(localTolerance_) && Z.size() > 0 && *std::max_element(Z.link.begin(), Z.link.end()) < parentSize;
       }
 
+      //! symmetric mode: y = G diag(lambda) G^T (see the symmetric variant in pitts_tensortrain_cross.hpp)
+      struct SymmetricPart
+      {
+        explicit SymmetricPart(const std::vector<int>& halfDims) : G(halfDims) {}
+        //! left-orthonormal half (between the iterations; the fixed mirrored right part during a sweep)
+        TensorTrain<T> G;
+        //! weights lambda > 0 (before the first middle step those of the initial frame)
+        std::vector<T> lambda;
+        //! y is still zero (before the first middle step)
+        bool yIsZero = true;
+        //! boundary matrices of y: the values of the mirrored G^T on J_m and on J^z_m
+        Tensor2<T> Ry;
+        Tensor2<T> Ryz;
+        //! norm of the negative eigenvalues removed in the last middle step, relative to ||y||
+        RealType negativePart = 0;
+      };
+
       // (the order of the members matters, see the constructor)
       const TTCrossOptions<T>& options_;
-      const bool symmetric_;
       //! number of cores of TTy (the half in symmetric mode)
       const int nCores_;
       //! dimensions of the tensor (symmetric: of the full tensor, 2 nCores)
@@ -777,19 +749,13 @@ namespace PITTS
       TensorTrain<T>& TTy_;
       //! index sets of y: I[k] for k = 0..nDim-2, J[k] for k = 1..nDim-1 (J[0] unused); symmetric: I[k] for k = 0..m-1
       std::vector<NestedIndices> I_;
-      //! symmetric mode: y = G S G^T between the iterations, G left-orthonormal (the fixed mirrored right part in a sweep)
-      TensorTrain<T> G_;
-      Tensor2<T> S_;
-      //! symmetric mode: y is still zero (before the first middle step, S_ holds the weights of the initial frame)
-      bool yIsZero_ = true;
-      //! symmetric mode: boundary matrices of y, the values of the mirrored G^T on J_m and on J^z_m
-      Tensor2<T> Ry_;
+      //! the state of the symmetric mode (empty otherwise)
+      std::optional<SymmetricPart> sym_;
       std::vector<NestedIndices> J_;
       //! partial contractions of y on its own crosses
       PartialContractions<T> Ly_;
       //! index sets of the error approximation z
       std::vector<NestedIndices> Iz_;
-      Tensor2<T> Ryz_;
       std::vector<NestedIndices> Jz_;
       FunctionOnCrosses<T, Function, N> fx_;
       //! partial contractions of y on the crosses of z
@@ -805,6 +771,8 @@ namespace PITTS
       //  * one global reference instead of the norm of each block, because a bond whose cross samples a region
       //    with small values would otherwise dominate the maximum over the sweep with a large relative value.
       RealType rmsRef_ = 0;
+      //! buffer for the right interface of y (see interfacesOfY)
+      Tensor2<T> rightInterface_;
       const Eigen::MatrixXi sampleIndices_;
       const Tensor3<T> fOnSample_;
       const RealType rmsfOnSample_;
@@ -883,10 +851,10 @@ namespace PITTS
   }
 
 
-  //! Symmetric TT-cross for y = G S G^T ~ f(x_1, ..., x_N) with x_i = H_i H_i^T given by the halves TTx, see applyElementwiseSymmetric
+  //! Symmetric TT-cross for y ~ f(x_1, ..., x_N) with x_i = H_i H_i^T given by the halves TTx, see applyElementwiseSymmetric
   template<typename T, typename Function, std::size_t N>
   TTCrossInfo<T> symmetricCrossSweeps(const Function& f, const std::array<std::reference_wrapper<const TensorTrain<T>>, N>& TTx,
-                                      TensorTrain<T>& TTy, const TTCrossOptions<T>& options, Tensor2<T>* middle)
+                                      TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
   {
     static_assert(std::is_floating_point_v<T>, "applyElementwiseSymmetric: only for real types (symmetric eigenvalue problem)");
     using RealType = typename CrossSweepState<T, Function, N>::RealType;
@@ -944,7 +912,7 @@ namespace PITTS
     }
 
     state.storeFinalInfo(info);
-    info.lastNegativePart = state.storeSymmetricResult(middle);
+    state.storeSymmetricResult();
     return info;
   }
   }
@@ -970,21 +938,21 @@ namespace PITTS
 
   // implement applyElementwiseSymmetric
   template<typename T, typename Function>
-  TTCrossInfo<T> applyElementwiseSymmetric(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options, Tensor2<T>* middle)
+  TTCrossInfo<T> applyElementwiseSymmetric(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy, const TTCrossOptions<T>& options)
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    return internal::tt_cross::symmetricCrossSweeps<T, Function, 1>(f, {std::cref(TTx)}, TTy, options, middle);
+    return internal::tt_cross::symmetricCrossSweeps<T, Function, 1>(f, {std::cref(TTx)}, TTy, options);
   }
 
   // implement applyElementwiseSymmetric for two inputs
   template<typename T, typename Function>
   TTCrossInfo<T> applyElementwiseSymmetric(const Function& f, const TensorTrain<T>& TTx1, const TensorTrain<T>& TTx2, TensorTrain<T>& TTy,
-                                           const TTCrossOptions<T>& options, Tensor2<T>* middle)
+                                           const TTCrossOptions<T>& options)
   {
     const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
-    return internal::tt_cross::symmetricCrossSweeps<T, Function, 2>(f, {std::cref(TTx1), std::cref(TTx2)}, TTy, options, middle);
+    return internal::tt_cross::symmetricCrossSweeps<T, Function, 2>(f, {std::cref(TTx1), std::cref(TTx2)}, TTy, options);
   }
 }
 

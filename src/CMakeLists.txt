@@ -105,8 +105,6 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_operator_debug.hpp
   pitts_tensortrain_sweep_index.hpp
   pitts_tensortrain_sweep_data.hpp
-  pitts_tensortrain_symmetric.hpp
-  pitts_tensortrain_symmetric_impl.hpp
   pitts_tensortrain_cross.hpp
   pitts_tensortrain_cross_impl.hpp
   pitts_tensortrain_cross_helper.hpp
@@ -232,7 +230,6 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_solve_mals_helper.cpp
     pitts_tensortrain_solve_mals_debug.cpp
     pitts_tensortrain_cross_helper.cpp
-    pitts_tensortrain_symmetric.cpp
     pitts_ttn_local_gradient_contraction.cpp
   )
   target_link_libraries(pitts_impl PRIVATE pitts)

@@ -151,57 +151,15 @@ TYPED_TEST(PITTS_TensorTrain_cross_symmetric, exp_kernel)
       // around the tolerance when a singular value is close to the truncation threshold, as for applyElementwise)
     }
 
-  // other options: random error crosses, 2-site without error crosses
+  // no enrichment: only the 2-site variant adapts the inner ranks
   PITTS::TTCrossOptions<Type> options;
   options.nSweeps = 20;
-  options.randomErrorIndexSets = true;
   TensorTrain TTy(dims);
-  applyElementwiseSymmetric(f, H, TTy, options);
-  EXPECT_LT(relativeError(ref, denseSymmetric(TTy)), 100 * std::real(options.rankTolerance));
-  // no enrichment: only the 2-site variant adapts the inner ranks
-  options.randomErrorIndexSets = false;
   options.errorRank = 0;
   options.enrichmentRank = 0;
   options.nMALS = 2;
   applyElementwiseSymmetric(f, H, TTy, options);
   EXPECT_LT(relativeError(ref, denseSymmetric(TTy)), 100 * std::real(options.rankTolerance));
-}
-
-TYPED_TEST(PITTS_TensorTrain_cross_symmetric, indefinite_with_middle_matrix)
-{
-  using Type = typename TestFixture::Type;
-  using TensorTrain = PITTS::TensorTrain<Type>;
-  const Type tol = TestFixture::exactTolerance();
-
-  // x - 1 (x minus the all-ones tensor) is indefinite with exact rank r + 1 at every bond
-  PITTS::internal::randomGenerator.seed(107);
-  const std::vector<int> dims = {2, 3, 2};
-  const TensorTrain H = randomHalf<Type>(dims, {2, 3, 2});
-  const mat<Type> x = denseSymmetric(H);
-  const mat<Type> ref = (x.array() - Type(1)).matrix();
-  const auto f = [](Type v){return v - Type(1);};
-
-  for(int nMALS: {1, 2})
-  {
-    PITTS::TTCrossOptions<Type> options;
-    options.nMALS = nMALS;
-    TensorTrain G(dims);
-    PITTS::Tensor2<Type> S;
-    const auto info = applyElementwiseSymmetric(f, H, G, options, &S);
-    const mat<Type> A = denseHalf(G);
-    EXPECT_LT(relativeError(ref, mat<Type>(A * ConstEigenMap(S) * A.transpose())), tol);
-    EXPECT_NEAR(mat<Type>::Identity(A.cols(), A.cols()), mat<Type>(A.transpose() * A), tol);
-    EXPECT_EQ(Type(0), info.lastNegativePart);
-
-    // positive semidefinite result: the negative part is removed and reported
-    TensorTrain TTy(dims);
-    const auto infoPsd = applyElementwiseSymmetric(f, H, TTy, options);
-    const Eigen::SelfAdjointEigenSolver<mat<Type>> eig(ref);
-    const Type negative = eig.eigenvalues().cwiseMin(Type(0)).norm() / ref.norm();
-    EXPECT_NEAR(negative, infoPsd.lastNegativePart, tol);
-    const mat<Type> refPlus = eig.eigenvectors() * eig.eigenvalues().cwiseMax(Type(0)).asDiagonal() * eig.eigenvectors().transpose();
-    EXPECT_LT(relativeError(refPlus, denseSymmetric(TTy)), tol);
-  }
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross_symmetric, two_inputs_product)
@@ -227,7 +185,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_symmetric, two_inputs_product)
   }
 }
 
-TYPED_TEST(PITTS_TensorTrain_cross_symmetric, maxRank_and_argument_checks)
+TYPED_TEST(PITTS_TensorTrain_cross_symmetric, maxRank_indefinite_and_argument_checks)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
@@ -244,7 +202,14 @@ TYPED_TEST(PITTS_TensorTrain_cross_symmetric, maxRank_and_argument_checks)
     EXPECT_LE(r, 3);
   EXPECT_LE(TTy.subTensor(2).r2(), 3);
 
-  // mismatching dimensions, first rank != 1
+  // an indefinite f(x): the removed negative part is reported
+  const auto info = applyElementwiseSymmetric([](Type v){return v - Type(1);}, H, TTy);
+  EXPECT_GT(info.lastNegativePart, Type(0.01));
+
+  // mismatching dimensions, first rank != 1, random error crosses
+  PITTS::TTCrossOptions<Type> randomOptions;
+  randomOptions.randomErrorIndexSets = true;
+  EXPECT_THROW(applyElementwiseSymmetric(f, H, TTy, randomOptions), std::invalid_argument);
   TensorTrain wrongDims(std::vector<int>{3, 4, 2});
   EXPECT_THROW(applyElementwiseSymmetric(f, H, wrongDims), std::invalid_argument);
   std::vector<PITTS::Tensor3<Type>> cores(3);
