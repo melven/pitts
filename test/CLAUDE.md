@@ -75,10 +75,10 @@ TensorTrain and TensorTrainOperator:
 |---|---|
 | `test_common_pybind.py` | `initialize`/`finalize` (once per process in `setUpClass`/`tearDownClass`), statistics printing, large statistics output into a pipe drained by a python thread (jupyter-style fd capture: the binding must release the GIL, a regression hangs until the ctest timeout). |
 | `test_multivector_pybind.py` | Creation, resize, numpy buffer protocol, copy, randomize, `cdist2`. |
-| `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors, dot/norm/normalize/axpby/gramSchmidt, GIL release during a long call (a counting thread must make progress). |
+| `test_tensortrain_pybind.py` | Creation, ranks, from/to dense (incl. TSQR variant), set/get sub-tensors (also an open last bond), dot/norm/normalize/axpby/gramSchmidt, GIL release during a long call (a counting thread must make progress). |
 | `test_tensortrain_operator_pybind.py` | Creation, `setEye`, apply/applyT, axpby, operator product, toDense, toQtt. |
 | `test_tensortrain_solve_pybind.py` | `solveMALS` and `solveGMRES` on identity systems. |
-| `test_tensortrain_cross_pybind.py` | `applyElementwise`: numpy ufuncs, in-place functions, `numpy.vectorize`d scalar functions, float/double, options as keyword arguments (incl. oversampling), errors (wrong result size, exception in the function); two inputs (product with `numpy.multiply`, argument order and in-place result, keyword arguments, mismatching dimensions). |
+| `test_tensortrain_cross_pybind.py` | `applyElementwise`: numpy ufuncs, in-place functions, `numpy.vectorize`d scalar functions, float/double, options as keyword arguments (incl. oversampling), errors (wrong result size, exception in the function); two inputs (product with `numpy.multiply`, argument order and in-place result, keyword arguments, mismatching dimensions); `applyElementwiseSymmetric` with halves (exponential kernel, 2-site, float, product of two inputs, errors). |
 | `test_qubit_simulator_pybind.py` | Simple circuit example. |
 | `test_ttn_local_contraction_pybind.py` | Tree-tensor-network local gradient contraction vs numpy einsum. |
 
