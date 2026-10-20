@@ -291,6 +291,26 @@ class TestTensorTrain(unittest.TestCase):
         with self.assertRaises(ValueError):
             tt.setSubTensor(1, [[[1],[2],[3]]])
 
+    def test_setSubTensor_openBoundaryBonds(self):
+        """as in C++: the first sub-tensor may have another left rank, the last one another right rank (open bonds)"""
+        tt = pitts_py.TensorTrain_double([3,2,2])
+        tt.setTTranks([2,3])
+        t1_ref = np.arange(5*3*2, dtype=np.float64).reshape([5,3,2])
+        t3_ref = np.arange(3*2*4, dtype=np.float64).reshape([3,2,4])
+        tt.setSubTensor(0, t1_ref)
+        tt.setSubTensor(2, t3_ref)
+        np.testing.assert_array_almost_equal(t1_ref, tt.getSubTensor(0))
+        np.testing.assert_array_almost_equal(t3_ref, tt.getSubTensor(2))
+        # the inner bonds must match
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(0, np.ones([5,3,3]))
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(1, np.ones([3,2,3]))
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(2, np.ones([2,2,4]))
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(2, np.ones([3,3,4]))
+
     def test_setGetSubTensor(self):
         tt = pitts_py.TensorTrain_double([3,2,5])
         tt.setTTranks([2,3])

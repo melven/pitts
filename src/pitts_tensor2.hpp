@@ -16,6 +16,7 @@
 #define PITTS_TENSOR2_HPP
 
 // includes
+#include <cassert>
 #include <memory>
 #include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
