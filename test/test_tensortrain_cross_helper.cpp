@@ -77,6 +77,16 @@ TEST(PITTS_TensorTrain_cross_helper, NestedIndices_size)
   EXPECT_EQ(4, sized.size());
   EXPECT_EQ(4, sized.link.size());
   EXPECT_EQ(4, sized.idx.size());
+
+  // comparison: same link and idx entries
+  NestedIndices J = I;
+  EXPECT_TRUE(J == I);
+  J.link[1] = 0;
+  EXPECT_FALSE(J == I);
+  J = I;
+  J.idx[2] = 0;
+  EXPECT_FALSE(J == I);
+  EXPECT_FALSE(empty == I);
 }
 
 TEST(PITTS_TensorTrain_cross_helper, leftIndicesFromRows)

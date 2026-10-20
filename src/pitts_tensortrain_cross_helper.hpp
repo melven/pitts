@@ -115,6 +115,9 @@ namespace PITTS
 
         //! number of multi-indices in the set (= TT rank of the bond)
         [[nodiscard]] int size() const {return static_cast<int>(idx.size());}
+
+        //! same link and idx entries (the same multi-indices in the same order if the neighboring sets are the same)
+        bool operator==(const NestedIndices&) const = default;
       };
 
       //! decode a row selection of a left unfolding (r_prev*n x r) into a nested left index set
@@ -811,9 +814,8 @@ namespace PITTS
           //! J_m (and J^z_m) is the mirror of I_{m-1} (and I^z_{m-1}), see mirrorIndexSets (checked in an assert, public for the tests)
           [[nodiscard]] bool middleSetsMirrored() const
           {
-            const auto same = [](const NestedIndices& a, const NestedIndices& b){return a.link == b.link && a.idx == b.idx;};
             const int m = TTx_[0].get().dimensions().size();
-            return same(J_.at(m), I_.at(m-1)) && (!withErrorSets(m) || same(Jz_.at(m), Iz_.at(m-1)));
+            return J_.at(m) == I_.at(m-1) && (!withErrorSets(m) || Jz_.at(m) == Iz_.at(m-1));
           }
 
           //! the boundary matrices fit to the inputs and the current sets I_{m-1} (and I^z_{m-1}), i.e. mirrorRightBoundary
