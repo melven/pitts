@@ -1037,11 +1037,12 @@ namespace PITTS
       //! @param maxvolTolerance    dominance tolerance for maxvol
       //! @param oversampling       relative number of additional rows
       //! @param maxRows            maximal number of rows
+      //! @param values             optional output: M as a core (q x n x r), e.g. the next partial contraction of a frame
       //! @return                   selected rows of M (decode with leftIndicesFromRows(rows, q))
       //!
       template<typename T>
       std::vector<int> selectLeftRows(const Tensor2<T>& leftInterface, const Tensor3<T>& U, T maxvolTolerance, T oversampling = T(0),
-                                      int maxRows = std::numeric_limits<int>::max());
+                                      int maxRows = std::numeric_limits<int>::max(), Tensor3<T>* values = nullptr);
 
       //! C = (L x I_n)^+ M (L x I_n)^{+T}: a symmetric block sampled on the cross (I_{k-1} x S_k) x mirror(I_{k-1} x S_k)
       //! into the coordinates of the left part (least squares on both sides, see solveLeftInterface)

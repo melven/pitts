@@ -227,7 +227,7 @@ namespace PITTS
 
       // implement selectLeftRows
       template<typename T>
-      std::vector<int> selectLeftRows(const Tensor2<T>& leftInterface, const Tensor3<T>& U, T maxvolTolerance, T oversampling, int maxRows)
+      std::vector<int> selectLeftRows(const Tensor2<T>& leftInterface, const Tensor3<T>& U, T maxvolTolerance, T oversampling, int maxRows, Tensor3<T>* values)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
@@ -235,7 +235,10 @@ namespace PITTS
         normalize_contract1(leftInterface, U, M);
         const int r = U.r2();
         const int nRows = std::max(r, std::min({r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows, int(M.r1()*M.n())}));
-        return maxvol<T>(unfold_left(M), maxvolTolerance, maxvolIterations(r), nullptr, nRows);
+        std::vector<int> rows = maxvol<T>(unfold_left(M), maxvolTolerance, maxvolIterations(r), nullptr, nRows);
+        if( values )
+          *values = std::move(M);
+        return rows;
       }
 
 
@@ -567,9 +570,8 @@ namespace PITTS
         for(int k = 0; k < nSets; k++)
         {
           const int maxRows = maxIndices.empty() ? std::numeric_limits<int>::max() : maxIndices[k];
-          I[k] = leftIndicesFromRows(selectLeftRows(L, TT.subTensor(k), maxvolTolerance, oversampling, maxRows), L.r1());
           Tensor3<T> LX;
-          normalize_contract1(L, TT.subTensor(k), LX);
+          I[k] = leftIndicesFromRows(selectLeftRows(L, TT.subTensor(k), maxvolTolerance, oversampling, maxRows, &LX), L.r1());
           L = interfaceLeft(LX, I[k]);
         }
         return I;
