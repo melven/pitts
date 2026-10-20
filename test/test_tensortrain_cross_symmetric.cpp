@@ -185,7 +185,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_symmetric, two_inputs_product)
   }
 }
 
-TYPED_TEST(PITTS_TensorTrain_cross_symmetric, maxRank_indefinite_and_argument_checks)
+TYPED_TEST(PITTS_TensorTrain_cross_symmetric, maxRank_zero_indefinite_and_argument_checks)
 {
   using Type = typename TestFixture::Type;
   using TensorTrain = PITTS::TensorTrain<Type>;
@@ -201,6 +201,13 @@ TYPED_TEST(PITTS_TensorTrain_cross_symmetric, maxRank_indefinite_and_argument_ch
   for(int r: TTy.getTTranks())
     EXPECT_LE(r, 3);
   EXPECT_LE(TTy.subTensor(2).r2(), 3);
+
+  // f = 0: a zero half (a single direction with lambda = 0), converged after one sweep
+  const auto infoZero = applyElementwiseSymmetric([](Type){return Type(0);}, H, TTy);
+  EXPECT_EQ(Type(0), denseSymmetric(TTy).norm());
+  EXPECT_EQ(1, TTy.subTensor(2).r2());
+  EXPECT_TRUE(infoZero.converged);
+  EXPECT_EQ(1, infoZero.nSweeps);
 
   // an indefinite f(x): the removed negative part is reported
   const auto info = applyElementwiseSymmetric([](Type v){return v - Type(1);}, H, TTy);

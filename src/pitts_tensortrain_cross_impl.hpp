@@ -164,8 +164,7 @@ namespace PITTS
 
         // convergence measure: the current y on the same cross
         Ly_.update(k-1, k+nMALS_);
-        const auto [L, Rref] = interfacesOfY(k);
-        const Tensor2<T>& R = Rref;
+        const auto [L, R] = interfacesOfY(k);
         Tensor3<T> yOnCross;
         contractInterfaces(L, combineCores(TTy_, k, nMALS_), R, yOnCross);
         RealType change = rmsDifference(B, yOnCross) / scale;
@@ -263,8 +262,7 @@ namespace PITTS
         const RealType scale = rmsRef_ > 0 ? rmsRef_ : 1;
 
         Ly_.update(kLeft-1, k+1);
-        const auto [L, Rref] = interfacesOfY(kLeft);
-        const Tensor2<T>& R = Rref;
+        const auto [L, R] = interfacesOfY(kLeft);
         Tensor3<T> yOnCross;
         contractInterfaces(L, combineCores(TTy_, kLeft, nMALS_), R, yOnCross);
         RealType change = rmsDifference(B, yOnCross) / scale;
@@ -688,17 +686,17 @@ namespace PITTS
 
       //! The interface matrices of y at the cross (I_{k-1}, S_k x ... x S_{k+nMALS-1}, J_{k+nMALS}) of the block of the
       //! cores k..k+nMALS-1 (the 1x1 identity at the boundary, symmetric: Ry at the right end of the half; needs
-      //! Ly.update(k-1, k+nMALS) first). The right one is a reference to a member (no copy of Ry).
-      std::pair<Tensor2<T>, std::reference_wrapper<const Tensor2<T>>> interfacesOfY(int k)
+      //! Ly.update(k-1, k+nMALS) first)
+      std::pair<Tensor2<T>, Tensor2<T>> interfacesOfY(int k) const
       {
-        Tensor2<T> L = Ly_.left() ? interfaceLeft(Ly_.left()->get(), I_[k-1]) : boundaryInterface<T>();
+        Tensor2<T> R;
         if( Ly_.right() )
-          rightInterface_ = interfaceRight(Ly_.right()->get(), J_[k+nMALS_]);
+          R = interfaceRight(Ly_.right()->get(), J_[k+nMALS_]);
         else if( sym_ )
-          return {std::move(L), std::cref(sym_->Ry)};
+          copy(sym_->Ry, R);   // the half ends with the mirrored G^T
         else
-          rightInterface_ = boundaryInterface<T>();
-        return {std::move(L), std::cref(rightInterface_)};
+          R = boundaryInterface<T>();
+        return {Ly_.left() ? interfaceLeft(Ly_.left()->get(), I_[k-1]) : boundaryInterface<T>(), std::move(R)};
       }
 
       // Error crosses: fixed size errorRank (as zrank in amen_cross), selected from the directions of the residual above
@@ -721,14 +719,14 @@ namespace PITTS
         explicit SymmetricPart(const std::vector<int>& halfDims) : G(halfDims) {}
         //! left-orthonormal half (between the iterations; the fixed mirrored right part during a sweep)
         TensorTrain<T> G;
-        //! weights lambda > 0 (before the first middle step those of the initial frame)
+        //! weights lambda > 0 (a single 0 if no eigenvalue was positive; before the first middle step those of the initial frame)
         std::vector<T> lambda;
         //! y is still zero (before the first middle step)
         bool yIsZero = true;
         //! boundary matrices of y: the values of the mirrored G^T on J_m and on J^z_m
         Tensor2<T> Ry;
         Tensor2<T> Ryz;
-        //! norm of the negative eigenvalues removed in the last middle step, relative to ||y||
+        //! norm of the negative eigenvalues removed in the last middle step, relative to the norm of its block C (see TTCrossInfo)
         RealType negativePart = 0;
       };
 
@@ -771,8 +769,6 @@ namespace PITTS
       //  * one global reference instead of the norm of each block, because a bond whose cross samples a region
       //    with small values would otherwise dominate the maximum over the sweep with a large relative value.
       RealType rmsRef_ = 0;
-      //! buffer for the right interface of y (see interfacesOfY)
-      Tensor2<T> rightInterface_;
       const Eigen::MatrixXi sampleIndices_;
       const Tensor3<T> fOnSample_;
       const RealType rmsfOnSample_;

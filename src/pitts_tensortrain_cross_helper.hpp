@@ -1144,7 +1144,8 @@ namespace PITTS
 
 
       // Symmetric tensors y = G diag(lambda) G^T with d = 2m dimensions, given by a left half G (m cores, open right bond at the
-      // middle bond) and weights lambda > 0, see the symmetric variant in pitts_tensortrain_cross.hpp. Real types only.
+      // middle bond) and weights lambda >= 0 (> 0 except for a zero tensor, see positiveEigen), see the symmetric variant in
+      // pitts_tensortrain_cross.hpp. Real types only.
 
       //! Left-orthonormalize all cores of a half, including the last one: H = G R on the open bond, H is overwritten by G, returns R
       template<typename T>
@@ -1163,7 +1164,8 @@ namespace PITTS
       template<typename T>
       void rightOrthonormalHalf(const TensorTrain<T>& G, const std::vector<T>& lambda, TensorTrain<T>& Y);
 
-      //! positive part of a symmetric matrix: C ~ U diag(lambda) U^T with the eigenvalues lambda > 0 (decreasing)
+      //! positive part of a symmetric matrix: C ~ U diag(lambda) U^T with the eigenvalues lambda > 0 (decreasing), or a single
+      //! lambda = 0 if there is no positive eigenvalue
       template<typename T>
       struct PositiveEigen
       {
@@ -1178,7 +1180,7 @@ namespace PITTS
       //! C is symmetrized ((C + C^T)/2, removes round-off asymmetry), the eigenvalues <= 0 are removed (the Frobenius-nearest
       //! positive semidefinite matrix, which is not farther from a positive semidefinite target) and the positive ones
       //! truncated in the Frobenius norm as in normalize_svd (relative to ||C||_F unless absoluteTolerance, at least one, at
-      //! most maxRank).
+      //! most maxRank). Without a positive eigenvalue, the result is a single direction with lambda = 0.
       //!
       //! @throws std::invalid_argument if C is not square
       //!

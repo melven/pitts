@@ -67,7 +67,8 @@
 *
 *   Symmetric variant (applyElementwiseSymmetric): for a positive semidefinite f(x) of symmetric x = H H^T with d = 2m
 *   dimensions (n_k = n_{d-1-k}), given by its left half H (m cores, open right bond at the middle bond). The result is
-*   y = G diag(lambda) G^T with a left-orthonormal half G and lambda > 0 (returned as the half G diag(sqrt(lambda))).
+*   y = G diag(lambda) G^T with a left-orthonormal half G and lambda > 0, or a single lambda = 0 if f(x) has no positive
+*   part (returned as the half G diag(sqrt(lambda))).
 *   Only left index sets I_0..I_{m-1} are selected, the right sets at and beyond the middle bond are their mirrors.
 *   One iteration:
 *     1. Frame: Y = G diag(lambda) with right-orthonormal cores 1..m-1; the right part of y at bond k < m is
@@ -274,7 +275,8 @@ namespace PITTS
     //!
     T lastSampleError = T(0);
 
-    //! symmetric variant only: norm of the negative eigenvalues removed in the last middle step, relative to ||y||
+    //! symmetric variant only: norm of the negative eigenvalues removed in the last middle step, relative to the Frobenius
+    //! norm of the middle block C (f(x) on the middle cross in the coordinates of the new left part, see the file documentation)
     //!
     //! Round-off for a positive semidefinite f(x); a value well above the tolerances means that f(x) is not semidefinite.
     //!
