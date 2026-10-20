@@ -2055,7 +2055,8 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, leftIndexSetsFromFrame_and
   TensorTrain G(halfDims);
   std::vector<Type> lambda;
   initialHalfFrame<Type>({std::cref(H)}, G, lambda);
-  const std::vector<int> ranks = {G.subTensor(0).r2(), G.subTensor(1).r2(), G.subTensor(2).r2()};
+  std::vector<int> ranks = G.getTTranks();
+  ranks.push_back(G.subTensor(2).r2());   // the open bond
   EXPECT_EQ(std::vector<int>({2, 4, 3}), ranks);
 
   // left sets of the half including the middle bond: sizes = ranks, full-rank interfaces
