@@ -370,7 +370,9 @@ namespace PITTS
           Iz_[m-1] = fullLeftIndexSet(qz, n);
         updateBoundaries();
 
+        // f on both middle crosses (before I_{m-1} changes: the boundary matrices of x belong to the full sets)
         const Tensor3<T> B = fx_.bondBlock(m);
+        Tensor3<T> residual = enrich_ ? fx_.errorBondBlock(m) : Tensor3<T>();
         rmsRef_ = std::max(rmsRef_, t3_rms(B));
         const RealType scale = rmsRef_ > 0 ? rmsRef_ : 1;
 
@@ -403,7 +405,6 @@ namespace PITTS
         RealType error = 0;
         if( enrich_ )
         {
-          Tensor3<T> residual = fx_.errorBondBlock(m);
           Tensor3<T> yNew(residual.r1(), 1, residual.r2());
           EigenMap(unfold_left(yNew)) = symmetricValues(Iz_);
           internal::t3_axpy(T(-1), yNew, residual);
