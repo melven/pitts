@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 /*! @file pitts_tensortrain_cross.hpp
-* @brief TT-cross approximation: apply a function element-wise to one or two tensors in TT format
+* @brief TT-cross approximation: apply a function element-wise to one or two tensors in TT format (also symmetric ones)
 * @author Claude Code (Anthropic AI model), prompted by Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2026-09-11
 *
@@ -64,6 +64,27 @@
 *   Initialization: a zero y whose right-orthonormal cores are those of the orthogonalized x (for two inputs of
 *   their direct sum), and right index sets from a maxvol sweep over these cores (no function evaluations);
 *   the first left-to-right sweep replaces the cores one by one.
+*
+*   Symmetric variant (applyElementwiseSymmetric): for a positive semidefinite f(x) of symmetric x = H H^T with d = 2m
+*   dimensions (n_k = n_{d-1-k}), given by its left half H (m cores, open right bond at the middle bond). The result is
+*   y = G diag(lambda) G^T with a left-orthonormal half G and lambda > 0, or a single lambda = 0 if f(x) has no positive
+*   part (returned as the half G diag(sqrt(lambda))).
+*   Only left index sets I_0..I_{m-1} are selected, the right sets at and beyond the middle bond are their mirrors.
+*   One iteration:
+*     1. Frame: Y = G diag(lambda) with right-orthonormal cores 1..m-1; the right part of y at bond k < m is
+*        Y_{k+1..m-1} G^T (G^T has orthonormal rows), so y is in the orthogonal gauge with the mirrored G^T as fixed
+*        right boundary. The right sets inside the half from a maxvol sweep over Y (no function evaluations, replaces
+*        the right-to-left sweep), the error crosses updated from right to left.
+*     2. The left-to-right steps above for the cores 0..m-2.
+*     3. Middle step: f(x) on (I_{m-2} x S_{m-1}) x mirror in the coordinates of the new left part (least squares on
+*        both sides), C = (L x I)^+ F (L x I)^{+T}. C is positive semidefinite up to round-off (a principal cross of
+*        f(x), congruence), so only its eigenvalues > 0 are kept (the Frobenius-nearest semidefinite matrix, not farther
+*        from the target), truncated as in step 2: the last core of G and lambda. The rank at the middle bond grows here.
+*     4. Symmetric TT-rounding of y: truncation of G diag(lambda) from left to right, projection P y P onto the span of
+*        the new half (an inner bond acts on both halves), positive part at the middle bond.
+*   The scale of y is only in lambda, which is linear in the samples; the cores of G only define subspaces (no fixed-point
+*   iteration on values that enter y quadratically). Truncation tolerance per bond of y as above (an inner bond of the
+*   half counts twice). Indefinite results: use applyElementwise on the full tensor.
 *
 *   Cost per full sweep (nMALS = 1, ranks r of y, r_x of x, error rank rho, enrichment rank rho'):
 *     function evaluations  sum_k 2 (r_{k-1} + rho') n_k r_k  (blocks)
@@ -254,6 +275,13 @@ namespace PITTS
     //!
     T lastSampleError = T(0);
 
+    //! symmetric variant only: norm of the negative eigenvalues removed in the last middle step, relative to the Frobenius
+    //! norm of the middle block C (f(x) on the middle cross in the coordinates of the new left part, see the file documentation)
+    //!
+    //! Round-off for a positive semidefinite f(x); a value well above the tolerances means that f(x) is not semidefinite.
+    //!
+    T lastNegativePart = T(0);
+
     //! total number of evaluated tensor entries (calls of the element-wise function)
     long long nEvaluations = 0;
 
@@ -334,6 +362,43 @@ namespace PITTS
   template<typename T, typename Function>
   TTCrossInfo<T> applyElementwise(const Function& f, const TensorTrain<T>& TTx1, const TensorTrain<T>& TTx2, TensorTrain<T>& TTy,
                                   const TTCrossOptions<T>& options = TTCrossOptions<T>());
+
+
+  //! Apply a positive semidefinite function element-wise to a symmetric tensor x = H H^T given by its left half H
+  //!
+  //! Computes y ~ f(x) entry-wise as y = TTy TTy^T, see the symmetric variant in the file documentation, e.g. a kernel
+  //! (exponential, RBF on a cosine similarity) of a Gram matrix of vectors in TT format.
+  //!
+  //! @tparam T               underlying data type (float or double: real types only)
+  //! @tparam Function        scalar or array functor, see applyElementwise
+  //!
+  //! @param f                the element-wise function (f(x) must be positive semidefinite)
+  //! @param TTx              half H of the input (m cores, first rank 1, open last rank)
+  //! @param TTy              half of the result (same dimensions as TTx, the contents are ignored)
+  //! @param options          algorithm parameters, see TTCrossOptions (rankTolerance is the tolerance for y, maxRank applies to
+  //!                         all bonds of the half including the middle bond, randomErrorIndexSets is not supported)
+  //! @return                 convergence information, see TTCrossInfo (one sweep is one iteration; leftIndices holds
+  //!                         I_0..I_{m-1}, rightIndices only the mirrored sets J_m..J_{2m-1})
+  //!
+  //! @throws std::invalid_argument for mismatching dimensions, a first rank != 1 or inconsistent options
+  //!
+  template<typename T, typename Function>
+  TTCrossInfo<T> applyElementwiseSymmetric(const Function& f, const TensorTrain<T>& TTx, TensorTrain<T>& TTy,
+                                           const TTCrossOptions<T>& options = TTCrossOptions<T>());
+
+
+  //! Apply a positive semidefinite function element-wise to two symmetric tensors x_i = H_i H_i^T, e.g. the product of two kernels
+  //!
+  //! @param f                the element-wise function of two arguments, see applyElementwise
+  //! @param TTx1             half of the first input (m cores, first rank 1, open last rank)
+  //! @param TTx2             half of the second input (same dimensions, the ranks may differ)
+  //! @param TTy              half of the result
+  //! @param options          algorithm parameters, see the single-input variant
+  //! @return                 convergence information, see TTCrossInfo
+  //!
+  template<typename T, typename Function>
+  TTCrossInfo<T> applyElementwiseSymmetric(const Function& f, const TensorTrain<T>& TTx1, const TensorTrain<T>& TTx2, TensorTrain<T>& TTy,
+                                           const TTCrossOptions<T>& options = TTCrossOptions<T>());
 }
 
 // applyElementwise is templated on the functor type, so it cannot be instantiated explicitly in a .cpp file:
