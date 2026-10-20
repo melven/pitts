@@ -30,6 +30,7 @@
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_split.hpp"
 #include "pitts_tensortrain_normalize.hpp"
+#include "pitts_tensortrain_reverse.hpp"
 #include "pitts_timer.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
@@ -191,6 +192,31 @@ namespace PITTS
         const Eigen::HouseholderQR<Eigen::MatrixX<T>> qr(ConstEigenMap(R).adjoint());
         C.resize(B.r1(), B.n(), R.r1());
         EigenMap(unfold_left(C)) = qr.solve(ConstEigenMap(unfold_left(B)).adjoint()).adjoint();
+      }
+
+
+      // implement mirroredTensorTrain
+      template<typename T>
+      void mirroredTensorTrain(const TensorTrain<T>& half, TensorTrain<T>& full)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const int nHalf = half.dimensions().size();
+        if( nHalf < 1 || half.subTensor(0).r1() != 1 )
+          throw std::invalid_argument("mirroredTensorTrain: the half needs at least one core and the left boundary rank 1!");
+
+        TensorTrain<T> mirrored(half.dimensions());
+        reverse(half, mirrored);
+        std::vector<Tensor3<T>> cores(2*nHalf);
+        std::vector<TT_Orthogonality> orthonormal(2*nHalf);
+        for(int k = 0; k < nHalf; k++)
+        {
+          copy(half.subTensor(k), cores[k]);
+          orthonormal[k] = half.isOrthonormal(k);
+          copy(mirrored.subTensor(k), cores[nHalf+k]);
+          orthonormal[nHalf+k] = mirrored.isOrthonormal(k);
+        }
+        full = TensorTrain<T>(std::move(cores), orthonormal);
       }
 
 

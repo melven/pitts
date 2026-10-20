@@ -584,20 +584,22 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inpu
   const auto Iz = randomLeftIndexSets(dims, {1, 2, 2, 2}, gen);
   const auto Jz = randomRightIndexSets(dims, {0, 2, 3, 2, 1}, gen);
 
-  // compare a block with f evaluated directly on the cross (L, modes of the cores k..k+nModes-1, R)
+  // compare a block with f evaluated directly on the cross (L, modes of the cores k..k+nModes-1, R; no modes: bond block)
   long long nEntries = 0;
   const auto checkBlock = [&](const PITTS::Tensor3<Type>& B, const Eigen::MatrixXi& L, int k, int nModes, const Eigen::MatrixXi& R)
   {
     ASSERT_EQ(L.rows(), B.r1());
     ASSERT_EQ(R.rows(), B.r2());
-    ASSERT_EQ(nModes == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
+    ASSERT_EQ(nModes == 0 ? 1 : nModes == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
     nEntries += B.r1()*B.n()*B.r2();
     for(int a = 0; a < B.r1(); a++)
       for(int b = 0; b < B.r2(); b++)
         for(int j = 0; j < B.n(); j++)
         {
           Eigen::RowVectorXi multiIndex(nDim);
-          if( nModes == 2 )
+          if( nModes == 0 )
+            multiIndex << L.row(a), R.row(b);
+          else if( nModes == 2 )
             multiIndex << L.row(a), j % dims[k], j / dims[k], R.row(b);
           else
             multiIndex << L.row(a), j, R.row(b);
@@ -626,6 +628,15 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inpu
       if( nMALS == 1 )
         checkBlock(fromRight.errorBlockFromRight(k), expandLeft(Iz, k-1), k, 1, expandRight(Jz, k+1, nDim));
     }
+
+  // the unfolding at a bond on the rows I_{k-1} and the columns J_k
+  for(int k = 1; k < nDim; k++)
+  {
+    Evaluator bond(f, inputs, I, J, Iz, Jz);
+    nEntries = 0;
+    checkBlock(bond.bondBlock(k), expandLeft(I, k-1), k, 0, expandRight(J, k, nDim));
+    EXPECT_EQ(nEntries, bond.nEvaluations());
+  }
 
   // random entries (control sample)
   Evaluator samples(f, inputs, I, J, Iz, Jz);
@@ -1592,4 +1603,90 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, rightIndexSetsFromFrame_de
   checkRightNested(J, dims, {0, 2, 3, 2});
   for(int k = 1; k < int(dims.size()); k++)
     EXPECT_GT(relativeSmallestSingularValuesOfRightInterfaces(TTa, J)[k], Type(1.e-3));
+}
+
+
+// ---- symmetric tensor trains: mirrored index sets and the full tensor train from its left half ----
+
+TEST(PITTS_TensorTrain_cross_helper, mirrorIndexSets)
+{
+  using PITTS::internal::tt_cross::mirrorIndexSets;
+
+  // symmetric dimensions: J_{d-1-k} is the mirror of I_k (the reversed multi-indices), J_1 is not touched
+  const std::vector<int> dims = {3, 4, 2, 2, 4, 3};
+  const int nDim = dims.size();
+  std::mt19937 gen(5);
+  const auto I = randomLeftIndexSets(dims, {3, 5, 4, 6, 2}, gen);
+  std::vector<NestedIndices> J(nDim);
+  mirrorIndexSets(I, 4, J);
+  EXPECT_EQ(0, J[1].size());
+  for(int k = 0; k < 4; k++)
+  {
+    const Eigen::MatrixXi left = expandLeft(I, k);
+    const Eigen::MatrixXi right = expandRight(J, nDim-1-k, nDim);
+    ASSERT_EQ(left.rows(), right.rows());
+    const Eigen::MatrixXi reversed = left.rowwise().reverse();
+    EXPECT_TRUE(reversed == right);
+  }
+
+  EXPECT_THROW(mirrorIndexSets(I, 6, J), std::invalid_argument);
+  EXPECT_THROW(mirrorIndexSets(I, -1, J), std::invalid_argument);
+}
+
+TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, mirroredTensorTrain)
+{
+  using Type = typename TestFixture::Type;
+  using TensorTrain = PITTS::TensorTrain<Type>;
+  using PITTS::internal::tt_cross::mirroredTensorTrain;
+  constexpr auto eps = 1.e-4;
+
+  // half H with dimensions (3, 4, 2) and the open right bond of rank 3: x = H H^T has the dimensions (3, 4, 2, 2, 4, 3)
+  std::vector<PITTS::Tensor3<Type>> cores(3);
+  cores[0].resize(1, 3, 2);
+  cores[1].resize(2, 4, 3);
+  cores[2].resize(3, 2, 3);
+  for(auto& core: cores)
+    randomize(core);
+  TensorTrain half(std::move(cores));
+  PITTS::internal::leftNormalize_range(half, 0, 1, Type(0));   // left-orthonormal first core, the open bond stays
+  TensorTrain full(std::vector<int>{1});
+  mirroredTensorTrain(half, full);
+  ASSERT_EQ(std::vector<int>({3, 4, 2, 2, 4, 3}), full.dimensions());
+  EXPECT_EQ(std::vector<int>({2, 3, 3, 3, 2}), full.getTTranks());
+
+  // symmetric: x(i) = x(reverse(i)), and the middle unfolding is H H^T
+  std::mt19937 gen(9);
+  for(int s = 0; s < 20; s++)
+  {
+    Eigen::RowVectorXi index(6);
+    for(int k = 0; k < 6; k++)
+      index(k) = std::uniform_int_distribution<int>(0, full.dimensions()[k]-1)(gen);
+    const Eigen::RowVectorXi reversed = index.reverse();
+    const Type value = evaluate(full, index);
+    EXPECT_NEAR(value, evaluate(full, reversed), eps);
+    // sum_a H(i_0..i_2, a) H(i_5..i_3, a), with the rows of the half for both multi-indices
+    Type ref = 0;
+    for(int a = 0; a < 3; a++)
+    {
+      Type left = 0, right = 0;
+      for(int b = 0; b < 2; b++)
+        for(int c = 0; c < 3; c++)
+        {
+          left += half.subTensor(0)(0, index(0), b) * half.subTensor(1)(b, index(1), c) * half.subTensor(2)(c, index(2), a);
+          right += half.subTensor(0)(0, index(5), b) * half.subTensor(1)(b, index(4), c) * half.subTensor(2)(c, index(3), a);
+        }
+      ref += left * right;
+    }
+    EXPECT_NEAR(ref, value, eps);
+  }
+
+  // orthogonality of the cores is mirrored
+  EXPECT_NE(PITTS::TT_Orthogonality::none, half.isOrthonormal(0) & PITTS::TT_Orthogonality::left);
+  EXPECT_NE(PITTS::TT_Orthogonality::none, full.isOrthonormal(5) & PITTS::TT_Orthogonality::right);
+
+  // the left boundary rank of the half must be 1
+  std::vector<PITTS::Tensor3<Type>> badCores(1);
+  badCores[0].resize(2, 3, 2);
+  const TensorTrain bad(std::move(badCores));
+  EXPECT_THROW(mirroredTensorTrain(bad, full), std::invalid_argument);
 }

@@ -162,6 +162,26 @@ namespace PITTS
         return J;
       }
 
+      //! Mirror the left index sets of a symmetric tensor to the right: J_{d-1-k} = I_k reversed, for k = 0..nLeft-1
+      //!
+      //! For a tensor with y(i_0, ..., i_{d-1}) = y(i_{d-1}, ..., i_0) (and n_k = n_{d-1-k}), the right multi-index
+      //! (i_{d-1-k}, ..., i_{d-1}) of J_{d-1-k} is the reversed left multi-index (i_0, ..., i_k) of I_k. In the nested
+      //! representation both are the same data: the own mode index (of dimension k resp. d-1-k) and the position in the
+      //! neighboring set (I_{k-1} resp. its mirror J_{d-k}), so the sets are just copied.
+      //!
+      //! @param I      left index sets, I[0..nLeft-1] are mirrored
+      //! @param nLeft  number of mirrored sets (at most d-1)
+      //! @param J      right index sets of size d (J[0] unused): J[d-1-k] is overwritten for k = 0..nLeft-1
+      //!
+      inline void mirrorIndexSets(const std::vector<NestedIndices>& I, int nLeft, std::vector<NestedIndices>& J)
+      {
+        const int nDim = J.size();
+        if( nLeft < 0 || nLeft > static_cast<int>(I.size()) || nLeft > nDim-1 )
+          throw std::invalid_argument("mirrorIndexSets: invalid number of sets!");
+        for(int k = 0; k < nLeft; k++)
+          J[nDim-1-k] = I[k];
+      }
+
       //! random right-nested index sets J[k] (k = 1..d-1) with at most `size` elements each, drawn without replacement
       //!
       //! Used for the initial error crosses of the AMEn-style enrichment (as in amen_cross); the sets are
@@ -291,6 +311,20 @@ namespace PITTS
       //!
       template<typename T>
       void solveRightInterface(const Tensor3<T>& B, const Tensor2<T>& R, Tensor3<T>& C);
+
+      //! Symmetric tensor train from its left half: x = H H^T, i.e. the cores of H followed by those of reverse(H)
+      //!
+      //! H has k cores, the left boundary rank 1 and the right boundary rank r (the rank of the middle bond of x). The
+      //! result has 2k cores with the dimensions of H followed by their reverse, and
+      //! x(i_0, ..., i_{2k-1}) = sum_a H(i_0, ..., i_{k-1}, a) H(i_{2k-1}, ..., i_k, a): its unfolding at the middle
+      //! bond is the symmetric positive semidefinite matrix H H^T. The orthogonality of the cores of H is kept (and
+      //! mirrored: left-orthonormal cores of H give right-orthonormal cores in the second half).
+      //!
+      //! @param half   left half H
+      //! @param full   result x, overwritten (also its dimensions)
+      //!
+      template<typename T>
+      void mirroredTensorTrain(const TensorTrain<T>& half, TensorTrain<T>& full);
 
       //! the 1x1 identity: the interface matrix at the boundary of a tensor train
       template<typename T>
@@ -684,6 +718,20 @@ namespace PITTS
             {
               Lxz_[i].update(k-1, k);
               contractLeftInterface<T>(Lxz_[i].left(), Iz_, k-1, Lxz_[i].right()->get(), B);
+            });
+          }
+
+          //! f on the cross (I_{k-1}, J_k) of the bond between the cores k-1 and k, as a block |I_{k-1}| x 1 x |J_k|
+          //!
+          //! Without a mode index: the rows I_{k-1} and the columns J_k of the unfolding of f(x) at this bond (for a
+          //! symmetric tensor with J_k the mirror of I_{k-1}, a symmetric matrix). Valid for 1 <= k <= d-1.
+          //!
+          Tensor3<T> bondBlock(int k)
+          {
+            return evaluate([&](int i, Tensor3<T>& B)
+            {
+              Lx_[i].update(k-1, k);
+              contractRightInterface<T>(fold_left(interfaceLeft(Lx_[i].left()->get(), I_[k-1]), 1), Lx_[i].right(), J_, k, B);
             });
           }
 
