@@ -19,6 +19,8 @@ template Tensor2<double> PITTS::internal::symmetric_tt::leftOrthonormalizeHalf<d
 template Tensor2<float> PITTS::internal::symmetric_tt::leftOrthonormalizeHalf<float>(TensorTrain<float>& H);
 template Tensor2<double> PITTS::internal::symmetric_tt::halfInnerProducts<double>(const TensorTrain<double>& A, const TensorTrain<double>& B);
 template Tensor2<float> PITTS::internal::symmetric_tt::halfInnerProducts<float>(const TensorTrain<float>& A, const TensorTrain<float>& B);
+template void PITTS::internal::symmetric_tt::rightOrthonormalHalf<double>(const TensorTrain<double>& G, const Tensor2<double>& S, TensorTrain<double>& Y);
+template void PITTS::internal::symmetric_tt::rightOrthonormalHalf<float>(const TensorTrain<float>& G, const Tensor2<float>& S, TensorTrain<float>& Y);
 template SymmetricEigen<double> PITTS::internal::symmetric_tt::symmetricEigen<double>(const Tensor2<double>& C, double rankTolerance, int maxRank, bool absoluteTolerance);
 template SymmetricEigen<float> PITTS::internal::symmetric_tt::symmetricEigen<float>(const Tensor2<float>& C, float rankTolerance, int maxRank, bool absoluteTolerance);
 template void PITTS::internal::symmetric_tt::symmetricRound<double>(TensorTrain<double>& G, Tensor2<double>& S, double rankTolerance, int maxRank);

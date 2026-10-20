@@ -7,6 +7,7 @@
 #include "pitts_tensortrain_symmetric.hpp"
 #include "pitts_random.hpp"
 #include "pitts_tensor3_random.hpp"
+#include "pitts_tensor3_unfold.hpp"
 #include "pitts_tensor2_eigen_adaptor.hpp"
 #include "eigen_test_helper.hpp"
 #include <cmath>
@@ -343,4 +344,30 @@ TYPED_TEST(PITTS_TensorTrain_symmetric, positiveHalf)
   EXPECT_NEAR(ConstEigenMap(Sneg).norm(), positiveHalf(G, Sneg, H), eps);
   EXPECT_EQ(1, H.subTensor(1).r2());
   EXPECT_NEAR(Type(0), denseHalf(H).norm(), eps);
+}
+
+TYPED_TEST(PITTS_TensorTrain_symmetric, rightOrthonormalHalf)
+{
+  using Type = typename TestFixture::Type;
+  const auto eps = 1000*std::numeric_limits<Type>::epsilon();
+
+  PITTS::internal::randomGenerator.seed(53);
+  std::srand(53);
+  const std::vector<int> dims = {3, 2, 4};
+  PITTS::TensorTrain<Type> G = randomHalf<Type>(dims, {3, 4, 3});
+  leftOrthonormalizeHalf(G);
+  const PITTS::Tensor2<Type> S = symmetricWithEigenvalues<Type>({Type(2), Type(-1), Type(0.5)});
+  PITTS::TensorTrain<Type> Y(dims);
+  PITTS::internal::symmetric_tt::rightOrthonormalHalf(G, S, Y);
+
+  // the same half G S, with right-orthonormal cores 1..m-1
+  const mat<Type> ref = denseHalf(G) * ConstEigenMap(S);
+  EXPECT_NEAR(ref, denseHalf(Y), eps * ref.norm());
+  for(int k = 1; k < 3; k++)
+  {
+    const auto& core = Y.subTensor(k);
+    const mat<Type> Vt = ConstEigenMap(unfold_right(core));
+    EXPECT_NEAR(mat<Type>::Identity(core.r1(), core.r1()), mat<Type>(Vt * Vt.transpose()), eps);
+  }
+  EXPECT_THROW(PITTS::internal::symmetric_tt::rightOrthonormalHalf(G, PITTS::Tensor2<Type>(2, 2), Y), std::invalid_argument);
 }

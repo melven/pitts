@@ -80,6 +80,26 @@ namespace PITTS
       }
 
 
+      // implement rightOrthonormalHalf
+      template<typename T>
+      void rightOrthonormalHalf(const TensorTrain<T>& G, const Tensor2<T>& S, TensorTrain<T>& Y)
+      {
+        const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
+
+        const int m = G.dimensions().size();
+        if( S.r1() != G.subTensor(m-1).r2() )
+          throw std::invalid_argument("rightOrthonormalHalf: dimensions of G and S do not match!");
+        if( Y.dimensions() != G.dimensions() )
+          Y = TensorTrain<T>(G.dimensions());
+        copy(G, Y);
+        Tensor3<T> lastTimesS;
+        normalize_contract2(G.subTensor(m-1), S, lastTimesS);
+        Y.setSubTensor(m-1, std::move(lastTimesS));
+        if( m > 1 )
+          rightNormalize_range(Y, 0, m-1, T(0));
+      }
+
+
       // implement symmetricEigen
       template<typename T>
       SymmetricEigen<T> symmetricEigen(const Tensor2<T>& C, T rankTolerance, int maxRank, bool absoluteTolerance)
@@ -130,22 +150,16 @@ namespace PITTS
         if( S.r2() != r || G.subTensor(m-1).r2() != r )
           throw std::invalid_argument("symmetricRound: dimensions of G and S do not match!");
 
-        // tolerances per bond, see the error bound in the header
-        const T tau = rankTolerance / std::sqrt(T(m));
+        // tolerance per bond of y, see the error bound in the header
+        const T tau = rankTolerance / std::sqrt(T(2*m-1));
         const T yNorm = ConstEigenMap(S).norm();   // ||y||_F = ||S||_F for a left-orthonormal G
 
         // 1. T = G S, right-orthonormal cores 1..m-1, then truncation of the inner bonds from left to right
         TensorTrain<T> half(G.dimensions());
-        copy(G, half);
-        Tensor3<T> lastTimesS;
-        normalize_contract2(G.subTensor(m-1), S, lastTimesS);
-        half.setSubTensor(m-1, std::move(lastTimesS));
+        rightOrthonormalHalf(G, S, half);
+        // leftNormalize_range uses rankTolerance / sqrt(m-1) per bond, relative to the norm of the first core (= ||y||)
         if( m > 1 )
-        {
-          rightNormalize_range(half, 0, m-1, T(0));
-          // leftNormalize_range uses rankTolerance / sqrt(m-1) per bond, relative to the norm of the first core (= ||y||)
-          leftNormalize_range(half, 0, m-1, T(tau / std::sqrt(T(2)) * std::sqrt(T(m-1))), maxRank);
-        }
+          leftNormalize_range(half, 0, m-1, T(tau * std::sqrt(T(m-1))), maxRank);
         // the last core: left-orthonormal factor and the remainder M = G'^T T
         const auto& last = half.subTensor(m-1);
         auto [Q, M] = normalize_qb(unfold_left(last), true);

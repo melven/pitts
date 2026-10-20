@@ -65,6 +65,19 @@ namespace PITTS
       template<typename T>
       Tensor2<T> halfInnerProducts(const TensorTrain<T>& A, const TensorTrain<T>& B);
 
+      //! The half G S (last core times S) with right-orthonormal cores 1..m-1 (tolerance 0, core 0 holds the rest)
+      //!
+      //! With a left-orthonormal G, the mirrored G^T has orthonormal rows, so y = G S G^T = Y G^T with right-orthonormal parts
+      //! Y_{k+1..m-1} G^T at every bond k: the orthogonal gauge of y seen from the left (used by symmetricRound, and as the
+      //! frame of the symmetric TT-cross).
+      //!
+      //! @param G   half (m cores, open last rank r)
+      //! @param S   r x r matrix
+      //! @param Y   result (same dimensions as G)
+      //!
+      template<typename T>
+      void rightOrthonormalHalf(const TensorTrain<T>& G, const Tensor2<T>& S, TensorTrain<T>& Y);
+
       //! (Truncated) eigendecomposition C ~ U diag(lambda) U^T of a real symmetric matrix
       template<typename T>
       struct SymmetricEigen
@@ -101,14 +114,15 @@ namespace PITTS
       //! With G left-orthonormal on input:
       //!  1. the half T = G S (last core times S) is right-orthonormalized (tolerance 0) and truncated by a left-to-right SVD
       //!     sweep over the inner bonds (as in PITTS::normalize). The result is T' = G' M with G' left-orthonormal and
-      //!     M = G'^T T, and ||T - T'||_F <= tau_inner sqrt(m-1) ||y||_F (y = T G^T, G^T has orthonormal rows).
+      //!     M = G'^T T, and ||T - T'||_F <= tau sqrt(m-1) ||y||_F (y = T G^T, G^T has orthonormal rows).
       //!  2. symmetric projection: with the projector P onto span(G'), y'' = P y P = G' S'' G'^T, S'' = M W^T and
       //!     W = G'^T G. y - y'' = (I-P) y + P y (I-P), two Frobenius-orthogonal terms of norm <= ||(I-P) y|| <= ||T - T'||
       //!     each (y is symmetric), so ||y - y''|| <= sqrt(2) ||T - T'|| (the truncation of an inner bond acts on both halves).
       //!  3. truncated eigendecomposition of S'' (the middle bond): S' = diag(lambda), G'_{m-1} <- G'_{m-1} U.
       //!     This error lies in span(G') x span(G') and is orthogonal to the one of step 2.
-      //! With tau_inner = tau / sqrt(2) per inner bond and tau at the middle bond, the squared errors add up to at most
-      //! m tau^2 ||y||^2, so tau = rankTolerance / sqrt(m) gives ||y - y'||_F <= rankTolerance ||y||_F.
+      //! With the tolerance tau per bond, the squared errors add up to at most (2(m-1) + 1) tau^2 ||y||^2 (an inner bond of the
+      //! half is two bonds of y), so tau = rankTolerance / sqrt(d-1) with d = 2m, the per-bond tolerance of PITTS::normalize
+      //! for y, gives ||y - y'||_F <= rankTolerance ||y||_F.
       //!
       //! @param G              left-orthonormal half (m cores, open last rank r), overwritten by the left-orthonormal G'
       //! @param S              symmetric r x r matrix, overwritten by the diagonal S' (eigenvalues sorted by decreasing |lambda|)
