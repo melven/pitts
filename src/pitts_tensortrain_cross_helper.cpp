@@ -38,7 +38,7 @@ template void PITTS::internal::tt_cross::initialRightFrame<float>(const std::vec
 template std::vector<int> PITTS::internal::tt_cross::dominantRows<double>(const Tensor3<double>& B, double absoluteTolerance, int nRows, double maxvolTolerance);
 template std::vector<int> PITTS::internal::tt_cross::dominantColumns<double>(const Tensor3<double>& B, double absoluteTolerance, int nColumns, double maxvolTolerance);
 template std::vector<NestedIndices> PITTS::internal::tt_cross::rightIndexSetsFromFrame<double>(const TensorTrain<double>& TT, double maxvolTolerance, double oversampling, const std::vector<int>& maxIndices, optional_cref<Tensor2<double>> boundary);
-template std::vector<NestedIndices> PITTS::internal::tt_cross::leftIndexSetsFromFrame<double>(const TensorTrain<double>& TT, double maxvolTolerance, double oversampling, const std::vector<int>& maxIndices);
+template std::vector<NestedIndices> PITTS::internal::tt_cross::leftIndexSetsFromFrame<double>(const TensorTrain<double>& TT, double maxvolTolerance, double oversampling, const std::vector<int>& maxIndices, bool openLastBond);
 template std::vector<int> PITTS::internal::tt_cross::selectLeftRows<double>(const Tensor2<double>& leftInterface, const Tensor3<double>& U, double maxvolTolerance, double oversampling, int maxRows);
 template Tensor2<double> PITTS::internal::tt_cross::solveLeftInterfaceSymmetric<double>(const Tensor2<double>& L, const ConstTensor2View<double>& M, int n);
 template TensorTrain<double> PITTS::internal::tt_cross::directSum<double>(const std::vector<std::reference_wrapper<const TensorTrain<double>>>& TTs, bool openLastBond);
@@ -46,7 +46,7 @@ template void PITTS::internal::tt_cross::initialHalfFrame<double>(const std::vec
 template std::vector<int> PITTS::internal::tt_cross::dominantRows<float>(const Tensor3<float>& B, float absoluteTolerance, int nRows, float maxvolTolerance);
 template std::vector<int> PITTS::internal::tt_cross::dominantColumns<float>(const Tensor3<float>& B, float absoluteTolerance, int nColumns, float maxvolTolerance);
 template std::vector<NestedIndices> PITTS::internal::tt_cross::rightIndexSetsFromFrame<float>(const TensorTrain<float>& TT, float maxvolTolerance, float oversampling, const std::vector<int>& maxIndices, optional_cref<Tensor2<float>> boundary);
-template std::vector<NestedIndices> PITTS::internal::tt_cross::leftIndexSetsFromFrame<float>(const TensorTrain<float>& TT, float maxvolTolerance, float oversampling, const std::vector<int>& maxIndices);
+template std::vector<NestedIndices> PITTS::internal::tt_cross::leftIndexSetsFromFrame<float>(const TensorTrain<float>& TT, float maxvolTolerance, float oversampling, const std::vector<int>& maxIndices, bool openLastBond);
 template std::vector<int> PITTS::internal::tt_cross::selectLeftRows<float>(const Tensor2<float>& leftInterface, const Tensor3<float>& U, float maxvolTolerance, float oversampling, int maxRows);
 template Tensor2<float> PITTS::internal::tt_cross::solveLeftInterfaceSymmetric<float>(const Tensor2<float>& L, const ConstTensor2View<float>& M, int n);
 template TensorTrain<float> PITTS::internal::tt_cross::directSum<float>(const std::vector<std::reference_wrapper<const TensorTrain<float>>>& TTs, bool openLastBond);

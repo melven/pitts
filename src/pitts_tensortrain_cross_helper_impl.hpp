@@ -234,7 +234,7 @@ namespace PITTS
         Tensor3<T> M;
         normalize_contract1(leftInterface, U, M);
         const int r = U.r2();
-        const int nRows = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows));
+        const int nRows = std::max(r, std::min({r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxRows, int(M.r1()*M.n())}));
         return maxvol<T>(unfold_left(M), maxvolTolerance, maxvolIterations(r), nullptr, nRows);
       }
 
@@ -541,7 +541,7 @@ namespace PITTS
           const Tensor3<T>& XR = Rx.right()->get();
           const int r = XR.r1();
           const int maxColumns = maxIndices.empty() ? std::numeric_limits<int>::max() : maxIndices[k-1];
-          const int nColumns = std::max(r, std::min(r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxColumns));
+          const int nColumns = std::max(r, std::min({r + static_cast<int>(std::ceil(std::real(oversampling) * r)), maxColumns, int(XR.n()*XR.r2())}));
           J[k] = rightIndicesFromColumns(maxvolColumns<T>(unfold_right(XR), maxvolTolerance, nullptr, nColumns), dims[k]);
         }
         return J;
@@ -551,13 +551,13 @@ namespace PITTS
       // implement leftIndexSetsFromFrame
       template<typename T>
       std::vector<NestedIndices> leftIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling,
-                                                        const std::vector<int>& maxIndices)
+                                                        const std::vector<int>& maxIndices, bool openLastBond)
       {
         const auto timer = PITTS::timing::createScopedTimer<TensorTrain<T>>();
 
         const std::vector<int>& dims = TT.dimensions();
         const int nDim = dims.size();
-        const int nSets = TT.subTensor(nDim-1).r2() > 1 ? nDim : nDim-1;
+        const int nSets = openLastBond ? nDim : nDim-1;
         if( !maxIndices.empty() && std::ssize(maxIndices) != nSets )
           throw std::invalid_argument("leftIndexSetsFromFrame: maxIndices needs one entry per set!");
 

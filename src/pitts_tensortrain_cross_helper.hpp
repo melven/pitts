@@ -1030,7 +1030,7 @@ namespace PITTS
       //!
       //! U is a left-orthonormal core (r1 x n x r) and L the interface L_{k-1} (q x r1) of the left part it is appended to,
       //! so M (q n x r) are the values of the new left part on I_{k-1} x S_k; selects r + ceil(oversampling r) rows (at
-      //! most maxRows, at least r). M has full column rank if L has (U is orthonormal), which maxvol needs.
+      //! most maxRows and q n, at least r). M has full column rank if L has (U is orthonormal), which maxvol needs.
       //!
       //! @param leftInterface      L_{k-1} (q x r1), the 1x1 identity at the left boundary
       //! @param U                  left-orthonormal core (r1 x n x r)
@@ -1199,7 +1199,7 @@ namespace PITTS
       //! Right index sets from a maxvol sweep over the right-orthonormal cores 1..d-1 of a tensor train
       //!
       //! Right-to-left: XR_k = X_k * R_{k+1}, J_k = maxvol columns of unfold_right(XR_k) (oversampled: at least the
-      //! rank r_{k-1}, r_{k-1} + ceil(oversampling r_{k-1}) if within maxIndices[k-1]), R_k = the selected columns.
+      //! rank r_{k-1}, r_{k-1} + ceil(oversampling r_{k-1}) if within maxIndices[k-1] and the number of columns), R_k = the selected columns.
       //! With right-orthonormal cores, XR_k keeps full row rank as long as R_{k+1} is a nonsingular (maxvol) submatrix,
       //! so all interfaces have full rank (the QR step of Oseledets/Tyrtyshnikov 2010, reference [1] in
       //! pitts_tensortrain_cross.hpp). Core 0 is not used. No function evaluations are needed.
@@ -1223,18 +1223,19 @@ namespace PITTS
       //! Left index sets from a maxvol sweep over the left-orthonormal cores of a tensor train (mirror image of rightIndexSetsFromFrame)
       //!
       //! Left-to-right: LX_k = L_{k-1} X_k, I_k = selectLeftRows(L_{k-1}, X_k) (oversampled: at least r_k), L_k = the
-      //! selected rows. For a tensor train with r_d = 1 the sets I_0..I_{d-2} are computed (I[d-1] stays empty), for a
-      //! half with an open right bond (r_d > 1) also I_{d-1}, the set of the middle bond of the symmetric tensor.
+      //! selected rows. The sets I_0..I_{d-2} are computed (I[d-1] stays empty), for a half (openLastBond) also I_{d-1},
+      //! the set of the middle bond of the symmetric tensor.
       //!
       //! @param TT               tensor train with left-orthonormal cores
       //! @param maxvolTolerance  dominance tolerance for maxvol
       //! @param oversampling     relative number of additional rows
       //! @param maxIndices       maximal size of the sets per bond (one entry per computed set; empty: no limit)
+      //! @param openLastBond     TT is a half: also compute the set at its open right bond
       //! @return                 left index sets I[k] (d entries)
       //!
       template<typename T>
       std::vector<NestedIndices> leftIndexSetsFromFrame(const TensorTrain<T>& TT, T maxvolTolerance, T oversampling = T(0),
-                                                        const std::vector<int>& maxIndices = {});
+                                                        const std::vector<int>& maxIndices = {}, bool openLastBond = false);
     }
   }
 }

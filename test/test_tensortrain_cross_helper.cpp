@@ -2087,7 +2087,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, leftIndexSetsFromFrame_and
   EXPECT_EQ(std::vector<int>({2, 4, 3}), ranks);
 
   // left sets of the half including the middle bond: sizes = ranks, full-rank interfaces
-  const std::vector<NestedIndices> I = leftIndexSetsFromFrame(G, maxvolTol);
+  const std::vector<NestedIndices> I = leftIndexSetsFromFrame(G, maxvolTol, Type(0), {}, true);
   ASSERT_EQ(m, I.size());
   const auto L = leftInterfaces(G, I, m);
   for(int k = 0; k < m; k++)
@@ -2096,12 +2096,16 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, leftIndexSetsFromFrame_and
     EXPECT_GT(relativeSmallestSingularValue(L[k]), Type(1.e-3));
   }
   // oversampled and limited sets
-  const std::vector<NestedIndices> Iover = leftIndexSetsFromFrame(G, maxvolTol, Type(1), {3, 6, 5});
+  const std::vector<NestedIndices> Iover = leftIndexSetsFromFrame(G, maxvolTol, Type(1), {3, 6, 5}, true);
   EXPECT_EQ(3, Iover[0].size());
   EXPECT_EQ(6, Iover[1].size());
   EXPECT_EQ(5, Iover[2].size());
-  EXPECT_THROW(leftIndexSetsFromFrame(G, maxvolTol, Type(1), {3, 6}), std::invalid_argument);
-  // a tensor train with r_d = 1: no set at the last bond
+  EXPECT_THROW(leftIndexSetsFromFrame(G, maxvolTol, Type(1), {3, 6}, true), std::invalid_argument);
+  // a half with open rank 1 still gets its middle set
+  TensorTrain G1 = randomHalf<Type>(halfDims, {2, 3, 1});
+  leftNormalize(G1, Type(0));
+  EXPECT_EQ(1, leftIndexSetsFromFrame(G1, maxvolTol, Type(0), {}, true)[2].size());
+  // a tensor train: no set at the last bond
   TensorTrain T1 = randomHalf<Type>(halfDims, {2, 3, 1});
   leftNormalize(T1, Type(0));
   const std::vector<NestedIndices> I1 = leftIndexSetsFromFrame(T1, maxvolTol);
