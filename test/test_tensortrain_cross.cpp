@@ -268,6 +268,23 @@ TYPED_TEST(PITTS_TensorTrain_cross, maxRank_limits_ranks_and_index_sets)
         EXPECT_LE(info.rightIndices[k+1].rows(), maxIndices);
       }
     }
+
+  // a small bond also limits its neighbors, the ranks and the oversampled index sets (only by the dimensions here):
+  // bond 1 of dims (6, 6, 2) allows rank n_2 = 2, so the oversampled limit 2 + ceil(0.5*2) = 3 is reduced to 2
+  const std::vector<int> dims2 = {6, 6, 2};
+  const TensorTrain TTx2 = positiveRandomTT<Type>(dims2, {3, 2}, 12);
+  for(int nMALS: {1, 2})
+  {
+    PITTS::TTCrossOptions<Type> options2;
+    options2.nMALS = nMALS;
+    options2.oversampling = Type(0.5);
+    options2.nSweeps = 3;
+    TensorTrain TTy2(dims2);
+    const auto info = applyElementwise([](Type v){return Type(1)/(Type(1)+v);}, TTx2, TTy2, options2);
+    EXPECT_LE(TTy2.getTTranks()[1], 2);
+    EXPECT_LE(info.leftIndices[1].rows(), 2);
+    EXPECT_LE(info.leftIndices[0].rows(), 6);
+  }
 }
 
 TYPED_TEST(PITTS_TensorTrain_cross, rankTolerance_bounds_the_error)
