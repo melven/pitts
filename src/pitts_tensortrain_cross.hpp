@@ -153,9 +153,6 @@ namespace PITTS
     //!
     int maxRank = std::numeric_limits<int>::max();
 
-    //! maximal TT rank per bond (d-1 entries, bond k between cores k and k+1); if given, it replaces maxRank (see there)
-    std::vector<int> maxRanks = {};
-
     //! maximal number of full sweeps (left-to-right + right-to-left)
     int nSweeps = 10;
 
@@ -177,9 +174,9 @@ namespace PITTS
     //! number of error directions appended to each core per step (nMALS = 1 only, <= errorRank)
     int enrichmentRank = 2;
 
-    //! initial index sets of the error approximation z: true = random right-nested sets (as in amen_cross),
-    //! false = the maxvol sets of a rank-errorRank frame of the inputs (nMALS = 1 only)
-    bool randomErrorIndexSets = true;
+    //! initial index sets of the error approximation z: false = the maxvol sets of a rank-errorRank frame of the
+    //! inputs (deterministic), true = random right-nested sets (as in amen_cross) (nMALS = 1 only)
+    bool randomErrorIndexSets = false;
 
     //! tolerance for the dominance criterion of the maxvol row/column selection (see internal::maxvol)
     T maxvolTolerance = T(0.05);
