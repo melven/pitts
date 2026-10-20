@@ -59,8 +59,6 @@ target_sources(pitts INTERFACE
   pitts_tensortrain_random_impl.hpp
   pitts_tensortrain_normalize.hpp
   pitts_tensortrain_normalize_impl.hpp
-  pitts_tensortrain_reverse.hpp
-  pitts_tensortrain_reverse_impl.hpp
   pitts_tensortrain_axpby_normalized.hpp
   pitts_tensortrain_axpby_normalized_impl.hpp
   pitts_tensortrain_axpby_plain.hpp
@@ -217,7 +215,6 @@ if(PITTS_DEVELOP_BUILD)
     pitts_tensortrain_laplace_operator.cpp
     pitts_tensortrain_normalize.cpp
     pitts_tensortrain_random.cpp
-    pitts_tensortrain_reverse.cpp
     pitts_tensortrain_to_dense.cpp
     pitts_tensortrain_operator.cpp
     pitts_tensortrain_operator_apply.cpp
