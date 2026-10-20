@@ -63,6 +63,7 @@
 #include "pitts_tensor3_combine.hpp"
 #include "pitts_tensor3_fold.hpp"
 #include "pitts_tensor3_unfold.hpp"
+#include "pitts_tensor2_eigen_adaptor.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_axpby_normalized.hpp"
 #include "pitts_tensortrain_norm.hpp"
@@ -815,9 +816,7 @@ namespace PITTS
             L.update(m-1, m);
             const Tensor2<T> left = interfaceLeft(L.left()->get(), I[m-1]);
             R.resize(left.r2(), left.r1());
-            for(int a = 0; a < left.r1(); a++)
-              for(int j = 0; j < left.r2(); j++)
-                R(j, a) = left(a, j);
+            EigenMap(R) = ConstEigenMap(left).transpose();   // transpose, not adjoint: x = H H^T (symmetric)
             L.invalidate(m-1);
           }
 
