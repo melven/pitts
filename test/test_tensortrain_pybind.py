@@ -291,6 +291,16 @@ class TestTensorTrain(unittest.TestCase):
         with self.assertRaises(ValueError):
             tt.setSubTensor(1, [[[1],[2],[3]]])
 
+    def test_setSubTensor_openLastBond(self):
+        """the last sub-tensor may have another right rank (an open bond, e.g. the half of a symmetric tensor)"""
+        tt = pitts_py.TensorTrain_double([3,2])
+        tt.setTTranks([2])
+        t2_ref = np.arange(2*2*4, dtype=np.float64).reshape([2,2,4])
+        tt.setSubTensor(1, t2_ref)
+        np.testing.assert_array_almost_equal(t2_ref, tt.getSubTensor(1))
+        with self.assertRaises(ValueError):
+            tt.setSubTensor(0, np.ones([1,3,3]))
+
     def test_setGetSubTensor(self):
         tt = pitts_py.TensorTrain_double([3,2,5])
         tt.setTTranks([2,3])
