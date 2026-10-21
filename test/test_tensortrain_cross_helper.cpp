@@ -470,6 +470,8 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, local_block_vs_direct_eval
       ASSERT_EQ(Jk.rows(), B.r2());
       ASSERT_EQ(nMALS == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
 
+      // one assertion per block (assertions are collective MPI operations, one per entry is slow)
+      double maxError = 0;
       for(int a = 0; a < B.r1(); a++)
         for(int b = 0; b < B.r2(); b++)
           for(int j = 0; j < B.n(); j++)
@@ -480,8 +482,9 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, local_block_vs_direct_eval
               multiIndex << Ik.row(a), j % dims[k], j / dims[k], Jk.row(b);
             else
               multiIndex << Ik.row(a), j % dims[k], Jk.row(b);
-            EXPECT_NEAR(evaluate(TT, multiIndex), B(a, j, b), eps);
+            maxError = std::max<double>(maxError, std::abs(evaluate(TT, multiIndex) - B(a, j, b)));
           }
+      EXPECT_LT(maxError, eps);
 
       // right-to-left: the cached contraction of the last core of the block, interface from the left
       Lx.invalidate(0, nDim);
@@ -594,7 +597,8 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inpu
   const auto Iz = randomLeftIndexSets(dims, {1, 2, 2, 2}, gen);
   const auto Jz = randomRightIndexSets(dims, {0, 2, 3, 2, 1}, gen);
 
-  // compare a block with f evaluated directly on the cross (L, modes of the cores k..k+nModes-1, R; no modes: bond block)
+  // compare a block with f evaluated directly on the cross (L, modes of the cores k..k+nModes-1, R; no modes: bond block);
+  // one assertion per block (assertions are collective MPI operations, one per entry is slow)
   long long nEntries = 0;
   const auto checkBlock = [&](const PITTS::Tensor3<Type>& B, const Eigen::MatrixXi& L, int k, int nModes, const Eigen::MatrixXi& R)
   {
@@ -602,6 +606,7 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inpu
     ASSERT_EQ(R.rows(), B.r2());
     ASSERT_EQ(nModes == 0 ? 1 : nModes == 1 ? dims[k] : dims[k]*dims[k+1], B.n());
     nEntries += B.r1()*B.n()*B.r2();
+    double maxError = 0;
     for(int a = 0; a < B.r1(); a++)
       for(int b = 0; b < B.r2(); b++)
         for(int j = 0; j < B.n(); j++)
@@ -614,8 +619,9 @@ TYPED_TEST(PITTS_TensorTrain_cross_helper_interfaces, FunctionOnCrosses_two_inpu
           else
             multiIndex << L.row(a), j, R.row(b);
           const Type ref = f(evaluate(TTa, multiIndex), evaluate(TTb, multiIndex));
-          EXPECT_NEAR(ref, B(a, j, b), eps*(1 + std::abs(ref)));
+          maxError = std::max<double>(maxError, std::abs(ref - B(a, j, b)) / (1 + std::abs(ref)));
         }
+    EXPECT_LT(maxError, eps);
   };
 
   for(int nMALS: {1, 2})
