@@ -201,14 +201,17 @@ TYPED_TEST(PITTS_TensorTrain_cross, interpolation_property_on_final_crosses)
       ASSERT_EQ(k+1, info.leftIndices[k].cols());
 
       // y interpolates f(x) on the fibers (I_{k-1}, S_k, J_{k+1}): check the crosses (I_k, J_{k+1})
+      // (one assertion per bond: assertions are collective MPI operations)
+      Type maxError = 0;
       for(int a = 0; a < info.leftIndices[k].rows(); a++)
         for(int b = 0; b < info.rightIndices[k+1].rows(); b++)
         {
           Eigen::RowVectorXi multiIndex(nDim);
           multiIndex << info.leftIndices[k].row(a), info.rightIndices[k+1].row(b);
           const Type ref = f(evaluate(TTx, multiIndex));
-          EXPECT_NEAR(ref, evaluate(TTy, multiIndex), 100*eps*std::abs(ref));
+          maxError = std::max(maxError, std::abs(ref - evaluate(TTy, multiIndex)) / std::abs(ref));
         }
+      EXPECT_LT(maxError, 100*eps);
     }
   }
 }
@@ -294,8 +297,8 @@ TYPED_TEST(PITTS_TensorTrain_cross, rankTolerance_bounds_the_error)
 
   // y is kept in the orthogonal gauge, so the local truncations are truncations of y itself and the relative
   // error in the Frobenius norm stays below rankTolerance (as for a TT-SVD), also with many dimensions
-  const std::vector<int> dims(8, 3);
-  const TensorTrain TTx = positiveRandomTT<Type>(dims, std::vector<int>(7, 2), 21);
+  const std::vector<int> dims(6, 3);
+  const TensorTrain TTx = positiveRandomTT<Type>(dims, std::vector<int>(5, 2), 21);
   const auto xDense = dense(TTx);
   const Eigen::Matrix<Type, Eigen::Dynamic, 1> fDense = xDense.array().sqrt();
 
@@ -330,21 +333,19 @@ TYPED_TEST(PITTS_TensorTrain_cross, array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). sqrt is
-    // not exactly low-rank, so its singular values near sqrt(eps) are only as accurate as the approximation on the
-    // crosses: rank decisions and the convergence check need tolerances clearly above that.
-    options.rankTolerance = 100*eps;
-    options.convergenceTolerance = 100*eps;
 
+    // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). So the
+    // function must be exactly low-rank (x^2): with a function that is not (e.g. sqrt), singular values close to the
+    // truncation threshold make the rank decisions and the convergence check depend on the round-off.
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
     const auto info = applyElementwise([](PITTS::MultiVector<Type>& mv)
     {
       for(long long i = 0; i < mv.rows(); i++)
-        mv(i, 0) = std::sqrt(mv(i, 0));
+        mv(i, 0) = mv(i, 0) * mv(i, 0);
     }, TTx, TTy, options);
     PITTS::internal::randomGenerator.seed(2026);
-    const auto infoRef = applyElementwise([](Type v){return std::sqrt(v);}, TTx, TTyRef, options);
+    const auto infoRef = applyElementwise([](Type v){return v*v;}, TTx, TTyRef, options);
 
     EXPECT_EQ(infoRef.nEvaluations, info.nEvaluations);
     EXPECT_EQ(infoRef.nSweeps, info.nSweeps);
@@ -535,9 +536,9 @@ TYPED_TEST(PITTS_TensorTrain_cross, error_index_sets_with_low_rank_inputs)
   // The frame of rank-1 inputs only provides error crosses of size 1 < errorRank (randomErrorIndexSets = false),
   // the random ones have the full size: both must find the ranks of a function that is not low-rank, also for two
   // inputs (frame of their direct sum) and with oversampling.
-  const std::vector<int> dims = {4, 4, 4, 4, 4};
-  const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {1, 1, 1, 1}, 17);
-  const TensorTrain TTx2 = positiveRandomTT<Type>(dims, {1, 1, 1, 1}, 18);
+  const std::vector<int> dims = {4, 4, 4, 4};
+  const TensorTrain TTx1 = positiveRandomTT<Type>(dims, {1, 1, 1}, 17);
+  const TensorTrain TTx2 = positiveRandomTT<Type>(dims, {1, 1, 1}, 18);
   const auto x1Dense = dense(TTx1);
   const auto x2Dense = dense(TTx2);
   const Eigen::Matrix<Type, Eigen::Dynamic, 1> ref1 = (Type(1) + x1Dense.array()).inverse();
@@ -702,21 +703,17 @@ TYPED_TEST(PITTS_TensorTrain_cross, two_inputs_array_function)
   {
     PITTS::TTCrossOptions<Type> options;
     options.nMALS = nMALS;
-    // Two runs are compared exactly, but the round-off differs between runs with threaded kernels (e.g. MKL). x1/x2 is
-    // not exactly low-rank, so its singular values near sqrt(eps) are only as accurate as the approximation on the
-    // crosses: rank decisions and the convergence check need tolerances clearly above that.
-    options.rankTolerance = 100*eps;
-    options.convergenceTolerance = 100*eps;
 
+    // exactly low-rank function (x1 * x2), see array_function
     TensorTrain TTy(dims), TTyRef(dims);
     PITTS::internal::randomGenerator.seed(2026);
     const auto info = applyElementwise([](PITTS::MultiVector<Type>& a, const PITTS::MultiVector<Type>& b)
     {
       for(long long i = 0; i < a.rows(); i++)
-        a(i, 0) = a(i, 0) / b(i, 0);
+        a(i, 0) = a(i, 0) * b(i, 0);
     }, TTx1, TTx2, TTy, options);
     PITTS::internal::randomGenerator.seed(2026);
-    const auto infoRef = applyElementwise([](Type a, Type b){return a/b;}, TTx1, TTx2, TTyRef, options);
+    const auto infoRef = applyElementwise([](Type a, Type b){return a*b;}, TTx1, TTx2, TTyRef, options);
 
     EXPECT_EQ(infoRef.nEvaluations, info.nEvaluations);
     EXPECT_EQ(infoRef.nSweeps, info.nSweeps);

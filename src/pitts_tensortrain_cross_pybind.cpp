@@ -16,12 +16,15 @@
 #include <pybind11/stl.h>
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 #include "pitts_multivector.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_cross.hpp"
+#include "pitts_tensortrain_cross_helper.hpp"
 #include "pitts_tensortrain_cross_pybind.hpp"
 
 namespace py = pybind11;
@@ -117,9 +120,20 @@ namespace PITTS
         }(std::index_sequence_for<Inputs...>{});
       }
 
+      //! wrapper for internal::tt_cross::symmetricRound: G is rounded in-place, returns the new weights
+      template<typename T>
+      py::array_t<T> TensorTrain_symmetricRound(TensorTrain<T>& G, std::vector<T> lambda, T rankTolerance, int maxRank)
+      {
+        {
+          const py::gil_scoped_release releaseGil;
+          internal::tt_cross::symmetricRound(G, lambda, rankTolerance, maxRank);
+        }
+        return py::array_t<T>(lambda.size(), lambda.data());
+      }
+
       //! provide the TT-cross functions for one data type
       template<typename T>
-      void init_TensorTrain_cross_helper(py::module& m)
+      void init_TensorTrain_cross_helper(py::module& m, py::module& internalModule)
       {
         defineApplyElementwise<false, T, TensorTrain<T>>(m, {"TTx"},
             "Calculate TTy ~ f(TTx) element-wise using the TT-cross approximation\n\n"
@@ -144,14 +158,28 @@ namespace PITTS
         defineApplyElementwise<true, T, TensorTrain<T>, TensorTrain<T>>(m, {"TTx1", "TTx2"},
             "Calculate y ~ f(x1, x2) element-wise for symmetric x1 = TTx1 TTx1^T, x2 = TTx2 TTx2^T, y = TTy TTy^T (e.g. numpy.multiply)\n\n"
             "f is called as in applyElementwise(f, TTx1, TTx2, TTy); otherwise as applyElementwiseSymmetric(f, TTx, TTy).");
+
+        internalModule.def("symmetricRound", &TensorTrain_symmetricRound<T>,
+            py::arg("G"), py::arg("lambda_"), py::arg("rankTolerance"), py::arg("maxRank") = std::numeric_limits<int>::max(),
+            "TT-rounding of a symmetric positive semidefinite y = G diag(lambda) G^T given by the half G and the weights lambda\n\n"
+            "G is a left half (open right rank, see applyElementwiseSymmetric) with left-orthonormal sub-tensors, including the\n"
+            "last one with the open rank (not checked), and lambda >= 0 has one entry per column of the open rank. G is replaced\n"
+            "by the rounded left-orthonormal half and the new weights (decreasing, > 0, or a single 0) are returned.\n"
+            "Truncation in the orthogonal gauge: inner ranks of G diag(lambda) from left to right, the projection P y P onto the\n"
+            "span of the new half, and its positive part at the middle rank; ||y - y_new||_F <= rankTolerance ||y||_F (each inner\n"
+            "rank counts twice, the tolerance per rank of y is rankTolerance / sqrt(2m-1) for m sub-tensors of G). maxRank limits\n"
+            "all ranks (even if this violates rankTolerance).\n"
+            "From a half H (y = H H^T): left-orthonormalize all sub-tensors but the last, SVD of the last one, U S V^T: G with\n"
+            "the last sub-tensor U, lambda = S^2; the rounded half is G diag(sqrt(lambda)).");
       }
     }
 
     // create pybind11-wrapper for PITTS::applyElementwise (TT-cross)
     void init_TensorTrain_cross(py::module& m)
     {
-      init_TensorTrain_cross_helper<float>(m);
-      init_TensorTrain_cross_helper<double>(m);
+      py::module internalModule = m.def_submodule("internal", "internal helper functions (no stable interface)");
+      init_TensorTrain_cross_helper<float>(m, internalModule);
+      init_TensorTrain_cross_helper<double>(m, internalModule);
     }
   }
 }
