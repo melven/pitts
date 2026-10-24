@@ -61,8 +61,8 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 | `pitts_chunk.hpp` | `Chunk<T>`: fixed-size aligned SIMD block (the basic storage unit of all tensors). |
 | `pitts_chunk_ops.hpp` | Dispatch header for chunk operations (fma, mul, bcast, ...) selecting the best implementation. |
 | `pitts_chunk_ops_plain.hpp`, `pitts_chunk_ops_avx2.hpp`, `pitts_chunk_ops_avx512.hpp` | Scalar / AVX2 / AVX-512 implementations of the chunk operations. |
-| `pitts_tensor2.hpp`, `_impl.hpp` | `Tensor2<T>`: small dense matrix (chunked, column-major). Also `ConstTensor2View`/`Tensor2View`. |
-| `pitts_tensor3.hpp`, `_impl.hpp` | `Tensor3<T>`: rank-3 tensor (r1 x n x r2), the TT core type. |
+| `pitts_tensor2.hpp`, `_impl.hpp` | `Tensor2<T>`: small dense matrix (chunked, column-major). Also `ConstTensor2View`/`Tensor2View`; `internal::copyTo/copyFrom` (parallel copy to/from an array-like object b(i, j), e.g. a numpy array in the bindings). |
+| `pitts_tensor3.hpp`, `_impl.hpp` | `Tensor3<T>`: rank-3 tensor (r1 x n x r2), the TT core type; `internal::copyTo/copyFrom` (parallel copy to/from an array-like object b(i1, j, i2), e.g. a numpy array in the bindings). |
 | `pitts_multivector.hpp`, `_impl.hpp` | `MultiVector<T>`: tall-skinny matrix (many rows, few columns), chunked and padded. |
 | `pitts_tensortrain.hpp`, `_impl.hpp` | `TensorTrain<T>`: list of `Tensor3` cores + dimensions, TT ranks, orthogonality flag; `copy`, `setZero/setOnes/setUnit`, sub-tensor access. |
 | `pitts_tensortrain_operator.hpp`, `_impl.hpp` | `TensorTrainOperator<T>`: linear operator in TT format (row/column dims per core), `setEye`, sub-tensor access. |
@@ -172,6 +172,8 @@ There is no `.clang-format` on purpose (existing code would change massively). F
 
 ## Bindings
 
+Arrays are copied with `internal::copyTo/copyFrom` of `Tensor2`/`Tensor3` on pybind11's `(mutable_)unchecked` proxies (any memory layout, OpenMP, without the GIL); returned arrays are in Fortran order (the memory layout of `Tensor2`/`Tensor3`). No views on C++ data are returned (their lifetime cannot be tracked).
+
 **Release the GIL for everything that takes noticeable time** (`py::call_guard<py::gil_scoped_release>()` as
 the last argument of `m.def`): a C++ call holding the GIL blocks all python threads, and in jupyter that
 deadlocks the kernel as soon as the C++ code writes more than the pipe buffer (64 KiB) to `std::cout`
@@ -186,7 +188,7 @@ around the calculation only. A python callback needs `py::gil_scoped_acquire` (s
 | `pitts_pybind.cpp` | Defines module `pitts_py`; pulls in `*_pybind.cpp` for QubitSimulator, TensorTrain, TensorTrainOperator, solvers, MultiVector, common. Python class names carry the type suffix, e.g. `TensorTrain_double`, `MultiVector_float`. |
 | `pitts_common_pybind.*` | `initialize`, `finalize`, performance/timing statistics. |
 | `pitts_multivector_pybind.*` | MultiVector with numpy buffer protocol, `randomize`, `cdist2`, ... |
-| `pitts_tensortrain_pybind.*` | TensorTrain: from/to dense, axpby, dot, norm, normalize, gramSchmidt, sub-tensors (open boundary bonds as in C++). |
+| `pitts_tensortrain_pybind.*` | TensorTrain: from/to dense, axpby, dot, norm, normalize, gramSchmidt, sub-tensors (open boundary bonds as in C++; returned in Fortran order, the memory layout of `Tensor3`). |
 | `pitts_tensortrain_operator_pybind.*` | TensorTrainOperator: apply, applyT, axpby, toDense, toQtt, ... |
 | `pitts_tensortrain_solve_pybind.*` | `solveGMRES`, `solveMALS` and their option enums. |
 | `pitts_tensortrain_cross_pybind.*` | `applyElementwise` (TT-cross) with one input `(f, TTx, TTy)` or two inputs `(f, TTx1, TTx2, TTy)`: the python function gets 1d numpy arrays viewing a block of tensor entries (one per input) and returns an array of the same size (or modifies its first argument in-place and returns None); the TT-cross options are keyword arguments (defined once for all variants). `applyElementwiseSymmetric` with one or two inputs: the same for symmetric tensors given by their halves (positive semidefinite result as a half). Releases the GIL around the algorithm. Submodule `internal`: `symmetricRound` (TT-rounding of G diag(lambda) G^T, G rounded in-place, returns the new weights). |
