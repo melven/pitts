@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 /*! @file pitts_tensortrain_cross_pybind.cpp
-* @brief python binding for the TT-cross approximation (element-wise functions)
+* @brief python binding for the TT-cross approximation (element-wise functions, also of symmetric tensors)
 * @author Claude Code (Anthropic AI model), prompted by Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 * @date 2026-09-12
 *
@@ -16,12 +16,15 @@
 #include <pybind11/stl.h>
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 #include "pitts_multivector.hpp"
 #include "pitts_tensortrain.hpp"
 #include "pitts_tensortrain_cross.hpp"
+#include "pitts_tensortrain_cross_helper.hpp"
 #include "pitts_tensortrain_cross_pybind.hpp"
 
 namespace py = pybind11;
@@ -66,10 +69,11 @@ namespace PITTS
         std::copy_n(resultEntries.data(), mv.rows(), &mv(0, 0));
       }
 
-      //! wrapper for PITTS::applyElementwise with one or more input tensors (Inputs = TensorTrain<T>...) and the options as individual arguments
-      template<typename T, typename... Inputs>
+      //! wrapper for PITTS::applyElementwise (or applyElementwiseSymmetric) with one or more input tensors (Inputs = TensorTrain<T>...)
+      //! and the options as individual arguments
+      template<bool symmetric, typename T, typename... Inputs>
       void TensorTrain_applyElementwise(const py::object& f, const Inputs&... TTx, TensorTrain<T>& TTy,
-                                        T rankTolerance, int maxRank, const std::vector<int>& maxRanks, int nSweeps, T convergenceTolerance,
+                                        T rankTolerance, int maxRank, int nSweeps, T convergenceTolerance,
                                         int nMALS, int errorRank, int enrichmentRank, bool randomErrorIndexSets,
                                         T maxvolTolerance, T oversampling, int controlSampleSize, bool verbose)
       {
@@ -82,29 +86,30 @@ namespace PITTS
         {
           applyPythonFunction<T>(f, mv, others...);
         };
-        applyElementwise(pythonFunction, TTx..., TTy,
-                         TTCrossOptions<T>{.rankTolerance = rankTolerance, .maxRank = maxRank, .maxRanks = maxRanks,
-                                           .nSweeps = nSweeps,
-                                           .convergenceTolerance = convergenceTolerance, .nMALS = nMALS,
-                                           .errorRank = errorRank, .enrichmentRank = enrichmentRank,
-                                           .randomErrorIndexSets = randomErrorIndexSets,
-                                           .maxvolTolerance = maxvolTolerance, .oversampling = oversampling,
-                                           .controlSampleSize = controlSampleSize, .verbose = verbose});
+        const TTCrossOptions<T> options{.rankTolerance = rankTolerance, .maxRank = maxRank, .nSweeps = nSweeps,
+                                        .convergenceTolerance = convergenceTolerance, .nMALS = nMALS,
+                                        .errorRank = errorRank, .enrichmentRank = enrichmentRank,
+                                        .randomErrorIndexSets = randomErrorIndexSets,
+                                        .maxvolTolerance = maxvolTolerance, .oversampling = oversampling,
+                                        .controlSampleSize = controlSampleSize, .verbose = verbose};
+        if constexpr( symmetric )
+          applyElementwiseSymmetric(pythonFunction, TTx..., TTy, options);
+        else
+          applyElementwise(pythonFunction, TTx..., TTy, options);
       }
 
-      //! define applyElementwise for one data type and the given input tensors (Inputs = TensorTrain<T>..., with their argument names)
-      template<typename T, typename... Inputs>
+      //! define applyElementwise or applyElementwiseSymmetric for one data type and the given input tensors (Inputs = TensorTrain<T>..., with their argument names)
+      template<bool symmetric, typename T, typename... Inputs>
       void defineApplyElementwise(py::module& m, const std::array<const char*, sizeof...(Inputs)>& inputNames, const char* doc)
       {
         const TTCrossOptions<T> defaults;
 
         [&]<std::size_t... i>(std::index_sequence<i...>)
         {
-          m.def("applyElementwise",
-            &TensorTrain_applyElementwise<T, Inputs...>,
+          m.def(symmetric ? "applyElementwiseSymmetric" : "applyElementwise",
+            &TensorTrain_applyElementwise<symmetric, T, Inputs...>,
             py::arg("f"), py::arg(inputNames[i])..., py::arg("TTy"),
             py::arg("rankTolerance") = defaults.rankTolerance, py::arg("maxRank") = defaults.maxRank,
-            py::arg("maxRanks") = defaults.maxRanks,
             py::arg("nSweeps") = defaults.nSweeps, py::arg("convergenceTolerance") = defaults.convergenceTolerance,
             py::arg("nMALS") = defaults.nMALS, py::arg("errorRank") = defaults.errorRank,
             py::arg("enrichmentRank") = defaults.enrichmentRank,
@@ -115,30 +120,66 @@ namespace PITTS
         }(std::index_sequence_for<Inputs...>{});
       }
 
+      //! wrapper for internal::tt_cross::symmetricRound: G is rounded in-place, returns the new weights
+      template<typename T>
+      py::array_t<T> TensorTrain_symmetricRound(TensorTrain<T>& G, std::vector<T> lambda, T rankTolerance, int maxRank)
+      {
+        {
+          const py::gil_scoped_release releaseGil;
+          internal::tt_cross::symmetricRound(G, lambda, rankTolerance, maxRank);
+        }
+        return py::array_t<T>(lambda.size(), lambda.data());
+      }
+
       //! provide the TT-cross functions for one data type
       template<typename T>
-      void init_TensorTrain_cross_helper(py::module& m)
+      void init_TensorTrain_cross_helper(py::module& m, py::module& internalModule)
       {
-        defineApplyElementwise<T, TensorTrain<T>>(m, {"TTx"},
+        defineApplyElementwise<false, T, TensorTrain<T>>(m, {"TTx"},
             "Calculate TTy ~ f(TTx) element-wise using the TT-cross approximation\n\n"
             "f is called with a 1d numpy array of tensor entries (a small part of the tensor) and must return\n"
             "an array of the same size, or None if it modified its argument in-place. So f must be a\n"
             "vectorized function (e.g. numpy.sqrt or numpy.vectorize(myScalarFunction)); it is called several\n"
             "times per sweep and dimension. The array only views internal data: do not keep a reference to it.");
 
-        defineApplyElementwise<T, TensorTrain<T>, TensorTrain<T>>(m, {"TTx1", "TTx2"},
+        defineApplyElementwise<false, T, TensorTrain<T>, TensorTrain<T>>(m, {"TTx1", "TTx2"},
             "Calculate TTy ~ f(TTx1, TTx2) element-wise using the TT-cross approximation, e.g. the element-wise product\n\n"
             "f is called with two 1d numpy arrays of corresponding entries of TTx1 and TTx2 and must return an\n"
             "array of the same size (e.g. numpy.multiply), or None if it stored the result in its first argument.\n"
             "It must not modify the second argument. Otherwise as applyElementwise(f, TTx, TTy).");
+
+        defineApplyElementwise<true, T, TensorTrain<T>>(m, {"TTx"},
+            "Calculate y ~ f(x) element-wise for a symmetric x = TTx TTx^T and a positive semidefinite result y = TTy TTy^T\n\n"
+            "TTx and TTy are left halves: tensor trains with half of the dimensions whose last sub-tensor has an open right\n"
+            "rank (set it with setSubTensor), x(i_0..i_{2m-1}) = TTx(i_0..i_{m-1},:) . TTx(i_{2m-1}..i_m,:), e.g. a Gram matrix.\n"
+            "f must be positive semidefinite on x (e.g. numpy.exp of a Gram matrix); negative eigenvalues are removed.\n"
+            "f is called as in applyElementwise(f, TTx, TTy); the same options (randomErrorIndexSets is not supported).");
+
+        defineApplyElementwise<true, T, TensorTrain<T>, TensorTrain<T>>(m, {"TTx1", "TTx2"},
+            "Calculate y ~ f(x1, x2) element-wise for symmetric x1 = TTx1 TTx1^T, x2 = TTx2 TTx2^T, y = TTy TTy^T (e.g. numpy.multiply)\n\n"
+            "f is called as in applyElementwise(f, TTx1, TTx2, TTy); otherwise as applyElementwiseSymmetric(f, TTx, TTy).");
+
+        internalModule.def("symmetricRound", &TensorTrain_symmetricRound<T>,
+            py::arg("G"), py::arg("lambda_"), py::arg("rankTolerance"), py::arg("maxRank") = std::numeric_limits<int>::max(),
+            "TT-rounding of a symmetric positive semidefinite y = G diag(lambda) G^T given by the half G and the weights lambda\n\n"
+            "G is a left half (open right rank, see applyElementwiseSymmetric) with left-orthonormal sub-tensors, including the\n"
+            "last one with the open rank (not checked), and lambda >= 0 has one entry per column of the open rank. G is replaced\n"
+            "by the rounded left-orthonormal half and the new weights (decreasing, > 0, or a single 0) are returned.\n"
+            "Truncation in the orthogonal gauge: inner ranks of G diag(lambda) from left to right, the projection P y P onto the\n"
+            "span of the new half, and its positive part at the middle rank; ||y - y_new||_F <= rankTolerance ||y||_F (each inner\n"
+            "rank counts twice, the tolerance per rank of y is rankTolerance / sqrt(2m-1) for m sub-tensors of G). maxRank limits\n"
+            "all ranks (even if this violates rankTolerance).\n"
+            "From a half H (y = H H^T): left-orthonormalize all sub-tensors but the last, SVD of the last one, U S V^T: G with\n"
+            "the last sub-tensor U, lambda = S^2; the rounded half is G diag(sqrt(lambda)).");
       }
     }
 
     // create pybind11-wrapper for PITTS::applyElementwise (TT-cross)
     void init_TensorTrain_cross(py::module& m)
     {
-      init_TensorTrain_cross_helper<float>(m);
-      init_TensorTrain_cross_helper<double>(m);
+      py::module internalModule = m.def_submodule("internal", "internal helper functions (no stable interface)");
+      init_TensorTrain_cross_helper<float>(m, internalModule);
+      init_TensorTrain_cross_helper<double>(m, internalModule);
     }
   }
 }

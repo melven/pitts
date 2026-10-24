@@ -82,6 +82,17 @@ matter (numerical kernels, data structures, public API) and prefer readability e
   global operations (TSQR, reductions in dot/norm, gathering in `to_dense`); use
   `internal::parallel::*` helpers rather than raw MPI calls where possible.
 
+## Numerical soundness
+
+Follow the best practices of numerical linear algebra, and check the soundness of an algorithm step by step:
+
+- No explicit inverses: solve with a factorization (QR, Cholesky, LU with pivoting, SVD).
+- No normal equations or Gram matrices where an orthogonal factorization works (they square the
+  condition number).
+- No avoidable cancellation; relative (scale-invariant) tolerances; no decisions on round-off.
+- Consider the conditioning and the stability of every step (which quantities can become
+  ill-conditioned, what bounds the error), and document the argument in the code where it is not obvious.
+
 ## TensorTrain specifics
 
 - `TensorTrain` tracks the orthogonality state of each core (`TT_Orthogonality`).

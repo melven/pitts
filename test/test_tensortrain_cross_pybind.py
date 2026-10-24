@@ -26,6 +26,51 @@ def positive_random_tt(dimensions, ranks, seed, dtype=np.float64):
     return tt
 
 
+def random_half(dimensions, ranks, seed, scale=1.0, dtype=np.float64):
+    """random left half of a symmetric tensor H H^T: ranks[k] is the right rank of core k (the last one is the open bond)"""
+    tt = pitts_py.TensorTrain_double(dimensions) if dtype == np.float64 else pitts_py.TensorTrain_float(dimensions)
+    tt.setTTranks(ranks[:-1])
+    rng = np.random.default_rng(seed)
+    for i in range(len(dimensions)):
+        shape = (1 if i == 0 else ranks[i-1], dimensions[i], ranks[i])
+        tt.setSubTensor(i, (scale*rng.uniform(-1, 1, shape)).astype(dtype))
+    return tt
+
+
+def dense_half(tt):
+    """values of a half as a matrix (one row per multi-index of the half, one column per index of the open bond)"""
+    A = np.ones((1, 1))
+    for i in range(len(tt.dimensions())):
+        core = tt.getSubTensor(i)
+        A = np.einsum('ar,rjs->ajs', A, core).reshape(-1, core.shape[2])
+    return A
+
+
+def half_eigen(tt):
+    """G and lambda of y = tt tt^T = G diag(lambda) G^T: left-orthonormalized sub-tensors, SVD of the last one"""
+    m = len(tt.dimensions())
+    cores = [tt.getSubTensor(k) for k in range(m)]
+    R = np.ones((1, 1), dtype=cores[0].dtype)
+    for k in range(m-1):
+        c = np.einsum('ab,bjc->ajc', R, cores[k])
+        Q, R = np.linalg.qr(c.reshape(-1, c.shape[2]))
+        cores[k] = Q.reshape(c.shape[0], c.shape[1], -1)
+    c = np.einsum('ab,bjc->ajc', R, cores[m-1])
+    U, S, _ = np.linalg.svd(c.reshape(-1, c.shape[2]), full_matrices=False)
+    cores[m-1] = U.reshape(c.shape[0], c.shape[1], -1)
+    G = pitts_py.TensorTrain_double(tt.dimensions()) if cores[0].dtype == np.float64 else pitts_py.TensorTrain_float(tt.dimensions())
+    G.setTTranks([core.shape[2] for core in cores[:-1]])
+    for k in range(m):
+        G.setSubTensor(k, np.ascontiguousarray(cores[k]))
+    return G, S*S
+
+
+def dense_symmetric(tt):
+    """the symmetric tensor H H^T of a half H as a matrix (rows: the first half of the indices, columns: the mirrored second half)"""
+    A = dense_half(tt)
+    return A @ A.T
+
+
 class TestTensorTrainCross(unittest.TestCase):
     """TestCase for pitts_py.applyElementwise"""
 
@@ -83,15 +128,6 @@ class TestTensorTrainCross(unittest.TestCase):
         with self.assertRaises(ValueError):
             pitts_py.applyElementwise(np.reciprocal, tt_x, tt_y, oversampling=-1.0)
 
-    def test_maxRanks(self):
-        """maxRanks limits the rank of each bond individually (and replaces maxRank)"""
-        tt_x = positive_random_tt([3, 4, 3, 2], [2, 2, 2], 13)
-        tt_y = pitts_py.TensorTrain_double([3, 4, 3, 2])
-        pitts_py.applyElementwise(np.sqrt, tt_x, tt_y, maxRank=1, maxRanks=[3, 2, 2])
-        self.assertEqual([3, 2, 2], tt_y.getTTranks())
-        with self.assertRaises(ValueError):
-            pitts_py.applyElementwise(np.sqrt, tt_x, tt_y, maxRanks=[3, 2])
-
     def test_wrong_result_size(self):
         tt_x = positive_random_tt([3, 4, 3], [2, 2], 17)
         tt_y = pitts_py.TensorTrain_double([3, 4, 3])
@@ -136,6 +172,75 @@ class TestTensorTrainCross(unittest.TestCase):
         tt_y = pitts_py.TensorTrain_double([3, 4, 3])
         with self.assertRaises(ValueError):
             pitts_py.applyElementwise(np.multiply, tt_x1, tt_x2, tt_y)
+
+    def test_symmetric_exp(self):
+        """exponential kernel of a Gram matrix x = H H^T (positive semidefinite), result as a half"""
+        tt_x = random_half([3, 4, 3], [2, 3, 3], 47, scale=0.4)
+        tt_y = pitts_py.TensorTrain_double([3, 4, 3])
+        pitts_py.applyElementwiseSymmetric(np.exp, tt_x, tt_y, nSweeps=20)
+        np.testing.assert_allclose(np.exp(dense_symmetric(tt_x)), dense_symmetric(tt_y), rtol=1.e-6)
+        # 2-site variant as keyword argument
+        pitts_py.applyElementwiseSymmetric(np.exp, TTx=tt_x, TTy=tt_y, nMALS=2, nSweeps=20)
+        np.testing.assert_allclose(np.exp(dense_symmetric(tt_x)), dense_symmetric(tt_y), rtol=1.e-6)
+
+    def test_symmetric_float(self):
+        tt_x = random_half([3, 2, 3], [2, 2, 2], 53, scale=0.4, dtype=np.float32)
+        tt_y = pitts_py.TensorTrain_float([3, 2, 3])
+        pitts_py.applyElementwiseSymmetric(np.square, tt_x, tt_y, nSweeps=20)
+        np.testing.assert_allclose(dense_symmetric(tt_x)**2, dense_symmetric(tt_y), rtol=1.e-3, atol=1.e-5)
+
+    def test_symmetric_two_inputs_product(self):
+        """element-wise product of two Gram matrices (positive semidefinite)"""
+        tt_x1 = random_half([3, 2, 3], [2, 3, 2], 59)
+        tt_x2 = random_half([3, 2, 3], [3, 2, 2], 61)
+        tt_y = pitts_py.TensorTrain_double([3, 2, 3])
+        pitts_py.applyElementwiseSymmetric(np.multiply, tt_x1, tt_x2, tt_y, nSweeps=20)
+        np.testing.assert_allclose(dense_symmetric(tt_x1)*dense_symmetric(tt_x2), dense_symmetric(tt_y), rtol=1.e-6, atol=1.e-10)
+
+    def test_symmetric_errors(self):
+        tt_x = random_half([3, 4, 3], [2, 3, 3], 67)
+        tt_y = pitts_py.TensorTrain_double([3, 4, 3])
+        with self.assertRaises(ValueError):
+            pitts_py.applyElementwiseSymmetric(np.exp, tt_x, tt_y, randomErrorIndexSets=True)
+        with self.assertRaises(ValueError):
+            pitts_py.applyElementwiseSymmetric(np.exp, tt_x, pitts_py.TensorTrain_double([3, 4, 2]))
+
+    def test_symmetric_round(self):
+        tt_h = random_half([3, 4, 3], [3, 4, 5], 71)
+        # decaying weights of the open rank, so that a truncation removes some of them
+        tt_h.setSubTensor(2, tt_h.getSubTensor(2) * np.array([1., 0.5, 0.2, 0.05, 0.01]))
+        y = dense_symmetric(tt_h)
+        # without truncation: the same y, G left-orthonormal, decreasing positive weights
+        G, lam = half_eigen(tt_h)
+        lam = pitts_py.internal.symmetricRound(G, lam, 0.)
+        A = dense_half(G)
+        np.testing.assert_allclose(np.eye(A.shape[1]), A.T @ A, atol=1.e-12)
+        self.assertTrue(np.all(lam > 0) and np.all(np.diff(lam) <= 0))
+        np.testing.assert_allclose(y, A @ np.diag(lam) @ A.T, atol=1.e-12*np.linalg.norm(y))
+        # truncation: the error bound and smaller ranks
+        G, lam = half_eigen(tt_h)
+        lam = pitts_py.internal.symmetricRound(G, lam, rankTolerance=0.1)
+        A = dense_half(G)
+        self.assertLessEqual(np.linalg.norm(y - A @ np.diag(lam) @ A.T), 0.1*np.linalg.norm(y))
+        self.assertLess(len(lam), 5)
+        # maxRank (also the open rank), weights as a list
+        G, lam = half_eigen(tt_h)
+        lam = pitts_py.internal.symmetricRound(G, list(lam), 0., maxRank=2)
+        self.assertLessEqual(max(G.getTTranks()), 2)
+        self.assertEqual(2, len(lam))
+        self.assertEqual(2, G.getSubTensor(2).shape[2])
+
+    def test_symmetric_round_float_and_errors(self):
+        tt_h = random_half([3, 2, 3], [2, 3, 3], 73, dtype=np.float32)
+        G, lam = half_eigen(tt_h)
+        lam = pitts_py.internal.symmetricRound(G, lam, 0.)
+        self.assertEqual(np.float32, lam.dtype)
+        A = dense_half(G)
+        np.testing.assert_allclose(dense_symmetric(tt_h), A @ np.diag(lam) @ A.T, rtol=1.e-4, atol=1.e-5)
+        # one weight per column of the open rank
+        with self.assertRaises(ValueError):
+            pitts_py.internal.symmetricRound(G, lam[:-1], 0.)
+
 
 if __name__ == '__main__':
     unittest.main()
