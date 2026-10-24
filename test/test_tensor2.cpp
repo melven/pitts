@@ -188,8 +188,10 @@ TEST(PITTS_Tensor2, ConstView)
 TEST(PITTS_Tensor2, copyTo_copyFrom_strided)
 {
   // row-major in a std::vector as an array-like object, small and large (OpenMP parallel) sizes
-  for(const auto [r1, r2]: {std::array<long long,2>{3, 5}, std::array<long long,2>{300, 500}})
+  for(const auto& dims: {std::array<long long,2>{3, 5}, std::array<long long,2>{300, 500}})
   {
+    // (no structured binding: clang does not support capturing it in a lambda used in an OpenMP region)
+    const long long r1 = dims[0], r2 = dims[1];
     PITTS::Tensor2<double> t2(r1, r2);
     for(long long j = 0; j < r2; j++)
       for(long long i = 0; i < r1; i++)

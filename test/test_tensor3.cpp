@@ -186,8 +186,10 @@ TEST(PITTS_Tensor3, operator_indexing_large)
 TEST(PITTS_Tensor3, copyTo_copyFrom_strided)
 {
   // C order (i2 fastest) in a std::vector as an array-like object, small and large (OpenMP parallel) sizes
-  for(const auto [r1, n, r2]: {std::array<long long,3>{2, 3, 4}, std::array<long long,3>{30, 50, 80}})
+  for(const auto& dims: {std::array<long long,3>{2, 3, 4}, std::array<long long,3>{30, 50, 80}})
   {
+    // (no structured binding: clang does not support capturing it in a lambda used in an OpenMP region)
+    const long long r1 = dims[0], n = dims[1], r2 = dims[2];
     PITTS::Tensor3<double> t3(r1, n, r2);
     for(long long i2 = 0; i2 < r2; i2++)
       for(long long j = 0; j < n; j++)
