@@ -267,7 +267,7 @@ namespace PITTS
            {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
           );
 
-#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 100000)
+#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 100)
       for(long long i2 = 0; i2 < r2; i2++)
         for(long long j = 0; j < n; j++)
           for(long long i1 = 0; i1 < r1; i1++)
@@ -296,7 +296,7 @@ namespace PITTS
            {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
           );
 
-#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 100000)
+#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 100)
       for(long long i2 = 0; i2 < r2; i2++)
         for(long long j = 0; j < n; j++)
           for(long long i1 = 0; i1 < r1; i1++)

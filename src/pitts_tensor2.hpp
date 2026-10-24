@@ -239,7 +239,7 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       const long long r1 = a.r1(), r2 = a.r2();
-#pragma omp parallel for schedule(static) if(r1*r2 > 100000)
+#pragma omp parallel for schedule(static) if(r1*r2 > 100)
       for(long long j = 0; j < r2; j++)
         for(long long i = 0; i < r1; i++)
           b(i, j) = a(i, j);
@@ -263,7 +263,7 @@ namespace PITTS
       const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
 
       const long long r1 = b.r1(), r2 = b.r2();
-#pragma omp parallel for schedule(static) if(r1*r2 > 100000)
+#pragma omp parallel for schedule(static) if(r1*r2 > 100)
       for(long long j = 0; j < r2; j++)
         for(long long i = 0; i < r1; i++)
           b(i, j) = a(i, j);
