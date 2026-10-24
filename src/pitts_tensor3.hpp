@@ -239,6 +239,70 @@ namespace PITTS
   //! explicitly copy a Tensor3 object
   template<typename T>
   void copy(const Tensor3<T>& a, Tensor3<T>& b);
+
+  //! namespace for helper functionality
+  namespace internal
+  {
+    //! copy a Tensor3 into an array-like object with element access b(i1, j, i2)
+    //!
+    //! E.g. the mutable_unchecked<3>() proxy of a numpy array in pybind11 (any memory layout) or a lambda returning a
+    //! reference. b must already have the dimensions r1 x n x r2 (not checked: there is no common interface for the
+    //! shape). OpenMP parallel: writing different entries of b must be thread-safe.
+    //! (Defined here and not in the _impl.hpp: templated on the array type, so no explicit instantiation.)
+    //!
+    //! @tparam T       underlying data type (double, complex, ...)
+    //! @tparam Array3  type with an element access b(i1, j, i2) = value (long long indices)
+    //!
+    //! @param a  the tensor to copy
+    //! @param b  the destination
+    //!
+    template<typename T, typename Array3>
+      requires requires(Array3 b, const T value) { b(0LL, 0LL, 0LL) = value; }
+    void copyTo(const Tensor3<T>& a, Array3&& b)
+    {
+      const long long r1 = a.r1(), n = a.n(), r2 = a.r2();
+      const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+          {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
+          {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+           {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
+          );
+
+#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 100)
+      for(long long i2 = 0; i2 < r2; i2++)
+        for(long long j = 0; j < n; j++)
+          for(long long i1 = 0; i1 < r1; i1++)
+            b(i1, j, i2) = a(i1, j, i2);
+    }
+
+    //! copy an array-like object with element access a(i1, j, i2) into a Tensor3 (the counterpart of copyTo)
+    //!
+    //! E.g. the unchecked<3>() proxy of a numpy array in pybind11 (any memory layout). b must already have the dimensions
+    //! of a (resize it first). OpenMP parallel: reading different entries of a must be thread-safe.
+    //!
+    //! @tparam T       underlying data type (double, complex, ...)
+    //! @tparam Array3  type with an element access a(i1, j, i2) convertible to T (long long indices)
+    //!
+    //! @param a  the source
+    //! @param b  the destination tensor with the dimensions of a
+    //!
+    template<typename T, typename Array3>
+      requires requires(const Array3& a) { T(a(0LL, 0LL, 0LL)); }
+    void copyFrom(const Array3& a, Tensor3<T>& b)
+    {
+      const long long r1 = b.r1(), n = b.n(), r2 = b.r2();
+      const auto timer = PITTS::performance::createScopedTimer<Tensor3<T>>(
+          {{"r1", "n", "r2"}, {r1, n, r2}},   // arguments
+          {{r1*n*r2*kernel_info::NoOp<T>()},    // flops
+           {r1*n*r2*kernel_info::Store<T>() + r1*n*r2*kernel_info::Load<T>()}}  // data
+          );
+
+#pragma omp parallel for collapse(2) schedule(static) if(r1*n*r2 > 100)
+      for(long long i2 = 0; i2 < r2; i2++)
+        for(long long j = 0; j < n; j++)
+          for(long long i1 = 0; i1 < r1; i1++)
+            b(i1, j, i2) = a(i1, j, i2);
+    }
+  }
 }
 
 #ifndef PITTS_DEVELOP_BUILD
