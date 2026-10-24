@@ -233,6 +233,17 @@ class TestTensorTrainOperator(unittest.TestCase):
         np.testing.assert_array_almost_equal(t2_ref, ttOp.getSubTensor(1))
         np.testing.assert_array_almost_equal(t3_ref, ttOp.getSubTensor(2))
 
+    def test_setGetSubTensor_layouts(self):
+        """C order, Fortran order, a strided view and another dtype give the same sub-tensor; get returns Fortran order"""
+        ttOp = pitts_py.TensorTrainOperator_double([3,6,5],[2,7,2])
+        ttOp.setTTranks([4,3])
+        t2_ref = np.random.rand(4,12,7,3)
+        for t2 in (t2_ref[:,::2,:,:], np.ascontiguousarray(t2_ref[:,::2,:,:]), np.asfortranarray(t2_ref[:,::2,:,:]), t2_ref[:,::2,:,:].astype(np.float32)):
+            ttOp.setSubTensor(1, t2)
+            t2_get = ttOp.getSubTensor(1)
+            self.assertTrue(t2_get.flags.f_contiguous)
+            np.testing.assert_array_equal(t2.astype(np.float64), t2_get)
+
     def test_setGetSubTensor_large(self):
         ttOp = pitts_py.TensorTrainOperator_double([10,20,15],[10,15,10])
         ttOp.setTTranks([2,3])

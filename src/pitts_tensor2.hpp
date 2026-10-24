@@ -20,6 +20,7 @@
 #include <memory>
 #include "pitts_chunk.hpp"
 #include "pitts_timer.hpp"
+#include "pitts_performance.hpp"
 
 //! namespace for the library PITTS (parallel iterative tensor train solvers)
 namespace PITTS
@@ -236,9 +237,13 @@ namespace PITTS
       requires requires(Array2 b, const T value) { b(0LL, 0LL) = value; }
     void copyTo(const Tensor2<T>& a, Array2&& b)
     {
-      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-
       const long long r1 = a.r1(), r2 = a.r2();
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+          {{"r1", "r2"}, {r1, r2}},   // arguments
+          {{r1*r2*kernel_info::NoOp<T>()},    // flops
+           {r1*r2*kernel_info::Store<T>() + r1*r2*kernel_info::Load<T>()}}  // data
+          );
+
 #pragma omp parallel for schedule(static) if(r1*r2 > 100)
       for(long long j = 0; j < r2; j++)
         for(long long i = 0; i < r1; i++)
@@ -260,9 +265,13 @@ namespace PITTS
       requires requires(const Array2& a) { T(a(0LL, 0LL)); }
     void copyFrom(const Array2& a, Tensor2<T>& b)
     {
-      const auto timer = PITTS::timing::createScopedTimer<Tensor2<T>>();
-
       const long long r1 = b.r1(), r2 = b.r2();
+      const auto timer = PITTS::performance::createScopedTimer<Tensor2<T>>(
+          {{"r1", "r2"}, {r1, r2}},   // arguments
+          {{r1*r2*kernel_info::NoOp<T>()},    // flops
+           {r1*r2*kernel_info::Store<T>() + r1*r2*kernel_info::Load<T>()}}  // data
+          );
+
 #pragma omp parallel for schedule(static) if(r1*r2 > 100)
       for(long long j = 0; j < r2; j++)
         for(long long i = 0; i < r1; i++)

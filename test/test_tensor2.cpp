@@ -184,6 +184,7 @@ TEST(PITTS_Tensor2, ConstView)
       for (int i = 0; i < r1; i++)
         EXPECT_EQ(t2(i,j), t2view(i,j));
 }
+
 TEST(PITTS_Tensor2, copyTo_copyFrom_strided)
 {
   // row-major in a std::vector as an array-like object, small and large (OpenMP parallel) sizes
