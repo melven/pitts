@@ -58,16 +58,18 @@ namespace PITTS
 
       //! helper function to obtain a sub-tensor from a TensorTrainOperator
       template<typename T>
-      py::array_t<T> TensorTrainOperator_getSubTensor(const TensorTrainOperator<T>& TTOp, int d)
+      py::array_t<T, py::array::f_style> TensorTrainOperator_getSubTensor(const TensorTrainOperator<T>& TTOp, int d)
       {
         const auto& subT = TTOp.tensorTrain().subTensor(d);
-        py::array_t<T> array({(int)subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), (int)subT.r2()});
-
-        for(int i = 0; i < subT.r1(); i++)
-          for(int j = 0; j < TTOp.row_dimensions()[d]; j++)
-            for(int k = 0; k < TTOp.column_dimensions()[d]; k++)
-              for(int l = 0; l < subT.r2(); l++)
-                *array.mutable_data(i,j,k,l) = subT(i,TTOp.index(d, j, k), l);
+        const long long rows = TTOp.row_dimensions().at(d);
+        // Fortran order: the memory layout of the Tensor3 with the row index first (see TensorTrainOperator::index)
+        py::array_t<T, py::array::f_style> array({subT.r1(), rows, (long long)TTOp.column_dimensions().at(d), subT.r2()});
+        auto dst = array.template mutable_unchecked<4>();
+        {
+          // only the raw data of the numpy array is accessed
+          const py::gil_scoped_release releaseGil;
+          internal::copyTo(subT, [&dst, rows](long long i1, long long jk, long long i2) -> T& {return dst(i1, jk % rows, jk / rows, i2);});
+        }
         return array;
       }
 
@@ -78,16 +80,18 @@ namespace PITTS
         Tensor3<T> subT(TTOp.tensorTrain().subTensor(d).r1(), TTOp.tensorTrain().subTensor(d).n(), TTOp.tensorTrain().subTensor(d).r2());
         if( array.ndim() != 4 )
           throw std::invalid_argument("array must have 4 dimensions");
-        const std::vector<long long> required_shape = {subT.r1(), TTOp.row_dimensions().at(d), TTOp.column_dimensions().at(d), subT.r2()};
+        const long long rows = TTOp.row_dimensions().at(d);
+        const std::vector<long long> required_shape = {subT.r1(), rows, TTOp.column_dimensions().at(d), subT.r2()};
         const std::vector<long long> shape = {array.shape(), array.shape()+array.ndim()};
         if( shape != required_shape )
           throw std::invalid_argument("array has incompatible shape, expected " + to_string<long long>(required_shape) + ", got " + to_string<long long>(shape));
 
-        for(int i = 0; i < shape[0]; i++)
-          for(int j = 0; j < shape[1]; j++)
-            for(int k = 0; k < shape[2]; k++)
-              for(int l = 0; l < shape[3]; l++)
-                subT(i,TTOp.index(d, j, k), l) = *array.data(i,j,k,l);
+        const auto src = array.template unchecked<4>();
+        {
+          // only the raw data of the numpy array is accessed (any memory layout)
+          const py::gil_scoped_release releaseGil;
+          internal::copyFrom([&src, rows](long long i1, long long jk, long long i2) {return src(i1, jk % rows, jk / rows, i2);}, subT);
+        }
         TTOp.tensorTrain().setSubTensor(d, std::move(subT));
       }
 

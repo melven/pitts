@@ -61,15 +61,17 @@ namespace PITTS
 
       //! helper function to obtain a sub-tensor from a TensorTrain
       template<typename T>
-      py::array_t<T> TensorTrain_getSubTensor(const TensorTrain<T>& TT, int d)
+      py::array_t<T, py::array::f_style> TensorTrain_getSubTensor(const TensorTrain<T>& TT, int d)
       {
         const auto& subT = TT.subTensor(d);
-        py::array_t<T> array({subT.r1(), subT.n(), subT.r2()});
-
-        for(int i2 = 0; i2 < subT.r2(); i2++)
-          for(int j = 0; j < subT.n(); j++)
-            for(int i1 = 0; i1 < subT.r1(); i1++)
-              *array.mutable_data(i1,j,i2) = subT(i1,j,i2);
+        // Fortran order: the memory layout of Tensor3
+        py::array_t<T, py::array::f_style> array({subT.r1(), subT.n(), subT.r2()});
+        auto dst = array.template mutable_unchecked<3>();
+        {
+          // only the raw data of the numpy array is accessed
+          const py::gil_scoped_release releaseGil;
+          internal::copyTo(subT, dst);
+        }
         return array;
       }
 
@@ -82,11 +84,12 @@ namespace PITTS
         // the shape is checked by TensorTrain::setSubTensor: the first sub-tensor may change its left rank and the last
         // one its right rank (open boundary bonds, e.g. the half of a symmetric tensor)
         PITTS::Tensor3<T> subT(array.shape(0), array.shape(1), array.shape(2));
-
-        for(long long i2 = 0; i2 < subT.r2(); i2++)
-          for(long long j = 0; j < subT.n(); j++)
-            for(long long i1 = 0; i1 < subT.r1(); i1++)
-              subT(i1,j,i2) = *array.data(i1,j,i2);
+        const auto src = array.template unchecked<3>();
+        {
+          // only the raw data of the numpy array is accessed (any memory layout)
+          const py::gil_scoped_release releaseGil;
+          internal::copyFrom(src, subT);
+        }
 
         TT.setSubTensor(d, std::move(subT));
       }

@@ -5,7 +5,9 @@
 
 #include <gtest/gtest.h>
 #include "pitts_tensor2.hpp"
+#include <array>
 #include <type_traits>
+#include <vector>
 
 TEST(PITTS_Tensor2, type_traits)
 {
@@ -181,4 +183,38 @@ TEST(PITTS_Tensor2, ConstView)
     for (int j = 0; j < r2; j++)
       for (int i = 0; i < r1; i++)
         EXPECT_EQ(t2(i,j), t2view(i,j));
+}
+
+TEST(PITTS_Tensor2, copyTo_copyFrom_strided)
+{
+  // row-major in a std::vector as an array-like object, small and large (OpenMP parallel) sizes
+  for(const auto& dims: {std::array<long long,2>{3, 5}, std::array<long long,2>{300, 500}})
+  {
+    // (no structured binding: clang does not support capturing it in a lambda used in an OpenMP region)
+    const long long r1 = dims[0], r2 = dims[1];
+    PITTS::Tensor2<double> t2(r1, r2);
+    for(long long j = 0; j < r2; j++)
+      for(long long i = 0; i < r1; i++)
+        t2(i, j) = i + 1000*j;
+
+    std::vector<double> buffer(r1*r2, -1.);
+    const auto rowMajor = [&buffer, r2](long long i, long long j) -> double& {return buffer[i*r2 + j];};
+    PITTS::internal::copyTo(t2, rowMajor);
+    std::vector<double> expected(r1*r2);
+    for(long long i = 0; i < r1; i++)
+      for(long long j = 0; j < r2; j++)
+        expected[i*r2 + j] = i + 1000*j;
+    EXPECT_EQ(expected, buffer);
+
+    PITTS::Tensor2<double> t2b(r1, r2);
+    PITTS::internal::copyFrom(rowMajor, t2b);
+    std::vector<double> roundTrip, original;
+    for(long long j = 0; j < r2; j++)
+      for(long long i = 0; i < r1; i++)
+      {
+        roundTrip.push_back(t2b(i, j));
+        original.push_back(t2(i, j));
+      }
+    EXPECT_EQ(original, roundTrip);
+  }
 }
