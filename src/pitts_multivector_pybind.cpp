@@ -42,13 +42,17 @@ namespace PITTS
     namespace
     {
       //! helper function to copy PITTS::MultiVector into a numpy array
+      //! (Fortran order: the memory layout of Tensor2)
       template<typename T>
-      py::array_t<T> copy(const Tensor2<T>& buff)
+      py::array_t<T, py::array::f_style> copy(const Tensor2<T>& buff)
       {
-        py::array_t<T> result({buff.r1(), buff.r2()});
-        for(long long i = 0; i < buff.r1(); i++)
-          for(long long j = 0; j < buff.r2(); j++)
-            *result.mutable_data(i,j) = buff(i,j);
+        py::array_t<T, py::array::f_style> result({buff.r1(), buff.r2()});
+        auto dst = result.template mutable_unchecked<2>();
+        {
+          // only the raw data of the numpy array is accessed
+          const py::gil_scoped_release releaseGil;
+          internal::copyTo(buff, dst);
+        }
         return result;
       }
 
@@ -64,29 +68,24 @@ namespace PITTS
 
       //! helper function that wraps ttn_local_gradient_contract
       template<typename T>
-      py::array_t<T> wrap_ttn_local_gradient_contract(py::array_t<T> optTensor, const MultiVector<T>& envLeft, const MultiVector<T>& envRight, const MultiVector<T>& envTop, bool mpiParallel)
+      py::array_t<T, py::array::f_style> wrap_ttn_local_gradient_contract(py::array_t<T> optTensor, const MultiVector<T>& envLeft, const MultiVector<T>& envRight, const MultiVector<T>& envTop, bool mpiParallel)
       {
         if( optTensor.ndim() != 3 )
           throw std::invalid_argument("array must have 3 dimensions");
 
         Tensor3<T> optTensor_t3(optTensor.shape(0), optTensor.shape(1), optTensor.shape(2));
-        for(long long i2 = 0; i2 < optTensor_t3.r2(); i2++)
-          for(long long j = 0; j < optTensor_t3.n(); j++)
-            for(long long i1 = 0; i1 < optTensor_t3.r1(); i1++)
-              optTensor_t3(i1,j,i2) = *optTensor.data(i1,j,i2);
-
         Tensor3<T> gradOptTensor_t3(optTensor.shape(0), optTensor.shape(1), optTensor.shape(2));
+        // Fortran order: the memory layout of Tensor3
+        py::array_t<T, py::array::f_style> result({gradOptTensor_t3.r1(), gradOptTensor_t3.n(), gradOptTensor_t3.r2()});
+        const auto src = optTensor.template unchecked<3>();
+        auto dst = result.template mutable_unchecked<3>();
         {
-          // the data is copied to/from the numpy arrays outside of this block, see init_MultiVector_helper
+          // only the raw data of the numpy arrays is accessed
           const py::gil_scoped_release releaseGil;
+          internal::copyFrom(src, optTensor_t3);
           PITTS::ttn_local_gradient_contract(optTensor_t3, envLeft, envRight, envTop, gradOptTensor_t3, mpiParallel);
+          internal::copyTo(gradOptTensor_t3, dst);
         }
-
-        py::array_t<T> result({gradOptTensor_t3.r1(), gradOptTensor_t3.n(), gradOptTensor_t3.r2()});
-        for(long long i2 = 0; i2 < gradOptTensor_t3.r2(); i2++)
-          for(long long j = 0; j < gradOptTensor_t3.n(); j++)
-            for(long long i1 = 0; i1 < gradOptTensor_t3.r1(); i1++)
-              *result.mutable_data(i1,j,i2) = gradOptTensor_t3(i1,j,i2);
 
         return result;
       }

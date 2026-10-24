@@ -5,7 +5,9 @@
 
 #include <gtest/gtest.h>
 #include "pitts_tensor3.hpp"
+#include <array>
 #include <type_traits>
+#include <vector>
 
 TEST(PITTS_Tensor3, type_traits)
 {
@@ -179,4 +181,42 @@ TEST(PITTS_Tensor3, operator_indexing_large)
       {
         EXPECT_EQ(i*7*50+j*7+k, M(i,j,k));
       }
+}
+
+TEST(PITTS_Tensor3, copyTo_copyFrom_strided)
+{
+  // C order (i2 fastest) in a std::vector as an array-like object, small and large (OpenMP parallel) sizes
+  for(const auto& dims: {std::array<long long,3>{2, 3, 4}, std::array<long long,3>{30, 50, 80}})
+  {
+    // (no structured binding: clang does not support capturing it in a lambda used in an OpenMP region)
+    const long long r1 = dims[0], n = dims[1], r2 = dims[2];
+    PITTS::Tensor3<double> t3(r1, n, r2);
+    for(long long i2 = 0; i2 < r2; i2++)
+      for(long long j = 0; j < n; j++)
+        for(long long i1 = 0; i1 < r1; i1++)
+          t3(i1, j, i2) = i1 + 1000*j + 1000000*i2;
+
+    std::vector<double> buffer(r1*n*r2, -1.);
+    const auto cOrder = [&buffer, n, r2](long long i1, long long j, long long i2) -> double& {return buffer[(i1*n + j)*r2 + i2];};
+    PITTS::internal::copyTo(t3, cOrder);
+    std::vector<double> expected(r1*n*r2);
+    for(long long i1 = 0; i1 < r1; i1++)
+      for(long long j = 0; j < n; j++)
+        for(long long i2 = 0; i2 < r2; i2++)
+          expected[(i1*n + j)*r2 + i2] = i1 + 1000*j + 1000000*i2;
+    EXPECT_EQ(expected, buffer);
+
+    // and back (into a tensor of the same size)
+    PITTS::Tensor3<double> t3b(r1, n, r2);
+    PITTS::internal::copyFrom(cOrder, t3b);
+    std::vector<double> roundTrip, original;
+    for(long long i2 = 0; i2 < r2; i2++)
+      for(long long j = 0; j < n; j++)
+        for(long long i1 = 0; i1 < r1; i1++)
+        {
+          roundTrip.push_back(t3b(i1, j, i2));
+          original.push_back(t3(i1, j, i2));
+        }
+    EXPECT_EQ(original, roundTrip);
+  }
 }
