@@ -286,7 +286,7 @@ namespace PITTS
     }
 
     //! number of rows added per pass over B in maxvol_addRows (compile-time constant, e.g. 4 or 8)
-    constexpr int maxvolAddRowsBlockSize = 8;
+    constexpr int maxvolAddRowsBlockSize = 32;
 
     //! add rows to an oversampled selection until it has nRows rows, with C = B M only the small matrix M is updated (just for timings)
     //!
@@ -307,7 +307,7 @@ namespace PITTS
 
       using mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       using vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
-      constexpr int nCandidates = 4*BlockSize;
+      constexpr int nCandidates = 2*BlockSize;
 
       const long long m = B.r1();
       const long long r = B.r2();

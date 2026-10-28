@@ -28,6 +28,8 @@ PYBIND11_MODULE(pitts_py, m)
 {
   m.doc() = "Parallel Iterative Tensor Train Solvers (PITTS) library";
 
+  m.def_submodule("internal", "helper functionality");
+
   PITTS::pybind::init_QubitSimulator(m);
   PITTS::pybind::init_TensorTrain(m);
   PITTS::pybind::init_TensorTrainOperator(m);

@@ -258,6 +258,18 @@ namespace PITTS
             py::arg("outputPrefix")="", py::arg("verbose")=false,
             py::arg("nIter")=4, py::arg("pivoting")=true, py::arg("modified")=true, py::arg("skipDirs")=true,
             "Modified Gram-Schmidt orthogonalization algorithm in Tensor-Train format");
+
+        py::module m_internal = m.attr("internal").cast<py::module>();
+
+        m_internal.def("ensureLeftOrtho_range",
+            &internal::ensureLeftOrtho_range<T>,
+            py::arg("TT"), py::arg("firstIdx"), py::arg("lastIdx"),
+            "Ensure a subset of sub-tensors is left-orthogonal and call leftNormalize_range if it is not.");
+
+        m_internal.def("ensureRightOrtho_range",
+            &internal::ensureRightOrtho_range<T>,
+            py::arg("TT"), py::arg("firstIdx"), py::arg("lastIdx"),
+            "Ensure a subset of sub-tensors is right-orthogonal and call rightNormalize_range if it is not.");
       }
     }
 

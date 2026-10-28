@@ -92,11 +92,11 @@ namespace PITTS
           initialFrobeniusNorm = svd.singularValues().norm();
 
         int rank = internal::rankInFrobeniusNorm(svd, rankTolerance*initialFrobeniusNorm);
-        std::cout << "n: " << svd.singularValues().size() << ", rank: " << rank << ", maxRank: " << maxRank << ", rankTol*initialFrobeniusNorm: " << rankTolerance * initialFrobeniusNorm << "\n";
+        std::cout << "n: " << svd.singularValues().size() << ", rank: " << rank << ", maxRank: " << maxRank << ", rankTol: " << rankTolerance << ", initialFrobeniusNorm: " << initialFrobeniusNorm << "\n";
         if( maxRank >= 0 )
           rank = std::min(rank, maxRank);
 
-        //std::cout << "singular values: " << svd.singularValues().transpose()/initialFrobeniusNorm << "\n";
+        std::cout << "singular values: " << svd.singularValues().transpose()/initialFrobeniusNorm << "\n";
 
         // copy right singular vectors
         M.resize(X.cols(), rank);
