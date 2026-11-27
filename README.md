@@ -11,7 +11,7 @@ SPDX-License-Identifier: BSD-3-Clause
 PITTS--Parallel Iterative Tensor-Train Solvers--is a small header-only C++20 library for numerical algorithms with low-rank tensor approximations in *tensor train* form (TT format, see [3](#references) and [4](#references)).
 Algorithms are parallelized for multi-core CPU clusters using OpenMP and MPI.
 
-Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format, see [1](#references)), and methods for solving linear systems (symmetric and non-symmetric, see [2](#references)) in tensor-train format (TT-GMRES [5](#references), TT-MALS [6](#references), TT-AMEn [7](#references)).
+Currently provides a fast TT-SVD implementation (algorithm to compress a dense tensor in the TT format, see [1](#references)), and methods for solving linear systems (symmetric and non-symmetric, see [2](#references)) in tensor-train format (TT-GMRES [5](#references), TT-MALS [6](#references), TT-AMEn [7](#references), TT-cross [8](#references)).
 
 Bindings to other languages / libraries:
 * Python: complete functionality using pybind11 with numpy-compatible interface
@@ -127,6 +127,8 @@ pitts_py.randomize(tt)
 [6] Holtz, S., Rohwedder, T. and Schneider, R.: "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing, 2012, https://doi.org/10.1137/100818893
 
 [7] Dolgov, S. V. and Savostyanov, D. V.: "Alternating Minimal Energy Methods for Linear Systems in Higher Dimensions" SIAM Journal on Scientific Computing, 2014, http://doi.org/10.1137/140953289
+
+[8] Oseledets, I. V. , Tyrtyshnikov, E.: "TT-cross approximation for multidimensional arrays", Linear Algebra and its Applications, 2010, http://10.1016/j.laa.2009.07.024
 
 ## Contributing
 
